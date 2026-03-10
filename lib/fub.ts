@@ -10,6 +10,8 @@ export interface FubPerson {
   firstName?: string
   lastName?: string
   phone?: string
+  /** FUB custom fields (see docs/fub-setup.md). */
+  customFields?: Record<string, string | number | boolean | null>
 }
 
 /**
@@ -45,12 +47,13 @@ export async function pushToFub(
   if (person.phone?.trim()) {
     personPayload.phones = [{ value: person.phone.trim() }]
   }
+  const personWithCustom = { ...personPayload, ...(person.customFields && Object.keys(person.customFields).length > 0 ? person.customFields : {}) }
 
   const body = {
     type: eventType,
     source,
     system: 'ryan-realty-platform',
-    person: personPayload,
+    person: personWithCustom,
     ...(properties && Object.keys(properties).length > 0 ? properties : {}),
   }
 

@@ -12,6 +12,8 @@ import { precomputeCMA } from './precomputeCMA'
 import { computeMarketStats } from './computeMarketStats'
 import { computeBrokerStats } from './computeBrokerStats'
 import { generateBlogPost } from './generateBlogPost'
+import { computeLeadScores } from './computeLeadScores'
+import { leadWorkflows } from './leadWorkflows'
 
 export const functions = [
   initialFullSync,
@@ -26,4 +28,6 @@ export const functions = [
   computeMarketStats,
   computeBrokerStats,
   generateBlogPost,
+  computeLeadScores,
+  ...leadWorkflows,
 ]
