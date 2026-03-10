@@ -92,9 +92,17 @@
 .animate-hero-ken-burns {
   animation: hero-ken-burns 20s ease-in-out infinite alternate;
 }
+/* Respect reduced motion globally */
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-ken-burns {
     animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

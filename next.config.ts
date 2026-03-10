@@ -1,5 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
+// PWA: Serwist requires webpack. Next 16 defaults to Turbopack; use `next build --webpack` to enable SW.
+// Manifest + offline page + InstallPrompt work without the service worker.
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -20,6 +22,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

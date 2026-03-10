@@ -21,6 +21,7 @@ import GTMHead from "../components/GTMHead";
 import GTMBody from "../components/GTMBody";
 import { ComparisonProvider } from "../contexts/ComparisonContext";
 import ComparisonTray from "../components/comparison/ComparisonTray";
+import InstallPrompt from "../components/pwa/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,7 +67,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#ffffff",
+  themeColor: "#102742",
 };
 
 export default async function RootLayout({
@@ -92,23 +93,28 @@ export default async function RootLayout({
     <html lang="en">
       <head>
         <GTMHead />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden antialiased`}
       >
         <GTMBody />
         <ComparisonProvider>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:p-4 focus:bg-white focus:text-[var(--brand-navy)]">
+            Skip to main content
+          </a>
           <GoogleAnalytics />
           <MetaPixel />
           <JsonLd />
           <Header user={session?.user} brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} />
-          <div className="min-h-[calc(100vh-120px)]">{children}</div>
+          <div id="main-content" tabIndex={-1} className="min-h-[calc(100vh-120px)]">{children}</div>
           <Footer brokerageName={brokerageName} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
           <ComparisonTray />
           <CookieConsentBanner />
         <Suspense fallback={null}>
           <SignInPrompt user={session?.user ?? null} />
         </Suspense>
+        <InstallPrompt />
         <VisitTracker userId={session?.user?.id ?? null} userEmail={session?.user?.email ?? null} />
         <Suspense fallback={null}>
           <FubIdentityBridge />
