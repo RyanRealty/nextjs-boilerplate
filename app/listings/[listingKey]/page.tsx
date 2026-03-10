@@ -9,6 +9,7 @@ import ListingTracker from '@/components/listing/ListingTracker'
 import OpenHouseBanner from '@/components/listing/OpenHouseBanner'
 import ListingDescription from '@/components/listing/ListingDescription'
 import PropertyDetails from '@/components/listing/PropertyDetails'
+import LeadPaintNotice from '@/components/listing/LeadPaintNotice'
 import PaymentCalculator from '@/components/listing/PaymentCalculator'
 import PriceHistory from '@/components/listing/PriceHistory'
 import AgentCard from '@/components/listing/AgentCard'
@@ -163,6 +164,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 directions={listing.directions ?? undefined}
               />
               <PropertyDetails listing={listing} community={community} />
+              <LeadPaintNotice yearBuilt={listing.year_built ?? null} />
               <PaymentCalculator
                 listPrice={listing.list_price ?? 0}
                 taxAmount={listing.tax_amount ?? undefined}

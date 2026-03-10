@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import EqualHousing from '@/components/legal/EqualHousing'
+import MLSAttribution from '@/components/legal/MLSAttribution'
 
 const FALLBACK_NAME = process.env.NEXT_PUBLIC_SITE_OWNER_NAME ?? 'Ryan Realty'
 const FALLBACK_EMAIL = process.env.NEXT_PUBLIC_SITE_OWNER_EMAIL
@@ -144,20 +146,29 @@ export default function Footer({
         </div>
 
         <div className="mt-12 border-t border-white/20 pt-8">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="flex flex-col items-center gap-4 text-center sm:items-center sm:text-center">
+            <EqualHousing className="text-[var(--brand-cream)]" />
+            <MLSAttribution compact />
+          </div>
+          <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <p className="text-sm text-white/80">
-              © {currentYear} {name}. All rights reserved.
+              © 2026 {name}. All rights reserved.
             </p>
-            <div className="flex items-center gap-6">
-              <span className="text-sm text-white/80" title="Equal Housing Opportunity">
-                Equal Housing Opportunity
-              </span>
-              <span className="text-sm text-white/60">MLS listings</span>
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
               <Link href="/privacy" className="text-sm text-[var(--brand-cream)] hover:text-white">
                 Privacy
               </Link>
               <Link href="/terms" className="text-sm text-[var(--brand-cream)] hover:text-white">
                 Terms
+              </Link>
+              <Link href="/fair-housing" className="text-sm text-[var(--brand-cream)] hover:text-white">
+                Fair Housing
+              </Link>
+              <Link href="/dmca" className="text-sm text-[var(--brand-cream)] hover:text-white">
+                DMCA
+              </Link>
+              <Link href="/accessibility" className="text-sm text-[var(--brand-cream)] hover:text-white">
+                Accessibility
               </Link>
             </div>
           </div>
