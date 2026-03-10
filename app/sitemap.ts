@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getBrowseCities, getSubdivisionsInCity } from './actions/listings'
 import { cityEntityKey } from '../lib/slug'
 import { listMarketReports } from './actions/market-reports'
+import { getPublishedBlogPosts } from './actions/blog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
@@ -14,6 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/reports`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     { url: `${baseUrl}/tools/mortgage-calculator`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
+    { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${baseUrl}/sell`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ]
 
   const cities = await getBrowseCities()
@@ -60,5 +65,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   }
 
-  return [...staticPages, ...cityPages, ...subdivisionPages, ...reportPages, ...listingPages]
+  const { posts } = await getPublishedBlogPosts({ limit: 500, offset: 0 })
+  const blogPages: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${baseUrl}/blog/${p.slug}`,
+    lastModified: p.published_at ? new Date(p.published_at) : new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.5,
+  }))
+
+  return [...staticPages, ...cityPages, ...subdivisionPages, ...reportPages, ...listingPages, ...blogPages]
 }

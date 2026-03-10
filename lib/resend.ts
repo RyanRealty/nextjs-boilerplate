@@ -66,3 +66,28 @@ export async function sendBatchEmails(
   }
   return results
 }
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? process.env.RESEND_ADMIN_EMAIL ?? ''
+
+export async function sendContactNotification(params: {
+  name: string
+  email: string
+  phone?: string
+  inquiryType?: string
+  message?: string
+}): Promise<{ id?: string; error?: string }> {
+  if (!ADMIN_EMAIL) return { error: 'No admin email' }
+  const body = [
+    `Name: ${params.name}`,
+    `Email: ${params.email}`,
+    params.phone ? `Phone: ${params.phone}` : '',
+    params.inquiryType ? `Inquiry: ${params.inquiryType}` : '',
+    params.message ? `Message: ${params.message}` : '',
+  ].filter(Boolean).join('\n')
+  return sendEmail({
+    to: ADMIN_EMAIL,
+    subject: `Contact form: ${params.inquiryType ?? 'General'} from ${params.name}`,
+    text: body,
+    replyTo: params.email,
+  })
+}

@@ -11,6 +11,7 @@ import { processNotifications } from './processNotifications'
 import { precomputeCMA } from './precomputeCMA'
 import { computeMarketStats } from './computeMarketStats'
 import { computeBrokerStats } from './computeBrokerStats'
+import { generateBlogPost } from './generateBlogPost'
 
 export const functions = [
   initialFullSync,
@@ -24,4 +25,5 @@ export const functions = [
   precomputeCMA,
   computeMarketStats,
   computeBrokerStats,
+  generateBlogPost,
 ]
