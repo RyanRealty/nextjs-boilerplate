@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getSetupComplete } from '../actions/admin-setup'
 import {
   getDashboardSyncData,
   getDashboardLeadData,
@@ -13,6 +15,9 @@ import DashboardNotificationsPanel from '../../components/admin/DashboardNotific
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
+  const setupComplete = await getSetupComplete()
+  if (!setupComplete) redirect('/admin/setup')
+
   const [syncData, leadData, dataQuality] = await Promise.all([
     getDashboardSyncData(),
     getDashboardLeadData(),

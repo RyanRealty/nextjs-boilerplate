@@ -13,6 +13,7 @@
     "db:push": "supabase db push",
     "db:migration": "supabase migration new",
     "sync:full": "node scripts/run-full-sync.mjs",
+    "test": "vitest run",
     "test:history": "node scripts/test-listing-history.mjs",
     "vercel:env": "node scripts/sync-vercel-env.mjs"
   },
@@ -45,6 +46,7 @@
     "serwist": "^9.5.6",
     "supabase": "^2.76.16",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }

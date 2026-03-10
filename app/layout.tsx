@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { validateEnv, logOptionalEnv } from "@/lib/env";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -75,6 +76,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const envCheck = validateEnv();
+  if (!envCheck.ok) {
+    console.error('[env] Missing required build vars:', envCheck.missing.join(', '));
+  }
+  logOptionalEnv();
+
   const [session, brokerage] = await Promise.all([
     getSession(),
     getBrokerageSettings(),
