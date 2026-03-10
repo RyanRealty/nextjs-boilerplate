@@ -11,7 +11,7 @@ export default async function AdminLayout({
 }) {
   const session = await getSession()
   if (!session?.user) {
-    redirect(`/auth-error?message=${encodeURIComponent('Please sign in to access the admin.')}&next=${encodeURIComponent('/admin')}`)
+    redirect('/admin/login')
   }
   const adminRole = await getAdminRoleForEmail(session.user.email)
   if (!adminRole) {
