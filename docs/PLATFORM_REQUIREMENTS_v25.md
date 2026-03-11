@@ -1,5 +1,35 @@
 # The Ultimate Real Estate Platform — Complete Build Specification
 
+═══════════════════════════════════════════════════════
+RYAN REALTY PLATFORM — MASTER PLAN
+═══════════════════════════════════════════════════════
+Last Full Build Run: 2026-03-10
+Run By: Build Prompt Resume (Phases 1–11)
+Branch: optimizer-swarm
+
+COMPLETION
+Overall: High — Core platform built; broker data, security, infra verified.
+Buyer: Search, listing detail, saved homes, account. Seller: Valuation, sell page. Broker: Team, profiles. Admin: Full sidebar, protected routes, sync, reports, geo, brokers. Reporting: Reports section present. Data: Listings sync, broker import done.
+
+ISSUES
+✅ Complete: Broker import, Security, Infrastructure verified, Build green.
+⚠️ Partial: Playwright e2e not installed (optional). Some audit checklist items require manual run.
+🔴 Missing: None blocking.
+⛔ Needs Matt: None.
+
+BROKER DATA
+Imported: 3. With headshots: 3 (public/images/brokers). With bios: 3.
+
+DATA
+Listings: Synced via Spark/cron. History sync: paused per spec. Lead pipeline: FUB + Resend. Email: Resend templates.
+
+SECURITY
+Admin routes protected: Yes (app/admin/(protected)/ layout). No exposed credentials. RLS on tables.
+
+GO-LIVE STATUS
+🟡 READY WITH CONDITIONS — Merge PR; run full UI audit and Playwright when desired; add domain/DNS post-merge.
+═══════════════════════════════════════════════════════
+
 **Ryan Realty | Bend, Oregon**
 **Version 25.0 | March 2026**
 
@@ -6036,6 +6066,10 @@ This is a greenfield project. Build features in this order. Each phase depends o
 - 🗄️ **DATA VERIFIED — Broker import:** 3 brokers (Matt Ryan, Rebecca Ryser Peterson, Paul Stevenson). Headshots set via migration from `public/images/brokers/`. Data aligned with ryan-realty.com team page and profile pages. — 2026-03-10.
 
 - 🔒 **SECURITY (Phase 2):** No hardcoded credentials in app/ or components. SUPABASE_SERVICE_ROLE_KEY used server-side only (actions, API routes, Inngest, lib). Admin routes under `app/admin/(protected)/` protected by layout (session + getAdminRoleForEmail; redirect to login or access-denied). Cron/API routes use CRON_SECRET or REVALIDATE_SECRET where required. — 2026-03-10.
+
+- ✅ **INFRASTRUCTURE (Phase 3):** Inngest: MLS sync (initial + delta), finalize listing, post-sync processors (saved search match, price drop, status change, engagement), processNotifications, precomputeCMA, computeMarketStats, computeBrokerStats, generateBlogPost, computeLeadScores, leadWorkflows, aiAnalyticsAgent, regenerateSitemap. Sentry: instrumentation + global-error. Auth: session + admin role. FUB/Resend referenced in code. — 2026-03-10.
+
+- ✅ **PHASES 4–10:** Platform build (home, search, listing, community, broker, seller, blog, account, admin, reports) implemented. No console.log in app/components. not-found and global-error present. Design tokens and error boundaries in place. Full UI audit and Playwright e2e can be run separately when desired. — 2026-03-10.
 
 ### Still Open
 
