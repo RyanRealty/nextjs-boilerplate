@@ -6035,6 +6035,8 @@ This is a greenfield project. Build features in this order. Each phase depends o
 
 - 🗄️ **DATA VERIFIED — Broker import:** 3 brokers (Matt Ryan, Rebecca Ryser Peterson, Paul Stevenson). Headshots set via migration from `public/images/brokers/`. Data aligned with ryan-realty.com team page and profile pages. — 2026-03-10.
 
+- 🔒 **SECURITY (Phase 2):** No hardcoded credentials in app/ or components. SUPABASE_SERVICE_ROLE_KEY used server-side only (actions, API routes, Inngest, lib). Admin routes under `app/admin/(protected)/` protected by layout (session + getAdminRoleForEmail; redirect to login or access-denied). Cron/API routes use CRON_SECRET or REVALIDATE_SECRET where required. — 2026-03-10.
+
 ### Still Open
 
 - ✅ AI chat branding: name is **"Ask Ryan"** at launch (configurable in `settings` table for future multi-tenant use). Resolved — see Section 11.2.
