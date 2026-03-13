@@ -2,8 +2,9 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { subdivisionEntityKey, slugify } from '@/lib/slug'
+import { getSubdivisionMatchNames } from '@/lib/subdivision-aliases'
 import { parseCommunitySlug } from '@/lib/community-slug'
-import { getBannerUrl } from '@/app/actions/banners'
+import { getBannerUrl, getOrCreatePlaceBanner, getBannerSearchQuery } from '@/app/actions/banners'
 import { getCityMarketStats } from '@/app/actions/listings'
 import type { CityMarketStats } from '@/app/actions/listings'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
@@ -95,17 +96,11 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
   const { city, subdivision } = parsed
   const entityKey = subdivisionEntityKey(city, subdivision)
   const sb = supabase()
-  const [stats, countRes, communityRow] = await Promise.all([
+  const [stats, communityRow] = await Promise.all([
     getCityMarketStats({ city, subdivision }),
-    sb
-      .from('listings')
-      .select('ListPrice', { count: 'exact', head: true })
-      .ilike('City', city)
-      .ilike('SubdivisionName', subdivision)
-      .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'),
-    sb.from('communities').select('id, name, slug, description, hero_image_url, boundary_geojson, is_resort, resort_content').ilike('name', subdivision).maybeSingle(),
+    sb.from('communities').select('id, name, slug, description, hero_image_url, boundary_geojson, is_resort, resort_content, neighborhood_id, neighborhoods(name, slug)').ilike('name', subdivision).maybeSingle(),
   ])
-  const activeCount = countRes.count ?? 0
+  const activeCount = stats.count
   const comm = communityRow.data as {
     name?: string
     description?: string | null
@@ -113,14 +108,23 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
     boundary_geojson?: unknown
     is_resort?: boolean
     resort_content?: Record<string, unknown> | null
+    neighborhood_id?: string | null
+    neighborhoods?: { name: string; slug: string } | null
   } | null
-  const bannerUrl = await getBannerUrl('subdivision', entityKey)
+  let bannerUrl = await getBannerUrl('subdivision', entityKey)
   const flags = await listSubdivisionsWithFlags()
   const isResort = flags.some((f) => f.entity_key === entityKey && f.is_resort) || comm?.is_resort === true
+  if (!bannerUrl) {
+    const searchQuery = getBannerSearchQuery('subdivision', subdivision, city, isResort)
+    const created = await getOrCreatePlaceBanner('subdivision', entityKey, searchQuery)
+    bannerUrl = created.url ?? null
+  }
+  const citySlug = slugify(city)
   return {
     slug,
     entityKey,
     city,
+    citySlug,
     subdivision,
     name: comm?.name ?? subdivision,
     description: comm?.description ?? null,
@@ -130,8 +134,40 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
     resortContent: comm?.resort_content ?? null,
     activeCount,
     medianPrice: stats.medianPrice,
-    avgDom: null,
+    avgDom: stats.avgDom ?? null,
     closedLast12Months: stats.closedLast12Months,
+    neighborhoodName: comm?.neighborhoods?.name ?? null,
+    neighborhoodSlug: comm?.neighborhoods?.slug ?? null,
+  }
+}
+
+/**
+ * Lightweight lookup: given a subdivision name, return its neighborhood and city slug.
+ * Used by listing detail page to build the full breadcrumb hierarchy.
+ * Returns null if the subdivision has no community record or no neighborhood.
+ */
+export async function getSubdivisionNeighborhood(subdivisionName: string): Promise<{
+  neighborhoodName: string
+  neighborhoodSlug: string
+  citySlug: string
+} | null> {
+  const sb = supabase()
+  const { data } = await sb
+    .from('communities')
+    .select('neighborhoods(name, slug), cities(slug)')
+    .ilike('name', subdivisionName)
+    .not('neighborhood_id', 'is', null)
+    .limit(1)
+    .maybeSingle()
+  const row = data as {
+    neighborhoods?: { name: string; slug: string } | null
+    cities?: { slug: string } | null
+  } | null
+  if (!row?.neighborhoods?.name || !row?.neighborhoods?.slug) return null
+  return {
+    neighborhoodName: row.neighborhoods.name,
+    neighborhoodSlug: row.neighborhoods.slug,
+    citySlug: row.cities?.slug ?? '',
   }
 }
 
@@ -170,14 +206,17 @@ export async function getCommunityListings(
   limit: number
 ): Promise<ListingRow[]> {
   const sb = supabase()
-  const { data } = await sb
+  const names = getSubdivisionMatchNames(subdivision)
+  let query = sb
     .from('listings')
     .select(HOME_TILE_SELECT)
     .ilike('City', city)
-    .ilike('SubdivisionName', subdivision)
     .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
     .limit(limit)
+  if (names.length === 1) query = query.ilike('SubdivisionName', names[0]!)
+  else if (names.length > 1) query = query.or(names.map((n) => `SubdivisionName.ilike.${n}`).join(','))
+  const { data } = await query
   return (data ?? []) as ListingRow[]
 }
 
@@ -188,19 +227,22 @@ export async function getCommunitySoldListings(
   limit: number
 ): Promise<(ListingRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
   const sb = supabase()
-  const { data } = await sb
+  const names = getSubdivisionMatchNames(subdivision)
+  let query = sb
     .from('listings')
     .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
     .ilike('City', city)
-    .ilike('SubdivisionName', subdivision)
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)
     .order('CloseDate', { ascending: false, nullsFirst: false })
     .limit(limit)
+  if (names.length === 1) query = query.ilike('SubdivisionName', names[0]!)
+  else if (names.length > 1) query = query.or(names.map((n) => `SubdivisionName.ilike.${n}`).join(','))
+  const { data } = await query
   return (data ?? []) as (ListingRow & { ClosePrice?: number | null; CloseDate?: string | null })[]
 }
 
-/** Median price per month for last 12 months (from listings or reporting_cache). */
+/** Median price per month for last 12 months (reporting_cache; fallback from closed listings when cache has fewer than 2 points). */
 export async function getCommunityPriceHistory(
   city: string,
   subdivision: string
@@ -209,18 +251,48 @@ export async function getCommunityPriceHistory(
   const { data } = await sb
     .from('reporting_cache')
     .select('period_start, metrics')
-    .eq('geo_type', 'subdivision')
-    .eq('geo_name', subdivision)
-    .eq('period_type', 'month')
+    .eq('geo_type', 'community')
+    .ilike('geo_name', subdivision)
+    .eq('period_type', 'monthly')
     .order('period_start', { ascending: true })
     .limit(12)
   const rows = (data ?? []) as { period_start?: string; metrics?: { median_price?: number } }[]
-  return rows
+  const fromCache = rows
     .filter((r) => r.metrics?.median_price != null)
-    .map((r) => ({
-      month: r.period_start ?? '',
-      medianPrice: r.metrics!.median_price!,
-    }))
+    .map((r) => ({ month: r.period_start ?? '', medianPrice: r.metrics!.median_price! }))
+  if (fromCache.length >= 2) return fromCache
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
+  const names = getSubdivisionMatchNames(subdivision)
+  let closedQuery = sb
+    .from('listings')
+    .select('ListPrice, CloseDate')
+    .ilike('City', city)
+    .ilike('StandardStatus', '%Closed%')
+    .not('CloseDate', 'is', null)
+    .gte('CloseDate', twelveMonthsAgo.toISOString().slice(0, 7))
+    .limit(2000)
+  if (names.length === 1) closedQuery = closedQuery.ilike('SubdivisionName', names[0]!)
+  else if (names.length > 1) closedQuery = closedQuery.or(names.map((n) => `SubdivisionName.ilike.${n}`).join(','))
+  const { data: closed } = await closedQuery
+  const byMonth = new Map<string, number[]>()
+  for (const r of (closed ?? []) as { ListPrice?: number | null; CloseDate?: string }[]) {
+    const p = Number(r.ListPrice)
+    const d = r.CloseDate?.slice(0, 7)
+    if (!d || !Number.isFinite(p) || p <= 0) continue
+    const arr = byMonth.get(d) ?? []
+    arr.push(p)
+    byMonth.set(d, arr)
+  }
+  const fallback = Array.from(byMonth.entries())
+    .map(([month, prices]) => {
+      prices.sort((a, b) => a - b)
+      const mid = Math.floor(prices.length / 2)
+      const medianPrice = prices.length % 2 ? prices[mid]! : Math.round((prices[mid - 1]! + prices[mid]!) / 2)
+      return { month, medianPrice }
+    })
+    .sort((a, b) => a.month.localeCompare(b.month))
+  return fallback.length >= 2 ? fallback : fromCache
 }
 
 /** Market stats for community (reuse getCityMarketStats with subdivision). */

@@ -7,22 +7,37 @@ import {
   getCommunityPriceHistory,
   getCommunityMarketStats,
 } from '@/app/actions/communities'
+import { getCommunitiesInCity } from '@/app/actions/cities'
+import { getActivityFeed } from '@/app/actions/activity-feed'
+import { getActiveBrokers } from '@/app/actions/brokers'
+import { isCommunitySaved, getSavedCommunityKeys } from '@/app/actions/saved-communities'
+import { isCommunityLiked, getLikedCommunityKeys } from '@/app/actions/community-engagement'
+import { shareDescription, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '@/lib/share-metadata'
 import { getSession } from '@/app/actions/auth'
+import { incrementCommunityView } from '@/app/actions/community-engagement'
 import { getSavedListingKeys } from '@/app/actions/saved-listings'
-import { trackPageView } from '@/lib/followupboss'
+import { trackPageViewIfPossible } from '@/lib/followupboss'
+import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { getLikedListingKeys } from '@/app/actions/likes'
 import { getBuyingPreferences } from '@/app/actions/buying-preferences'
 import { DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
+import { homesForSalePath, neighborhoodPagePath } from '@/lib/slug'
+import { getResortCommunityContent, buildDataDrivenCommunityAbout } from '@/lib/community-content'
 import CommunityHero from '@/components/community/CommunityHero'
 import CommunityOverview from '@/components/community/CommunityOverview'
 import CommunityMarketStats from '@/components/community/CommunityMarketStats'
-import CommunityListings from '@/components/community/CommunityListings'
-import CommunityMap from '@/components/community/CommunityMap'
-import CommunityContext from '@/components/community/CommunityContext'
-import CommunityCTA from '@/components/community/CommunityCTA'
 import CommunityPageTracker from '@/components/community/CommunityPageTracker'
+import BreadcrumbStrip from '@/components/layout/BreadcrumbStrip'
+import { fetchPlacePhoto } from '@/lib/photo-api'
+import CommunityPageActionBar from '@/components/geo-page/CommunityPageActionBar'
+import ListingsSlider from '@/components/geo-page/ListingsSlider'
+import GeoCTAWithBroker from '@/components/geo-page/GeoCTAWithBroker'
+import GeoSectionNewestListings from '@/components/geo-page/GeoSectionNewestListings'
+import GeoSectionPopularCommunities from '@/components/geo-page/GeoSectionPopularCommunities'
+import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
+import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -31,15 +46,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const community = await getCommunityBySlug(slug)
   if (!community) return { title: 'Community Not Found' }
   const title = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
-  const description = community.activeCount > 0
+  const rawDesc = community.activeCount > 0
     ? `${community.activeCount} homes for sale in ${community.name}. Median price ${community.medianPrice != null ? `$${community.medianPrice.toLocaleString()}` : '—'}. Explore listings and market stats.`
     : `Explore ${community.name} in ${community.city}, Oregon. Community info and market overview.`
+  const description = shareDescription(rawDesc)
   const canonical = `${siteUrl}/communities/${slug}`
+  const ogImage = community.heroImageUrl
   return {
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical, siteName: 'Ryan Realty', type: 'website' },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName: 'Ryan Realty',
+      type: 'website',
+      ...(ogImage && { images: [{ url: ogImage, width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT, alt: `${community.name}, ${community.city} — Ryan Realty` }] }),
+    },
     twitter: { card: 'summary_large_image', title, description },
   }
 }
@@ -51,13 +75,14 @@ export default async function CommunityDetailPage({ params }: Props) {
   const community = await getCommunityBySlug(slug)
   if (!community) notFound()
 
-  const session = await getSession()
+  await incrementCommunityView(community.entityKey).catch(() => {})
+
+  const [session, fubPersonId] = await Promise.all([getSession(), getFubPersonIdFromCookie()])
   const pageUrl = `${siteUrl}/communities/${slug}`
   const pageTitle = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
-  if (session?.user?.email) {
-    trackPageView({ user: session.user, pageUrl, pageTitle }).catch(() => {})
-  }
-  const [listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs] =
+  trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
+  const citySlug = community.city.toLowerCase().replace(/\s+/g, '-')
+  const [listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys] =
     await Promise.all([
       getCommunityListings(community.city, community.subdivision, 24),
       getCommunitySoldListings(community.city, community.subdivision, 6),
@@ -66,6 +91,13 @@ export default async function CommunityDetailPage({ params }: Props) {
       session?.user ? getSavedListingKeys() : Promise.resolve([]),
       session?.user ? getLikedListingKeys() : Promise.resolve([]),
       session?.user ? getBuyingPreferences().catch(() => null) : Promise.resolve(null),
+      getCommunitiesInCity(community.city),
+      getActivityFeed({ city: community.city, subdivision: community.subdivision, limit: 24 }),
+      getActiveBrokers(),
+      session?.user ? isCommunitySaved(community.entityKey) : Promise.resolve(false),
+      session?.user ? isCommunityLiked(community.entityKey) : Promise.resolve(false),
+      session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
+      session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
     ])
 
   const displayPrefs = prefs ?? {
@@ -73,6 +105,45 @@ export default async function CommunityDetailPage({ params }: Props) {
     interestRate: DEFAULT_DISPLAY_RATE,
     loanTermYears: DEFAULT_DISPLAY_TERM_YEARS,
   }
+
+  const prices = listings
+    .map((l) => l.ListPrice)
+    .filter((p): p is number => p != null && Number.isFinite(p) && p > 0)
+  const minPrice = prices.length > 0 ? Math.min(...prices) : null
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : null
+  const propertyTypes = Array.from(
+    new Set(listings.map((l) => (l as { PropertyType?: string }).PropertyType).filter(Boolean))
+  ) as string[]
+  const lotSizes = listings
+    .map((l) => (l as { LotSizeAcres?: number; LotSizeSqFt?: number }).LotSizeAcres ?? (l as { LotSizeSqFt?: number }).LotSizeSqFt)
+    .filter((n): n is number => n != null && Number.isFinite(n) && n > 0)
+  const avgLot = lotSizes.length > 0 ? lotSizes.reduce((a, b) => a + b, 0) / lotSizes.length : null
+  const years = listings
+    .map((l) => (l as { YearBuilt?: number }).YearBuilt)
+    .filter((n): n is number => n != null && Number.isFinite(n) && n > 0)
+  const yearRange = years.length > 0 ? { min: Math.min(...years), max: Math.max(...years) } : null
+  const hasHoa = listings.some((l) => (l as { AssociationYN?: boolean }).AssociationYN === true)
+  const hasWaterfront = listings.some((l) => (l as { WaterfrontYN?: boolean }).WaterfrontYN === true)
+
+  const resortStaticContent = getResortCommunityContent(community.city, community.subdivision)
+  const dataDrivenParagraphs =
+    !resortStaticContent && (!community.description || community.description.trim().length < 180)
+      ? buildDataDrivenCommunityAbout({
+          communityName: community.name,
+          city: community.city,
+          isResort: community.isResort,
+          activeCount: community.activeCount,
+          medianPrice: community.medianPrice,
+          minPrice: minPrice ?? null,
+          maxPrice: maxPrice ?? null,
+          propertyTypes,
+          avgLotAcres: avgLot,
+          yearBuiltMin: yearRange?.min ?? null,
+          yearBuiltMax: yearRange?.max ?? null,
+          hasHoa,
+          hasWaterfront,
+        })
+      : undefined
 
   const centroid = (() => {
     const withCoords = listings.filter(
@@ -142,6 +213,40 @@ export default async function CommunityDetailPage({ params }: Props) {
         medianPrice={community.medianPrice}
         avgDom={community.avgDom}
         isResort={community.isResort}
+        actions={
+          <CommunityPageActionBar
+            entityKey={community.entityKey}
+            communityName={community.name}
+            cityName={community.city}
+            initialSaved={communitySaved}
+            initialLiked={communityLiked}
+            signedIn={!!session?.user}
+            shareUrl={`${siteUrl}/communities/${slug}`}
+            variant="overlay"
+          />
+        }
+      />
+
+      <BreadcrumbStrip
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Cities', href: '/cities' },
+          { label: community.city, href: `/cities/${citySlug}` },
+          ...(community.neighborhoodName && community.neighborhoodSlug
+            ? [{ label: community.neighborhoodName, href: neighborhoodPagePath(citySlug, community.neighborhoodSlug) }]
+            : []),
+          { label: community.name },
+        ]}
+      />
+
+      <ListingsSlider
+        title="Homes for sale in this community"
+        listings={listings}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        placeName={community.name}
       />
 
       <CommunityOverview
@@ -151,6 +256,8 @@ export default async function CommunityDetailPage({ params }: Props) {
         communityName={community.name}
         city={community.city}
         listings={listings}
+        resortStaticContent={resortStaticContent}
+        dataDrivenParagraphs={dataDrivenParagraphs}
       />
 
       <CommunityMarketStats
@@ -165,33 +272,48 @@ export default async function CommunityDetailPage({ params }: Props) {
         priceHistory={priceHistory}
       />
 
-      <CommunityListings
-        communityName={community.name}
-        slug={slug}
-        city={community.city}
-        subdivision={community.subdivision}
+      <GeoSectionNewestListings
+        title="Newest listings"
         listings={listings}
-        soldListings={soldListings}
+        viewAllHref={homesForSalePath(community.city, community.subdivision)}
+        viewAllLabel="View all"
         savedKeys={session?.user ? savedKeys : []}
         likedKeys={session?.user ? likedKeys : []}
         signedIn={!!session?.user}
         userEmail={session?.user?.email ?? null}
-        displayPrefs={displayPrefs}
       />
 
-      <CommunityMap
-        boundaryGeojson={community.boundaryGeojson}
-        listings={listings}
-        communityName={community.name}
+      <GeoSectionPopularCommunities
+        title="Popular communities"
+        communities={communitiesInCity}
+        viewAllHref={`/cities/${citySlug}`}
+        viewAllLabel="View all communities"
+        excludeSlug={slug}
+        signedIn={!!session?.user}
+        savedEntityKeys={savedCommunityKeys}
+        likedEntityKeys={likedCommunityKeys}
       />
 
-      <CommunityContext
-        communityName={community.name}
-        city={community.city}
-        currentSlug={slug}
+      <GeoSectionFeaturedListings
+        title="Featured listings"
+        listings={listings.slice(6, 12)}
+        viewAllHref={homesForSalePath(community.city, community.subdivision)}
+        viewAllLabel="View all"
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
       />
 
-      <CommunityCTA communityName={community.name} slug={slug} />
+      <GeoSectionLatestActivity title="Latest activity" items={activityFeed} />
+
+      <GeoCTAWithBroker
+        heading={`Looking for a Home in ${community.name}?`}
+        supportingText={`Save your search to get alerts when new homes in ${community.name} hit the market.`}
+        primaryCta={{ label: 'Browse homes for sale', href: homesForSalePath(community.city, community.subdivision) }}
+        secondaryCta={{ label: 'Get notified of new listings', href: '/account/saved-searches' }}
+        brokers={brokers}
+      />
     </main>
   )
 }
