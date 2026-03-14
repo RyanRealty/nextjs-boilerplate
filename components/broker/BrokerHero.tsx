@@ -24,7 +24,7 @@ function StarDisplay({ rating, count }: { rating: number | null; count: number }
       ))}
       {half ? <span className="text-accent-foreground">★</span> : null}
       {[...Array(empty)].map((_, i) => (
-        <span key={`e-${i}`} className="text-[var(--border)]">★</span>
+        <span key={`e-${i}`} className="text-border">★</span>
       ))}
       <span className="ml-2 text-muted">{r.toFixed(1)} — {count} reviews</span>
     </span>
@@ -42,7 +42,7 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
   const introVideoUrl = broker.intro_video_url?.trim() || null
 
   return (
-    <section className="bg-white" aria-labelledby="broker-hero-heading">
+    <section className="bg-card" aria-labelledby="broker-hero-heading">
       {introVideoUrl && (
         <div className="relative w-full overflow-hidden bg-primary" style={{ maxHeight: '40vh' }} aria-label="Intro video">
           <video
@@ -57,7 +57,7 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
         </div>
       )}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-        <nav className="mb-6 text-sm text-[var(--muted-foreground)]" aria-label="Breadcrumb">
+        <nav className="mb-6 text-sm text-muted-foreground" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary">Home</Link>
           <span className="mx-2">/</span>
           <Link href={listHref} className="hover:text-primary">{listLabel}</Link>
@@ -66,9 +66,9 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
         </nav>
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-12">
           <div className="shrink-0">
-            <div className="relative h-48 w-48 overflow-hidden rounded-lg bg-[var(--muted)] shadow-md sm:h-56 sm:w-56">
+            <div className="relative h-48 w-48 overflow-hidden rounded-lg bg-muted shadow-md sm:h-56 sm:w-56">
               {showInitial ? (
-                <div className="flex h-full w-full items-center justify-center text-5xl font-bold text-[var(--muted-foreground)]">
+                <div className="flex h-full w-full items-center justify-center text-5xl font-bold text-muted-foreground">
                   {broker.display_name.charAt(0)}
                 </div>
               ) : (
@@ -88,15 +88,15 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
               {broker.display_name}
             </h1>
             {broker.title && (
-              <p className="mt-1 text-lg text-[var(--muted-foreground)]">{broker.title}</p>
+              <p className="mt-1 text-lg text-muted-foreground">{broker.title}</p>
             )}
             {(broker.designations ?? []).filter(Boolean).length > 0 && (
-              <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {(broker.designations ?? []).filter(Boolean).join(' · ')}
               </p>
             )}
             {broker.tagline?.trim() && (
-              <p className="mt-2 text-[var(--muted-foreground)]">{broker.tagline.trim()}</p>
+              <p className="mt-2 text-muted-foreground">{broker.tagline.trim()}</p>
             )}
             {broker.reviewCount > 0 && (
               <div className="mt-3">
@@ -115,7 +115,7 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
                   href={broker.google_review_url.trim()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-[var(--muted-foreground)] hover:text-primary"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary"
                 >
                   Google
                 </a>
@@ -125,7 +125,7 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
                   href={broker.zillow_review_url.trim()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-[var(--muted-foreground)] hover:text-primary"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary"
                 >
                   Zillow
                 </a>
@@ -133,27 +133,27 @@ export default function BrokerHero({ broker, basePath = 'agents', fallbackImageU
               {(broker.social_instagram?.trim() || broker.social_facebook?.trim() || broker.social_linkedin?.trim() || broker.social_youtube?.trim() || broker.social_tiktok?.trim()) && (
                 <span className="flex items-center gap-2">
                   {broker.social_instagram?.trim() && (
-                    <a href={broker.social_instagram.trim()} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-primary" aria-label="Instagram">
+                    <a href={broker.social_instagram.trim()} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="Instagram">
                       <SocialIcon name="instagram" />
                     </a>
                   )}
                   {broker.social_facebook?.trim() && (
-                    <a href={broker.social_facebook.trim()} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-primary" aria-label="Facebook">
+                    <a href={broker.social_facebook.trim()} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="Facebook">
                       <SocialIcon name="facebook" />
                     </a>
                   )}
                   {broker.social_linkedin?.trim() && (
-                    <a href={broker.social_linkedin.trim()} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-primary" aria-label="LinkedIn">
+                    <a href={broker.social_linkedin.trim()} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="LinkedIn">
                       <SocialIcon name="linkedin" />
                     </a>
                   )}
                   {broker.social_youtube?.trim() && (
-                    <a href={broker.social_youtube.trim()} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-primary" aria-label="YouTube">
+                    <a href={broker.social_youtube.trim()} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="YouTube">
                       <SocialIcon name="youtube" />
                     </a>
                   )}
                   {broker.social_tiktok?.trim() && (
-                    <a href={broker.social_tiktok.trim()} target="_blank" rel="noopener noreferrer" className="text-[var(--muted-foreground)] hover:text-primary" aria-label="TikTok">
+                    <a href={broker.social_tiktok.trim()} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" aria-label="TikTok">
                       <SocialIcon name="tiktok" />
                     </a>
                   )}

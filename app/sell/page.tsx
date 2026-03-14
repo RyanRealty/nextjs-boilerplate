@@ -75,7 +75,7 @@ export default async function SellPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title={title}
         subtitle="Data-driven pricing, professional marketing, and a team that knows Central Oregon. Get a free valuation and a clear plan to sell."
@@ -87,17 +87,17 @@ export default async function SellPage() {
       />
 
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <section className="prose prose-[var(--primary)] max-w-none" aria-labelledby="sell-content-heading">
+      <section className="prose prose-primary max-w-none" aria-labelledby="sell-content-heading">
         <h2 id="sell-content-heading" className="sr-only">Sell with us</h2>
         <div
-          className="text-[var(--muted-foreground)]"
+          className="text-muted-foreground"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
         />
       </section>
 
       <section className="mt-12 rounded-lg border border-border bg-muted p-6" aria-labelledby="market-heading">
         <h2 id="market-heading" className="text-lg font-semibold text-primary">Market reports & data</h2>
-        <p className="mt-2 text-[var(--muted-foreground)]">
+        <p className="mt-2 text-muted-foreground">
           Current Bend conditions: <span className="font-medium text-primary">{conditionLabel}</span>
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -109,7 +109,7 @@ export default async function SellPage() {
           </Link>
           <Link
             href="/reports/explore"
-            className="inline-flex rounded-lg border border-primary/20 bg-[var(--card)] px-4 py-2.5 text-sm font-medium text-primary hover:bg-[var(--muted)]"
+            className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted"
           >
             Explore market data
           </Link>
@@ -127,7 +127,7 @@ export default async function SellPage() {
         </Link>
       </section>
 
-      <section className="mt-12 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="consult-heading">
+      <section className="mt-12 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="consult-heading">
         <h2 id="consult-heading" className="text-lg font-semibold text-foreground">Get a free consultation</h2>
         <p className="mt-1 text-muted-foreground">Tell us about your home and timeline. We&apos;ll follow up with a no-pressure conversation.</p>
         <Link

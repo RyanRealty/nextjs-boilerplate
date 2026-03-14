@@ -36,7 +36,7 @@ export default function NeighborhoodMap({
   const mapListings = toMapListings(listings)
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="neighborhood-map-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="neighborhood-map-heading">
       <div className="mx-auto max-w-7xl">
         <h2 id="neighborhood-map-heading" className="text-2xl font-bold tracking-tight text-primary">
           {neighborhoodName} Map

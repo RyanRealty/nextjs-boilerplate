@@ -45,7 +45,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
 
   return (
     <aside
-      className="flex w-56 shrink-0 flex-col border-r border-border bg-white"
+      className="flex w-56 shrink-0 flex-col border-r border-border bg-card"
       aria-label="Admin navigation"
     >
       <nav className="flex flex-1 flex-col gap-0.5 p-3">

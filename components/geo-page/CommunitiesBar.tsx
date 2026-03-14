@@ -26,7 +26,7 @@ export default function CommunitiesBar({ cityName, communities, signedIn = false
       title={`Communities in ${cityName}`}
       titleId="communities-bar-heading"
       titleSrOnly
-      className="bg-muted border-b border-[var(--border)] px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
+      className="bg-muted border-b border-border px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
       hoverArrows
     >
       {resortFirst.map((c) => {

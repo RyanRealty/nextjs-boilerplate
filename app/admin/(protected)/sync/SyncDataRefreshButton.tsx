@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   className?: string
@@ -21,7 +22,7 @@ export default function SyncDataRefreshButton({ className }: Props) {
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleClick}
       disabled={pending}
@@ -31,7 +32,7 @@ export default function SyncDataRefreshButton({ className }: Props) {
       }
     >
       {pending ? 'Refreshing…' : 'Refresh data'}
-    </button>
+    </Button>
   )
 }
 

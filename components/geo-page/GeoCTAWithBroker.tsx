@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { BrokerRow } from '@/app/actions/brokers'
+import { Button } from '@/components/ui/button'
 import BrokerCardCarousel from './BrokerCardCarousel'
 
 type Props = {
@@ -33,19 +34,22 @@ export default function GeoCTAWithBroker({
               {heading}
             </h2>
             <div className="mt-6 flex flex-wrap items-center gap-4">
-              <Link
-                href={primaryCta.href}
-                className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
+              <Button
+                asChild
               >
-                {primaryCta.label}
-              </Link>
-              {secondaryCta && (
-                <Link
-                  href={secondaryCta.href}
-                  className="inline-flex items-center justify-center rounded-lg border-2 border-white/60 px-6 py-3 font-semibold text-white hover:bg-white/10"
-                >
-                  {secondaryCta.label}
+                <Link href={primaryCta.href}>
+                  {primaryCta.label}
                 </Link>
+              </Button>
+              {secondaryCta && (
+                <Button
+                  asChild
+                  variant="outline"
+                >
+                  <Link href={secondaryCta.href}>
+                    {secondaryCta.label}
+                  </Link>
+                </Button>
               )}
             </div>
             {supportingText && (

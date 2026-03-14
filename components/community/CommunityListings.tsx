@@ -9,6 +9,8 @@ import { toggleSavedCommunity } from '@/app/actions/saved-communities'
 import { subdivisionEntityKey } from '@/lib/slug'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from '@/components/ui/card'
 
 const LISTING_PAGE_SIZE = 24
 
@@ -70,32 +72,36 @@ export default function CommunityListings({
   const { downPaymentPercent, interestRate, loanTermYears } = displayPrefs
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-listings-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-listings-heading">
       <div className="mx-auto max-w-7xl">
         {listings.length === 0 ? (
           <>
             <h2 id="community-listings-heading" className="text-2xl font-bold tracking-tight text-primary">
               Homes for Sale in {communityName}
             </h2>
-            <div className="mt-8 rounded-lg border border-border bg-[var(--muted)] p-8 text-center">
-              <p className="text-[var(--muted-foreground)]">
-                No active listings in {communityName} right now. Save this community to get notified when new listings appear.
-              </p>
-              {signedIn && (
-                <button
-                  type="button"
-                  onClick={handleSaveCommunity}
-                  className="mt-4 rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
-                >
-                  {savedCommunity ? 'Saved' : 'Save community'}
-                </button>
-              )}
-              {!signedIn && (
-                <Link href="/account" className="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90">
-                  Sign in to save
-                </Link>
-              )}
-            </div>
+            <Card className="mt-8">
+              <CardContent className="pt-8 text-center">
+                <p className="text-muted-foreground">
+                  No active listings in {communityName} right now. Save this community to get notified when new listings appear.
+                </p>
+                {signedIn && (
+                  <Button
+                    type="button"
+                    onClick={handleSaveCommunity}
+                    className="mt-4"
+                  >
+                    {savedCommunity ? 'Saved' : 'Save community'}
+                  </Button>
+                )}
+                {!signedIn && (
+                  <Button asChild className="mt-4">
+                    <Link href="/account">
+                      Sign in to save
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           </>
         ) : (
           <TilesSlider
@@ -139,12 +145,12 @@ export default function CommunityListings({
                   <TilesSliderItem key={String(key)} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                     <Link
                       href={`/listing/${key}`}
-                      className="block h-full rounded-lg border border-border bg-white p-4 shadow-sm transition hover:shadow-md"
+                      className="block h-full rounded-lg border border-border bg-card p-4 shadow-sm transition hover:shadow-md"
                     >
                       <p className="font-semibold text-primary">
                         {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ')} {listing.City}
                       </p>
-                      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                      <p className="mt-1 text-sm text-muted-foreground">
                         Sold {formatPrice(listing.ClosePrice)} · {formatDate(listing.CloseDate)}
                       </p>
                     </Link>

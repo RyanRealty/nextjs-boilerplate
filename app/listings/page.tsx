@@ -321,7 +321,7 @@ export default async function ListingsPage({
   ]
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Homes for Sale in Central Oregon"
         subtitle="Browse and filter by price, beds, baths, and more. Or explore every listing on the map."
@@ -349,7 +349,7 @@ export default async function ListingsPage({
         </p>
       </header>
 
-      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-white px-4 py-3">
+      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-4 py-3">
         <Suspense fallback={<div className="h-10 w-48 rounded-lg bg-muted" />}>
           <SearchFilterBar
             basePath="/listings"

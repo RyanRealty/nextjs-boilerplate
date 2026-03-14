@@ -37,7 +37,7 @@ export default function SimilarListings({ listingKey, listings }: Props) {
         <TilesSliderItem key={item.listing_key}>
           <Link href={`/listing/${encodeURIComponent(item.listing_key)}`} className="block h-full">
             <Card className="overflow-hidden h-full">
-              <div className="relative aspect-[4/3] bg-[var(--border)]">
+              <div className="relative aspect-[4/3] bg-border">
                 {item.photo_url ? (
                   <Image
                     src={item.photo_url}
@@ -47,7 +47,7 @@ export default function SimilarListings({ listingKey, listings }: Props) {
                     sizes="(max-width: 640px) 320px, (max-width: 1024px) 360px, 420px"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-[var(--muted-foreground)] text-sm">
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                     No photo
                   </div>
                 )}
@@ -58,9 +58,9 @@ export default function SimilarListings({ listingKey, listings }: Props) {
                   {item.beds_total ?? '—'} Beds · {item.baths_full ?? '—'} Baths
                   {item.living_area != null ? ` · ${Math.round(Number(item.living_area))} Sq Ft` : ''}
                 </p>
-                <p className="text-sm text-[var(--muted-foreground)] truncate mt-0.5">{item.address || 'Address TBD'}</p>
+                <p className="text-sm text-muted-foreground truncate mt-0.5">{item.address || 'Address TBD'}</p>
                 {item.subdivision_name && (
-                  <p className="text-xs text-[var(--muted-foreground)] mt-0.5">{item.subdivision_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.subdivision_name}</p>
                 )}
               </CardContent>
             </Card>

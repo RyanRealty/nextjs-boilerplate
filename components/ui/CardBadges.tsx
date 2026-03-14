@@ -1,10 +1,13 @@
 'use client'
 
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+
 /**
  * Smart badges for card media (e.g. listing, community, city).
  * Renders in a single row top-left; use priority order so the most important badges show.
  * Prevents overlap by limiting to one row and using consistent spacing.
- * Uses design tokens from globals.css (--urgent, --success, --warning, --accent, etc.).
+ * Uses shadcn Badge with design token styling.
  */
 
 export type CardBadgeItem = {
@@ -17,15 +20,15 @@ export type CardBadgeItem = {
 }
 
 const variantClasses: Record<CardBadgeItem['variant'], string> = {
-  hot: 'bg-[var(--destructive)] text-white',
-  new: 'bg-green-500 text-white',
-  'price-drop': 'bg-yellow-500 text-primary',
-  resort: 'bg-accent text-primary',
-  'open-house': 'bg-[var(--destructive)] text-white',
-  days: 'bg-white/95 text-foreground',
+  hot: 'bg-destructive text-destructive-foreground',
+  new: 'bg-success text-success-foreground',
+  'price-drop': 'bg-warning text-warning-foreground',
+  resort: 'bg-accent text-accent-foreground',
+  'open-house': 'bg-destructive text-destructive-foreground',
+  days: 'bg-card text-foreground',
   media: 'bg-black/70 text-white',
-  trending: 'bg-accent text-primary',
-  popular: 'bg-yellow-500 text-white',
+  trending: 'bg-accent text-accent-foreground',
+  popular: 'bg-warning text-white',
   steady: 'bg-black/60 text-white',
 }
 
@@ -41,7 +44,7 @@ export type CardBadgesProps = {
 
 const MAX_BADGES = 3
 
-export default function CardBadges({ items, max = 3, position = 'top-left', className = '' }: CardBadgesProps) {
+export default function CardBadges({ items, max = 3, position = 'top-left', className }: CardBadgesProps) {
   const cappedMax = Math.min(max, MAX_BADGES)
   const show = items.slice(0, cappedMax)
   if (show.length === 0) return null
@@ -52,17 +55,17 @@ export default function CardBadges({ items, max = 3, position = 'top-left', clas
 
   return (
     <div
-      className={`absolute z-10 flex max-w-[85%] flex-nowrap items-center gap-1.5 overflow-hidden ${posClass} ${className}`}
+      className={cn('absolute z-10 flex max-w-[85%] flex-nowrap items-center gap-1.5 overflow-hidden', posClass, className)}
       aria-hidden
     >
       {show.map((item, i) => (
-        <span
+        <Badge
           key={`${item.label}-${i}`}
-          className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold shadow ${variantClasses[item.variant]}`}
+          className={cn('shrink-0 gap-1 rounded-md px-2 py-1 text-xs font-semibold shadow-sm', variantClasses[item.variant])}
         >
           {item.icon != null && <span className="flex items-center">{item.icon}</span>}
           {item.label}
-        </span>
+        </Badge>
       ))}
     </div>
   )

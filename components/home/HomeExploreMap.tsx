@@ -5,6 +5,7 @@ import Link from 'next/link'
 import UnifiedMapListingsView from '@/components/UnifiedMapListingsView'
 import SearchFilterBar from '@/components/SearchFilterBar'
 import type { ListingTileRow } from '@/app/actions/listings'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   /** Initial listings so the map shows markers on first paint (Bend area). */
@@ -48,9 +49,9 @@ export default function HomeExploreMap({
         <h2 id="home-explore-map-heading" className="text-xl font-semibold text-primary">
           Explore on map
         </h2>
-        <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-8 text-center">
-          <p className="text-yellow-500">
-            Configure <code className="rounded bg-yellow-500/15 px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in your
+        <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 px-4 py-8 text-center">
+          <p className="text-warning">
+            Configure <code className="rounded bg-warning/15 px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in your
             environment to show the map.
           </p>
           <Link
@@ -70,19 +71,19 @@ export default function HomeExploreMap({
       aria-labelledby="home-explore-map-heading"
     >
       <div className="mx-auto max-w-7xl px-4 pt-6 pb-2 sm:px-6">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-white px-4 py-3.5 text-left text-base font-semibold text-primary shadow-sm hover:bg-[var(--muted)] transition-colors"
+          className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3.5 text-left text-base font-semibold text-primary shadow-sm hover:bg-muted transition-colors"
           aria-expanded={open}
           aria-controls="home-explore-map-content"
           id="home-explore-map-heading"
         >
           <span>Explore on map</span>
-          <span className="text-sm font-normal text-[var(--muted-foreground)]" aria-hidden>
+          <span className="text-sm font-normal text-muted-foreground" aria-hidden>
             {open ? 'Hide map' : 'Show map'}
           </span>
-        </button>
+        </Button>
       </div>
       <div
         id="home-explore-map-content"
@@ -107,7 +108,7 @@ export default function HomeExploreMap({
                 signedIn={signedIn}
                 userEmail={userEmail}
                 prefs={prefs}
-                containerClassName="h-full min-h-0 flex-1 rounded-lg border border-border bg-white shadow-sm overflow-hidden"
+                containerClassName="h-full min-h-0 flex-1 rounded-lg border border-border bg-card shadow-sm overflow-hidden"
                 filterBar={
                   <SearchFilterBar
                     basePath="/listings"
@@ -119,7 +120,7 @@ export default function HomeExploreMap({
                 }
               />
             </div>
-            <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-center border-t border-border bg-white px-4 py-4 sm:px-6">
+            <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-center border-t border-border bg-card px-4 py-4 sm:px-6">
               <Link
                 href="/listings?view=map"
                 className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 font-semibold text-white hover:bg-primary/90"

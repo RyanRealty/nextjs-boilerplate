@@ -65,7 +65,7 @@ export default async function ReportPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reportSchema) }} />
       <section className="bg-primary px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-4xl">
@@ -82,7 +82,7 @@ export default async function ReportPage({ params }: Props) {
               url={reportUrl}
               variant="default"
               trackContext="weekly_report"
-              className="rounded-lg border border-muted/30 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
+              className="rounded-lg border border-muted/30 bg-card/10 px-4 py-2 text-sm font-medium text-white hover:bg-card/20"
             />
           </div>
           <p className="mt-2 text-muted/90">
@@ -107,12 +107,12 @@ export default async function ReportPage({ params }: Props) {
 
         {report.content_html && (
           <div
-            className="prose prose-[var(--primary)] mt-8 max-w-none prose-headings:font-display prose-p:font-sans prose-headings:text-primary prose-p:text-[var(--muted-foreground)]"
+            className="prose prose-primary mt-8 max-w-none prose-headings:font-display prose-p:font-sans prose-headings:text-primary prose-p:text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(report.content_html) }}
           />
         )}
 
-        <p className="mt-8 text-sm text-[var(--muted-foreground)]">
+        <p className="mt-8 text-sm text-muted-foreground">
           Share this report via the button above to X (Twitter), Facebook, LinkedIn, or email.
         </p>
       </section>

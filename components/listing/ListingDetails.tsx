@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { SparkListingResult } from '../../lib/spark'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   listing: SparkListingResult
@@ -97,7 +98,7 @@ function DetailsAccordion({ title, entries }: { title: string; entries: [string,
   if (entries.length === 0) return null
   return (
     <div className="border-b border-border last:border-b-0">
-      <button
+      <Button
         type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between py-3 text-left font-semibold text-foreground"
@@ -105,7 +106,7 @@ function DetailsAccordion({ title, entries }: { title: string; entries: [string,
       >
         {title}
         <HugeiconsIcon icon={ArrowDown01Icon} className={`h-4 w-4 text-muted-foreground transition ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </Button>
       {open && (
         <dl className="grid gap-x-4 gap-y-2 pb-3 sm:grid-cols-2">
           {entries.map(([label, value]) => (
@@ -191,21 +192,21 @@ export default function ListingDetails({ listing, showRemarks = true, isOurBroke
   return (
     <div className="space-y-8">
       {remarks && (
-        <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold">Description</h2>
           <p className="whitespace-pre-wrap text-muted-foreground">{typeof remarks === 'string' ? remarks : String(remarks ?? '')}</p>
         </section>
       )}
 
       {hoaFee != null && (
-        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3">
           <p className="font-semibold text-foreground">HOA dues: ${hoaFee}{hoaFreq ? ` ${hoaFreq}` : ''}</p>
-          {rentalNote && <p className="mt-1 text-sm text-yellow-500">Rental: {String(rentalNote)}</p>}
+          {rentalNote && <p className="mt-1 text-sm text-warning">Rental: {String(rentalNote)}</p>}
         </div>
       )}
 
       {agentBlock.length > 0 && (
-        <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold">Listing agent & office</h2>
           <ul className="space-y-1 text-muted-foreground">
             {agentBlock.map((line, i) => (
@@ -216,7 +217,7 @@ export default function ListingDetails({ listing, showRemarks = true, isOurBroke
       )}
 
       {openHouses.length > 0 && (
-        <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold">Open houses</h2>
           <ul className="space-y-2">
             {openHouses.map((oh, i) => (
@@ -229,7 +230,7 @@ export default function ListingDetails({ listing, showRemarks = true, isOurBroke
         </section>
       )}
 
-      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold">Property details</h2>
         <div className="divide-y divide-border">
           {FIELD_GROUPS.map((group) => {

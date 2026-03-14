@@ -24,7 +24,7 @@ export default function ExploreByCitySlider({ cities, savedSlugs, signedIn }: Pr
       title="Explore by City"
       subtitle="Click any city to see neighborhoods, current listings, and local market insights."
       titleId="explore-heading"
-      className="border-b border-border bg-[var(--card)] px-4 py-16 sm:px-6 sm:py-20"
+      className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20"
     >
       {cities.map((city) => (
         <TilesSliderItem key={city.slug} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
@@ -45,7 +45,7 @@ export default function ExploreByCitySlider({ cities, savedSlugs, signedIn }: Pr
             →
           </span>
           <span className="font-semibold text-primary">See all cities</span>
-          <span className="text-sm text-[var(--muted-foreground)]">
+          <span className="text-sm text-muted-foreground">
             View every city in our coverage area
           </span>
         </Link>

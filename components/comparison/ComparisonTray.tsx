@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeftRightIcon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 /** Fixed bottom tray that shows when the user has added listings to compare. */
 export default function ComparisonTray() {
@@ -15,7 +16,7 @@ export default function ComparisonTray() {
 
   return (
     <div
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-[var(--border)] bg-primary text-white shadow-md safe-area-pb transition-transform duration-300"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-primary text-white shadow-md safe-area-pb transition-transform duration-300"
       role="region"
       aria-label="Property comparison tray"
     >
@@ -35,18 +36,18 @@ export default function ComparisonTray() {
                     'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors',
                     hasItem
                       ? 'border-accent bg-accent/20 text-accent-foreground'
-                      : 'border-white/20 bg-white/5 text-white/30',
+                      : 'border-white/20 bg-card/5 text-white/30',
                   ].join(' ')}
                 >
                   {hasItem ? (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => removeFromComparison(comparisonItems[i])}
                       className="flex h-full w-full items-center justify-center"
                       aria-label={`Remove listing ${i + 1} from comparison`}
                     >
                       {i + 1}
-                    </button>
+                    </Button>
                   ) : (
                     i + 1
                   )}
@@ -58,20 +59,20 @@ export default function ComparisonTray() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={clearComparison}
-            className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10 transition-colors"
+            className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-card/10 transition-colors"
           >
             Clear
-          </button>
+          </Button>
           <Link
             href={compareUrl}
             className={[
               'inline-flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
               comparisonItems.length >= 2
                 ? 'bg-accent text-primary hover:bg-accent/90'
-                : 'bg-white/20 text-white/50 pointer-events-none',
+                : 'bg-card/20 text-white/50 pointer-events-none',
             ].join(' ')}
             aria-disabled={comparisonItems.length < 2}
           >

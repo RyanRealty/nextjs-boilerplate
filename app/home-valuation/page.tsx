@@ -23,19 +23,19 @@ const heroImage = CONTENT_HERO_IMAGES.sell
 
 export default function HomeValuationPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="What's your home worth?"
         subtitle="Get a free, no-obligation valuation. We'll use recent sales and market data to give you a clear estimate—and send you a CMA you can keep."
         imageUrl={heroImage}
       />
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="form-heading">
+      <section className="border-b border-border bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="form-heading">
         <div className="mx-auto max-w-xl">
           <h2 id="form-heading" className="text-2xl font-bold text-primary sm:text-3xl">
             Enter your address
           </h2>
-          <p className="mt-2 text-[var(--muted-foreground)]">
+          <p className="mt-2 text-muted-foreground">
             We&apos;ll look up your property and send you a Comparative Market Analysis. If your home isn&apos;t in our system yet, we&apos;ll still reach out with an estimate.
           </p>
           <div className="mt-8">
@@ -44,12 +44,12 @@ export default function HomeValuationPage() {
         </div>
       </section>
 
-      <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="how-heading">
+      <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="how-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="how-heading" className="text-center font-display text-2xl font-bold text-primary sm:text-3xl">
             How we value your home
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
             Our valuations are based on recent sales of similar homes in your area, current list-to-sale ratios, and your property&apos;s features.
           </p>
           <ul className="mt-10 grid gap-6 sm:grid-cols-3">
@@ -60,7 +60,7 @@ export default function HomeValuationPage() {
             ].map((item) => (
               <li key={item.title} className="rounded-lg border border-border bg-muted p-5">
                 <h3 className="font-semibold text-primary">{item.title}</h3>
-                <p className="mt-2 text-sm text-[var(--muted-foreground)]">{item.body}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
               </li>
             ))}
           </ul>

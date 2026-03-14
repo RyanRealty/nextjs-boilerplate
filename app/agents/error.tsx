@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 
 export default function AgentsError({
   error,
@@ -15,23 +16,23 @@ export default function AgentsError({
   }, [error])
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md text-center">
         <h1 className="text-2xl font-bold text-primary">Something went wrong</h1>
-        <p className="mt-2 text-[var(--muted-foreground)]">
+        <p className="mt-2 text-muted-foreground">
           We couldn&apos;t load the agents page. Please try again or go back home.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button
+          <Button
             type="button"
             onClick={reset}
             className="rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
             Try again
-          </button>
+          </Button>
           <Link
             href="/"
-            className="rounded-lg border border-[var(--border)] bg-white px-6 py-3 font-semibold text-primary hover:bg-[var(--muted)]"
+            className="rounded-lg border border-border bg-card px-6 py-3 font-semibold text-primary hover:bg-muted"
           >
             Home
           </Link>

@@ -8,6 +8,12 @@ import { PROPERTY_TYPES } from '@/lib/property-type'
 import SaveSearchButton from '@/components/SaveSearchButton'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Location01Icon } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'For Sale' },
@@ -178,11 +184,11 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
   const btnBase =
     'inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition whitespace-nowrap'
   const btnDefault =
-    'border-border bg-white text-[var(--foreground)] hover:bg-[var(--card)] hover:border-primary/20'
+    'border-border bg-card text-foreground hover:bg-card hover:border-primary/20'
   const btnActive =
     'border-accent bg-accent/10 text-primary'
   const dropdownPanel =
-    'absolute left-0 top-full z-50 mt-1 min-w-[280px] rounded-lg border border-border bg-white p-4 shadow-lg'
+    'absolute left-0 top-full z-50 mt-1 min-w-[280px] rounded-lg border border-border bg-card p-4 shadow-lg'
 
   return (
     <div ref={barRef} className="flex flex-wrap items-center gap-2">
@@ -191,7 +197,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
         <div className="flex items-center gap-2">
           <Link
             href={props.locationHref ?? pathname}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-[var(--foreground)] shadow-sm hover:bg-[var(--card)] hover:border-primary/30 min-w-[140px]"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm hover:bg-card hover:border-primary/30 min-w-[140px]"
             aria-label={`Search area: ${props.locationLabel}. Click to change.`}
           >
             <span className="text-primary" aria-hidden>
@@ -199,12 +205,12 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
             </span>
             <span className="truncate">{props.locationLabel}</span>
           </Link>
-          <span className="text-[var(--muted-foreground)] hidden sm:inline" aria-hidden>|</span>
+          <span className="text-muted-foreground hidden sm:inline" aria-hidden>|</span>
         </div>
       )}
       {/* For Sale (status) */}
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen(open === 'status' ? null : 'status')}
           className={`${btnBase} ${open === 'status' || hasStatusActive(props) ? btnActive : btnDefault}`}
@@ -215,10 +221,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
           <span className="text-[10px] opacity-80" aria-hidden>
             {open === 'status' ? '▴' : '▾'}
           </span>
-        </button>
+        </Button>
         {open === 'status' && (
           <div className={dropdownPanel}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Property status
             </p>
             <form
@@ -236,33 +242,33 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               className="space-y-3"
             >
               {STATUS_OPTIONS.map(({ value, label }) => (
-                <label key={value} className="flex cursor-pointer items-center gap-2">
-                  <input
+                <Label key={value} className="flex cursor-pointer items-center gap-2">
+                  <Input
                     type="radio"
                     name="statusFilter"
                     value={value}
                     defaultChecked={(props.statusFilter ?? (props.includeClosed === '1' ? 'all' : 'active')) === value}
                     className="h-4 w-4 border-border text-accent-foreground focus:ring-accent"
                   />
-                  <span className="text-sm text-[var(--foreground)]">{label}</span>
-                </label>
+                  <span className="text-sm text-foreground">{label}</span>
+                </Label>
               ))}
-              <label className="flex cursor-pointer items-center gap-2 pt-2 border-t border-border">
-                <input
+              <Label className="flex cursor-pointer items-center gap-2 pt-2 border-t border-border">
+                <Input
                   type="checkbox"
                   name="includeClosed"
                   defaultChecked={props.includeClosed === '1'}
                   className="h-4 w-4 rounded border-border text-accent-foreground focus:ring-accent"
                 />
-                <span className="text-sm text-[var(--muted-foreground)]">Include closed/sold</span>
-              </label>
-              <button
+                <span className="text-sm text-muted-foreground">Include closed/sold</span>
+              </Label>
+              <Button
                 type="submit"
                 disabled={isPending}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-70"
               >
                 {isPending ? 'Applying…' : 'Apply'}
-              </button>
+              </Button>
             </form>
           </div>
         )}
@@ -270,7 +276,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
 
       {/* Price */}
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen(open === 'price' ? null : 'price')}
           className={`${btnBase} ${open === 'price' || hasPriceActive(props) ? btnActive : btnDefault}`}
@@ -280,10 +286,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
           <span className="text-[10px] opacity-80" aria-hidden>
             {open === 'price' ? '▴' : '▾'}
           </span>
-        </button>
+        </Button>
         {open === 'price' && (
           <div className={dropdownPanel}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               Price range
             </p>
             <form
@@ -298,9 +304,9 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               className="space-y-3"
             >
               <div className="grid grid-cols-2 gap-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Min</span>
-                  <input
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Min</span>
+                  <Input
                     type="number"
                     name="minPrice"
                     placeholder="No min"
@@ -309,10 +315,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.minPrice}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Max</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Max</span>
+                  <Input
                     type="number"
                     name="maxPrice"
                     placeholder="No max"
@@ -321,11 +327,11 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.maxPrice}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
+                </Label>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {PRICE_PRESETS.map(({ label, min, max }) => (
-                  <button
+                  <Button
                     key={label}
                     type="button"
                     onClick={() => {
@@ -336,19 +342,19 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                         })
                       )
                     }}
-                    className="rounded-md border border-border bg-white px-2 py-1 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--card)]"
+                    className="rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-foreground hover:bg-card"
                   >
                     {label}
-                  </button>
+                  </Button>
                 ))}
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-70"
               >
                 {isPending ? 'Applying…' : 'Apply'}
-              </button>
+              </Button>
             </form>
           </div>
         )}
@@ -356,7 +362,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
 
       {/* Beds & Baths */}
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen(open === 'bedsbaths' ? null : 'bedsbaths')}
           className={`${btnBase} ${open === 'bedsbaths' || hasBedsBathsActive(props) ? btnActive : btnDefault}`}
@@ -366,7 +372,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
           <span className="text-[10px] opacity-80" aria-hidden>
             {open === 'bedsbaths' ? '▴' : '▾'}
           </span>
-        </button>
+        </Button>
         {open === 'bedsbaths' && (
           <div className={dropdownPanel}>
             <form
@@ -381,54 +387,54 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               className="space-y-4"
             >
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Bedrooms
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {BEDS_OPTIONS.map(({ value, label }) => (
-                    <label key={value || 'any'} className="cursor-pointer">
-                      <input
+                    <Label key={value || 'any'} className="cursor-pointer">
+                      <Input
                         type="radio"
                         name="beds"
                         value={value}
                         defaultChecked={(props.beds ?? '') === value}
                         className="peer sr-only"
                       />
-                      <span className="block rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-[var(--foreground)] peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-primary hover:border-primary/30">
+                      <span className="block rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-foreground peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-primary hover:border-primary/30">
                         {label}
                       </span>
-                    </label>
+                    </Label>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Bathrooms
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {BATHS_OPTIONS.map(({ value, label }) => (
-                    <label key={value || 'any'} className="cursor-pointer">
-                      <input
+                    <Label key={value || 'any'} className="cursor-pointer">
+                      <Input
                         type="radio"
                         name="baths"
                         value={value}
                         defaultChecked={(props.baths ?? '') === value}
                         className="peer sr-only"
                       />
-                      <span className="block rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-[var(--foreground)] peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-primary hover:border-primary/30">
+                      <span className="block rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-foreground peer-checked:border-accent peer-checked:bg-accent/10 peer-checked:text-primary hover:border-primary/30">
                         {label}
                       </span>
-                    </label>
+                    </Label>
                   ))}
                 </div>
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-70"
               >
                 {isPending ? 'Applying…' : 'Apply'}
-              </button>
+              </Button>
             </form>
           </div>
         )}
@@ -436,7 +442,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
 
       {/* Home Type */}
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen(open === 'hometype' ? null : 'hometype')}
           className={`${btnBase} ${open === 'hometype' || hasHomeTypeActive(props) ? btnActive : btnDefault}`}
@@ -446,7 +452,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
           <span className="text-[10px] opacity-80" aria-hidden>
             {open === 'hometype' ? '▴' : '▾'}
           </span>
-        </button>
+        </Button>
         {open === 'hometype' && (
           <div className={dropdownPanel}>
             <form
@@ -459,10 +465,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               className="space-y-3"
             >
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Home Type
                 </p>
-                <button
+                <Button
                   type="button"
                   className="text-xs font-medium text-accent-foreground hover:underline"
                   onClick={(e) => {
@@ -473,39 +479,39 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                   }}
                 >
                   Deselect all
-                </button>
+                </Button>
               </div>
               <div>
                 {PROPERTY_TYPES.filter((t) => t.value !== '').map(({ value, label }) => (
-                  <label key={value} className="flex cursor-pointer items-center gap-2 py-1.5">
-                    <input
+                  <Label key={value} className="flex cursor-pointer items-center gap-2 py-1.5">
+                    <Input
                       type="radio"
                       name="propertyType"
                       value={value}
                       defaultChecked={(props.propertyType ?? '') === value}
                       className="h-4 w-4 border-border text-accent-foreground focus:ring-accent"
                     />
-                    <span className="text-sm text-[var(--foreground)]">{label}</span>
-                  </label>
+                    <span className="text-sm text-foreground">{label}</span>
+                  </Label>
                 ))}
-                <label className="flex cursor-pointer items-center gap-2 py-1.5">
-                  <input
+                <Label className="flex cursor-pointer items-center gap-2 py-1.5">
+                  <Input
                     type="radio"
                     name="propertyType"
                     value=""
                     defaultChecked={!(props.propertyType ?? '')}
                     className="h-4 w-4 border-border text-accent-foreground focus:ring-accent"
                   />
-                  <span className="text-sm text-[var(--foreground)]">All types</span>
-                </label>
+                  <span className="text-sm text-foreground">All types</span>
+                </Label>
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
                 className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-70"
               >
                 {isPending ? 'Applying…' : 'Apply'}
-              </button>
+              </Button>
             </form>
           </div>
         )}
@@ -513,7 +519,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
 
       {/* More */}
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen(open === 'more' ? null : 'more')}
           className={`${btnBase} ${open === 'more' || hasMoreActive(props) ? btnActive : btnDefault}`}
@@ -523,7 +529,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
           <span className="text-[10px] opacity-80" aria-hidden>
             {open === 'more' ? '▴' : '▾'}
           </span>
-        </button>
+        </Button>
         {open === 'more' && (
           <div className={`${dropdownPanel} min-w-[320px] max-w-[90vw]`}>
             <form
@@ -531,7 +537,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                 e.preventDefault()
                 const form = e.currentTarget
                 const data = new FormData(form)
-                const get = (n: string) => (data.get(n) as string)?.trim() || undefined
+                const get = (n: string) => { const v = (data.get(n) as string)?.trim(); return (!v || v === '__all__') ? undefined : v }
                 const getCheck = (n: string) => form.querySelector<HTMLInputElement>(`input[name="${n}"]`)?.checked
                 apply(
                   buildParams({
@@ -556,13 +562,13 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               }}
               className="space-y-4"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 More filters
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Sq ft (min)</span>
-                  <input
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Sq ft (min)</span>
+                  <Input
                     type="number"
                     name="minSqFt"
                     placeholder="No min"
@@ -571,10 +577,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.minSqFt}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Sq ft (max)</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Sq ft (max)</span>
+                  <Input
                     type="number"
                     name="maxSqFt"
                     placeholder="No max"
@@ -583,10 +589,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.maxSqFt}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Lot acres (min)</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Lot acres (min)</span>
+                  <Input
                     type="number"
                     name="lotAcresMin"
                     placeholder="No min"
@@ -595,10 +601,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.lotAcresMin}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Lot acres (max)</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Lot acres (max)</span>
+                  <Input
                     type="number"
                     name="lotAcresMax"
                     placeholder="No max"
@@ -607,10 +613,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.lotAcresMax}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Year built (min)</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Year built (min)</span>
+                  <Input
                     type="number"
                     name="yearBuiltMin"
                     placeholder="No min"
@@ -619,10 +625,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.yearBuiltMin}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Year built (max)</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Year built (max)</span>
+                  <Input
                     type="number"
                     name="yearBuiltMax"
                     placeholder="No max"
@@ -631,10 +637,10 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.yearBuiltMax}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1 col-span-2">
-                  <span className="text-xs text-[var(--muted-foreground)]">Zip code</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1 col-span-2">
+                  <span className="text-xs text-muted-foreground">Zip code</span>
+                  <Input
                     type="text"
                     name="postalCode"
                     placeholder="e.g. 97702"
@@ -642,99 +648,115 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                     defaultValue={props.postalCode}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
-                <label className="flex flex-col gap-1 col-span-2">
-                  <span className="text-xs text-[var(--muted-foreground)]">Keywords</span>
-                  <input
+                </Label>
+                <Label className="flex flex-col gap-1 col-span-2">
+                  <span className="text-xs text-muted-foreground">Keywords</span>
+                  <Input
                     type="text"
                     name="keywords"
                     placeholder="e.g. mountain view, granite"
                     defaultValue={props.keywords}
                     className="rounded-lg border border-border px-3 py-2 text-sm"
                   />
-                </label>
+                </Label>
               </div>
               <div className="space-y-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">Garage (min)</span>
-                  <select
-                    name="garageMin"
-                    defaultValue={props.garageMin ?? ''}
-                    className="rounded-lg border border-border px-3 py-2 text-sm"
-                  >
-                    <option value="">Any</option>
-                    {[1, 2, 3, 4].map((n) => (
-                      <option key={n} value={n}>{n}+</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-[var(--muted-foreground)]">New listings</span>
-                  <select
-                    name="newListingsDays"
-                    defaultValue={props.newListingsDays ?? ''}
-                    className="rounded-lg border border-border px-3 py-2 text-sm"
-                  >
-                    <option value="">Any</option>
-                    <option value="7">Last 7 days</option>
-                    <option value="14">Last 14 days</option>
-                    <option value="30">Last 30 days</option>
-                  </select>
-                </label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">Garage (min)</span>
+                  <Select defaultValue={props.garageMin ?? '__all__'} onValueChange={(v) => {
+                    const form = (event?.target as HTMLElement)?.closest('form');
+                    if (form) {
+                      const select = form.querySelector<HTMLInputElement>('input[name="garageMin"]');
+                      if (select) select.value = v;
+                    }
+                  }}>
+                    <SelectTrigger className="rounded-lg border border-border px-3 py-2 text-sm">
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">Any</SelectItem>
+                      {[1, 2, 3, 4].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n}+</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="garageMin" defaultValue={props.garageMin ?? '__all__'} />
+                </Label>
+                <Label className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground">New listings</span>
+                  <Select defaultValue={props.newListingsDays ?? '__all__'} onValueChange={(v) => {
+                    const form = (event?.target as HTMLElement)?.closest('form');
+                    if (form) {
+                      const select = form.querySelector<HTMLInputElement>('input[name="newListingsDays"]');
+                      if (select) select.value = v;
+                    }
+                  }}>
+                    <SelectTrigger className="rounded-lg border border-border px-3 py-2 text-sm">
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">Any</SelectItem>
+                      <SelectItem value="7">Last 7 days</SelectItem>
+                      <SelectItem value="14">Last 14 days</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="newListingsDays" defaultValue={props.newListingsDays ?? '__all__'} />
+                </Label>
               </div>
               <div className="flex flex-wrap gap-4 border-t border-border pt-3">
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
+                <Label className="flex cursor-pointer items-center gap-2">
+                  <Input
                     type="checkbox"
                     name="hasOpenHouse"
                     defaultChecked={props.hasOpenHouse === '1'}
                     className="h-4 w-4 rounded border-border text-accent-foreground"
                   />
-                  <span className="text-sm text-[var(--muted-foreground)]">Open house</span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
+                  <span className="text-sm text-muted-foreground">Open house</span>
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2">
+                  <Input
                     type="checkbox"
                     name="hasPool"
                     defaultChecked={props.hasPool === '1'}
                     className="h-4 w-4 rounded border-border text-accent-foreground"
                   />
-                  <span className="text-sm text-[var(--muted-foreground)]">Pool</span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
+                  <span className="text-sm text-muted-foreground">Pool</span>
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2">
+                  <Input
                     type="checkbox"
                     name="hasView"
                     defaultChecked={props.hasView === '1'}
                     className="h-4 w-4 rounded border-border text-accent-foreground"
                   />
-                  <span className="text-sm text-[var(--muted-foreground)]">View</span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
+                  <span className="text-sm text-muted-foreground">View</span>
+                </Label>
+                <Label className="flex cursor-pointer items-center gap-2">
+                  <Input
                     type="checkbox"
                     name="hasWaterfront"
                     defaultChecked={props.hasWaterfront === '1'}
                     className="h-4 w-4 rounded border-border text-accent-foreground"
                   />
-                  <span className="text-sm text-[var(--muted-foreground)]">Waterfront</span>
-                </label>
+                  <span className="text-sm text-muted-foreground">Waterfront</span>
+                </Label>
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-                <button
+                <Button
                   type="button"
                   onClick={() => apply(new URLSearchParams({ page: '1', ...(props.view && { view: props.view }), ...(props.perPage && { perPage: props.perPage }) }))}
-                  className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:underline"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
                 >
                   Reset all filters
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isPending}
                   className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-70"
                 >
                   {isPending ? 'Applying…' : 'Apply'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -742,22 +764,23 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
       </div>
 
       {/* Sort */}
-      <div className="relative ml-2">
-        <select
+      <div className="ml-2">
+        <Select
           value={props.sort ?? 'newest'}
-          onChange={(e) => {
-            const sort = e.target.value
+          onValueChange={(sort) => {
             apply(buildParams({ sort: sort || undefined }))
           }}
-          className={`${btnBase} ${btnDefault} appearance-none pr-8`}
-          aria-label="Sort results"
         >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="price_asc">Price: low to high</option>
-          <option value="price_desc">Price: high to low</option>
-        </select>
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-80" aria-hidden>▾</span>
+          <SelectTrigger className={`${btnBase} ${btnDefault}`} aria-label="Sort results">
+            <SelectValue placeholder="Newest first" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="price_asc">Price: low to high</SelectItem>
+            <SelectItem value="price_desc">Price: high to low</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {props.signedIn && <SaveSearchButton user={true} />}

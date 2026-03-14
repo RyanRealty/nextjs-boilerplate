@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { homesForSalePath } from '@/lib/slug'
 import { deleteSavedSearch } from '@/app/actions/saved-searches'
 import type { SavedSearchRow } from '@/app/actions/saved-searches'
+import { Button } from "@/components/ui/button"
 
 type Props = { searches: SavedSearchRow[]; className?: string }
 
@@ -66,7 +67,7 @@ export default function DashboardSearchesList({ searches, className = '' }: Prop
       {searches.map((s) => (
         <li
           key={s.id}
-          className="rounded-lg border border-border bg-white p-4 shadow-sm"
+          className="rounded-lg border border-border bg-card p-4 shadow-sm"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -82,37 +83,37 @@ export default function DashboardSearchesList({ searches, className = '' }: Prop
               </Link>
               <Link
                 href={buildSearchUrl(s.filters)}
-                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
                 Edit filters
               </Link>
               {confirmId === s.id ? (
                 <>
                   <span className="text-sm text-muted-foreground">Delete?</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleDelete(s.id)}
                     disabled={!!deletingId}
                     className="text-sm font-medium text-destructive hover:underline disabled:opacity-50"
                   >
                     {deletingId === s.id ? 'Deleting…' : 'Yes, delete'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setConfirmId(null)}
                     className="text-sm font-medium text-muted-foreground hover:text-muted-foreground"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </>
               ) : (
-                <button
+                <Button
                   type="button"
                   onClick={() => handleDelete(s.id)}
                   className="text-sm font-medium text-muted-foreground hover:text-destructive"
                 >
                   Delete
-                </button>
+                </Button>
               )}
             </div>
           </div>

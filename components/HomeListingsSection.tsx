@@ -37,7 +37,7 @@ export default function HomeListingsSection({
         <h2 id="home-listings-heading" className="text-2xl font-bold tracking-tight text-primary">
           Homes in {city}
         </h2>
-        <p className="mt-6 text-[var(--muted-foreground)]">
+        <p className="mt-6 text-muted-foreground">
           No listings with location data on the map yet.{' '}
           <Link href={cityPagePath(city)} className="font-medium text-accent-foreground hover:underline">
             View all {totalInCity} in {city}
@@ -61,7 +61,7 @@ export default function HomeListingsSection({
           hasMore ? (
             <Link
               href={cityPagePath(city)}
-              className="rounded-lg border border-border bg-[var(--card)] px-4 py-2.5 text-sm font-medium text-[var(--muted-foreground)] shadow-sm transition hover:bg-muted hover:text-[var(--foreground)]"
+              className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm transition hover:bg-muted hover:text-foreground"
             >
               View all {totalInCity} in {city} →
             </Link>

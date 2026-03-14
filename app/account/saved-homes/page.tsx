@@ -35,7 +35,7 @@ export default async function SavedHomesPage() {
           <p className="text-muted-foreground">You haven’t saved any homes yet.</p>
           <Link
             href="/listings"
-            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Browse listings
           </Link>

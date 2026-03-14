@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { updateBrokerageHeroMedia } from '@/app/actions/brokerage'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   initialHeroVideoUrl: string | null
@@ -34,7 +37,7 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <h2 className="text-lg font-semibold text-foreground">Homepage hero</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Optional background video or image for the homepage hero. When a video URL is set, it plays
@@ -44,10 +47,10 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div>
-          <label htmlFor="hero-video-url" className="block text-sm font-medium text-muted-foreground">
+          <Label htmlFor="hero-video-url" className="block text-sm font-medium text-muted-foreground">
             Hero video URL
-          </label>
-          <input
+          </Label>
+          <Input
             id="hero-video-url"
             type="url"
             value={heroVideoUrl}
@@ -61,10 +64,10 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
         </div>
 
         <div>
-          <label htmlFor="hero-image-url" className="block text-sm font-medium text-muted-foreground">
+          <Label htmlFor="hero-image-url" className="block text-sm font-medium text-muted-foreground">
             Hero image URL (fallback or poster)
-          </label>
-          <input
+          </Label>
+          <Input
             id="hero-image-url"
             type="url"
             value={heroImageUrl}
@@ -77,18 +80,18 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
           </p>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={saving}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
         >
           {saving ? 'Saving…' : 'Save hero media'}
-        </button>
+        </Button>
       </form>
 
       {message && (
         <p
-          className={`mt-4 text-sm ${message.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}
+          className={`mt-4 text-sm ${message.type === 'ok' ? 'text-success' : 'text-destructive'}`}
           role="alert"
         >
           {message.text}

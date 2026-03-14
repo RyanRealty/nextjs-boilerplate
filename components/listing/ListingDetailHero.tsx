@@ -6,6 +6,7 @@ import type { ListingDetailPhoto } from '@/app/actions/listing-detail'
 import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { PlayIcon, Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 function photoUrl(p: ListingDetailPhoto): string {
   return p.cdn_url ?? p.photo_url
@@ -56,7 +57,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
 
   if (list.length === 0) {
     return (
-      <div className="flex aspect-[16/10] max-h-[70vh] w-full items-center justify-center bg-[var(--border)] text-[var(--muted-foreground)]">
+      <div className="flex aspect-[16/10] max-h-[70vh] w-full items-center justify-center bg-border text-muted-foreground">
         No photos
       </div>
     )
@@ -84,7 +85,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
       <section className="relative w-full" aria-label="Listing photos">
         {/* Desktop: 60% left + 40% right (2 stacked) */}
         <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-1 max-h-[70vh]">
-          <button
+          <Button
             type="button"
             className="col-span-3 row-span-2 relative aspect-[4/3] min-h-0 overflow-hidden group"
             onClick={() => openLightbox(0)}
@@ -99,13 +100,13 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
             />
             {virtualTourUrl && (
               <span className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
-                <span className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
+                <span className="w-16 h-16 rounded-full bg-card/90 flex items-center justify-center">
                   <HugeiconsIcon icon={PlayIcon} className="w-8 h-8 text-primary ml-1" aria-hidden />
                 </span>
               </span>
             )}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             className="col-span-2 row-span-1 relative aspect-[4/3] min-h-0 overflow-hidden"
             onClick={() => openLightbox(rightTop ? 1 : 0)}
@@ -113,10 +114,10 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
             {rightTop ? (
               <Image src={photoUrl(rightTop)} alt={`Property photo 2 of ${list.length}`} fill className="object-cover" sizes="40vw" />
             ) : (
-              <div className="absolute inset-0 bg-[var(--border)]" />
+              <div className="absolute inset-0 bg-border" />
             )}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             className="col-span-2 row-span-1 relative aspect-[4/3] min-h-0 overflow-hidden"
             onClick={() => openLightbox(rightBottom ? 2 : rightTop ? 1 : 0)}
@@ -124,13 +125,13 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
             {rightBottom ? (
               <Image src={photoUrl(rightBottom)} alt={`Property photo 3 of ${list.length}`} fill className="object-cover" sizes="40vw" />
             ) : (
-              <div className="absolute inset-0 bg-[var(--border)]" />
+              <div className="absolute inset-0 bg-border" />
             )}
-          </button>
+          </Button>
         </div>
         {/* Mobile: single full-width */}
         <div className="md:hidden relative aspect-[4/3] w-full">
-          <button type="button" className="absolute inset-0" onClick={() => openLightbox(0)}>
+          <Button type="button" className="absolute inset-0" onClick={() => openLightbox(0)}>
             <Image
               src={photoUrl(main!)}
               alt={`Property photo 1 of ${list.length}`}
@@ -139,10 +140,10 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
               sizes="100vw"
               priority
             />
-          </button>
+          </Button>
           {virtualTourUrl && (
             <span className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
-              <span className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
+              <span className="w-14 h-14 rounded-full bg-card/90 flex items-center justify-center">
                 <HugeiconsIcon icon={PlayIcon} className="w-7 h-7 text-primary ml-0.5" aria-hidden />
               </span>
             </span>
@@ -153,13 +154,13 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
           <span className="rounded-full bg-black/60 text-white text-xs px-2 py-1">
             1 / {list.length}
           </span>
-          <button
+          <Button
             type="button"
             className="rounded-lg bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-accent/90"
             onClick={() => openLightbox(0)}
           >
             View All {list.length} Photos
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -171,30 +172,30 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
           aria-modal="true"
           aria-label="Photo gallery"
         >
-          <button
+          <Button
             type="button"
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30"
+            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30"
             onClick={() => setLightboxOpen(false)}
             aria-label="Close gallery"
           >
             <HugeiconsIcon icon={Cancel01Icon} className="w-6 h-6" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30"
             onClick={() => setLightboxIndex((i) => (i === 0 ? list.length - 1 : i - 1))}
             aria-label="Previous photo"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} className="w-8 h-8" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-card/20 text-white flex items-center justify-center hover:bg-card/30"
             onClick={() => setLightboxIndex((i) => (i === list.length - 1 ? 0 : i + 1))}
             aria-label="Next photo"
           >
             <HugeiconsIcon icon={ArrowRight01Icon} className="w-8 h-8" />
-          </button>
+          </Button>
           <div className="relative flex h-full w-full items-center justify-center">
             <Image
               src={photoUrl(list[lightboxIndex]!)}

@@ -14,6 +14,10 @@ import {
   type ReportPropertyTypeSegmentKey,
 } from '@/lib/property-type'
 import { Badge } from '@/components/ui/badge'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -171,151 +175,151 @@ export default function CityReportSection({ cities }: { cities: string[] }) {
         Full customization: any city, optional subdivision, any period, property type (SFR + condos/manufactured/acreage), and price range. All sales data available in the database.
       </p>
       <div className="mt-4 flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1">
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">City</span>
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="rounded border border-border bg-white px-3 py-2 text-foreground"
+            className="rounded border border-border bg-card px-3 py-2 text-foreground"
           >
             <option value="">Select city</option>
             {cities.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Subdivision (optional)</span>
-          <input
+          <Input
             type="text"
             value={subdivision}
             onChange={(e) => setSubdivision(e.target.value)}
             placeholder="Community name"
-            className="w-40 rounded border border-border bg-white px-3 py-2 text-foreground"
+            className="w-40 rounded border border-border bg-card px-3 py-2 text-foreground"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Period</span>
           <select
             value={periodType}
             onChange={(e) => setPeriodType(e.target.value as 'month' | 'quarter')}
-            className="rounded border border-border bg-white px-3 py-2 text-foreground"
+            className="rounded border border-border bg-card px-3 py-2 text-foreground"
           >
             <option value="month">Month</option>
             <option value="quarter">Quarter</option>
           </select>
-        </label>
+        </Label>
         {periodType === 'month' ? (
           <>
-            <label className="flex flex-col gap-1">
+            <Label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Month</span>
               <select
                 value={month}
                 onChange={(e) => setMonth(Number(e.target.value))}
-                className="rounded border border-border bg-white px-3 py-2 text-foreground"
+                className="rounded border border-border bg-card px-3 py-2 text-foreground"
               >
                 {MONTHS.map((m, i) => (
                   <option key={m} value={i + 1}>{m}</option>
                 ))}
               </select>
-            </label>
-            <label className="flex flex-col gap-1">
+            </Label>
+            <Label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Year</span>
-              <input
+              <Input
                 type="number"
                 min={2000}
                 max={2030}
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-24 rounded border border-border bg-white px-3 py-2 text-foreground"
+                className="w-24 rounded border border-border bg-card px-3 py-2 text-foreground"
               />
-            </label>
+            </Label>
           </>
         ) : (
           <>
-            <label className="flex flex-col gap-1">
+            <Label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Quarter</span>
               <select
                 value={quarter}
                 onChange={(e) => setQuarter(Number(e.target.value))}
-                className="rounded border border-border bg-white px-3 py-2 text-foreground"
+                className="rounded border border-border bg-card px-3 py-2 text-foreground"
               >
                 {[1, 2, 3, 4].map((q) => (
                   <option key={q} value={q}>Q{q}</option>
                 ))}
               </select>
-            </label>
-            <label className="flex flex-col gap-1">
+            </Label>
+            <Label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-muted-foreground">Year</span>
-              <input
+              <Input
                 type="number"
                 min={2000}
                 max={2030}
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-24 rounded border border-border bg-white px-3 py-2 text-foreground"
+                className="w-24 rounded border border-border bg-card px-3 py-2 text-foreground"
               />
-            </label>
+            </Label>
           </>
         )}
-        <label className="flex flex-col gap-1">
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Property type</span>
           <select
             value={propertyTypeFilter}
             onChange={(e) => setPropertyTypeFilter((e.target.value || '') as ReportPropertyTypeSegmentKey | '')}
-            className="rounded border border-border bg-white px-3 py-2 text-foreground min-w-[180px]"
+            className="rounded border border-border bg-card px-3 py-2 text-foreground min-w-[180px]"
           >
             {REPORT_PROPERTY_TYPE_FILTER_OPTIONS.map((opt) => (
               <option key={opt.value || 'all'} value={opt.value}>{opt.label}</option>
             ))}
           </select>
-        </label>
+        </Label>
         {propertyTypeFilter === '' && (
-          <label className="flex items-center gap-2">
-            <input
+          <Label className="flex items-center gap-2">
+            <Input
               type="checkbox"
               checked={breakDownByPropertyType}
               onChange={(e) => setBreakDownByPropertyType(e.target.checked)}
               className="rounded border-border"
             />
             <span className="text-sm text-muted-foreground">Break out by property type</span>
-          </label>
+          </Label>
         )}
         {propertyTypeFilter === '' && !breakDownByPropertyType && (
           <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4 w-full">
             <span className="text-sm font-medium text-muted-foreground">Include</span>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={includeCondoTown} onChange={(e) => setIncludeCondoTown(e.target.checked)} className="rounded border-border" />
+            <Label className="flex items-center gap-2">
+              <Input type="checkbox" checked={includeCondoTown} onChange={(e) => setIncludeCondoTown(e.target.checked)} className="rounded border-border" />
               <span className="text-sm text-muted-foreground">Condos & townhomes</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={includeManufactured} onChange={(e) => setIncludeManufactured(e.target.checked)} className="rounded border-border" />
+            </Label>
+            <Label className="flex items-center gap-2">
+              <Input type="checkbox" checked={includeManufactured} onChange={(e) => setIncludeManufactured(e.target.checked)} className="rounded border-border" />
               <span className="text-sm text-muted-foreground">Manufactured</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={includeAcreage} onChange={(e) => setIncludeAcreage(e.target.checked)} className="rounded border-border" />
+            </Label>
+            <Label className="flex items-center gap-2">
+              <Input type="checkbox" checked={includeAcreage} onChange={(e) => setIncludeAcreage(e.target.checked)} className="rounded border-border" />
               <span className="text-sm text-muted-foreground">Acreage/land</span>
-            </label>
+            </Label>
           </div>
         )}
         <div className="flex flex-wrap items-end gap-4">
-          <label className="flex flex-col gap-1">
+          <Label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-muted-foreground">Min price ($)</span>
-            <input type="text" inputMode="numeric" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Optional" className="w-28 rounded border border-border bg-white px-3 py-2 text-foreground" />
-          </label>
-          <label className="flex flex-col gap-1">
+            <Input type="text" inputMode="numeric" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="Optional" className="w-28 rounded border border-border bg-card px-3 py-2 text-foreground" />
+          </Label>
+          <Label className="flex flex-col gap-1">
             <span className="text-sm font-medium text-muted-foreground">Max price ($)</span>
-            <input type="text" inputMode="numeric" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Optional" className="w-28 rounded border border-border bg-white px-3 py-2 text-foreground" />
-          </label>
+            <Input type="text" inputMode="numeric" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Optional" className="w-28 rounded border border-border bg-card px-3 py-2 text-foreground" />
+          </Label>
         </div>
-        <button
+        <Button
           type="button"
           onClick={handleGenerate}
           disabled={loading}
           className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
         >
           {loading ? 'Loading…' : 'Generate report'}
-        </button>
+        </Button>
       </div>
       {error && (
         <p className="mt-4 text-sm text-destructive">{error}</p>
@@ -336,17 +340,17 @@ export default function CityReportSection({ cities }: { cities: string[] }) {
                   </h3>
                   <div className="grid gap-6 sm:grid-cols-2">
                     <div className="overflow-x-auto">
-                      <table className="min-w-[280px] border border-border text-sm">
-                        <tbody>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium"># Sales (period)</td><td className="border border-border px-3 py-2">{seg.metrics.sold_count}</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median price</td><td className="border border-border px-3 py-2">${Number(seg.metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median DOM</td><td className="border border-border px-3 py-2">{seg.metrics.median_dom} days</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median $/sqft</td><td className="border border-border px-3 py-2">${Number(seg.metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Current listings</td><td className="border border-border px-3 py-2">{seg.metrics.current_listings}</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Sales (prior 12 mo)</td><td className="border border-border px-3 py-2">{seg.metrics.sales_12mo}</td></tr>
-                          <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</td><td className="border border-border px-3 py-2">{seg.metrics.inventory_months ?? '—'}</td></tr>
-                        </tbody>
-                      </table>
+                      <Table className="min-w-[280px] border border-border text-sm">
+                        <TableBody>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium"># Sales (period)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.sold_count}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median price</TableCell><TableCell className="border border-border px-3 py-2">${Number(seg.metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median DOM</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.median_dom} days</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median $/sqft</TableCell><TableCell className="border border-border px-3 py-2">${Number(seg.metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Current listings</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.current_listings}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Sales (prior 12 mo)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.sales_12mo}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.inventory_months ?? '—'}</TableCell></TableRow>
+                        </TableBody>
+                      </Table>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
@@ -380,17 +384,17 @@ export default function CityReportSection({ cities }: { cities: string[] }) {
             <>
               {metrics !== null && (
                 <div className="overflow-x-auto">
-                  <table className="min-w-[320px] border border-border text-sm">
-                    <tbody>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium"># Sales (period)</td><td className="border border-border px-3 py-2">{metrics.sold_count}</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median price</td><td className="border border-border px-3 py-2">${Number(metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median DOM</td><td className="border border-border px-3 py-2">{metrics.median_dom} days</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Median $/sqft</td><td className="border border-border px-3 py-2">${Number(metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Current listings</td><td className="border border-border px-3 py-2">{metrics.current_listings}</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Sales (prior 12 mo)</td><td className="border border-border px-3 py-2">{metrics.sales_12mo}</td></tr>
-                      <tr><td className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</td><td className="border border-border px-3 py-2">{metrics.inventory_months ?? '—'}</td></tr>
-                    </tbody>
-                  </table>
+                  <Table className="min-w-[320px] border border-border text-sm">
+                    <TableBody>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium"># Sales (period)</TableCell><TableCell className="border border-border px-3 py-2">{metrics.sold_count}</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median price</TableCell><TableCell className="border border-border px-3 py-2">${Number(metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median DOM</TableCell><TableCell className="border border-border px-3 py-2">{metrics.median_dom} days</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median $/sqft</TableCell><TableCell className="border border-border px-3 py-2">${Number(metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Current listings</TableCell><TableCell className="border border-border px-3 py-2">{metrics.current_listings}</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Sales (prior 12 mo)</TableCell><TableCell className="border border-border px-3 py-2">{metrics.sales_12mo}</TableCell></TableRow>
+                      <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{metrics.inventory_months ?? '—'}</TableCell></TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
               {priceBands && (priceBands.sales_by_band?.length > 0 || priceBands.current_listings_by_band?.length > 0) && (

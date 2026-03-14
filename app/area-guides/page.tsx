@@ -42,7 +42,7 @@ export default async function AreaGuidesPage() {
   const resortCommunities = sortResortCommunitiesInPrimaryCities(allCommunities, getPrimaryCityRank)
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Discover Central Oregon"
         subtitle="From Bend and Redmond to Sisters, Sunriver, and beyond. Explore neighborhoods, market trends, and homes for sale in every corner of the region we call home."
@@ -62,12 +62,12 @@ export default async function AreaGuidesPage() {
       </div>
 
       {others.length > 0 && (
-        <section className="border-b border-border bg-[var(--card)] px-4 py-12 sm:px-6" aria-labelledby="more-areas-heading">
+        <section className="border-b border-border bg-card px-4 py-12 sm:px-6" aria-labelledby="more-areas-heading">
           <div className="mx-auto max-w-6xl">
             <h2 id="more-areas-heading" className="text-xl font-bold text-primary">
               More areas
             </h2>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+            <p className="mt-1 text-sm text-muted-foreground">
               View all cities on the <Link href="/cities" className="font-medium text-accent-foreground hover:text-accent-foreground">Cities</Link> page.
             </p>
             <ul className="mt-4 flex flex-wrap gap-3">
@@ -94,12 +94,12 @@ export default async function AreaGuidesPage() {
         />
       </div>
 
-      <section className="border-t border-border bg-[var(--card)] px-4 py-14 sm:px-6" aria-labelledby="map-heading">
+      <section className="border-t border-border bg-card px-4 py-14 sm:px-6" aria-labelledby="map-heading">
         <div className="mx-auto max-w-2xl text-center">
           <h2 id="map-heading" className="font-display text-2xl font-bold text-primary">
             Search on the map
           </h2>
-          <p className="mt-3 text-[var(--muted-foreground)]">
+          <p className="mt-3 text-muted-foreground">
             Use our interactive map to explore listings, schools, and neighborhoods.
           </p>
           <Link

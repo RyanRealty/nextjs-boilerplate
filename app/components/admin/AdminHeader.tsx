@@ -7,7 +7,7 @@ type AdminHeaderProps = {
 
 export default function AdminHeader({ user }: AdminHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-white shadow-sm">
+    <header className="sticky top-0 z-30 border-b border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/admin"
@@ -19,7 +19,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           <span className="hidden text-sm text-muted-foreground sm:inline" title={user.email}>
             {user.fullName || user.email}
           </span>
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-border ring-2 ring-[var(--border)]">
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-border ring-2 ring-border">
             {user.avatarUrl ? (
               <Image
                 src={user.avatarUrl}
@@ -37,7 +37,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           </div>
           <Link
             href="/"
-            className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             View site
           </Link>

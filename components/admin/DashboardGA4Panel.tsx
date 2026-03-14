@@ -51,7 +51,7 @@ export default async function DashboardGA4Panel() {
           </div>
         </div>
         <p>
-          <Link href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-green-500 hover:underline">
+          <Link href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:underline">
             Open Google Analytics
           </Link>
         </p>
@@ -72,17 +72,17 @@ export default async function DashboardGA4Panel() {
           <p className="mt-1 text-sm text-destructive">{apiError}</p>
         </div>
       )}
-      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+      <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
         <p className="font-medium text-foreground">{isNotConfigured ? 'Optional' : 'Setup required'}</p>
-        <p className="mt-1 text-sm text-yellow-500">
+        <p className="mt-1 text-sm text-warning">
           GA4 live metrics are optional. To enable: create a <strong>Service Account</strong> in Google Cloud, enable <strong>Google Analytics Data API</strong>, grant the service account Viewer access to your GA4 property, then add three env vars.
         </p>
-        <p className="mt-2 text-sm text-yellow-500">
-          See <code className="rounded bg-yellow-500/15 px-1">docs/GA4_SERVICE_ACCOUNT_SETUP.md</code>. Env vars: GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY (GOOGLE_GA4_PROPERTY_ID is often already set).
+        <p className="mt-2 text-sm text-warning">
+          See <code className="rounded bg-warning/15 px-1">docs/GA4_SERVICE_ACCOUNT_SETUP.md</code>. Env vars: GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY (GOOGLE_GA4_PROPERTY_ID is often already set).
         </p>
       </div>
       <p>
-        <Link href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-green-500 hover:underline">
+        <Link href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-success hover:underline">
           Open Google Analytics
         </Link>
       </p>

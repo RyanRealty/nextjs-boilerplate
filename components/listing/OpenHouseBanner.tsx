@@ -82,7 +82,7 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
   }
 
   return (
-    <div className="bg-accent text-primary px-4 py-4 sm:px-6">
+    <div className="bg-accent text-accent-foreground px-4 py-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <p className="font-semibold">
           Open House: {dateStr}

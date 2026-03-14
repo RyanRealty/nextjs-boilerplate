@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { generateAllMissingBanners } from '@/app/actions/banners'
+import { Button } from "@/components/ui/button"
 
 type GenerateAction = typeof generateAllMissingBanners
 
@@ -22,21 +23,20 @@ export default function GenerateBannersButton({ generateAction }: { generateActi
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         onClick={handleGenerate}
         disabled={loading}
-        className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary disabled:bg-muted-foreground disabled:cursor-not-allowed"
       >
         {loading ? 'Generating…' : 'Generate missing banners'}
-      </button>
+      </Button>
       {result && (
         <div
-          className={`mt-4 rounded-lg border p-4 text-sm ${result.failed > 0 ? 'border-yellow-500/30 bg-yellow-500/10 text-foreground' : 'border-border bg-muted text-foreground'}`}
+          className={`mt-4 rounded-lg border p-4 text-sm ${result.failed > 0 ? 'border-warning bg-warning/10 text-foreground' : 'border-border bg-muted text-foreground'}`}
         >
           <strong>Done:</strong> generated {result.generated}, failed {result.failed}.
           {result.errors.length > 0 && (
-            <ul className="mt-2 list-inside list-disc text-yellow-500">
+            <ul className="mt-2 list-inside list-disc text-warning">
               {result.errors.slice(0, 10).map((e, i) => (
                 <li key={i}>{e}</li>
               ))}

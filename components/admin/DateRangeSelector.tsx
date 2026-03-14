@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last7' | 'last30' | 'last90' | 'last12m' | 'custom'
 
@@ -84,7 +86,7 @@ export default function DateRangeSelector({ value, onChange }: Props) {
       <span className="text-sm font-medium text-muted-foreground">Date range</span>
       <div className="flex flex-wrap gap-2">
         {PRESETS.map(({ value: p, label }) => (
-          <button
+          <Button
             key={p}
             type="button"
             onClick={() => handlePresetChange(p)}
@@ -95,31 +97,31 @@ export default function DateRangeSelector({ value, onChange }: Props) {
             }`}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </div>
       {preset === 'custom' && (
         <div className="flex items-center gap-2">
-          <input
+          <Input
             type="date"
             value={start}
             onChange={(e) => setStart(e.target.value)}
             className="rounded border border-border px-2 py-1 text-sm"
           />
           <span className="text-muted-foreground">to</span>
-          <input
+          <Input
             type="date"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
             className="rounded border border-border px-2 py-1 text-sm"
           />
-          <button
+          <Button
             type="button"
             onClick={handleCustomApply}
             className="rounded bg-primary px-3 py-1 text-sm text-white hover:bg-primary"
           >
             Apply
-          </button>
+          </Button>
         </div>
       )}
     </div>

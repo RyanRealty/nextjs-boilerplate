@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { trackEvent } from '@/lib/tracking'
 import { submitBrokerInquiry } from '@/app/actions/agents'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Props = {
   brokerId: string
@@ -66,84 +71,84 @@ export default function BrokerContactForm({
         </h2>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="contact-name" className="block text-sm font-medium text-white/90">Name</label>
-            <input
+            <Label htmlFor="contact-name" className="block text-sm font-medium text-white/90">Name</Label>
+            <Input
               id="contact-name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-card/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Your name"
             />
           </div>
           <div>
-            <label htmlFor="contact-email" className="block text-sm font-medium text-white/90">Email</label>
-            <input
+            <Label htmlFor="contact-email" className="block text-sm font-medium text-white/90">Email</Label>
+            <Input
               id="contact-email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-card/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label htmlFor="contact-phone" className="block text-sm font-medium text-white/90">Phone (optional)</label>
-            <input
+            <Label htmlFor="contact-phone" className="block text-sm font-medium text-white/90">Phone (optional)</Label>
+            <Input
               id="contact-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-card/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="(541) 555-0123"
             />
           </div>
           <div>
-            <label htmlFor="contact-help" className="block text-sm font-medium text-white/90">How can {brokerFirstName} help?</label>
-            <select
-              id="contact-help"
-              value={help}
-              onChange={(e) => setHelp(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <option value="">Select…</option>
-              {HELP_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-primary text-white">
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor="contact-help" className="block text-sm font-medium text-white/90">How can {brokerFirstName} help?</Label>
+            <Select value={help || '__all__'} onValueChange={(v) => setHelp(v === '__all__' ? '' : v)}>
+              <SelectTrigger id="contact-help" className="mt-1 w-full rounded-lg border border-white/20 bg-card/10 px-4 py-2.5 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent">
+                <SelectValue placeholder="Select…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Select…</SelectItem>
+                {HELP_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label htmlFor="contact-message" className="block text-sm font-medium text-white/90">Message</label>
-            <textarea
+            <Label htmlFor="contact-message" className="block text-sm font-medium text-white/90">Message</Label>
+            <Textarea
               id="contact-message"
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-card/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder={DEFAULT_MESSAGE}
             />
           </div>
           {status === 'success' && (
-            <p className="rounded-lg bg-[#22C55E]/20 px-4 py-3 text-sm text-white">
+            <p className="rounded-lg bg-success/20 px-4 py-3 text-sm text-white">
               Message sent! {brokerFirstName} will be in touch shortly.
             </p>
           )}
           {status === 'error' && (
-            <p className="rounded-lg bg-[var(--destructive)]/20 px-4 py-3 text-sm text-white">
+            <p className="rounded-lg bg-destructive/20 px-4 py-3 text-sm text-white">
               Something went wrong. Please try again or email directly.
             </p>
           )}
-          <button
+          <Button
             type="submit"
             disabled={status === 'sending'}
             className="w-full rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90 disabled:opacity-70"
           >
             {status === 'sending' ? 'Sending…' : 'Send message'}
-          </button>
+          </Button>
         </form>
       </div>
     </section>

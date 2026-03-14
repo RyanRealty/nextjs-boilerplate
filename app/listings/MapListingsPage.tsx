@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
 import { useRouter } from 'next/navigation'
 import { MAP_DEFAULT_CENTER, getListingMarkerIcon } from '@/lib/map-constants'
+import { Button } from "@/components/ui/button"
 
 type ListingForMap = {
   ListingKey: string
@@ -121,13 +122,13 @@ export default function MapListingsPage({ listings }: { listings: ListingForMap[
                   <div className="p-1 text-foreground">
                     <div className="font-semibold">${price.toLocaleString()}</div>
                     {linkKey && (
-                      <button
+                      <Button
                         type="button"
                         className="mt-1 text-sm text-primary hover:underline"
                         onClick={() => router.push(`/listing/${encodeURIComponent(linkKey)}`)}
                       >
                         View listing →
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </InfoWindow>
@@ -137,23 +138,23 @@ export default function MapListingsPage({ listings }: { listings: ListingForMap[
         })}
       </GoogleMap>
       <div className="absolute left-4 top-4 z-10 flex flex-col gap-2">
-        <button
+        <Button
           type="button"
           onClick={searchThisArea}
-          className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-md hover:bg-muted"
+          className="rounded-lg bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-md hover:bg-muted"
         >
           Search this area
-        </button>
+        </Button>
         {bbox && (
           <>
-            <button
+            <Button
               type="button"
               onClick={showAll}
-              className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-md hover:bg-muted"
+              className="rounded-lg bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-md hover:bg-muted"
             >
               Show all
-            </button>
-            <p className="rounded-lg bg-white/95 px-3 py-2 text-sm text-muted-foreground shadow">
+            </Button>
+            <p className="rounded-lg bg-card/95 px-3 py-2 text-sm text-muted-foreground shadow">
               {filtered.length} listing{filtered.length !== 1 ? 's' : ''} in view
             </p>
           </>
@@ -162,7 +163,7 @@ export default function MapListingsPage({ listings }: { listings: ListingForMap[
       <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-center sm:left-auto sm:right-4 sm:justify-end">
         <Link
           href="/listings"
-          className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-foreground shadow-md hover:bg-muted"
+          className="rounded-lg bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-md hover:bg-muted"
         >
           List view
         </Link>

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { Button } from "@/components/ui/button"
 
 export default function DashboardError({
   error,
@@ -19,16 +20,16 @@ export default function DashboardError({
       <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
       <p className="max-w-md text-sm text-muted-foreground">{error.message}</p>
       <div className="flex gap-3">
-        <button
+        <Button
           type="button"
           onClick={reset}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Try again
-        </button>
+        </Button>
         <Link
           href="/dashboard"
-          className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+          className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Back to dashboard
         </Link>

@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, type ReactNode } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 export type GeoSliderProps = {
   /** Section title (optional, e.g. for listings slider below hero) */
@@ -106,7 +107,7 @@ export default function GeoSlider({
                 {title}
               </h2>
             )}
-            {subtitle && <p className="mt-2 text-[var(--muted-foreground)]">{subtitle}</p>}
+            {subtitle && <p className="mt-2 text-muted-foreground">{subtitle}</p>}
           </div>
           {headerRight && <div className="flex items-center gap-2">{headerRight}</div>}
         </div>
@@ -114,34 +115,34 @@ export default function GeoSlider({
       <div className={`relative group/slider ${hasHeader ? 'mt-6' : ''}`}>
         {hoverArrows && (
           <>
-            <button
+            <Button
               type="button"
               onClick={() => scroll('left')}
               disabled={!hasOverflow}
               className="absolute left-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover/slider:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
               aria-label="Scroll left"
             >
-              <span className="rounded-full bg-white/90 p-2 shadow-md">
+              <span className="rounded-full bg-card/90 p-2 shadow-md">
                 <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5 text-primary" />
               </span>
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => scroll('right')}
               disabled={!hasOverflow}
               className="absolute right-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover/slider:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
               aria-label="Scroll right"
             >
-              <span className="rounded-full bg-white/90 p-2 shadow-md">
+              <span className="rounded-full bg-card/90 p-2 shadow-md">
                 <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 text-primary" />
               </span>
-            </button>
+            </Button>
           </>
         )}
         <div
           ref={scrollRef}
           onScroll={updateScrollState}
-          className="flex gap-4 overflow-x-auto pb-2 scroll-smooth [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--muted-foreground)]"
+          className="flex gap-4 overflow-x-auto pb-2 scroll-smooth [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground"
         >
           {children}
         </div>

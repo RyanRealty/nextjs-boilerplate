@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { syncListingHistory } from '@/app/actions/sync-spark'
 import type { SyncHistoryResult } from '@/app/actions/sync-spark'
 import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
 
 const BATCH_LIMIT = 50
 
@@ -92,7 +93,7 @@ export default function SyncHistoryButtons({ compact = false }: Props) {
   }
 
   return (
-    <div className={compact ? 'flex flex-wrap items-center gap-3' : 'mt-6 rounded-lg border border-border bg-white p-6 shadow-sm'}>
+    <div className={compact ? 'flex flex-wrap items-center gap-3' : 'mt-6 rounded-lg border border-border bg-card p-6 shadow-sm'}>
       {!compact && (
         <>
           <h2 className="text-lg font-semibold text-foreground">Listing history sync</h2>
@@ -102,30 +103,30 @@ export default function SyncHistoryButtons({ compact = false }: Props) {
         </>
       )}
       <div className={compact ? 'flex flex-wrap items-center gap-3' : 'mt-4 flex flex-wrap items-center gap-3'}>
-        <button
+        <Button
           type="button"
           onClick={() => runLoop(true)}
           disabled={running !== null}
-          className="rounded-lg bg-green-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-green-500/75 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-success px-4 py-2.5 text-sm font-medium text-white hover:bg-success/75 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {running === 'active' ? 'Running…' : 'Run all active listing histories'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => runLoop(false)}
           disabled={running !== null}
           className="rounded-lg border-2 border-border bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         >
           {running === 'closed' ? 'Running…' : 'Backfill closed / expired / withdrawn / canceled'}
-        </button>
+        </Button>
         {running !== null && (
-          <button
+          <Button
             type="button"
             onClick={handleStop}
             className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/15"
           >
             Stop
-          </button>
+          </Button>
         )}
       </div>
       {!compact && (

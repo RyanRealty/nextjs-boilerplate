@@ -73,10 +73,58 @@ export async function getOrCreatePlaceBanner(
   entityKey: string,
   _searchQuery?: string
 ): Promise<{ url: string | null; attribution: string | null }> {
-  const existingUrl = await getBannerUrl(entityType, entityKey)
-  if (!existingUrl) return { url: null, attribution: null }
-  const attribution = await getBannerAttribution(entityType, entityKey)
-  return { url: existingUrl, attribution }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl?.trim() || !key?.trim()) return { url: null, attribution: null }
+
+  const sb = createClient(supabaseUrl, key)
+  const { data } = await sb
+    .from('banner_images')
+    .select('storage_path, attribution')
+    .eq('entity_type', entityType)
+    .eq('entity_key', entityKey)
+    .maybeSingle()
+
+  const row = data as { storage_path?: string; attribution?: string | null } | null
+  if (!row?.storage_path) return { url: null, attribution: null }
+
+  return {
+    url: `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${row.storage_path}`,
+    attribution: row.attribution?.trim() ?? null,
+  }
+}
+
+/**
+ * Batch-fetch banner URLs and attributions for multiple entities of the same type in a SINGLE query.
+ * Returns a Map keyed by entity_key with {url, attribution} values.
+ */
+export async function getBannersBatch(
+  entityType: 'city' | 'subdivision',
+  entityKeys: string[]
+): Promise<Map<string, { url: string | null; attribution: string | null }>> {
+  const result = new Map<string, { url: string | null; attribution: string | null }>()
+  if (entityKeys.length === 0) return result
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl?.trim() || !key?.trim()) return result
+
+  const sb = createClient(supabaseUrl, key)
+  const { data } = await sb
+    .from('banner_images')
+    .select('entity_key, storage_path, attribution')
+    .eq('entity_type', entityType)
+    .in('entity_key', entityKeys)
+
+  for (const row of (data ?? []) as { entity_key: string; storage_path?: string; attribution?: string | null }[]) {
+    if (!row.storage_path) continue
+    result.set(row.entity_key, {
+      url: `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${row.storage_path}`,
+      attribution: row.attribution?.trim() ?? null,
+    })
+  }
+
+  return result
 }
 
 /** Download image from URL, upload to Storage, upsert banner_images. Returns new public URL or null. */

@@ -10,54 +10,18 @@ export default function GlobalError({ error }: { error: Error }) {
 
   return (
     <html>
-      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif" }}>
-        <main
-          style={{
-            maxWidth: "32rem",
-            margin: "0 auto",
-            padding: "2rem 1rem",
-            textAlign: "center",
-            color: "#18181b",
-            backgroundColor: "#f0eeec",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 600,
-              color: "#102742",
-            }}
-          >
+      <body className="m-0">
+        <main className="mx-auto max-w-sm px-4 py-16 text-center text-foreground bg-secondary min-h-screen flex flex-col items-center justify-center">
+          <h1 className="text-xl font-semibold text-primary">
             Something went wrong
           </h1>
-          <p
-            style={{
-              marginTop: "0.5rem",
-              color: "#52525b",
-            }}
-          >
+          <p className="mt-2 text-muted-foreground">
             We’ve been notified and are looking into it. Please try again.
           </p>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
-            style={{
-              display: "inline-block",
-              marginTop: "1.5rem",
-              padding: "0.5rem 1rem",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              color: "#102742",
-              backgroundColor: "white",
-              border: "1px solid #e4e4e7",
-              borderRadius: "0.75rem",
-              textDecoration: "none",
-            }}
+            className="mt-6 inline-block rounded-lg bg-card px-4 py-2 text-sm font-medium text-primary border border-border hover:bg-muted"
           >
             Back to home
           </a>

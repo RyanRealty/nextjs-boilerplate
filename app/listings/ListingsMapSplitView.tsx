@@ -11,6 +11,13 @@ import type { ListingTileListing } from '@/components/ListingTile'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
 import type { ListingForMap } from '@/components/SearchMapClustered'
 import type { CityForIndex } from '@/lib/cities'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -89,7 +96,7 @@ export default function ListingsMapSplitView({
   return (
     <div className="flex h-[calc(100vh-4rem)] min-h-[400px] flex-col overflow-hidden">
       {/* Top: filter bar (dropdowns with Apply — baseline from reference) */}
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-white px-4 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3">
         <SearchFilterBar
           basePath={basePath}
           signedIn={signedIn}
@@ -125,36 +132,40 @@ export default function ListingsMapSplitView({
       {/* Split: list left (scrollable), map right (fills rest) */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left: fixed-width scrollable list — only this column scrolls */}
-        <div className="flex w-full flex-col min-h-0 shrink-0 border-r border-border bg-[var(--card)] md:w-[420px] lg:w-[480px]">
-          <div className="shrink-0 border-b border-border bg-white px-4 py-3">
+        <div className="flex w-full flex-col min-h-0 shrink-0 border-r border-border bg-card md:w-[420px] lg:w-[480px]">
+          <div className="shrink-0 border-b border-border bg-card px-4 py-3">
             <h2 className="text-lg font-semibold text-primary">
               {pageTitle}
             </h2>
-            <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">
+            <p className="mt-0.5 text-sm text-muted-foreground">
               {totalCount.toLocaleString()} result{totalCount !== 1 ? 's' : ''}
             </p>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs font-medium text-[var(--muted-foreground)]">Sort:</span>
-              <select
-                className="rounded-lg border border-border bg-white px-2 py-1.5 text-sm text-[var(--foreground)]"
+              <span className="text-xs font-medium text-muted-foreground">Sort:</span>
+              <Select
                 value={searchParams.sort ?? 'newest'}
-                onChange={(e) => {
-                  router.push(`${basePath}${buildQuery(searchParams, { sort: e.target.value, page: '1' })}`)
+                onValueChange={(value) => {
+                  router.push(`${basePath}${buildQuery(searchParams, { sort: value, page: '1' })}`)
                 }}
               >
-                {SORT_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-32 rounded-lg px-2 py-1.5 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto p-4">
             {listings.length === 0 && totalCount === 0 ? (
-              <p className="text-[var(--muted-foreground)]">No listings match your criteria.</p>
+              <p className="text-muted-foreground">No listings match your criteria.</p>
             ) : (
               <>
                 {listings.length === 0 ? (
-                  <p className="text-[var(--muted-foreground)]">No listings on this page. Try another page.</p>
+                  <p className="text-muted-foreground">No listings on this page. Try another page.</p>
                 ) : (
                   <ul className="space-y-4">
                     {listings.map((listing, i) => {

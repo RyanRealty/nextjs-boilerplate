@@ -33,12 +33,12 @@ export default function ListingsPagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-white px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-4 py-3"
       aria-label="Listings pagination"
     >
-      <p className="text-sm text-[var(--muted-foreground)]">
-        Showing <span className="font-medium text-[var(--foreground)]">{start.toLocaleString()}–{end.toLocaleString()}</span> of{' '}
-        <span className="font-medium text-[var(--foreground)]">{totalCount.toLocaleString()}</span> homes
+      <p className="text-sm text-muted-foreground">
+        Showing <span className="font-medium text-foreground">{start.toLocaleString()}–{end.toLocaleString()}</span> of{' '}
+        <span className="font-medium text-foreground">{totalCount.toLocaleString()}</span> homes
       </p>
       <div className="flex items-center gap-2">
         <span className="sr-only">Previous page</span>
@@ -46,14 +46,14 @@ export default function ListingsPagination({
           href={page <= 1 ? pathname : `${pathname}${buildQuery(searchParams, { page: String(page - 1) })}`}
           className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium ${
             page <= 1
-              ? 'pointer-events-none border-border bg-[var(--card)] text-[var(--muted-foreground)]'
-              : 'border-border bg-white text-[var(--foreground)] hover:bg-[var(--card)]'
+              ? 'pointer-events-none border-border bg-card text-muted-foreground'
+              : 'border-border bg-card text-foreground hover:bg-card'
           }`}
           aria-disabled={page <= 1}
         >
           Previous
         </Link>
-        <span className="text-sm text-[var(--muted-foreground)]">
+        <span className="text-sm text-muted-foreground">
           Page {page} of {totalPages}
         </span>
         <span className="sr-only">Next page</span>
@@ -61,8 +61,8 @@ export default function ListingsPagination({
           href={page >= totalPages ? pathname : `${pathname}${buildQuery(searchParams, { page: String(page + 1) })}`}
           className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium ${
             page >= totalPages
-              ? 'pointer-events-none border-border bg-[var(--card)] text-[var(--muted-foreground)]'
-              : 'border-border bg-white text-[var(--foreground)] hover:bg-[var(--card)]'
+              ? 'pointer-events-none border-border bg-card text-muted-foreground'
+              : 'border-border bg-card text-foreground hover:bg-card'
           }`}
           aria-disabled={page >= totalPages}
         >

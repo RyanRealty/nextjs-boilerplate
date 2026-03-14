@@ -52,7 +52,7 @@ export default function CommunityHero({
         />
       </div>
       {/* Splash overlay: gradient for readability + one-time light sweep */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[var(--primary)]/90 via-[var(--primary)]/55 to-[var(--primary)]/25" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/55 to-primary/25" aria-hidden />
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]" aria-hidden>
         <div className="absolute top-0 left-0 h-full w-[60%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-hero-shine" />
       </div>

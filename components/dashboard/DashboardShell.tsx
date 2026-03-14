@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { signOut } from '@/app/actions/auth'
+import { Button } from "@/components/ui/button"
 
 type DashboardShellProps = {
   user: {
@@ -31,18 +32,18 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[var(--muted)]">
+    <div className="min-h-screen bg-muted">
       {/* Top bar - mobile: hamburger + title; desktop: welcome + avatar + bell */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-white px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-card px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <button
+          <Button
             type="button"
             onClick={() => setSidebarOpen((o) => !o)}
             className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted lg:hidden"
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
           >
             {sidebarOpen ? '×' : '☰'}
-          </button>
+          </Button>
           <h1 className="text-lg font-semibold text-foreground lg:text-xl">
             Welcome back, {user.firstName}
           </h1>
@@ -76,7 +77,7 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
       <div className="flex">
         {/* Sidebar - collapsible on mobile */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-64 border-r border-border bg-white pt-16 transition-transform lg:static lg:z-0 lg:pt-0 ${
+          className={`fixed inset-y-0 left-0 z-30 w-64 border-r border-border bg-card pt-16 transition-transform lg:static lg:z-0 lg:pt-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
           aria-label="Dashboard navigation"
@@ -104,19 +105,19 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
           </nav>
           <div className="mt-auto border-t border-border p-3">
             <form action={signOut}>
-              <button
+              <Button
                 type="submit"
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 Sign out
-              </button>
+              </Button>
             </form>
           </div>
         </aside>
 
         {/* Overlay when sidebar open on mobile */}
         {sidebarOpen && (
-          <button
+          <Button
             type="button"
             aria-label="Close menu"
             className="fixed inset-0 z-20 bg-black/30 lg:hidden"

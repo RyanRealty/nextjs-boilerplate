@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { runOneFullSyncChunk } from '@/app/actions/sync-full-cron'
 import type { SyncCursor } from '@/app/actions/sync-full-cron'
+import { Button } from "@/components/ui/button"
 
 type Props = { cursor: SyncCursor | null }
 
@@ -39,10 +40,10 @@ export default function CronSyncStatus({ cursor }: Props) {
 
   if (cursor?.error) {
     return (
-      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+      <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
         <h2 className="text-lg font-semibold text-foreground">Cron sync status</h2>
-        <p className="mt-2 text-sm text-yellow-500">
-          Cannot read progress: {cursor.error}. Run the <code className="rounded bg-yellow-500/15 px-1">sync_cursor</code> migration.
+        <p className="mt-2 text-sm text-warning">
+          Cannot read progress: {cursor.error}. Run the <code className="rounded bg-warning/15 px-1">sync_cursor</code> migration.
         </p>
       </div>
     )
@@ -52,7 +53,7 @@ export default function CronSyncStatus({ cursor }: Props) {
   const phaseLabel = cursor?.phase === 'listings' ? 'Listings' : cursor?.phase === 'history' ? 'History' : 'Idle (next run starts listings)'
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Cron sync status</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Progress of the 15‑minute cron job. Use <strong>Run one chunk now</strong> to trigger a step immediately.
@@ -87,14 +88,14 @@ export default function CronSyncStatus({ cursor }: Props) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
+        <Button
           type="button"
           onClick={handleRunNow}
           disabled={running}
-          className="rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-500/75 disabled:opacity-50"
+          className="rounded-lg bg-success px-4 py-2 text-sm font-medium text-white hover:bg-success/75 disabled:opacity-50"
         >
           {running ? 'Running…' : 'Run one chunk now'}
-        </button>
+        </Button>
         <span className="text-xs text-muted-foreground">
           {isIdle ? 'Next cron run will start a new full cycle (listings then history).' : 'Runs automatically every 15 min.'}
         </span>

@@ -8,6 +8,9 @@ import { trackEvent } from '@/lib/tracking'
 import type { OpenHouseWithListing } from '@/app/actions/open-houses'
 import type { OpenHousesFilters } from '@/app/actions/open-houses'
 import ListingMapGoogle from '@/components/ListingMapGoogle'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type ViewMode = 'map' | 'list' | 'calendar'
 
@@ -76,82 +79,84 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <h2 className="sr-only">Browse open houses</h2>
-      <p className="text-[var(--muted-foreground)]">
+      <p className="text-muted-foreground">
         This weekend and upcoming in Central Oregon. Add to calendar or RSVP from the listing page.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
-        <div className="flex rounded-lg border border-[var(--border)] bg-white p-2">
+        <div className="flex rounded-lg border border-border bg-card p-2">
           {(['list', 'map', 'calendar'] as const).map((mode) => (
-            <button
+            <Button
               key={mode}
               type="button"
               onClick={() => setViewMode(mode)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize ${viewMode === mode ? 'bg-primary text-white' : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize ${viewMode === mode ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-muted'}`}
             >
               {mode}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          <input
+          <Input
             type="date"
             value={initialFilters?.dateFrom ?? ''}
             onChange={(e) => updateFilters({ dateFrom: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-border px-3 py-2 text-sm"
           />
-          <input
+          <Input
             type="date"
             value={initialFilters?.dateTo ?? ''}
             onChange={(e) => updateFilters({ dateTo: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-border px-3 py-2 text-sm"
           />
-          <input
+          <Input
             type="text"
             placeholder="City"
             value={initialFilters?.city ?? ''}
             onChange={(e) => updateFilters({ city: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
           />
-          <input
+          <Input
             type="number"
             placeholder="Min price"
             value={initialFilters?.minPrice ?? ''}
             onChange={(e) => updateFilters({ minPrice: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
           />
-          <input
+          <Input
             type="number"
             placeholder="Max price"
             value={initialFilters?.maxPrice ?? ''}
             onChange={(e) => updateFilters({ maxPrice: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
           />
-          <select
-            value={initialFilters?.beds ?? ''}
-            onChange={(e) => updateFilters({ beds: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            <option value="">Beds</option>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>{n}+</option>
-            ))}
-          </select>
-          <select
-            value={initialFilters?.baths ?? ''}
-            onChange={(e) => updateFilters({ baths: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
-          >
-            <option value="">Baths</option>
-            {[1, 2, 3, 4].map((n) => (
-              <option key={n} value={n}>{n}+</option>
-            ))}
-          </select>
+          <Select value={String(initialFilters?.beds ?? '') || '__all__'} onValueChange={(v) => updateFilters({ beds: v === '__all__' ? undefined : v })}>
+            <SelectTrigger className="rounded-lg px-3 py-2 text-sm">
+              <SelectValue placeholder="Beds" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Beds</SelectItem>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <SelectItem key={n} value={String(n)}>{n}+</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(initialFilters?.baths ?? '') || '__all__'} onValueChange={(v) => updateFilters({ baths: v === '__all__' ? undefined : v })}>
+            <SelectTrigger className="rounded-lg px-3 py-2 text-sm">
+              <SelectValue placeholder="Baths" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Baths</SelectItem>
+              {[1, 2, 3, 4].map((n) => (
+                <SelectItem key={n} value={String(n)}>{n}+</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {initialOpenHouses.length === 0 && (
-        <p className="mt-8 text-[var(--muted-foreground)]">No open houses match your filters. Try a different date range.</p>
+        <p className="mt-8 text-muted-foreground">No open houses match your filters. Try a different date range.</p>
       )}
 
       {viewMode === 'map' && initialOpenHouses.length > 0 && (
@@ -173,15 +178,15 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
             <li key={oh.id}>
               <Link
                 href={`/listing/${encodeURIComponent(oh.listing_key)}`}
-                className="block overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm transition hover:shadow-md"
+                className="block overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md"
               >
-                <div className="relative aspect-[4/3] bg-[var(--muted)]">
+                <div className="relative aspect-[4/3] bg-muted">
                   {oh.photo_url ? (
                     <Image src={oh.photo_url} alt={`${address(oh)} — open house`} fill className="object-cover" sizes="(max-width:640px) 100vw, 320px" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-[var(--muted-foreground)]">No photo</div>
+                    <div className="flex h-full items-center justify-center text-muted-foreground">No photo</div>
                   )}
-                  <span className="absolute left-2 top-2 rounded-md bg-[var(--destructive)] px-2 py-1 text-xs font-semibold text-white">
+                  <span className="absolute left-2 top-2 rounded-md bg-destructive px-2 py-1 text-xs font-semibold text-white">
                     <span aria-hidden>📅</span> {formatDate(oh.event_date)} · {formatTime(oh.start_time)} – {formatTime(oh.end_time)}
                   </span>
                 </div>
@@ -189,8 +194,8 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
                   <p className="text-xl font-bold text-primary">
                     ${(oh.list_price ?? 0).toLocaleString()}
                   </p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">{address(oh)}</p>
-                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+                  <p className="mt-1 text-sm text-muted-foreground">{address(oh)}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {oh.beds_total ?? '—'} bed · {oh.baths_full ?? '—'} bath
                     {oh.living_area != null && ` · ${Number(oh.living_area).toLocaleString()} sq ft`}
                   </p>
@@ -203,17 +208,17 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
 
       {viewMode === 'calendar' && initialOpenHouses.length > 0 && (
         <div className="mt-8 overflow-x-auto">
-          <div className="min-w-[600px] rounded-lg border border-[var(--border)] bg-white p-4">
+          <div className="min-w-[600px] rounded-lg border border-border bg-card p-4">
             <p className="mb-4 font-semibold text-primary">Upcoming by date</p>
             <ul className="space-y-2">
               {initialOpenHouses.map((oh) => (
                 <li key={oh.id}>
                   <Link
                     href={`/listing/${encodeURIComponent(oh.listing_key)}`}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] p-3 hover:bg-[var(--muted)]"
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3 hover:bg-muted"
                   >
                     <span className="font-medium text-primary">{formatDate(oh.event_date)}</span>
-                    <span className="text-[var(--muted-foreground)]">
+                    <span className="text-muted-foreground">
                       {formatTime(oh.start_time)} – {formatTime(oh.end_time)}
                     </span>
                     <span className="text-sm">{address(oh)}</span>

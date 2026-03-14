@@ -3,6 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { trackEvent } from '@/lib/tracking'
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 type Props = {
   communityName: string
@@ -28,42 +37,37 @@ export default function CommunityCTA({ communityName, slug }: Props) {
           Interested in {communityName}?
         </h2>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/account/saved-communities"
+          <Button
+            asChild
             onClick={handleGetNotified}
-            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
-            Get Notified of New Listings
-          </Link>
-          <button
+            <Link href="/account/saved-communities">
+              Get Notified of New Listings
+            </Link>
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={handleTalkExpert}
-            className="inline-flex items-center justify-center rounded-lg border-2 border-white/60 px-6 py-3 font-semibold text-white hover:bg-white/10"
           >
             Talk to a Local Expert
-          </button>
+          </Button>
         </div>
         <p className="mt-4 text-sm text-white/80">
           Sign in to save this community and get alerts when new homes hit the market.
         </p>
       </div>
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-bold text-primary">Contact an expert</h3>
-            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact an expert</DialogTitle>
+            <DialogDescription>
               We&apos;ll connect you with a local agent who knows {communityName}. Contact form coming soon.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="mt-4 w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-accent/90"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter showCloseButton />
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

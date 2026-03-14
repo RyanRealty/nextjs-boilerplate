@@ -20,12 +20,12 @@ export default async function CommunityContext({
   const nearby = sameCity.slice(0, 4)
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-context-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-context-heading">
       <div className="mx-auto max-w-7xl">
         <h2 id="community-context-heading" className="text-2xl font-bold tracking-tight text-primary">
           About the Area
         </h2>
-        <p className="mt-2 text-[var(--muted-foreground)]">
+        <p className="mt-2 text-muted-foreground">
           Located in{' '}
           <Link href={`/homes-for-sale?city=${encodeURIComponent(city)}`} className="font-medium text-accent-foreground hover:underline">
             {city}
@@ -55,7 +55,7 @@ export default async function CommunityContext({
           <h3 className="text-lg font-semibold text-primary">
             Schools near {communityName}
           </h3>
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-2 text-sm text-muted-foreground">
             School district and zoning information will be available here. Check back for updates.
           </p>
         </div>

@@ -21,7 +21,7 @@ export default function BrokerShare({ brokerFirstName, brokerName, slug, transac
     : `${brokerName} — Real Estate Agent at Ryan Realty.`
 
   return (
-    <section className="bg-white px-4 py-8 sm:px-6" aria-label="Share profile">
+    <section className="bg-card px-4 py-8 sm:px-6" aria-label="Share profile">
       <ShareButton
         title={title}
         text={text}
@@ -29,7 +29,7 @@ export default function BrokerShare({ brokerFirstName, brokerName, slug, transac
         aria-label={`Share ${brokerFirstName}'s profile`}
         variant="default"
         trackContext="broker_profile"
-        className="rounded-lg border-[var(--border)] bg-[var(--muted)] text-primary hover:bg-[var(--border)]"
+        className="rounded-lg border-border bg-muted text-primary hover:bg-border"
       />
     </section>
   )

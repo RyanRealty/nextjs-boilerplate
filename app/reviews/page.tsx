@@ -84,7 +84,7 @@ const GOOGLE_REVIEWS_URL = "https://www.google.com/maps/search/?api=1&query=Ryan
 
 export default function ReviewsPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-accent-foreground">
@@ -109,7 +109,7 @@ export default function ReviewsPage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="testimonials-heading">
+      <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="testimonials-heading">
         <div className="mx-auto max-w-5xl">
           <h2 id="testimonials-heading" className="sr-only">
             Client testimonials
@@ -120,13 +120,13 @@ export default function ReviewsPage() {
                 key={t.author + t.quote.slice(0, 40)}
                 className="rounded-xl border border-border bg-card p-6 shadow-sm"
               >
-                <blockquote className="text-[var(--foreground)]">
+                <blockquote className="text-foreground">
                   <p className="text-lg leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
                   <footer className="mt-4 flex items-center justify-between">
                     <cite className="not-italic font-semibold text-primary">
                       — {t.author}
                     </cite>
-                    <span className="text-sm text-[var(--muted-foreground)]">{t.source}</span>
+                    <span className="text-sm text-muted-foreground">{t.source}</span>
                   </footer>
                 </blockquote>
               </li>
@@ -151,7 +151,7 @@ export default function ReviewsPage() {
           <h2 id="cta-heading" className="font-display text-2xl font-bold text-primary">
             Ready to work with us?
           </h2>
-          <p className="mt-3 text-[var(--muted-foreground)]">
+          <p className="mt-3 text-muted-foreground">
             See why clients choose Ryan Realty for buying and selling in Central Oregon.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">

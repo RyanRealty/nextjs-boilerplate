@@ -13,7 +13,7 @@ export default function ListingDetailError({
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 bg-muted">
       <h1 className="text-xl font-semibold text-primary mb-2">Something went wrong</h1>
-      <p className="text-[var(--muted-foreground)] text-center mb-6 max-w-md">
+      <p className="text-muted-foreground text-center mb-6 max-w-md">
         We couldn’t load this listing. Please try again or return to search.
       </p>
       <div className="flex gap-3">

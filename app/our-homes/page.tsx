@@ -26,7 +26,7 @@ export default async function OurHomesPage() {
   })
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-4xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-accent-foreground">
@@ -49,7 +49,7 @@ export default async function OurHomesPage() {
             </Link>
             <Link
               href="/sell"
-              className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-white/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/20"
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-card/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-card/20"
             >
               Sell with us
             </Link>
@@ -57,14 +57,14 @@ export default async function OurHomesPage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="listings-heading">
+      <section className="border-b border-border bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="listings-heading">
         <div className="mx-auto max-w-6xl">
           <h2 id="listings-heading" className="font-display text-2xl font-bold text-primary sm:text-3xl">
             Featured homes for sale
           </h2>
           {listings.length === 0 ? (
             <div className="mt-8 rounded-xl border border-border bg-muted p-10 text-center">
-              <p className="text-[var(--muted-foreground)]">
+              <p className="text-muted-foreground">
                 No listings are available in the system right now. Browse all Central Oregon
                 listings or get in touch to list your home with us.
               </p>
@@ -85,7 +85,7 @@ export default async function OurHomesPage() {
             </div>
           ) : (
             <>
-            <p className="mt-2 text-[var(--muted-foreground)]">
+            <p className="mt-2 text-muted-foreground">
               {listings.length} home{listings.length !== 1 ? 's' : ''} for sale in Central Oregon.
             </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -103,7 +103,7 @@ export default async function OurHomesPage() {
                     href={href}
                     className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition hover:shadow-md"
                   >
-                    <div className="relative aspect-[4/3] bg-[var(--muted)]">
+                    <div className="relative aspect-[4/3] bg-muted">
                       {listing.PhotoURL ? (
                         <img
                           src={listing.PhotoURL}
@@ -111,7 +111,7 @@ export default async function OurHomesPage() {
                           className="h-full w-full object-cover transition group-hover:scale-105"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-[var(--muted-foreground)]">
+                        <div className="flex h-full items-center justify-center text-muted-foreground">
                           No photo
                         </div>
                       )}
@@ -123,7 +123,7 @@ export default async function OurHomesPage() {
                     </div>
                     <div className="p-4">
                       {address && <p className="font-semibold text-primary">{address}</p>}
-                      {loc && <p className="text-sm text-[var(--muted-foreground)]">{loc}</p>}
+                      {loc && <p className="text-sm text-muted-foreground">{loc}</p>}
                       <span className="mt-2 inline-block text-sm font-medium text-accent-foreground group-hover:underline">
                         View details →
                       </span>
@@ -152,7 +152,7 @@ export default async function OurHomesPage() {
           <h2 id="sell-cta-heading" className="font-display text-2xl font-bold text-primary">
             Ready to list your home?
           </h2>
-          <p className="mt-3 text-[var(--muted-foreground)]">
+          <p className="mt-3 text-muted-foreground">
             Get our full plan: pricing, marketing, and local expertise from day one.
           </p>
           <Link

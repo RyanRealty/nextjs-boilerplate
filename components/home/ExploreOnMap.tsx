@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { MapListingRow } from '@/app/actions/listings'
+import { Button } from "@/components/ui/button"
 
 const HomeMap = dynamic(() => import('./HomeMap'), {
   ssr: false,
@@ -37,10 +38,10 @@ export default function ExploreOnMap({ mapListings = [] }: Props) {
       aria-labelledby="explore-map-heading"
     >
       <div className="w-full px-4 py-4 sm:px-6">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex w-full items-center justify-between gap-2 border-b border-border bg-white px-4 py-3 text-left font-medium text-foreground transition hover:bg-muted"
+          className="flex w-full items-center justify-between gap-2 border-b border-border bg-card px-4 py-3 text-left font-medium text-foreground transition hover:bg-muted"
           aria-expanded={open}
           aria-controls="explore-map-content"
           id="explore-map-heading"
@@ -49,12 +50,12 @@ export default function ExploreOnMap({ mapListings = [] }: Props) {
           <span className="text-muted-foreground" aria-hidden>
             {open ? 'Hide map' : 'Show map'}
           </span>
-        </button>
+        </Button>
         <div
           id="explore-map-content"
           role="region"
           aria-labelledby="explore-map-heading"
-          className={`overflow-hidden border-0 bg-white transition-all duration-200 ${
+          className={`overflow-hidden border-0 bg-card transition-all duration-200 ${
             open ? 'visible opacity-100' : 'invisible h-0 opacity-0'
           }`}
         >
@@ -71,21 +72,21 @@ export default function ExploreOnMap({ mapListings = [] }: Props) {
                     </p>
                     <Link
                       href="/listings?view=map"
-                      className="inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-primary hover:bg-accent/90"
+                      className="inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-accent-foreground hover:bg-accent/90"
                     >
                       Full map & filters →
                     </Link>
                   </div>
                 </>
               ) : (
-                <div className="border border-yellow-500/30 bg-yellow-500/10 px-4 py-8 text-center">
-                  <p className="text-yellow-500">
-                    Configure <code className="bg-yellow-500/15 px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in your
+                <div className="border border-warning/30 bg-warning/10 px-4 py-8 text-center">
+                  <p className="text-warning">
+                    Configure <code className="bg-warning/15 px-1">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in your
                     environment to show the map.
                   </p>
                   <Link
                     href="/listings?view=map"
-                    className="mt-4 inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-primary"
+                    className="mt-4 inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-accent-foreground"
                   >
                     Browse listings →
                   </Link>

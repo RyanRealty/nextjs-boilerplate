@@ -34,7 +34,7 @@ export default async function TeamPage() {
   const brokerageName = brokerage?.name ?? 'Ryan Realty'
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -59,7 +59,7 @@ export default async function TeamPage() {
       />
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         {agents.length === 0 ? (
-          <p className="text-[var(--muted-foreground)]">Team profiles are being updated. Check back soon.</p>
+          <p className="text-muted-foreground">Team profiles are being updated. Check back soon.</p>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {agents.map((agent) => (

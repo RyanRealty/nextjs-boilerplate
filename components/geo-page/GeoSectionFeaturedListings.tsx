@@ -40,7 +40,7 @@ export default function GeoSectionFeaturedListings({
           {viewAllLabel}
         </Link>
       }
-      className="bg-white px-4 py-10 sm:px-6 sm:py-12"
+      className="bg-card px-4 py-10 sm:px-6 sm:py-12"
     >
       {listings.map((listing) => {
         const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString()

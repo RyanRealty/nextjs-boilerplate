@@ -6,6 +6,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/tracking'
 import { submitListingInquiry } from '@/app/actions/track-contact-agent'
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 type Props = {
   agent: ListingDetailAgent | null
@@ -22,7 +32,7 @@ export default function AgentCard({ agent, address, listingKey, showContactInfo 
     return (
       <Card id="listing-agent-card">
         <CardContent className="p-4">
-          <p className="text-sm text-[var(--muted-foreground)]">No listing agent information available.</p>
+          <p className="text-sm text-muted-foreground">No listing agent information available.</p>
         </CardContent>
       </Card>
     )
@@ -39,13 +49,13 @@ export default function AgentCard({ agent, address, listingKey, showContactInfo 
     <Card id="listing-agent-card">
       <CardContent className="p-4 space-y-4">
         <div className="flex gap-4">
-          <div className="w-16 h-16 rounded-full bg-[var(--border)] flex-shrink-0 overflow-hidden">
-            {/* Placeholder avatar - no agent photo URL in schema */}
+          <div className="w-16 h-16 rounded-full bg-border flex-shrink-0 overflow-hidden">
+            {/* Placeholder avatar */}
           </div>
           <div>
-            <h3 className="font-semibold text-primary">{name}</h3>
-            <p className="text-sm text-[var(--muted-foreground)]">Listing Agent</p>
-            {agent.office_name && <p className="text-sm text-[var(--muted-foreground)]">{agent.office_name}</p>}
+            <h3 className="font-semibold text-foreground">{name}</h3>
+            <p className="text-sm text-muted-foreground">Listing Agent</p>
+            {agent.office_name && <p className="text-sm text-muted-foreground">{agent.office_name}</p>}
           </div>
         </div>
         {showContactInfo && email && (
@@ -58,24 +68,25 @@ export default function AgentCard({ agent, address, listingKey, showContactInfo 
         </Button>
       </CardContent>
 
-      {contactOpen && (
-        <ContactModal
-          agentName={name}
-          address={address}
-          listingKey={listingKey}
-          onClose={() => setContactOpen(false)}
-        />
-      )}
+      <ContactModal
+        open={contactOpen}
+        agentName={name}
+        address={address}
+        listingKey={listingKey}
+        onClose={() => setContactOpen(false)}
+      />
     </Card>
   )
 }
 
 function ContactModal({
+  open,
   agentName,
   address,
   listingKey,
   onClose,
 }: {
+  open: boolean
   agentName: string
   address: string
   listingKey: string
@@ -109,38 +120,39 @@ function ContactModal({
   }
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/50" aria-hidden onClick={onClose} />
-      <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-primary mb-4">Contact {agentName}</h3>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Contact {agentName}</DialogTitle>
+        </DialogHeader>
         {status === 'done' ? (
-          <p className="text-[#22C55E]">Message sent. We&apos;ll be in touch soon.</p>
+          <p className="text-success">Message sent. We&apos;ll be in touch soon.</p>
         ) : (
           <form onSubmit={(e) => { e.preventDefault(); handleSubmit(new FormData(e.currentTarget)); }} className="space-y-3">
-            <label className="block">
-              <span className="text-sm text-primary">Name</span>
-              <input type="text" name="name" required className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-primary">Email</span>
-              <input type="email" name="email" required className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-primary">Phone</span>
-              <input type="tel" name="phone" className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
-            </label>
-            <label className="block">
-              <span className="text-sm text-primary">Message</span>
-              <textarea name="message" rows={3} defaultValue={`I'm interested in ${address}`} className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2" />
-            </label>
-            {errorMsg && <p className="text-sm text-[var(--destructive)]">{errorMsg}</p>}
-            <div className="flex gap-2 pt-2">
-              <Button type="submit" variant="default" disabled={status === 'sending'}>{status === 'sending' ? 'Sending…' : 'Send'}</Button>
+            <Label htmlFor="contact-name" className="block">
+              <span className="text-sm">Name</span>
+              <Input type="text" name="name" id="contact-name" required className="mt-1" />
+            </Label>
+            <Label htmlFor="contact-email" className="block">
+              <span className="text-sm">Email</span>
+              <Input type="email" name="email" id="contact-email" required className="mt-1" />
+            </Label>
+            <Label htmlFor="contact-phone" className="block">
+              <span className="text-sm">Phone</span>
+              <Input type="tel" name="phone" id="contact-phone" className="mt-1" />
+            </Label>
+            <Label htmlFor="contact-message" className="block">
+              <span className="text-sm">Message</span>
+              <Textarea name="message" id="contact-message" rows={3} defaultValue={`I'm interested in ${address}`} className="mt-1" />
+            </Label>
+            {errorMsg && <p className="text-sm text-destructive">{errorMsg}</p>}
+            <DialogFooter>
+              <Button type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending…' : 'Send'}</Button>
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            </div>
+            </DialogFooter>
           </form>
         )}
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }

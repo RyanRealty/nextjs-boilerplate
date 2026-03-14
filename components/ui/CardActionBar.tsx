@@ -1,12 +1,14 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import ShareButton from '@/components/ShareButton'
 import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
+import { Button } from '@/components/ui/button'
 
 /**
  * Shared action bar for all card types: share, like, save.
  * Always rendered in the bottom-right corner of the card media (or card) for consistency.
- * Uses design tokens: unselected = subtle; selected = accent. Same icon size and spacing site-wide.
+ * Uses shadcn Button + design tokens: unselected = muted; selected = accent/destructive.
  */
 
 /** Standardized sizes: below-photo bar (small, like other platforms) */
@@ -58,27 +60,31 @@ export type CardActionBarProps = {
   guestCounts?: { viewCount?: number; likeCount?: number; saveCount?: number }
 }
 
-const buttonBase = 'flex flex-shrink-0 items-center justify-center rounded-full border-2 shadow-[0 4px 6px rgba(0,0,0,0.07)] transition disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:shadow-none'
-const countClass = 'min-w-[1ch] text-[10px] tabular-nums drop-shadow-[0 4px 6px rgba(0,0,0,0.07)]'
+const overlayBase = 'flex flex-shrink-0 items-center justify-center rounded-full border-2 shadow-sm transition disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:shadow-none'
+const countClass = 'min-w-[1ch] text-[10px] tabular-nums drop-shadow-sm'
 
-function onDarkClasses(active: boolean): string {
-  return active
-    ? 'border-2 border-accent text-[var(--accent)] hover:bg-accent/20'
-    : 'border-2 border-white/30 bg-black/40 text-white hover:bg-black/60'
+function onDarkInactive() {
+  return 'border-white/30 bg-black/40 text-white hover:bg-black/60'
 }
 
-function onLightClasses(active: boolean): string {
-  return active
-    ? 'border-2 border-accent text-[var(--accent)] hover:bg-accent/10'
-    : 'border-2 border-border bg-white/95 text-muted-foreground hover:bg-white hover:text-foreground'
+function onDarkLikeActive() {
+  return 'border-destructive/60 text-destructive hover:bg-destructive/20'
 }
 
-function onLightLikeActiveClasses(): string {
-  return 'border-2 border-[var(--destructive)]/60 text-[var(--destructive)] hover:bg-[var(--destructive)]/10'
+function onDarkSaveActive() {
+  return 'border-accent text-accent hover:bg-accent/20'
 }
 
-function onLightSaveActiveClasses(): string {
-  return 'border-2 border-accent/60 text-[var(--accent)] hover:bg-accent/10'
+function onLightInactive() {
+  return 'border-border bg-card/95 text-muted-foreground hover:bg-card hover:text-foreground'
+}
+
+function onLightLikeActive() {
+  return 'border-destructive/60 text-destructive hover:bg-destructive/10'
+}
+
+function onLightSaveActive() {
+  return 'border-accent/60 text-accent hover:bg-accent/10'
 }
 
 export default function CardActionBar({
@@ -102,17 +108,14 @@ export default function CardActionBar({
     : isBelow
       ? 'flex flex-wrap items-center justify-end gap-1 px-2 py-1.5'
       : 'absolute bottom-2 right-2 z-10 flex flex-wrap items-center justify-end gap-1.5'
-  /* Same circle for all: border-2 so outline never disappears; selected only changes border and icon color */
-  const belowButtonBase = 'flex flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground transition hover:bg-[var(--border)] hover:text-foreground disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:shadow-none'
-  const belowActiveLike = 'border-2 border-[var(--destructive)]/60 text-[var(--destructive)] bg-muted hover:bg-[var(--destructive)]/10'
-  const belowActiveSave = 'border-2 border-accent/60 text-[var(--accent)] bg-muted hover:bg-accent/10'
+
+  const belowButtonBase = 'flex flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground transition hover:bg-border hover:text-foreground disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:shadow-none'
+  const belowActiveLike = 'border-2 border-destructive/60 text-destructive bg-muted hover:bg-destructive/10'
+  const belowActiveSave = 'border-2 border-accent/60 text-accent bg-muted hover:bg-accent/10'
   const useBelowStyle = isBelow || isPriceRow
 
   return (
-    <div
-      className={wrapperClass}
-      onClick={onClickWrap}
-    >
+    <div className={wrapperClass} onClick={onClickWrap}>
       {share && (
         <>
           <ShareButton
@@ -122,56 +125,60 @@ export default function CardActionBar({
             variant="compact"
             onShare={share.onShare}
             iconClassName={iconSize}
-            className={
+            className={cn(
               useBelowStyle
-                ? `${belowButtonBase} ${buttonSize} text-foreground`
-                : `${buttonBase} ${isDark ? 'border-white/30 bg-black/40 text-white hover:bg-black/60' : 'border-2 border-border bg-white/95 text-muted-foreground hover:bg-white hover:text-foreground'} ${buttonSize}`
-            }
+                ? cn(belowButtonBase, buttonSize, 'text-foreground')
+                : cn(overlayBase, isDark ? onDarkInactive() : onLightInactive(), buttonSize),
+            )}
             aria-label={share.ariaLabel ?? 'Share'}
           />
           {share.shareCount != null && share.shareCount > 0 && (
-            <span className={`${countClass} ${countColor}`}>{share.shareCount}</span>
+            <span className={cn(countClass, countColor)}>{share.shareCount}</span>
           )}
         </>
       )}
       {like && (
         <>
-          <button
+          <Button
             type="button"
             onClick={like.onToggle}
             disabled={like.disabled}
-            className={
+            className={cn(
               useBelowStyle
-                ? `${like.active ? belowActiveLike : belowButtonBase} ${buttonSize}`
-                : `${buttonBase} ${buttonSize} ${isDark ? (like.active ? 'border-2 border-[var(--destructive)]/60 text-[var(--destructive)] hover:bg-[var(--destructive)]/20' : onDarkClasses(false)) : (like.active ? onLightLikeActiveClasses() : onLightClasses(false))}`
-            }
+                ? cn(like.active ? belowActiveLike : belowButtonBase, buttonSize)
+                : cn(overlayBase, buttonSize, isDark
+                    ? (like.active ? onDarkLikeActive() : onDarkInactive())
+                    : (like.active ? onLightLikeActive() : onLightInactive())),
+            )}
             aria-label={like.ariaLabel}
           >
             <ActionHeartIcon filled={like.active} className={iconSize} />
-          </button>
-          {like.count != null && like.count > 0 && <span className={`${countClass} ${countColor}`}>{like.count}</span>}
+          </Button>
+          {like.count != null && like.count > 0 && <span className={cn(countClass, countColor)}>{like.count}</span>}
         </>
       )}
       {save && (
         <>
-          <button
+          <Button
             type="button"
             onClick={save.onToggle}
             disabled={save.disabled}
-            className={
+            className={cn(
               useBelowStyle
-                ? `${save.active ? belowActiveSave : belowButtonBase} ${buttonSize}`
-                : `${buttonBase} ${buttonSize} ${isDark ? (save.active ? 'border-2 border-accent text-[var(--accent)] hover:bg-accent/20' : onDarkClasses(false)) : (save.active ? onLightSaveActiveClasses() : onLightClasses(false))}`
-            }
+                ? cn(save.active ? belowActiveSave : belowButtonBase, buttonSize)
+                : cn(overlayBase, buttonSize, isDark
+                    ? (save.active ? onDarkSaveActive() : onDarkInactive())
+                    : (save.active ? onLightSaveActive() : onLightInactive())),
+            )}
             aria-label={save.ariaLabel}
           >
             <ActionBookmarkIcon filled={save.active} className={iconSize} />
-          </button>
-          {save.count != null && save.count > 0 && <span className={`${countClass} ${countColor}`}>{save.count}</span>}
+          </Button>
+          {save.count != null && save.count > 0 && <span className={cn(countClass, countColor)}>{save.count}</span>}
         </>
       )}
       {!signedIn && guestCounts && (guestCounts.viewCount! > 0 || guestCounts.likeCount! > 0 || guestCounts.saveCount! > 0) && (
-        <span className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] ${(isBelow || isPriceRow) ? 'text-muted-foreground' : (isDark ? 'bg-black/40 text-white/95 backdrop-blur-sm' : 'bg-muted text-muted-foreground')}`}>
+        <span className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px]', (isBelow || isPriceRow) ? 'text-muted-foreground' : (isDark ? 'bg-black/40 text-white/95 backdrop-blur-sm' : 'bg-muted text-muted-foreground'))}>
           {guestCounts.viewCount! > 0 && <span>{guestCounts.viewCount} views</span>}
           {guestCounts.likeCount! > 0 && <span>{guestCounts.likeCount} likes</span>}
           {guestCounts.saveCount! > 0 && <span>{guestCounts.saveCount} saved</span>}

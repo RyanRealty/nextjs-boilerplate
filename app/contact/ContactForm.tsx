@@ -3,6 +3,17 @@
 import { useState } from 'react'
 import { submitContactForm } from './actions'
 import { trackEvent } from '@/lib/tracking'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const INQUIRY_OPTIONS = [
   { value: 'Buying', label: 'Buying' },
@@ -31,7 +42,7 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
 
   if (state.success) {
     return (
-      <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6 text-green-500">
+      <div className="rounded-lg border border-success/30 bg-success/10 p-6 text-success">
         <p className="font-medium">Thanks for reaching out.</p>
         <p className="mt-1 text-sm">We&apos;ll get back to you soon.</p>
       </div>
@@ -41,10 +52,10 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="contact-name" className="block text-sm font-medium text-muted-foreground">
+        <Label htmlFor="contact-name" className="block text-sm font-medium text-muted-foreground">
           Name
-        </label>
-        <input
+        </Label>
+        <Input
           id="contact-name"
           name="name"
           type="text"
@@ -53,10 +64,10 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
         />
       </div>
       <div>
-        <label htmlFor="contact-email" className="block text-sm font-medium text-muted-foreground">
+        <Label htmlFor="contact-email" className="block text-sm font-medium text-muted-foreground">
           Email <span className="text-destructive">*</span>
-        </label>
-        <input
+        </Label>
+        <Input
           id="contact-email"
           name="email"
           type="email"
@@ -66,10 +77,10 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
         />
       </div>
       <div>
-        <label htmlFor="contact-phone" className="block text-sm font-medium text-muted-foreground">
+        <Label htmlFor="contact-phone" className="block text-sm font-medium text-muted-foreground">
           Phone
-        </label>
-        <input
+        </Label>
+        <Input
           id="contact-phone"
           name="phone"
           type="tel"
@@ -78,27 +89,27 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
         />
       </div>
       <div>
-        <label htmlFor="contact-inquiry" className="block text-sm font-medium text-muted-foreground">
+        <Label htmlFor="contact-inquiry" className="block text-sm font-medium text-muted-foreground">
           How can we help?
-        </label>
-        <select
-          id="contact-inquiry"
-          name="inquiryType"
-          defaultValue={defaultInquiryType ?? 'General Inquiry'}
-          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          {INQUIRY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        </Label>
+        <Select defaultValue={defaultInquiryType ?? 'General Inquiry'} name="inquiryType">
+          <SelectTrigger id="contact-inquiry" className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {INQUIRY_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
-        <label htmlFor="contact-message" className="block text-sm font-medium text-muted-foreground">
+        <Label htmlFor="contact-message" className="block text-sm font-medium text-muted-foreground">
           Message
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="contact-message"
           name="message"
           rows={4}
@@ -106,13 +117,13 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
         />
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <button
+      <Button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-70"
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
       >
         {loading ? 'Sending…' : 'Send message'}
-      </button>
+      </Button>
     </form>
   )
 }

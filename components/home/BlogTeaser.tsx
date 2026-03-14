@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -24,7 +22,7 @@ export default function BlogTeaser({ posts }: Props) {
   if (posts.length === 0) return null
 
   return (
-    <section className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="blog-teaser-heading">
+    <section className="w-full bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="blog-teaser-heading">
       <div className="w-full">
         <div className="flex items-center justify-between gap-4">
           <h2 id="blog-teaser-heading" className="text-2xl font-bold tracking-tight text-primary">
@@ -42,9 +40,9 @@ export default function BlogTeaser({ posts }: Props) {
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}
-              className="group overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow-md"
+              className="group overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1"
             >
-              <div className="relative aspect-video w-full overflow-hidden bg-[var(--muted)]">
+              <div className="relative aspect-video w-full overflow-hidden bg-muted">
                 <Image
                   src={post.imageUrl ?? PLACEHOLDER_IMAGE}
                   alt={post.title || 'Blog post image'}
@@ -60,8 +58,8 @@ export default function BlogTeaser({ posts }: Props) {
                   </span>
                 )}
                 <h3 className="mt-1 line-clamp-2 font-semibold text-primary">{post.title}</h3>
-                <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">{post.excerpt}</p>
-                <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
                   {new Date(post.publishedAt).toLocaleDateString('en-US')}
                   {post.readTimeMinutes != null && post.readTimeMinutes > 0 && ` · ${post.readTimeMinutes} min read`}
                 </p>

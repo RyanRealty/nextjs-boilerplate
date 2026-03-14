@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getAdminListingsPage } from '@/app/actions/admin-listings'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+/* Native <select> used below for GET form submission compatibility (Radix Select doesn't submit in native forms) */
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export const metadata: Metadata = {
   title: 'Listings',
@@ -40,58 +44,54 @@ export default async function AdminListingsPage({
     <main className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Listings</h1>
-        <Link
-          href="/admin/sync"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
-        >
-          Sync status
-        </Link>
+        <Button asChild>
+          <Link href="/admin/sync">Sync status</Link>
+        </Button>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
         {total} total. Search by address, MLS number, or listing key.
       </p>
 
       <form method="get" className="mt-4 flex flex-wrap gap-2">
-        <input
+        <Input
           type="search"
           name="search"
           defaultValue={search}
           placeholder="Search…"
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm"
         />
-        <select name="status" defaultValue={status ?? 'all'} className="rounded-lg border border-border bg-white px-3 py-2 text-sm">
+        <select name="status" defaultValue={status ?? 'all'} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
           <option value="all">All statuses</option>
           <option value="Active">Active</option>
           <option value="Pending">Pending</option>
           <option value="Closed">Closed</option>
         </select>
-        <button type="submit" className="rounded-lg bg-border px-4 py-2 text-sm font-medium text-foreground hover:bg-border">
+        <Button type="submit" variant="outline">
           Filter
-        </button>
+        </Button>
       </form>
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-white">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted">
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Photo</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Address</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Price</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Status</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Beds/Baths</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Community</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">DOM</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Updated</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="text-muted-foreground">Photo</TableHead>
+              <TableHead className="text-muted-foreground">Address</TableHead>
+              <TableHead className="text-muted-foreground">Price</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-muted-foreground">Beds/Baths</TableHead>
+              <TableHead className="text-muted-foreground">Community</TableHead>
+              <TableHead className="text-muted-foreground">DOM</TableHead>
+              <TableHead className="text-muted-foreground">Updated</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row) => {
               const key = (row.ListingKey ?? row.ListNumber ?? '').toString().trim()
               const address = [row.StreetNumber, row.StreetName].filter(Boolean).join(' ').trim() || row.City || key
               const dom = daysOnMarket(row.OnMarketDate)
               return (
-                <tr key={key} className="border-b border-border hover:bg-muted">
-                  <td className="px-3 py-2">
+                <TableRow key={key} className="hover:bg-muted">
+                  <TableCell>
                     <Link href={`/admin/listings/${encodeURIComponent(key)}`} className="block h-12 w-16 overflow-hidden rounded bg-border">
                       {row.PhotoURL ? (
                         <Image src={row.PhotoURL} alt={`${address} listing photo`} width={64} height={48} className="h-12 w-16 object-cover" />
@@ -99,25 +99,25 @@ export default async function AdminListingsPage({
                         <span className="flex h-12 w-16 items-center justify-center text-xs text-muted-foreground">—</span>
                       )}
                     </Link>
-                  </td>
-                  <td className="px-3 py-2">
+                  </TableCell>
+                  <TableCell>
                     <Link href={`/admin/listings/${encodeURIComponent(key)}`} className="font-medium text-foreground hover:underline">
                       {address}
                     </Link>
-                  </td>
-                  <td className="px-3 py-2">{formatPrice(row.ListPrice)}</td>
-                  <td className="px-3 py-2">{row.StandardStatus ?? '—'}</td>
-                  <td className="px-3 py-2">{row.BedroomsTotal ?? '—'} / {row.BathroomsTotal ?? '—'}</td>
-                  <td className="px-3 py-2">{row.SubdivisionName ?? '—'}</td>
-                  <td className="px-3 py-2">{dom != null ? dom : '—'}</td>
-                  <td className="px-3 py-2 text-muted-foreground">
+                  </TableCell>
+                  <TableCell>{formatPrice(row.ListPrice)}</TableCell>
+                  <TableCell>{row.StandardStatus ?? '—'}</TableCell>
+                  <TableCell>{row.BedroomsTotal ?? '—'} / {row.BathroomsTotal ?? '—'}</TableCell>
+                  <TableCell>{row.SubdivisionName ?? '—'}</TableCell>
+                  <TableCell>{dom != null ? dom : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">
                     {row.ModificationTimestamp ? new Date(row.ModificationTimestamp).toLocaleDateString() : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {totalPages > 1 && (

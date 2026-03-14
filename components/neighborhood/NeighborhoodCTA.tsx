@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/tracking'
 
 type Props = {
@@ -25,20 +26,23 @@ export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }
           Looking for a Home in {neighborhoodName}?
         </h2>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/account/saved-searches"
+          <Button
+            asChild
             onClick={handleGetNotified}
-            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
-            Get Notified of New Listings
-          </Link>
-          <Link
-            href="/about"
+            <Link href="/account/saved-searches">
+              Get Notified of New Listings
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
             onClick={handleTalkExpert}
-            className="inline-flex items-center justify-center rounded-lg border-2 border-white/60 px-6 py-3 font-semibold text-white hover:bg-white/10"
           >
-            Talk to a Local Expert
-          </Link>
+            <Link href="/about">
+              Talk to a Local Expert
+            </Link>
+          </Button>
         </div>
         <p className="mt-4 text-sm text-white/80">
           Save your search to get alerts when new homes in {neighborhoodName} or {cityName} hit the market.

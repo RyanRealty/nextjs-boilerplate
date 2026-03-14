@@ -9,6 +9,7 @@ import SmartSearch from './SmartSearch'
 import type { AuthUser } from '@/app/actions/auth'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Search01Icon, Cancel01Icon, Menu02Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type NavLink = { href: string; label: string }
 type SiteHeaderProps = {
@@ -45,7 +46,7 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
   }, [searchOpen])
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
@@ -65,7 +66,7 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
                 <SmartSearch onClose={() => setSearchOpen(false)} />
               </div>
             ) : null}
-            <button
+            <Button
               type="button"
               onClick={() => setSearchOpen((o) => !o)}
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
@@ -75,7 +76,7 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
               aria-expanded={searchOpen}
             >
               <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
           <nav className="flex items-center gap-0.5" aria-label="Main navigation">
             {navLinks.map(({ href, label }) => (
@@ -98,7 +99,7 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
         </div>
 
         {/* Mobile: menu button */}
-        <button
+        <Button
           type="button"
           className="rounded-lg p-2.5 text-muted-foreground hover:bg-muted md:hidden"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -110,12 +111,12 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
           ) : (
             <HugeiconsIcon icon={Menu02Icon} className="h-6 w-6" />
           )}
-        </button>
+        </Button>
       </div>
 
       {/* Mobile menu panel */}
       {mobileOpen && (
-        <div className="border-t border-border bg-white md:hidden" role="dialog" aria-label="Mobile menu">
+        <div className="border-t border-border bg-card md:hidden" role="dialog" aria-label="Mobile menu">
           <div className="px-4 pt-4 pb-2">
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Search</p>
             <SmartSearch onClose={() => setMobileOpen(false)} />

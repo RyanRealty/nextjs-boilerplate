@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { trackEvent } from '@/lib/tracking'
+import { Button } from "@/components/ui/button"
 
 export type VideoPlayerType = 'youtube' | 'vimeo' | 'matterport' | 'direct'
 
@@ -49,7 +50,7 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
     return (
       <div className={`relative aspect-video bg-black ${className}`}>
         {!played ? (
-          <button
+          <Button
             type="button"
             onClick={handlePlay}
             className="absolute inset-0 flex items-center justify-center bg-black"
@@ -59,7 +60,7 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
               className="rounded-full bg-destructive p-6 text-white shadow-md"
               style={{ clipPath: 'polygon(0 0, 0 100%, 100% 50%)' }}
             />
-          </button>
+          </Button>
         ) : null}
         {played ? (
           <iframe

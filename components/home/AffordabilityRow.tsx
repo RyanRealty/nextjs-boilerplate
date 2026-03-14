@@ -7,6 +7,9 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   listings: HomeTileRow[]
@@ -66,7 +69,7 @@ export default function AffordabilityRow({
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Enter your target price to see homes you can afford. Est. monthly payment uses{' '}
-        <Link href="/account/buying-preferences" className="font-medium text-green-500 hover:underline">
+        <Link href="/account/buying-preferences" className="font-medium text-success hover:underline">
           your saved rate &amp; down payment
         </Link>.
       </p>
@@ -78,19 +81,19 @@ export default function AffordabilityRow({
         {/* First tile: target price input — max 3 visible site-wide */}
         <div className="w-[85vw] min-w-[260px] max-w-[320px] shrink-0 sm:w-[50vw] sm:min-w-[280px] sm:max-w-[360px] lg:w-[33.333vw] lg:min-w-[300px] lg:max-w-[420px]">
           <div className="flex h-full flex-col justify-center rounded-lg border-2 border-dashed border-border bg-muted p-6">
-            <label htmlFor="affordability-target-price" className="text-sm font-medium text-muted-foreground">
+            <Label htmlFor="affordability-target-price" className="text-sm font-medium text-muted-foreground">
               Your target price
-            </label>
+            </Label>
             <div className="mt-2 flex items-center gap-1">
               <span className="text-muted-foreground">$</span>
-              <input
+              <Input
                 id="affordability-target-price"
                 type="text"
                 inputMode="numeric"
                 placeholder="e.g. 500000"
                 value={targetPrice}
                 onChange={(e) => setTargetPrice(e.target.value.replace(/\D/g, ''))}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                className="w-full"
               />
             </div>
             {targetNum != null && targetNum > 0 && (
@@ -105,15 +108,15 @@ export default function AffordabilityRow({
         {affordable.length > 0 && (
           <>
             <div className="flex shrink-0 items-center gap-1">
-              <button
+              <Button
                 type="button"
                 onClick={() => scroll('left')}
                 disabled={!canScrollLeft}
-                className="rounded-lg border border-border bg-white p-2 text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-40"
+                className="rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-40"
                 aria-label="Scroll left"
               >
                 <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
             {affordable.map((listing) => {
               const key = (listing.ListNumber ?? listing.ListingKey ?? '').toString().trim()
@@ -139,15 +142,15 @@ export default function AffordabilityRow({
               )
             })}
             <div className="flex shrink-0 items-center gap-1">
-              <button
+              <Button
                 type="button"
                 onClick={() => scroll('right')}
                 disabled={!canScrollRight}
-                className="rounded-lg border border-border bg-white p-2 text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-40"
+                className="rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-40"
                 aria-label="Scroll right"
               >
                 <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           </>
         )}

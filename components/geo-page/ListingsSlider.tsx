@@ -32,7 +32,7 @@ export default function ListingsSlider({
       title={title}
       subtitle={placeName ? `Homes for sale in ${placeName}` : undefined}
       titleId="listings-slider-heading"
-      className="bg-muted border-b border-[var(--border)] px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
+      className="bg-muted border-b border-border px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
       hoverArrows
     >
       {listings.map((listing) => {

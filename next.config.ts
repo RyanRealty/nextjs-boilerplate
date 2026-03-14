@@ -92,6 +92,7 @@ const nextConfig: NextConfig = {
   },
   // Avoid "Body exceeded 1 MB limit" → browser "Failed to fetch" (e.g. Server Actions with images/large payloads)
   experimental: {
+    optimizePackageImports: ['@hugeicons/react', '@hugeicons/core-free-icons', 'date-fns', 'recharts', '@react-email/components', 'radix-ui'],
     serverActions: {
       bodySizeLimit: '4mb',
     },

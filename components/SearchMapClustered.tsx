@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 
 import { MAP_DEFAULT_CENTER, getListingMarkerIcon, MAP_LABEL_LISTING, MAP_COLOR_LISTING_PIN } from '@/lib/map-constants'
+import { Button } from "@/components/ui/button"
 
 type GeoJSONPolygon = { type: 'Polygon'; coordinates: number[][][] | number[][] }
 type GeoJSONMultiPolygon = { type: 'MultiPolygon'; coordinates: number[][][][] }
@@ -463,36 +464,36 @@ export default function SearchMapClustered({
                     .join(' · ')}
                 </div>
               )}
-              <button
+              <Button
                 type="button"
                 className="mt-1.5 block text-sm font-medium text-primary hover:underline"
                 onClick={() => router.push(`/listing/${encodeURIComponent(openKey)}`)}
               >
                 View listing →
-              </button>
+              </Button>
             </div>
           </InfoWindow>
         )}
       </GoogleMap>
       {showBoundaryControls && (
-        <div className="absolute right-3 top-14 z-[100] flex flex-col gap-2 rounded-lg border border-border bg-white p-1.5 shadow-md" aria-label="Map controls">
+        <div className="absolute right-3 top-14 z-[100] flex flex-col gap-2 rounded-lg border border-border bg-card p-1.5 shadow-md" aria-label="Map controls">
           {showBoundary && hasBoundary && (
-            <button
+            <Button
               type="button"
               onClick={() => setShowBoundary(false)}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-primary shadow-sm hover:bg-muted"
+              className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary shadow-sm hover:bg-muted"
             >
               Remove boundary
-            </button>
+            </Button>
           )}
           {placeViewport && (
-            <button
+            <Button
               type="button"
               onClick={recenterMap}
               className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
             >
               Re-center
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -28,7 +28,7 @@ export default async function SavedCommunitiesPage() {
           <p className="text-muted-foreground">You haven’t saved any communities yet.</p>
           <Link
             href="/"
-            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Browse home
           </Link>
@@ -42,7 +42,7 @@ export default async function SavedCommunitiesPage() {
             return (
               <li
                 key={entityKey}
-                className="flex items-center justify-between gap-4 rounded-lg border border-border bg-white px-4 py-3 shadow-sm"
+                className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
               >
                 <Link href={href} className="font-medium text-foreground hover:text-muted-foreground">
                   {subdivision}, {city}

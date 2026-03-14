@@ -62,13 +62,13 @@ export default function HomeMap({ listings }: Props) {
   )
 
   return (
-    <div className="flex w-full overflow-hidden border-0 border-b border-border bg-white">
+    <div className="flex w-full overflow-hidden border-0 border-b border-border bg-card">
       <aside
         className="flex flex-col border-r border-border bg-muted"
         style={{ width: SIDEBAR_WIDTH, minHeight: MAP_MIN_HEIGHT }}
         aria-label="Listings in map area"
       >
-        <div className="border-b border-border bg-white px-3 py-2">
+        <div className="border-b border-border bg-card px-3 py-2">
           <h3 className="text-sm font-semibold text-foreground">
             Homes in view
           </h3>
@@ -92,7 +92,7 @@ export default function HomeMap({ listings }: Props) {
                 <li key={id}>
                   <Link
                     href={`/listing/${id}`}
-                    className="mb-2 flex gap-3 border border-border bg-white p-2 text-left shadow-sm transition hover:border-accent hover:shadow"
+                    className="mb-2 flex gap-3 border border-border bg-card p-2 text-left shadow-sm transition hover:border-accent hover:shadow"
                   >
                     {photoUrl?.trim() ? (
                       <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden bg-muted">

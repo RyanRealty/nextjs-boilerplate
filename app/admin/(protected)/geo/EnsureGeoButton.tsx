@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ensureGeoPlacesFromListings } from '@/app/actions/geo-places'
+import { Button } from "@/components/ui/button"
 
 export default function EnsureGeoButton() {
   const [loading, setLoading] = useState(false)
@@ -27,14 +28,14 @@ export default function EnsureGeoButton() {
 
   return (
     <div className="mt-3">
-      <button
+      <Button
         type="button"
         onClick={handleClick}
         disabled={loading}
         className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-60"
       >
         {loading ? 'Running…' : 'Ensure geo places from listings'}
-      </button>
+      </Button>
       {message && <p className="mt-2 text-sm text-muted-foreground">{message}</p>}
     </div>
   )

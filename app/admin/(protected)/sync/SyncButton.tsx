@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { syncSparkListings } from '@/app/actions/sync-spark'
 import type { SyncSparkResult } from '@/app/actions/sync-spark'
+import { Button } from "@/components/ui/button"
 
 type SyncAction = typeof syncSparkListings
 
@@ -23,35 +24,19 @@ export default function SyncButton({ syncAction }: { syncAction: SyncAction }) {
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         onClick={handleSync}
         disabled={loading}
-        style={{
-          padding: '12px 24px',
-          fontSize: '1rem',
-          background: loading ? '#ccc' : '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-        }}
       >
         {loading ? 'Syncing…' : 'Sync from Spark'}
-      </button>
+      </Button>
       {result && (
-        <div
-          style={{
-            marginTop: '20px',
-            padding: '16px',
-            background: result.success ? '#e6f7ed' : '#fde8e8',
-            borderRadius: '8px',
-            fontSize: '14px',
-          }}
-        >
+        <div className={`mt-5 p-4 rounded-lg text-sm ${result.success ? 'bg-success/10' : 'bg-destructive/10'}`}>
+
           <strong>{result.success ? 'Done' : 'Error'}</strong>: {result.message}
           {result.totalFetched != null && (
-            <div style={{ marginTop: '8px' }}>
+            <div className="mt-2">
               Fetched: {result.totalFetched} · Upserted: {result.totalUpserted} · Pages: {result.pagesProcessed}
             </div>
           )}

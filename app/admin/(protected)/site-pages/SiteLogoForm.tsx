@@ -3,6 +3,9 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { updateBrokerageLogoUrl, uploadBrokerageLogo } from '@/app/actions/brokerage'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? ''
 
@@ -59,7 +62,7 @@ export default function SiteLogoForm({ initialLogoUrl }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <h2 className="text-lg font-semibold text-foreground">Site logo</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Shown in the header on all pages. Use a PNG or SVG with transparent background for best results. Recommended height ~48px.
@@ -79,45 +82,45 @@ export default function SiteLogoForm({ initialLogoUrl }: Props) {
 
         <div className="min-w-0 flex-1 space-y-4">
           <form onSubmit={handleSaveUrl} className="flex flex-wrap items-end gap-2">
-            <label className="w-full text-sm font-medium text-muted-foreground sm:w-auto">Logo URL</label>
-            <input
+            <Label className="w-full text-sm font-medium text-muted-foreground sm:w-auto">Logo URL</Label>
+            <Input
               type="url"
               value={logoUrl}
               onChange={(e) => setLogoUrl(e.target.value)}
               placeholder={`${siteUrl}/logo.png`}
               className="min-w-[200px] flex-1 rounded-lg border border-primary/20 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-            <button
+            <Button
               type="submit"
               disabled={saving}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
             >
               {saving ? 'Saving…' : 'Save URL'}
-            </button>
+            </Button>
           </form>
 
           <form onSubmit={handleUpload} className="flex flex-wrap items-end gap-2">
-            <label className="w-full text-sm font-medium text-muted-foreground sm:w-auto">Or upload image</label>
-            <input
+            <Label className="w-full text-sm font-medium text-muted-foreground sm:w-auto">Or upload image</Label>
+            <Input
               type="file"
               name="file"
               accept="image/png,image/svg+xml,image/jpeg,image/webp"
               className="rounded-lg border border-primary/20 px-2 py-1.5 text-sm file:mr-2 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
             />
-            <button
+            <Button
               type="submit"
               disabled={uploading}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-60"
             >
               {uploading ? 'Uploading…' : 'Upload & set'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>
 
       {message && (
         <p
-          className={`mt-4 text-sm ${message.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}
+          className={`mt-4 text-sm ${message.type === 'ok' ? 'text-success' : 'text-destructive'}`}
           role="alert"
         >
           {message.text}

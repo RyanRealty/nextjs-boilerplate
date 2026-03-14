@@ -49,7 +49,7 @@ export default async function ReportsIndexPage() {
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Market Reports"
         subtitle="Weekly Central Oregon real estate insights: pending and closed sales by city, median price, inventory, and days on market. Data you can trust."

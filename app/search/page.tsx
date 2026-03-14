@@ -179,7 +179,7 @@ export default async function SearchPage({
         subdivision={filters.subdivision ?? undefined}
         resultsCount={totalCount}
       />
-      <div className="sticky top-0 z-20 w-full border-b border-border bg-white shadow-sm">
+      <div className="sticky top-0 z-20 w-full border-b border-border bg-card shadow-sm">
         <SearchFilters initialFilters={initialFiltersFromUrl} />
       </div>
       <div className="w-full">

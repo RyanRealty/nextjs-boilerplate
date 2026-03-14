@@ -14,6 +14,8 @@ import {
   ArrowDown01Icon,
   MapsIcon,
 } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 /** Main nav: Home, Home Valuation, Buyers dropdown, Sellers dropdown, About dropdown, then Reports/Map */
 const NAV_HOME = { href: '/', label: 'Home' } as const
@@ -160,8 +162,8 @@ export default function Header({
             href={NAV_HOME.href}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               isActive(NAV_HOME.href)
-                ? 'bg-white/15 text-white'
-                : 'text-muted hover:bg-white/10 hover:text-white'
+                ? 'bg-card/15 text-white'
+                : 'text-muted hover:bg-card/10 hover:text-white'
             }`}
           >
             {NAV_HOME.label}
@@ -170,8 +172,8 @@ export default function Header({
             href={NAV_HOME_VALUATION.href}
             className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               isActive(NAV_HOME_VALUATION.href)
-                ? 'bg-white/15 text-white'
-                : 'text-muted hover:bg-white/10 hover:text-white'
+                ? 'bg-card/15 text-white'
+                : 'text-muted hover:bg-card/10 hover:text-white'
             }`}
           >
             {NAV_HOME_VALUATION.label}
@@ -179,20 +181,20 @@ export default function Header({
 
           {([['buyers', BUYERS_MENU], ['sellers', SELLERS_MENU], ['about', ABOUT_MENU]] as const).map(([key, menu]) => (
             <div key={key} className="relative">
-              <button
+              <Button
                 type="button"
                 onClick={() => setDesktopDropdown((d) => (d === key ? null : key))}
                 className={`flex items-center gap-0.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isMenuActive(menu.links) || desktopDropdown === key
-                    ? 'bg-white/15 text-white'
-                    : 'text-muted hover:bg-white/10 hover:text-white'
+                    ? 'bg-card/15 text-white'
+                    : 'text-muted hover:bg-card/10 hover:text-white'
                 }`}
                 aria-expanded={desktopDropdown === key}
                 aria-haspopup="true"
               >
                 {menu.label}
                 <HugeiconsIcon icon={ArrowDown01Icon} className="ml-0.5 h-4 w-4 shrink-0" aria-hidden />
-              </button>
+              </Button>
               {desktopDropdown === key && (
                 <div
                   className="absolute left-0 top-full z-50 mt-0.5 min-w-[220px] rounded-lg border border-white/20 bg-primary py-2 shadow-lg"
@@ -206,7 +208,7 @@ export default function Header({
                       key={href}
                       href={href}
                       role="menuitem"
-                      className="block px-4 py-2 text-sm text-muted hover:bg-white/10 hover:text-white"
+                      className="block px-4 py-2 text-sm text-muted hover:bg-card/10 hover:text-white"
                       onClick={() => setDesktopDropdown(null)}
                     >
                       {label}
@@ -223,8 +225,8 @@ export default function Header({
               href={item.href}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors inline-flex items-center justify-center ${
                 isActive(item.href)
-                  ? 'bg-white/15 text-white'
-                  : 'text-muted hover:bg-white/10 hover:text-white'
+                  ? 'bg-card/15 text-white'
+                  : 'text-muted hover:bg-card/10 hover:text-white'
               }`}
               aria-label={item.label}
             >
@@ -238,21 +240,21 @@ export default function Header({
         </nav>
 
         <div className="flex min-h-[44px] min-w-[44px] items-center gap-2 sm:min-h-[48px] sm:min-w-[48px]">
-          <button
+          <Button
             type="button"
             onClick={onSearchClick ?? (() => setSearchOpen((o) => !o))}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-card/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
             aria-label="Search"
             aria-expanded={searchOpen}
           >
             <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" />
-          </button>
+          </Button>
           {user ? (
             <div className="relative" ref={accountRef}>
-              <button
+              <Button
                 type="button"
                 onClick={() => setAccountOpen((o) => !o)}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white/30 bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white/30 bg-card/10 focus:outline-none focus:ring-2 focus:ring-accent"
                 aria-label="Account menu"
                 aria-expanded={accountOpen}
                 aria-haspopup="true"
@@ -270,7 +272,7 @@ export default function Header({
                     {(user.email ?? user.user_metadata?.full_name ?? '?').charAt(0).toUpperCase()}
                   </span>
                 )}
-              </button>
+              </Button>
               {accountOpen && (
                 <div
                   className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-border bg-card py-1 shadow-md"
@@ -288,9 +290,9 @@ export default function Header({
                     </Link>
                   ))}
                   <form action={signOut} className="border-t border-border">
-                    <button type="submit" role="menuitem" className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted">
+                    <Button type="submit" role="menuitem" className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted">
                       Sign out
-                    </button>
+                    </Button>
                   </form>
                 </div>
               )}
@@ -303,9 +305,9 @@ export default function Header({
               Log in
             </Link>
           )}
-          <button
+          <Button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-white/10 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-card/10 md:hidden"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -315,7 +317,7 @@ export default function Header({
             ) : (
               <HugeiconsIcon icon={Menu02Icon} className="h-6 w-6" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -326,28 +328,28 @@ export default function Header({
           aria-label="Site search"
         >
           <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-xl gap-2">
-            <input
+            <Input
               ref={searchInputRef}
               type="search"
               name="q"
               placeholder="Search by city, neighborhood, or address…"
-              className="min-w-0 flex-1 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-muted placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="min-w-0 flex-1 rounded-lg border border-white/20 bg-card/10 px-4 py-2 text-muted placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               aria-label="Search query"
             />
-            <button
+            <Button
               type="submit"
               className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary hover:opacity-90"
             >
               Search
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => setSearchOpen(false)}
-              className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/10"
+              className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-card/10"
               aria-label="Close search"
             >
               Cancel
-            </button>
+            </Button>
           </form>
         </div>
       )}
@@ -362,20 +364,20 @@ export default function Header({
           <div className="flex min-h-screen flex-col pt-14 pb-8 px-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-semibold text-white">Menu</span>
-              <button
+              <Button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-card/10 focus:outline-none focus:ring-2 focus:ring-accent"
                 aria-label="Close menu"
               >
                 <HugeiconsIcon icon={Cancel01Icon} className="h-6 w-6" />
-              </button>
+              </Button>
             </div>
             <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
               <Link
                 href={NAV_HOME.href}
                 className={`rounded-lg px-4 py-3 text-lg font-medium ${
-                  isActive(NAV_HOME.href) ? 'bg-white/15 text-white' : 'text-muted hover:bg-white/10'
+                  isActive(NAV_HOME.href) ? 'bg-card/15 text-white' : 'text-muted hover:bg-card/10'
                 }`}
                 onClick={() => setMobileOpen(false)}
               >
@@ -384,7 +386,7 @@ export default function Header({
               <Link
                 href={NAV_HOME_VALUATION.href}
                 className={`rounded-lg px-4 py-3 text-lg font-medium ${
-                  isActive(NAV_HOME_VALUATION.href) ? 'bg-white/15 text-white' : 'text-muted hover:bg-white/10'
+                  isActive(NAV_HOME_VALUATION.href) ? 'bg-card/15 text-white' : 'text-muted hover:bg-card/10'
                 }`}
                 onClick={() => setMobileOpen(false)}
               >
@@ -392,15 +394,15 @@ export default function Header({
               </Link>
               {([['buyers', BUYERS_MENU], ['sellers', SELLERS_MENU], ['about', ABOUT_MENU]] as const).map(([key, menu]) => (
                 <div key={key}>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setMobileExpanded((e) => (e === key ? null : key))}
-                    className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-lg font-medium text-muted hover:bg-white/10"
+                    className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-lg font-medium text-muted hover:bg-card/10"
                     aria-expanded={mobileExpanded === key}
                   >
                     {menu.label}
                     <HugeiconsIcon icon={ArrowDown01Icon} className={`h-5 w-5 shrink-0 transition-transform ${mobileExpanded === key ? 'rotate-180' : ''}`} />
-                  </button>
+                  </Button>
                   {mobileExpanded === key && (
                     <div className="ml-4 flex flex-col border-l-2 border-white/20 pl-3">
                       {menu.links.map(({ href, label }) => (
@@ -424,7 +426,7 @@ export default function Header({
                   key={item.href}
                   href={item.href}
                   className={`rounded-lg px-4 py-3 text-lg font-medium inline-flex items-center gap-2 ${
-                    isActive(item.href) ? 'bg-white/15 text-white' : 'text-muted hover:bg-white/10'
+                    isActive(item.href) ? 'bg-card/15 text-white' : 'text-muted hover:bg-card/10'
                   }`}
                   aria-label={item.label}
                   onClick={() => setMobileOpen(false)}
@@ -445,19 +447,19 @@ export default function Header({
                     <Link
                       key={href}
                       href={href}
-                      className="block rounded-lg px-4 py-3 text-lg font-medium text-muted hover:bg-white/10"
+                      className="block rounded-lg px-4 py-3 text-lg font-medium text-muted hover:bg-card/10"
                       onClick={() => setMobileOpen(false)}
                     >
                       {label}
                     </Link>
                   ))}
                   <form action={signOut} className="mt-2">
-                    <button
+                    <Button
                       type="submit"
-                      className="w-full rounded-lg px-4 py-3 text-left text-lg font-medium text-muted hover:bg-white/10"
+                      className="w-full rounded-lg px-4 py-3 text-left text-lg font-medium text-muted hover:bg-card/10"
                     >
                       Sign out
-                    </button>
+                    </Button>
                   </form>
                 </>
               ) : (

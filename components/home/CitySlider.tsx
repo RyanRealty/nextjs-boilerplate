@@ -63,7 +63,7 @@ export default function CitySlider({ cities, currentCitySlug, ctaCard }: Props) 
                   }`}
                   style={{
                     minHeight: TILE_MIN_HEIGHT_PX,
-                    boxShadow: isActive ? '0 0 0 3px rgba(212, 168, 83, 0.4)' : '0 1px 3px rgba(0,0,0,0.08)',
+                    boxShadow: isActive ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
                   }}
                 >
                   {city.heroImageUrl ? (
@@ -76,8 +76,7 @@ export default function CitySlider({ cities, currentCitySlug, ctaCard }: Props) 
                     />
                   ) : (
                     <div
-                      className="absolute inset-0 opacity-90"
-                      style={{ background: PLACEHOLDER_GRADIENT }}
+                      className="absolute inset-0 bg-gradient-to-br from-primary to-primary/30 opacity-90"
                     />
                   )}
                   <div

@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Mic01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   onTranscript?: (text: string) => void
@@ -59,11 +60,11 @@ export default function VoiceSearchButton({ onTranscript, className }: Props) {
 
   return (
     <div className={className}>
-      <button
+      <Button
         type="button"
         onClick={startListening}
         disabled={listening}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground hover:bg-muted disabled:opacity-70"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted disabled:opacity-70"
         aria-label={listening ? 'Listening…' : 'Search by voice'}
       >
         {listening ? (
@@ -71,7 +72,7 @@ export default function VoiceSearchButton({ onTranscript, className }: Props) {
         ) : (
           <HugeiconsIcon icon={Mic01Icon} className="h-5 w-5" />
         )}
-      </button>
+      </Button>
       {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   )

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { testListingHistory } from '@/app/actions/sync-spark'
 import type { TestListingHistoryResult } from '@/app/actions/sync-spark'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 type Props = { defaultListingKey?: string | null }
 
@@ -23,31 +25,31 @@ export default function SyncHistoryTest({ defaultListingKey }: Props) {
   }
 
   return (
-    <div className="rounded-lg border-2 border-yellow-500/30 bg-yellow-500/10/50 p-6">
+    <div className="rounded-lg border-2 border-warning/30 bg-warning/10/50 p-6">
       <h2 className="text-lg font-semibold text-foreground">Test listing &amp; historical data</h2>
-      <p className="mt-1 text-sm text-yellow-500">
-        One click tests <strong>Listing History</strong> (<code className="rounded bg-yellow-500/15 px-1">/history</code>), <strong>Price history</strong> (<code className="rounded bg-yellow-500/15 px-1">/historical/pricehistory</code>), and <strong>Historical Listings</strong> (<code className="rounded bg-yellow-500/15 px-1">/historical</code> — off-market listings for same property). Use one listing key above.
+      <p className="mt-1 text-sm text-warning">
+        One click tests <strong>Listing History</strong> (<code className="rounded bg-warning/15 px-1">/history</code>), <strong>Price history</strong> (<code className="rounded bg-warning/15 px-1">/historical/pricehistory</code>), and <strong>Historical Listings</strong> (<code className="rounded bg-warning/15 px-1">/historical</code> — off-market listings for same property). Use one listing key above.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <input
+        <Input
           type="text"
           placeholder="ListingKey or ListNumber"
           value={listingKey}
           onChange={(e) => setListingKey(e.target.value)}
-          className="min-w-[200px] rounded-lg border border-yellow-500/40 bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+          className="min-w-[200px] rounded-lg border border-warning/40 bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
         />
-        <button
+        <Button
           type="button"
           onClick={handleTest}
           disabled={loading}
-          className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-500/85 disabled:opacity-50"
+          className="rounded-lg bg-warning px-4 py-2 text-sm font-semibold text-white hover:bg-warning/85 disabled:opacity-50"
         >
           {loading ? 'Testing…' : 'Test all 3'}
-        </button>
+        </Button>
       </div>
       {result && (
-        <div className="mt-4 space-y-3 rounded-lg border border-yellow-500/30 bg-white p-4 text-sm">
-          <p className={result.ok ? 'text-green-500' : 'text-foreground'}>{result.message}</p>
+        <div className="mt-4 space-y-3 rounded-lg border border-warning/30 bg-card p-4 text-sm">
+          <p className={result.ok ? 'text-success' : 'text-foreground'}>{result.message}</p>
           <div className="grid gap-2 sm:grid-cols-1 lg:grid-cols-3">
             <div className="rounded bg-muted p-2">
               <span className="font-medium text-muted-foreground">GET /listings/.../history</span>

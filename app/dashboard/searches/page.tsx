@@ -41,7 +41,7 @@ export default async function DashboardSearchesPage() {
           </p>
           <Link
             href="/homes-for-sale"
-            className="mt-4 inline-block rounded-lg border border-primary/20 bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="mt-4 inline-block rounded-lg border border-primary/20 bg-card px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Go to search
           </Link>

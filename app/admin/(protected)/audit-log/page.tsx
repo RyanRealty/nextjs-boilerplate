@@ -1,5 +1,6 @@
 import { getAdminActions } from '@/app/actions/admin-audit'
 import Link from 'next/link'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export default async function AdminAuditLogPage() {
   const actions = await getAdminActions({ limit: 100 })
@@ -8,41 +9,41 @@ export default async function AdminAuditLogPage() {
     <div>
       <h1 className="text-xl font-bold text-foreground">Audit log</h1>
       <p className="mt-1 text-sm text-muted-foreground">Recent admin actions (create, update, delete).</p>
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted">
-              <th className="px-4 py-3 font-medium text-foreground">Time</th>
-              <th className="px-4 py-3 font-medium text-foreground">Admin</th>
-              <th className="px-4 py-3 font-medium text-foreground">Role</th>
-              <th className="px-4 py-3 font-medium text-foreground">Action</th>
-              <th className="px-4 py-3 font-medium text-foreground">Resource</th>
-              <th className="px-4 py-3 font-medium text-foreground">ID</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="text-foreground">Time</TableHead>
+              <TableHead className="text-foreground">Admin</TableHead>
+              <TableHead className="text-foreground">Role</TableHead>
+              <TableHead className="text-foreground">Action</TableHead>
+              <TableHead className="text-foreground">Resource</TableHead>
+              <TableHead className="text-foreground">ID</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {actions.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No actions recorded yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               actions.map((row) => (
-                <tr key={row.id} className="border-b border-border">
-                  <td className="whitespace-nowrap px-4 py-2 text-muted-foreground">
+                <TableRow key={row.id}>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
                     {new Date(row.created_at).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2 font-medium text-foreground">{row.admin_email}</td>
-                  <td className="px-4 py-2 text-muted-foreground">{row.role ?? '—'}</td>
-                  <td className="px-4 py-2 text-foreground">{row.action_type}</td>
-                  <td className="px-4 py-2 text-muted-foreground">{row.resource_type ?? '—'}</td>
-                  <td className="px-4 py-2 text-muted-foreground">{row.resource_id ?? '—'}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="font-medium text-foreground">{row.admin_email}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.role ?? '—'}</TableCell>
+                  <TableCell className="text-foreground">{row.action_type}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.resource_type ?? '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{row.resource_id ?? '—'}</TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
         <Link href="/admin" className="underline hover:no-underline">Back to Dashboard</Link>

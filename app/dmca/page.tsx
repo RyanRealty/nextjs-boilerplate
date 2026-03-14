@@ -15,7 +15,7 @@ export default function DMCAPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">DMCA Policy</h1>
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Digital Millennium Copyright Act notice and takedown procedure</p>
+      <p className="mt-2 text-sm text-muted-foreground">Digital Millennium Copyright Act notice and takedown procedure</p>
 
       <section className="mt-8 space-y-6 text-sm text-primary">
         <div>

@@ -6,6 +6,8 @@ import HomeTileCard from '@/components/home/HomeTileCard'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 type SoldListing = CityListingRow & { ClosePrice?: number | null; CloseDate?: string | null }
 
@@ -59,17 +61,18 @@ export default function NeighborhoodListings({
             <h2 id="neighborhood-listings-heading" className="text-2xl font-bold tracking-tight text-primary">
               Homes for Sale in {neighborhoodName}
             </h2>
-            <div className="mt-8 rounded-lg border border-[var(--border)] bg-white p-8 text-center">
-              <p className="text-[var(--muted-foreground)]">
-                No active listings in {neighborhoodName} right now. Save a search to get notified when new homes hit the market.
-              </p>
-              <Link
-                href="/account/saved-searches"
-                className="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
-              >
-                {signedIn ? 'Save a search' : 'Sign in to save'}
-              </Link>
-            </div>
+            <Card className="mt-8">
+              <CardContent className="pt-8 text-center">
+                <p className="text-muted-foreground">
+                  No active listings in {neighborhoodName} right now. Save a search to get notified when new homes hit the market.
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href="/account/saved-searches">
+                    {signedIn ? 'Save a search' : 'Sign in to save'}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </>
         ) : (
           <TilesSlider
@@ -121,12 +124,12 @@ export default function NeighborhoodListings({
                   <TilesSliderItem key={String(key)} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                     <Link
                       href={`/listing/${key}`}
-                      className="block h-full rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm transition hover:shadow-md"
+                      className="block h-full rounded-lg border border-border bg-card p-4 shadow-sm transition hover:shadow-md"
                     >
                       <p className="font-semibold text-primary">
                         {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ')} {listing.City}
                       </p>
-                      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                      <p className="mt-1 text-sm text-muted-foreground">
                         Sold {formatPrice(listing.ClosePrice)} · {formatDate(listing.CloseDate)}
                       </p>
                     </Link>

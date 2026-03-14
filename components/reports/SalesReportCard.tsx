@@ -47,7 +47,7 @@ export default function SalesReportCard({ card }: Props) {
 
   return (
     <div
-      className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-[var(--card)] shadow-sm transition hover:border-primary/20 hover:shadow-md"
+      className="group relative flex w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition hover:border-primary/20 hover:shadow-md"
       style={{ minHeight: TILE_MIN_HEIGHT_PX }}
     >
       <div className="relative aspect-[4/3] w-full flex-shrink-0 overflow-hidden">
@@ -61,7 +61,7 @@ export default function SalesReportCard({ card }: Props) {
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] via-[var(--primary)]/90 to-[var(--accent)]/30" />
+            <div className="h-full w-full bg-gradient-to-br from-primary via-primary/90 to-accent/30" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
@@ -82,27 +82,27 @@ export default function SalesReportCard({ card }: Props) {
           url={shareUrl}
           title={shareTitle}
           variant="compact"
-          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[var(--muted-foreground)] hover:bg-[var(--border)] hover:text-[var(--foreground)]"
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground hover:bg-border hover:text-foreground"
           aria-label={`Share ${card.city} ${card.periodLabel}`}
         />
         {shareCount > 0 && (
-          <span className="min-w-[1ch] text-[10px] tabular-nums text-[var(--muted-foreground)]">{shareCount}</span>
+          <span className="min-w-[1ch] text-[10px] tabular-nums text-muted-foreground">{shareCount}</span>
         )}
         {hasEngagement && (
-          <span className="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] text-[var(--muted-foreground)]">
+          <span className="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
             {likeCount > 0 && <span>{likeCount} like{likeCount !== 1 ? 's' : ''}</span>}
             {saveCount > 0 && <span>{saveCount} saved</span>}
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col border-t border-border bg-[var(--card)] px-4 py-3">
+      <div className="flex flex-1 flex-col border-t border-border bg-card px-4 py-3">
         <Link href={href} className="group block">
           <span className="text-sm font-semibold text-primary group-hover:text-accent-foreground group-hover:underline">
             View full report
           </span>
-          <span className="ml-1.5 text-sm text-[var(--muted-foreground)]" aria-hidden>→</span>
+          <span className="ml-1.5 text-sm text-muted-foreground" aria-hidden>→</span>
         </Link>
-        <p className="mt-1 line-clamp-2 text-xs text-[var(--muted-foreground)]">
+        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
           {hasData ? 'Addresses, sold dates, days on market, property types. Charts and PDF download.' : 'New sales data is added as listings close.'}
         </p>
       </div>

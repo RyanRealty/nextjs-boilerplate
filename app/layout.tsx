@@ -22,7 +22,7 @@ import GTMBody from "../components/GTMBody";
 import InstallPrompt from "../components/pwa/InstallPrompt";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import ComparisonTray from "@/components/comparison/ComparisonTray";
-import ChatWidget from "@/components/chat/ChatWidget";
+import LazyChatWidget from "@/components/chat/LazyChatWidget";
 import { getCanonicalSiteUrl } from "@/lib/share-metadata";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -100,7 +100,7 @@ export default async function RootLayout({
       <body className="min-h-screen overflow-x-hidden antialiased font-body">
         <ComparisonProvider>
         <GTMBody />
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:p-4 focus:bg-white focus:text-primary">
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:p-4 focus:bg-card focus:text-primary">
             Skip to main content
           </a>
           <GoogleAnalytics />
@@ -125,7 +125,7 @@ export default async function RootLayout({
           <AdminHashRedirect />
         </Suspense>
         <ComparisonTray />
-        <ChatWidget />
+        <LazyChatWidget />
         </ComparisonProvider>
         </body>
     </html>

@@ -28,10 +28,10 @@ function formatPrice(n: number): string {
 
 export default function ListingsPageFooter({ cities, signedIn, basePath = '/listings' }: Props) {
   return (
-    <footer className="border-t border-border bg-[var(--card)] px-4 py-8">
+    <footer className="border-t border-border bg-card px-4 py-8">
       {/* Save this search CTA */}
       <section className="mb-8">
-        <p className="text-sm text-[var(--muted-foreground)]">
+        <p className="text-sm text-muted-foreground">
           Save this search to get email alerts when new listings match your criteria.
         </p>
         {signedIn && (
@@ -40,7 +40,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
           </div>
         )}
         {!signedIn && (
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-2 text-sm text-muted-foreground">
             <Link href="/login" className="font-medium text-primary hover:underline">
               Sign in
             </Link>
@@ -50,7 +50,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
       </section>
 
       {/* MLS / IDX disclaimer */}
-      <section className="mb-8 text-xs text-[var(--muted-foreground)]">
+      <section className="mb-8 text-xs text-muted-foreground">
         <p>
           Listing data is provided in part by Oregon Datashare (KCAR | MLSCO | SOMLS). All information provided is
           deemed reliable but is not guaranteed and should be independently verified. Listing content is for consumers’
@@ -60,7 +60,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
 
       {/* Explore: by bedroom */}
       <section className="mb-8">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Search by bedroom size
         </h3>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -79,7 +79,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
 
       {/* Explore: by price */}
       <section className="mb-8">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Homes by price
         </h3>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -99,7 +99,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
       {/* Nearby cities */}
       {cities.length > 0 && (
         <section className="mb-8">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Nearby city homes
           </h3>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -111,7 +111,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
                 >
                   {c.name} Homes for Sale
                 </Link>
-                <span className="ml-2 text-xs text-[var(--muted-foreground)]">
+                <span className="ml-2 text-xs text-muted-foreground">
                   {c.activeCount.toLocaleString()} {c.medianPrice != null ? ` · ${formatPrice(c.medianPrice)}` : ''}
                 </span>
               </li>
@@ -122,7 +122,7 @@ export default function ListingsPageFooter({ cities, signedIn, basePath = '/list
 
       {/* Popular searches */}
       <section>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Popular searches
         </h3>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">

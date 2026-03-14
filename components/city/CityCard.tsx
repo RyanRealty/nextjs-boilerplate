@@ -30,7 +30,7 @@ export default function CityCard({
 
   return (
     <Link href={href} className="group block">
-      <Card className="overflow-hidden border-[var(--border)] shadow-sm transition hover:shadow-md">
+      <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md">
         <div className="relative aspect-[21/9] w-full overflow-hidden">
           {heroImageUrl ? (
             <Image
@@ -41,7 +41,7 @@ export default function CityCard({
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary / 0.8)]" />
+            <div className="h-full w-full bg-gradient-to-br from-primary to-[var(--primary / 0.8)]" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -53,7 +53,7 @@ export default function CityCard({
         </div>
         {description && (
           <div className="p-4">
-            <p className="line-clamp-2 text-sm text-[var(--muted-foreground)]">{description}</p>
+            <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
           </div>
         )}
       </Card>

@@ -1,9 +1,10 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { slugify, cityEntityKey } from '@/lib/slug'
 import type { CityForIndex, CityDetail } from '@/lib/cities'
-import { getBannerUrl } from '@/app/actions/banners'
+import { getBannerUrl, getBannersBatch } from '@/app/actions/banners'
 import {
   getBrowseCities,
   getCityMarketStats,
@@ -53,11 +54,54 @@ export type CityListingRow = {
   details?: unknown
 }
 
-/** All cities for index with counts and median. */
-export async function getCitiesForIndex(): Promise<CityForIndex[]> {
+/** All cities for index with counts and median — uses RPC for single-scan aggregation instead of 60k row fetches. */
+async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
+  const sb = supabase()
+
+  // Try fast RPC path first (single table scan with GROUP BY)
+  let cityStats: { city_name: string; active_count: number; median_price: number | null; community_count: number }[] = []
+  try {
+    const { data, error } = await sb.rpc('get_browse_cities_stats')
+    if (!error && data) cityStats = data as typeof cityStats
+  } catch {
+    // RPC not deployed yet — fall through to legacy path
+  }
+
+  if (cityStats.length > 0) {
+    // Fast path: RPC returned data, just need banners + city metadata
+    const allCityNames = cityStats.map((r) => r.city_name)
+    const allSlugs = allCityNames.map((name) => slugify(name))
+
+    const [bannerMap, cityMetaRes] = await Promise.all([
+      getBannersBatch('city', allSlugs),
+      sb.from('cities').select('name, description, hero_image_url').in('name', allCityNames),
+    ])
+
+    const cityMetaByName = new Map<string, { description?: string | null; hero_image_url?: string | null }>()
+    for (const row of (cityMetaRes.data ?? []) as { name: string; description?: string | null; hero_image_url?: string | null }[]) {
+      cityMetaByName.set(row.name.toLowerCase(), row)
+    }
+
+    return cityStats.map((row) => {
+      const slug = slugify(row.city_name)
+      const banner = bannerMap.get(slug)
+      const db = cityMetaByName.get(row.city_name.toLowerCase()) ?? null
+      return {
+        slug,
+        name: row.city_name,
+        activeCount: row.active_count,
+        medianPrice: row.median_price ? Math.round(row.median_price) : null,
+        communityCount: row.community_count,
+        heroImageUrl: db?.hero_image_url ?? banner?.url ?? null,
+        description: db?.description ?? null,
+      }
+    })
+  }
+
+  // Legacy fallback: fetch from listings table directly
   const [browse, listingRows] = await Promise.all([
     getBrowseCities(),
-    supabase()
+    sb
       .from('listings')
       .select('City, SubdivisionName, ListPrice, StandardStatus')
       .or(ACTIVE_OR)
@@ -71,10 +115,7 @@ export async function getCitiesForIndex(): Promise<CityForIndex[]> {
         }[]
       ),
   ])
-  const byCity = new Map<
-    string,
-    { prices: number[]; subdivisions: Set<string> }
-  >()
+  const byCity = new Map<string, { prices: number[]; subdivisions: Set<string> }>()
   for (const row of listingRows) {
     const city = (row.City ?? '').toString().trim()
     if (!city) continue
@@ -85,6 +126,19 @@ export async function getCitiesForIndex(): Promise<CityForIndex[]> {
     if (sub && sub.toLowerCase() !== 'n/a') rec.subdivisions.add(sub)
     byCity.set(city, rec)
   }
+  const allSlugs = browse.map(({ City }) => slugify(City))
+  const allCityNames = browse.map(({ City }) => City)
+
+  const [bannerMap, cityMetaRes] = await Promise.all([
+    getBannersBatch('city', allSlugs),
+    sb.from('cities').select('name, description, hero_image_url').in('name', allCityNames),
+  ])
+
+  const cityMetaByName = new Map<string, { description?: string | null; hero_image_url?: string | null }>()
+  for (const row of (cityMetaRes.data ?? []) as { name: string; description?: string | null; hero_image_url?: string | null }[]) {
+    cityMetaByName.set(row.name.toLowerCase(), row)
+  }
+
   const result: CityForIndex[] = []
   for (const { City: name, count } of browse) {
     const rec = byCity.get(name)
@@ -93,33 +147,25 @@ export async function getCitiesForIndex(): Promise<CityForIndex[]> {
     if (rec && rec.prices.length > 0) {
       rec.prices.sort((a, b) => a - b)
       const mid = Math.floor(rec.prices.length / 2)
-      medianPrice =
-        rec.prices.length % 2
-          ? rec.prices[mid]!
-          : Math.round((rec.prices[mid - 1]! + rec.prices[mid]!) / 2)
+      medianPrice = rec.prices.length % 2
+        ? rec.prices[mid]!
+        : Math.round((rec.prices[mid - 1]! + rec.prices[mid]!) / 2)
     }
     const communityCount = rec?.subdivisions.size ?? 0
     const slug = slugify(name)
-    const heroUrl = await getBannerUrl('city', slug)
-    const cityRow = await supabase()
-      .from('cities')
-      .select('description, hero_image_url')
-      .ilike('name', name)
-      .maybeSingle()
-    const db = cityRow.data as { description?: string | null; hero_image_url?: string | null } | null
-    result.push({
-      slug,
-      name,
-      activeCount,
-      medianPrice,
-      communityCount,
-      heroImageUrl: db?.hero_image_url ?? heroUrl ?? null,
-      description: db?.description ?? null,
-    })
+    const banner = bannerMap.get(slug)
+    const db = cityMetaByName.get(name.toLowerCase()) ?? null
+    result.push({ slug, name, activeCount, medianPrice, communityCount, heroImageUrl: db?.hero_image_url ?? banner?.url ?? null, description: db?.description ?? null })
   }
   result.sort((a, b) => b.activeCount - a.activeCount || a.name.localeCompare(b.name))
   return result
 }
+
+export const getCitiesForIndex = unstable_cache(
+  _getCitiesForIndexUncached,
+  ['cities-index'],
+  { revalidate: 300, tags: ['cities-index'] }
+)
 
 /** Get city by slug; returns null if not found. */
 export async function getCityBySlug(slug: string): Promise<CityDetail | null> {

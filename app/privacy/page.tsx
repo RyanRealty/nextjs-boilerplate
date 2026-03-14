@@ -18,14 +18,14 @@ export const metadata: Metadata = {
 
 const SECTION_CLASS = 'mt-8'
 const H2_CLASS = 'text-lg font-semibold text-primary'
-const P_CLASS = 'mt-2 text-sm text-[var(--muted-foreground)]'
-const UL_CLASS = 'mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--muted-foreground)]'
+const P_CLASS = 'mt-2 text-sm text-muted-foreground'
+const UL_CLASS = 'mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground'
 
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">Privacy & cookies</h1>
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Last updated: March 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
       <p className="mt-4 text-primary">
         How we collect, use, and protect your information when you use our website.
       </p>

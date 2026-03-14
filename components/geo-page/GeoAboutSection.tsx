@@ -22,14 +22,14 @@ export default function GeoAboutSection({ placeName, headingId, children, quickF
   const visibleFacts = quickFacts.filter((f) => f.value != null && String(f.value).trim() !== '')
 
   return (
-    <section className="bg-white px-4 py-10 sm:px-6 sm:py-12" aria-labelledby={headingId}>
+    <section className="bg-card px-4 py-10 sm:px-6 sm:py-12" aria-labelledby={headingId}>
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="min-w-0">
             <h2 id={headingId} className="text-2xl font-bold tracking-tight text-primary">
               About {placeName}
             </h2>
-            <div className="mt-4 text-[var(--muted-foreground)]">{children}</div>
+            <div className="mt-4 text-muted-foreground">{children}</div>
           </div>
           {visibleFacts.length > 0 && (
             <div className="lg:pl-2">
@@ -38,8 +38,8 @@ export default function GeoAboutSection({ placeName, headingId, children, quickF
                 <dl className="mt-3 space-y-2.5 text-sm">
                   {visibleFacts.map(({ label, value }) => (
                     <div key={label}>
-                      <dt className="text-[var(--muted-foreground)]">{label}</dt>
-                      <dd className="text-[var(--foreground)]">{value}</dd>
+                      <dt className="text-muted-foreground">{label}</dt>
+                      <dd className="text-foreground">{value}</dd>
                     </div>
                   ))}
                 </dl>

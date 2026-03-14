@@ -9,6 +9,8 @@ import { cityPagePath } from '@/lib/slug'
 import { communityPagePath } from '@/lib/community-slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Search01Icon } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const DEBOUNCE_MS = 220
 const MIN_QUERY_LENGTH = 2
@@ -138,10 +140,10 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
 
   return (
     <div className="relative w-full max-w-md" ref={panelRef}>
-      <label htmlFor="smart-search-input" className="sr-only">
+      <Label htmlFor="smart-search-input" className="sr-only">
         Search address, city, or neighborhood
-      </label>
-      <input
+      </Label>
+      <Input
         id="smart-search-input"
         ref={inputRef}
         type="search"
@@ -157,7 +159,7 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => query.trim().length >= MIN_QUERY_LENGTH && setOpen(true)}
         onKeyDown={handleKeyDown}
-        className="w-full rounded-lg border border-border bg-white py-2 pl-4 pr-10 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-full rounded-lg border border-border bg-card py-2 pl-4 pr-10 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
         <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" aria-hidden />
@@ -167,7 +169,7 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
         <div
           id="smart-search-results"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[min(70vh,400px)] overflow-auto rounded-lg border border-border bg-white py-2 shadow-md"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[min(70vh,400px)] overflow-auto rounded-lg border border-border bg-card py-2 shadow-md"
         >
           {query.trim().length < MIN_QUERY_LENGTH ? (
             <p className="px-4 py-2 text-sm text-muted-foreground">

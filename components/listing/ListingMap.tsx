@@ -95,7 +95,7 @@ export default function ListingMap({ latitude, longitude, price, address }: Prop
 
   if (latitude == null || longitude == null) {
     return (
-      <div className="rounded-lg bg-[var(--muted)] aspect-video flex items-center justify-center text-[var(--muted-foreground)]">
+      <div className="rounded-lg bg-muted aspect-video flex items-center justify-center text-muted-foreground">
         No map location available
       </div>
     )
@@ -105,10 +105,10 @@ export default function ListingMap({ latitude, longitude, price, address }: Prop
     <section className="space-y-3">
       <div
         ref={containerRef}
-        className="rounded-lg overflow-hidden bg-[var(--border)] aspect-video min-h-[200px]"
+        className="rounded-lg overflow-hidden bg-border aspect-video min-h-[200px]"
         aria-label="Property map"
       />
-      <p className="text-sm text-[var(--muted-foreground)]">What&apos;s Nearby: schools, walkability — data added later.</p>
+      <p className="text-sm text-muted-foreground">What&apos;s Nearby: schools, walkability — data added later.</p>
     </section>
   )
 }

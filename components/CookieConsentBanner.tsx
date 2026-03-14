@@ -2,6 +2,17 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 const COOKIE_CONSENT_KEY = 'ryan_realty_cookie_consent'
 const CONSENT_EXPIRY_YEARS = 1
@@ -96,31 +107,31 @@ export default function CookieConsentBanner() {
 
   if (!visible && !prefsOpen) return null
 
-  if (prefsOpen) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-label="Cookie preferences">
-        <div className="max-w-md rounded-lg bg-white p-6 shadow-md">
-          <h2 className="text-lg font-semibold text-foreground">Manage preferences</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Essential cookies are always on. Choose optional tracking.</p>
-          <label className="mt-4 flex items-center gap-3">
-            <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} className="h-4 w-4 rounded border-border" />
-            <span className="text-sm">Analytics (GA4) — understand how the site is used</span>
-          </label>
-          <label className="mt-2 flex items-center gap-3">
-            <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="h-4 w-4 rounded border-border" />
-            <span className="text-sm">Marketing (Meta Pixel) — relevant ads</span>
-          </label>
-          <div className="mt-6 flex gap-3">
-            <button type="button" onClick={savePreferences} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">Save</button>
-            <button type="button" onClick={() => setPrefsOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground">Cancel</button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
-    <div role="dialog" aria-label="Cookie consent" className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-white p-4 shadow-md sm:px-6">
+    <>
+    <Dialog open={prefsOpen} onOpenChange={setPrefsOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Manage preferences</DialogTitle>
+          <DialogDescription>Essential cookies are always on. Choose optional tracking.</DialogDescription>
+        </DialogHeader>
+        <Label className="flex items-center gap-3">
+          <Checkbox checked={analytics} onCheckedChange={(checked) => setAnalytics(!!checked)} />
+          <span className="text-sm">Analytics (GA4) — understand how the site is used</span>
+        </Label>
+        <Label className="flex items-center gap-3">
+          <Checkbox checked={marketing} onCheckedChange={(checked) => setMarketing(!!checked)} />
+          <span className="text-sm">Marketing (Meta Pixel) — relevant ads</span>
+        </Label>
+        <DialogFooter>
+          <Button type="button" onClick={savePreferences}>Save</Button>
+          <Button type="button" variant="outline" onClick={() => setPrefsOpen(false)}>Cancel</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    {visible && (
+    <div role="dialog" aria-label="Cookie consent" className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card p-4 shadow-md sm:px-6">
       <div className="mx-auto max-w-3xl">
         <p className="text-sm text-muted-foreground">
           We use cookies to improve your experience and analyze site traffic.{' '}
@@ -129,11 +140,13 @@ export default function CookieConsentBanner() {
           <Link href="/privacy#donotsell" className="font-medium text-foreground underline hover:no-underline">Do Not Sell My Personal Information</Link>
         </p>
         <div className="mt-3 flex flex-wrap gap-3">
-          <button type="button" onClick={acceptAll} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">Accept All</button>
-          <button type="button" onClick={() => setPrefsOpen(true)} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">Manage Preferences</button>
-          <button type="button" onClick={essentialOnly} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">Essential only</button>
+          <Button type="button" onClick={acceptAll} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">Accept All</Button>
+          <Button type="button" onClick={() => setPrefsOpen(true)} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">Manage Preferences</Button>
+          <Button type="button" onClick={essentialOnly} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">Essential only</Button>
         </div>
       </div>
     </div>
+    )}
+    </>
   )
 }

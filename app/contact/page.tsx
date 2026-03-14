@@ -39,7 +39,7 @@ export default async function ContactPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title={contactTitle}
         subtitle="Questions about buying, selling, or just exploring? We're here to help. Reach out and we'll get back to you quickly."
@@ -57,11 +57,11 @@ export default async function ContactPage({ searchParams }: PageProps) {
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-primary">Office</h2>
-            <p className="mt-2 text-[var(--muted-foreground)]">
+            <p className="mt-2 text-muted-foreground">
               Ryan Realty<br />
               Central Oregon
             </p>
-            <p className="mt-4 text-sm text-[var(--muted-foreground)]">
+            <p className="mt-4 text-sm text-muted-foreground">
               Hours and full address can be updated in your site settings or Google Business Profile for NAP consistency.
             </p>
             <div className="mt-6">

@@ -34,7 +34,7 @@ export default function BrokerListings({
           <h2 id="broker-listings-heading" className="text-2xl font-bold tracking-tight text-primary">
             {firstName}&apos;s Active Listings
           </h2>
-          <p className="mt-6 text-[var(--muted-foreground)]">
+          <p className="mt-6 text-muted-foreground">
             No active listings right now. Contact {firstName} to learn about upcoming opportunities.
           </p>
         </div>

@@ -4,6 +4,9 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
 import { setBuyingPreferences } from '@/app/actions/buying-preferences'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type DisplayPrefs = {
   downPaymentPercent: number
@@ -46,7 +49,7 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
 
   if (listPrice <= 0) {
     return (
-      <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="estimated-monthly-cost-heading">
+      <section className="mb-8 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="estimated-monthly-cost-heading">
         <h2 id="estimated-monthly-cost-heading" className="text-lg font-semibold text-foreground">Estimated monthly cost</h2>
         <p className="mt-2 text-muted-foreground">List price not set.</p>
       </section>
@@ -54,14 +57,14 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
   }
 
   return (
-    <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="estimated-monthly-cost-heading">
+    <section className="mb-8 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="estimated-monthly-cost-heading">
       <h2 id="estimated-monthly-cost-heading" className="mb-3 text-lg font-semibold text-foreground">Estimated monthly cost</h2>
       <p className="text-2xl font-semibold text-foreground">
         {monthlyPayment != null && monthlyPayment > 0 ? `Est. ${formatMonthlyPayment(monthlyPayment)}/mo` : '—'}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">Principal & interest. Adjust below or use the calculator.</p>
 
-      <button
+      <Button
         type="button"
         onClick={() => setExpanded((e) => !e)}
         className="mt-3 flex items-center gap-2 font-medium text-primary hover:text-accent-foreground hover:underline"
@@ -70,7 +73,7 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
       >
         <span className="inline-block transition-transform duration-200" style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}>▶</span>
         Mortgage Calculator
-      </button>
+      </Button>
 
       <div
         id="listing-mortgage-calculator"
@@ -82,9 +85,9 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
         {expanded && (
           <div className="mt-4 space-y-4 border-t border-border pt-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <label className="flex flex-col gap-1">
+              <Label className="flex flex-col gap-1">
                 <span className="text-sm font-medium text-muted-foreground">Down payment %</span>
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={100}
@@ -92,10 +95,10 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
                   onChange={(e) => setDownPct(Number(e.target.value) || 0)}
                   className="rounded-lg border border-border px-3 py-2 text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
-              </label>
-              <label className="flex flex-col gap-1">
+              </Label>
+              <Label className="flex flex-col gap-1">
                 <span className="text-sm font-medium text-muted-foreground">Interest rate %</span>
-                <input
+                <Input
                   type="number"
                   min={0}
                   max={20}
@@ -104,13 +107,13 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
                   onChange={(e) => setRate(Number(e.target.value) || 0)}
                   className="rounded-lg border border-border px-3 py-2 text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
-              </label>
+              </Label>
             </div>
             <div>
               <span className="block text-sm font-medium text-muted-foreground mb-2">Loan term</span>
               <div className="flex flex-wrap gap-2">
                 {([10, 15, 20, 30] as const).map((term) => (
-                  <button
+                  <Button
                     key={term}
                     type="button"
                     onClick={() => setTermYears(term)}
@@ -121,7 +124,7 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
                     }`}
                   >
                     {term} yr
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -130,15 +133,15 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
             </p>
             {signedIn && (
               <div className="flex items-center gap-3">
-                <button
+                <Button
                   type="button"
                   onClick={handleSaveToProfile}
                   disabled={saving}
                   className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
                 >
                   {saving ? 'Saving…' : 'Save to my profile'}
-                </button>
-                {saveMsg === 'saved' && <span className="text-sm text-green-500">Saved to your buying preferences.</span>}
+                </Button>
+                {saveMsg === 'saved' && <span className="text-sm text-success">Saved to your buying preferences.</span>}
                 {saveMsg === 'error' && <span className="text-sm text-destructive">Could not save.</span>}
               </div>
             )}

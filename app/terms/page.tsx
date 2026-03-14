@@ -14,7 +14,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">Terms of Service</h1>
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Last updated: March 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
 
       <section className="mt-8 space-y-4 text-sm text-primary">
         <div>

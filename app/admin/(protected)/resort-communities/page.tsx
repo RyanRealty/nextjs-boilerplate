@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
 import ResortCommunityToggle from './ResortCommunityToggle'
 import SeedResortButton from './SeedResortButton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,39 +27,39 @@ export default async function AdminResortCommunitiesPage() {
         <SeedResortButton />
       </section>
 
-      <section className="mt-8 rounded-lg border border-border bg-white shadow-sm overflow-hidden">
+      <section className="mt-8 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted">
-              <tr>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">City</th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Subdivision</th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Resort & master plan</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border bg-white">
+          <Table>
+            <TableHeader className="bg-muted">
+              <TableRow>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">City</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Subdivision</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Resort & master plan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-card">
               {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-sm text-muted-foreground py-8">
                     No subdivisions found. Sync listings first so city/subdivision pairs appear.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 rows.map((r) => (
-                  <tr
+                  <TableRow
                     key={r.entity_key}
-                    className={r.is_resort ? 'bg-green-500/10/60 hover:bg-green-500/10' : 'hover:bg-muted'}
+                    className={r.is_resort ? 'bg-success/10 hover:bg-success/10' : 'hover:bg-muted'}
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-foreground">{r.city}</td>
-                    <td className="px-4 py-3 text-sm text-foreground">{r.subdivision}</td>
-                    <td className="px-4 py-3">
+                    <TableCell className="whitespace-nowrap text-sm text-foreground">{r.city}</TableCell>
+                    <TableCell className="text-sm text-foreground">{r.subdivision}</TableCell>
+                    <TableCell>
                       <ResortCommunityToggle entityKey={r.entity_key} initialResort={r.is_resort} />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
       <p className="mt-4 text-xs text-muted-foreground">

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import type { SparkPhoto } from '../../lib/spark'
+import { Button } from "@/components/ui/button"
 
 type Props = { photos: SparkPhoto[] }
 
@@ -25,9 +26,9 @@ export default function ListingGallery({ photos }: Props) {
 
   return (
     <>
-      <div className="rounded-lg border border-border bg-white overflow-hidden shadow-sm">
+      <div className="rounded-lg border border-border bg-card overflow-hidden shadow-sm">
         <div className="aspect-[16/10] relative bg-muted">
-          <button
+          <Button
             type="button"
             onClick={() => setLightboxOpen(true)}
             className="absolute inset-0 flex items-center justify-center"
@@ -40,13 +41,13 @@ export default function ListingGallery({ photos }: Props) {
               sizes="(max-width: 1024px) 100vw, 1024px"
               priority={selectedIndex === 0}
             />
-          </button>
+          </Button>
         </div>
         <div className="flex gap-2 overflow-x-auto border-t border-border p-2">
           {displayList.map((p, i) => {
             const thumb = p.Uri300 ?? p.Uri640 ?? p.Uri800
             return (
-              <button
+              <Button
                 key={p.Id ?? i}
                 type="button"
                 onClick={() => setSelectedIndex(i)}
@@ -62,7 +63,7 @@ export default function ListingGallery({ photos }: Props) {
                   className="h-full w-full object-cover"
                   decoding="async"
                 />
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -76,13 +77,13 @@ export default function ListingGallery({ photos }: Props) {
           role="button"
           tabIndex={0}
         >
-          <button
+          <Button
             type="button"
             className="absolute right-4 top-4 text-white/80 hover:text-white"
             onClick={() => setLightboxOpen(false)}
           >
             ✕
-          </button>
+          </Button>
           <img
             src={src}
             alt={`Property photo ${selectedIndex + 1} — full size view`}

@@ -24,11 +24,11 @@ export const metadata: Metadata = {
 export default async function AgentsIndexPage() {
   const [agents, heroPhoto] = await Promise.all([
     getAgentsForIndex(),
-    Promise.resolve(null),
+    Promise.resolve(null as { url: string; attribution?: string } | null),
   ])
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -63,7 +63,7 @@ export default async function AgentsIndexPage() {
       </section>
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         {agents.length === 0 ? (
-          <p className="text-[var(--muted-foreground)]">No agents to display. Check back soon.</p>
+          <p className="text-muted-foreground">No agents to display. Check back soon.</p>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {agents.map((agent) => (

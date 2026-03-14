@@ -44,7 +44,7 @@ export default async function BuyPage() {
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Find Your Home in Central Oregon"
         subtitle="Local expertise, real-time listings, and a team that puts you first. Bend, Redmond, Sisters, Sunriver—and the lifestyle you've been looking for."
@@ -56,12 +56,12 @@ export default async function BuyPage() {
       />
 
       {/* Why buy with us */}
-      <section className="border-b border-border bg-[var(--card)] px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
+      <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
         <div className="mx-auto max-w-6xl">
           <h2 id="why-heading" className="text-center font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">
             Your Central Oregon Experts
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted-foreground">
             Central Oregon is renowned for outdoor recreation and natural beauty. We combine local
             market mastery with a genuine love for our community to help you buy with confidence.
           </p>
@@ -93,7 +93,7 @@ export default async function BuyPage() {
                   {item.icon === 'handshake' && <SupportHugeIcon className="h-6 w-6" />}
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-primary">{item.title}</h3>
-                <p className="mt-2 text-[var(--muted-foreground)]">{item.body}</p>
+                <p className="mt-2 text-muted-foreground">{item.body}</p>
               </div>
             ))}
           </div>
@@ -106,7 +106,7 @@ export default async function BuyPage() {
           <h2 id="steps-heading" className="text-center font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">
             How It Works
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-center text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-xl text-center text-muted-foreground">
             From first search to keys in hand, we make the journey clear and low-stress.
           </p>
           <ul className="mt-12 space-y-10">
@@ -117,7 +117,7 @@ export default async function BuyPage() {
                 </span>
                 <div>
                   <h3 className="text-xl font-semibold text-primary">{step.title}</h3>
-                  <p className="mt-2 text-[var(--muted-foreground)]">{step.body}</p>
+                  <p className="mt-2 text-muted-foreground">{step.body}</p>
                 </div>
               </li>
             ))}
@@ -125,7 +125,7 @@ export default async function BuyPage() {
           <div className="mt-14 text-center">
             <Link
               href="/contact?inquiry=Buying"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3.5 text-base font-semibold text-white transition hover:bg-accent/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground transition hover:bg-primary/90"
             >
               Start your search — contact us
               <ArrowRightHugeIcon className="h-5 w-5" />
@@ -135,7 +135,7 @@ export default async function BuyPage() {
       </section>
 
       {/* Quick links */}
-      <section className="border-t border-border bg-[var(--card)] px-4 py-14 sm:px-6" aria-labelledby="explore-heading">
+      <section className="border-t border-border bg-card px-4 py-14 sm:px-6" aria-labelledby="explore-heading">
         <div className="mx-auto max-w-6xl">
           <h2 id="explore-heading" className="text-center font-display text-2xl font-bold text-primary sm:text-3xl">
             Explore More
@@ -143,25 +143,25 @@ export default async function BuyPage() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/listings"
-              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
+              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Featured Listings
             </Link>
             <Link
               href="/homes-for-sale"
-              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
+              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Home Search
             </Link>
             <Link
               href="/area-guides"
-              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
+              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Area Guides
             </Link>
             <Link
               href="/team"
-              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
+              className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Meet Our Team
             </Link>

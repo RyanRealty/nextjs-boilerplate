@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import type { ReviewRow } from '@/app/actions/agents'
+import { Badge } from '@/components/ui/badge'
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Props = {
   brokerFirstName: string
@@ -24,7 +28,7 @@ function StarDisplay({ rating }: { rating: number }) {
       ))}
       {half ? <span className="text-accent-foreground">★</span> : null}
       {[...Array(empty)].map((_, i) => (
-        <span key={i} className="text-[var(--border)]">★</span>
+        <span key={i} className="text-border">★</span>
       ))}
     </span>
   )
@@ -87,30 +91,27 @@ export default function BrokerReviews({
               <span className="text-lg font-semibold text-primary">
                 {avgRating.toFixed(1)} out of 5
               </span>
-              <span className="text-[var(--muted-foreground)]">— {reviewCount} reviews</span>
+              <span className="text-muted-foreground">— {reviewCount} reviews</span>
             </div>
           )}
         </div>
         {sourceCounts.length > 0 && (
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-2 text-sm text-muted-foreground">
             {sourceCounts.map((s) => `${s.count} from ${sourceLabel(s.source)}`).join(', ')}
           </p>
         )}
         <div className="mt-6 flex items-center gap-2">
-          <label htmlFor="review-sort" className="text-sm text-[var(--muted-foreground)]">Sort:</label>
-          <select
-            id="review-sort"
-            value={sort}
-            onChange={(e) => {
-              setSort(e.target.value as 'newest' | 'highest' | 'lowest')
-              setPage(0)
-            }}
-            className="rounded border border-[var(--border)] bg-white px-3 py-2 text-sm text-primary"
-          >
-            <option value="newest">Newest first</option>
-            <option value="highest">Highest rated</option>
-            <option value="lowest">Lowest rated</option>
-          </select>
+          <Label htmlFor="review-sort" className="text-sm text-muted-foreground">Sort:</Label>
+          <Select value={sort} onValueChange={(v) => { setSort(v as 'newest' | 'highest' | 'lowest'); setPage(0) }}>
+            <SelectTrigger id="review-sort" className="rounded border border-border bg-card px-3 py-2 text-sm text-primary">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="highest">Highest rated</SelectItem>
+              <SelectItem value="lowest">Lowest rated</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <ul className="mt-6 space-y-4">
           {pageReviews.map((r) => (
@@ -119,25 +120,27 @@ export default function BrokerReviews({
         </ul>
         {totalPages > 1 && (
           <div className="mt-8 flex items-center justify-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="rounded-lg border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 hover:bg-[var(--muted)]"
+              variant="outline"
+              size="sm"
             >
               Previous
-            </button>
-            <span className="text-sm text-[var(--muted-foreground)]">
+            </Button>
+            <span className="text-sm text-muted-foreground">
               Page {page + 1} of {totalPages}
             </span>
-            <button
+            <Button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="rounded-lg border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 hover:bg-[var(--muted)]"
+              variant="outline"
+              size="sm"
             >
               Next
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -152,29 +155,29 @@ function ReviewCard({ review }: { review: ReviewRow }) {
   const showMore = text.length > REVIEW_TRUNCATE
 
   return (
-    <li className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+    <li className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <StarDisplay rating={review.rating} />
-        <span className="rounded bg-[var(--muted)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]">
+        <Badge variant="secondary">
           {review.source}
-        </span>
+        </Badge>
       </div>
       {text && (
-        <p className="mt-2 text-[var(--foreground)]">
+        <p className="mt-2 text-foreground">
           {expanded ? text : truncated}
           {showMore && (
-            <button
+            <Button
               type="button"
               onClick={() => setExpanded((e) => !e)}
               className="ml-1 text-sm font-medium text-accent-foreground hover:underline"
             >
               {expanded ? ' Less' : ' Read more'}
-            </button>
+            </Button>
           )}
         </p>
       )}
       {(review.reviewer_name || review.review_date) && (
-        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+        <p className="mt-2 text-sm text-muted-foreground">
           {review.reviewer_name ?? 'Anonymous'}
           {review.review_date && ` · ${new Date(review.review_date).toLocaleDateString('en-US')}`}
         </p>

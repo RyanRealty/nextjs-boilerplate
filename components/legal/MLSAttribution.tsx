@@ -26,7 +26,7 @@ export default function MLSAttribution({ lastUpdated, compact = false }: MLSAttr
   }
 
   return (
-    <section className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-4 text-sm text-[var(--muted-foreground)]" aria-label="MLS attribution">
+    <section className="rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground" aria-label="MLS attribution">
       <p>
         Listing data provided by Oregon Data Share. All information deemed reliable but not guaranteed.
         {dateStr && (

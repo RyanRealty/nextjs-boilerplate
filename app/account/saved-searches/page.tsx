@@ -25,7 +25,7 @@ export default async function SavedSearchesPage() {
       <div className="mt-4">
         <Link
           href="/listings"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Create & save a search
         </Link>
@@ -38,7 +38,7 @@ export default async function SavedSearchesPage() {
           <p className="text-muted-foreground">You haven’t saved any searches yet.</p>
           <Link
             href="/listings"
-            className="mt-4 inline-block rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="mt-4 inline-block rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Go to search
           </Link>

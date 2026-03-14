@@ -3,6 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSignInUrl, signInWithEmailPassword, signUpWithEmailPassword } from '@/app/actions/auth'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 type Props = {
   open: boolean
@@ -20,8 +28,6 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-
-  if (!open) return null
 
   async function handleGoogle() {
     setLoading('google')
@@ -80,114 +86,95 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" aria-hidden onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-lg">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-lg font-bold text-primary">Ryan Realty</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-muted-foreground"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ryan Realty</DialogTitle>
+        </DialogHeader>
         <div className="flex gap-2 border-b border-border">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => { setTab('signin'); setError(null) }}
-            className={`border-b-2 px-3 py-2 text-sm font-medium ${
+            className={`border-b-2 rounded-none px-3 py-2 text-sm font-medium ${
               tab === 'signin'
                 ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-muted-foreground'
+                : 'border-transparent text-muted-foreground'
             }`}
           >
             Sign in
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => { setTab('signup'); setError(null) }}
-            className={`border-b-2 px-3 py-2 text-sm font-medium ${
+            className={`border-b-2 rounded-none px-3 py-2 text-sm font-medium ${
               tab === 'signup'
                 ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-muted-foreground'
+                : 'border-transparent text-muted-foreground'
             }`}
           >
             Create account
-          </button>
+          </Button>
         </div>
-        <div className="mt-4">
-          <button
+        <div className="space-y-4">
+          <Button
             type="button"
+            variant="outline"
             onClick={handleGoogle}
             disabled={!!loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+            className="w-full"
           >
             {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
-          </button>
-          <div className="my-4 border-t border-border" />
+          </Button>
+          <div className="border-t border-border" />
           {tab === 'signin' ? (
             <form onSubmit={handleEmailSignIn} className="space-y-3">
-              <input
+              <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
-              <input
+              <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <button
-                type="submit"
-                disabled={!!loading}
-                className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white disabled:opacity-50"
-              >
+              <Button type="submit" disabled={!!loading} className="w-full">
                 {loading === 'email' ? 'Signing in…' : 'Sign in'}
-              </button>
+              </Button>
             </form>
           ) : (
             <form onSubmit={handleEmailSignUp} className="space-y-3">
-              <input
+              <Input
                 type="text"
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
-              <input
+              <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
-              <input
+              <Input
                 type="password"
                 placeholder="Password (min 6)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <button
-                type="submit"
-                disabled={!!loading}
-                className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white disabled:opacity-50"
-              >
+              <Button type="submit" disabled={!!loading} className="w-full">
                 {loading === 'email' ? 'Creating account…' : 'Create account'}
-              </button>
+              </Button>
             </form>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

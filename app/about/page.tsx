@@ -8,6 +8,7 @@ import { getCanonicalSiteUrl } from '@/lib/share-metadata'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { Button } from '@/components/ui/button'
 
 export const revalidate = 60
 
@@ -27,7 +28,7 @@ export default async function AboutPage() {
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title={content?.title ?? 'About Ryan Realty'}
         subtitle="Central Oregon's trusted brokerage. Local expertise, a personal approach, and a team that helps you find the right property—or the right buyer."
@@ -39,9 +40,9 @@ export default async function AboutPage() {
         ]}
       />
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-        <div className="prose prose-[var(--primary)] max-w-none">
+        <div className="prose prose-primary max-w-none">
           <div
-            className="whitespace-pre-wrap text-[var(--muted-foreground)]"
+            className="whitespace-pre-wrap text-muted-foreground"
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml((content?.body_html?.trim()?.length ? content.body_html : null) ?? defaultAboutBody()),
             }}
@@ -49,27 +50,24 @@ export default async function AboutPage() {
         </div>
         <section className="mt-12 rounded-xl border border-border bg-muted p-6 sm:p-8" aria-labelledby="about-cta-heading">
           <h2 id="about-cta-heading" className="text-xl font-bold tracking-tight text-primary">Get started</h2>
-          <p className="mt-2 text-[var(--muted-foreground)]">
+          <p className="mt-2 text-muted-foreground">
             Meet our team, browse listings, or reach out with questions.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/team"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-primary shadow-sm hover:bg-accent/90"
-            >
-              Meet the team
+            <Link href="/team">
+              <Button className="inline-flex items-center gap-2 bg-accent text-primary hover:bg-accent/90">
+                Meet the team
+              </Button>
             </Link>
-            <Link
-              href="/listings"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Browse listings
+            <Link href="/listings">
+              <Button variant="outline" className="inline-flex items-center gap-2">
+                Browse listings
+              </Button>
             </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
-            >
-              Contact us
+            <Link href="/contact">
+              <Button variant="outline" className="inline-flex items-center gap-2">
+                Contact us
+              </Button>
             </Link>
           </div>
         </section>

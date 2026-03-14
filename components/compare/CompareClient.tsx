@@ -7,6 +7,9 @@ import { useComparison } from '@/contexts/ComparisonContext'
 import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { LinkSquare01Icon, Cancel01Icon, Download01Icon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export type CompareListingData = {
   listingKey: string
@@ -116,10 +119,12 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
     return (
       <div className="py-20 text-center">
         <h1 className="text-2xl font-bold text-primary mb-4">No Listings to Compare</h1>
-        <p className="text-[var(--muted-foreground)] mb-6">Add listings from the search page to compare them side by side.</p>
-        <Link href="/homes-for-sale" className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90 transition-colors">
-          Browse Homes
-        </Link>
+        <p className="text-muted-foreground mb-6">Add listings from the search page to compare them side by side.</p>
+        <Button asChild>
+          <Link href="/homes-for-sale">
+            Browse Homes
+          </Link>
+        </Button>
       </div>
     )
   }
@@ -130,46 +135,47 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-primary">Compare Properties</h1>
-          <p className="text-[var(--muted-foreground)] mt-1">{listings.length} {listings.length === 1 ? 'property' : 'properties'} selected</p>
+          <p className="text-muted-foreground mt-1">{listings.length} {listings.length === 1 ? 'property' : 'properties'} selected</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary hover:bg-[var(--muted)] transition-colors"
+            variant="outline"
+            size="sm"
           >
             <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
             Copy Link
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleDownloadPdf}
             disabled={pdfLoading}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-60"
+            size="sm"
           >
             <HugeiconsIcon icon={Download01Icon} className="h-4 w-4" />
             {pdfLoading ? 'Generating…' : 'Download PDF'}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Photo row */}
       <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: `repeat(${listings.length}, minmax(0, 1fr))` }}>
         {listings.map((l) => (
-          <div key={l.listingKey} className="relative rounded-lg overflow-hidden bg-[var(--muted)] aspect-[4/3]">
+          <div key={l.listingKey} className="relative rounded-lg overflow-hidden bg-muted aspect-[4/3]">
             {l.photoUrl ? (
               <Image src={l.photoUrl} alt={l.address} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
             ) : (
-              <div className="flex h-full items-center justify-center text-[var(--muted-foreground)] text-sm">No Photo</div>
+              <div className="flex h-full items-center justify-center text-muted-foreground text-sm">No Photo</div>
             )}
-            <button
+            <Button
               type="button"
               onClick={() => handleRemove(l.listingKey)}
               className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
               aria-label={`Remove ${l.address} from comparison`}
             >
               <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
-            </button>
+            </Button>
             <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
               <Link href={`/listing/${encodeURIComponent(l.listingKey)}`} className="text-white text-sm font-semibold hover:underline line-clamp-2">
                 {l.address}
@@ -181,26 +187,26 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
       </div>
 
       {/* Comparison table */}
-      <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[var(--muted)]">
-              <th className="sticky left-0 bg-[var(--muted)] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Feature</th>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="sticky left-0 bg-muted px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Feature</TableHead>
               {listings.map((l) => (
-                <th key={l.listingKey} className="px-4 py-3 text-left text-xs font-semibold text-primary min-w-[140px]">
+                <TableHead key={l.listingKey} className="px-4 py-3 text-left text-xs font-semibold text-primary min-w-[140px]">
                   {l.address.split(',')[0]}
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row, ri) => {
               const best = row.best ? bestIndex(listings, row.key, row.best) : null
               const isPricePerSqft = row.label === 'Price/Sq Ft'
 
               return (
-                <tr key={row.label} className={ri % 2 === 0 ? 'bg-white' : 'bg-[var(--muted)]/50'}>
-                  <td className="sticky left-0 bg-inherit px-4 py-2.5 font-medium text-[var(--muted-foreground)] whitespace-nowrap">{row.label}</td>
+                <TableRow key={row.label} className={ri % 2 === 0 ? 'bg-card' : 'bg-muted/50'}>
+                  <TableCell className="sticky left-0 bg-inherit px-4 py-2.5 font-medium text-muted-foreground whitespace-nowrap">{row.label}</TableCell>
                   {listings.map((l, i) => {
                     let value: string
                     let isBest = false
@@ -221,34 +227,34 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
                     }
 
                     return (
-                      <td
+                      <TableCell
                         key={l.listingKey}
                         className={[
                           'px-4 py-2.5 text-primary',
-                          isBest ? 'font-semibold text-green-500' : '',
+                          isBest ? 'font-semibold text-success' : '',
                         ].join(' ')}
                       >
                         <span className="flex items-center gap-1">
                           {value}
                           {isBest && (
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-3.5 w-3.5 text-success flex-shrink-0" />
                           )}
                         </span>
-                      </td>
+                      </TableCell>
                     )
                   })}
-                </tr>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Map */}
       {listings.some((l) => l.latitude && l.longitude) && (
         <div className="mt-8">
           <h2 className="text-lg font-semibold text-primary mb-3">Locations</h2>
-          <div className="rounded-lg overflow-hidden border border-[var(--border)] h-[300px] sm:h-[400px]">
+          <div className="rounded-lg overflow-hidden border border-border h-[300px] sm:h-[400px]">
             {/* Google Static Map with pins */}
             {process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? (
               <iframe
@@ -258,7 +264,7 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
                 src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&q=${listings.filter((l) => l.latitude && l.longitude).map((l) => `${l.latitude},${l.longitude}`).join('|')}&zoom=11`}
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-[var(--muted)] text-[var(--muted-foreground)] text-sm">
+              <div className="flex h-full items-center justify-center bg-muted text-muted-foreground text-sm">
                 Map unavailable — configure Google Maps API key
               </div>
             )}

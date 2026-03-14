@@ -12,7 +12,7 @@ export default function ListingFloorPlans({ floorPlans }: Props) {
       {floorPlans.map((fp, i) => (
         <div
           key={fp.Id ?? i}
-          className="overflow-hidden rounded-lg border border-border bg-white p-2 shadow-sm"
+          className="overflow-hidden rounded-lg border border-border bg-card p-2 shadow-sm"
         >
           {fp.Uri ? (
             <a

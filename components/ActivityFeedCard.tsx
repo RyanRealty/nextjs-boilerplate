@@ -8,15 +8,16 @@ import { BookmarkIcon } from '@/components/icons/ActionIcons'
 import { trackListingTileClick } from '../app/actions/track-listing-click'
 import { trackSavedPropertyAction } from '../app/actions/track-saved-property'
 import type { ActivityFeedItem } from '../app/actions/activity-feed'
+import { Button } from "@/components/ui/button"
 
 function eventBadge(type: ActivityFeedItem['event_type']): { label: string; className: string } {
   switch (type) {
     case 'new_listing':
-      return { label: 'New', className: 'bg-green-500' }
+      return { label: 'New', className: 'bg-success' }
     case 'price_drop':
-      return { label: 'Price drop', className: 'bg-yellow-500/100' }
+      return { label: 'Price drop', className: 'bg-warning' }
     case 'status_pending':
-      return { label: 'Under contract', className: 'bg-yellow-500' }
+      return { label: 'Under contract', className: 'bg-warning' }
     case 'status_closed':
       return { label: 'Just sold', className: 'bg-muted-foreground' }
     default:
@@ -105,10 +106,10 @@ export default function ActivityFeedCard({ item, saved = false, signedIn = false
           </span>
         )}
         {signedIn && (
-          <button
+          <Button
             type="button"
             onClick={handleToggleSave}
-            className="absolute right-2 top-2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
+            className="absolute right-2 top-2 rounded-full bg-card/90 p-2 shadow hover:bg-card"
             aria-label={saved ? 'Unsave' : 'Save'}
           >
             {saved ? (
@@ -116,7 +117,7 @@ export default function ActivityFeedCard({ item, saved = false, signedIn = false
             ) : (
               <BookmarkIcon filled={false} className="h-5 w-5 text-muted-foreground" />
             )}
-          </button>
+          </Button>
         )}
         {/* Stats overlay at bottom */}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">

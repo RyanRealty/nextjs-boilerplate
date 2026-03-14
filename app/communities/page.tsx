@@ -53,7 +53,7 @@ export default async function CommunitiesPage() {
   const resortCommunities = allCommunities.filter((c) => c.isResort || resortSlugs.has(c.slug))
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -81,7 +81,7 @@ export default async function CommunitiesPage() {
 
       {resortCommunities.length > 0 && (
         <section
-          className="bg-white px-4 py-12 sm:px-6 sm:py-16"
+          className="bg-card px-4 py-12 sm:px-6 sm:py-16"
           aria-labelledby="resort-communities-heading"
         >
           <div className="mx-auto max-w-7xl">

@@ -110,7 +110,7 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
 
   return (
     <div
-      className="relative flex h-full min-h-[200px] w-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:border-border hover:shadow-md"
+      className="relative flex h-full min-h-[200px] w-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1"
       style={{ minHeight: TILE_MIN_HEIGHT_PX }}
     >
       <div className="relative aspect-[4/3] w-full">
@@ -124,7 +124,7 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
               sizes="300px"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[var(--muted-foreground)] to-[var(--foreground)]" />
+            <div className="h-full w-full bg-gradient-to-br from-muted-foreground to-foreground" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <CardBadges
@@ -181,7 +181,7 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
           guestCounts={!signedIn ? { viewCount, likeCount, saveCount } : undefined}
         />
       </div>
-      <div className="flex flex-1 flex-col border-t border-border bg-white px-3 py-3 text-sm text-muted-foreground">
+      <div className="flex flex-1 flex-col border-t border-border bg-card px-3 py-3 text-sm text-muted-foreground">
         <p className="line-clamp-3">{blurb}</p>
       </div>
     </div>

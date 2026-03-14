@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function SellValuationPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-accent-foreground">
@@ -34,12 +34,12 @@ export default function SellValuationPage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="form-heading">
+      <section className="border-b border-border bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="form-heading">
         <div className="mx-auto max-w-xl">
           <h2 id="form-heading" className="text-2xl font-bold text-primary sm:text-3xl">
             Enter your address
           </h2>
-          <p className="mt-2 text-[var(--muted-foreground)]">
+          <p className="mt-2 text-muted-foreground">
             We&apos;ll look up your property and send you a Comparative Market Analysis. If your home isn&apos;t in our system yet, we&apos;ll still reach out with an estimate.
           </p>
           <div className="mt-8">
@@ -48,12 +48,12 @@ export default function SellValuationPage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-white px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="how-heading">
+      <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="how-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="how-heading" className="text-center font-display text-3xl font-bold text-primary sm:text-4xl">
             How We Value Your Home
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
             Our estimates are based on recent sales of similar homes in your area, current market
             conditions, and adjustments for your property&apos;s features and condition.
           </p>
@@ -77,7 +77,7 @@ export default function SellValuationPage() {
                 className="rounded-xl border border-border bg-muted p-6 text-center shadow-sm"
               >
                 <h3 className="text-lg font-semibold text-primary">{item.title}</h3>
-                <p className="mt-2 text-sm text-[var(--muted-foreground)]">{item.body}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
               </div>
             ))}
           </div>
@@ -89,7 +89,7 @@ export default function SellValuationPage() {
           <h2 id="cta-heading" className="font-display text-2xl font-bold text-primary sm:text-3xl">
             Ready to sell?
           </h2>
-          <p className="mt-4 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-muted-foreground">
             See our selling plan and how we market homes across Bend, Redmond, Sisters, and Central Oregon.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">

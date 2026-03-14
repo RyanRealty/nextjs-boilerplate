@@ -1,12 +1,23 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { AGENT_PHONE_TEL } from '../../lib/listing-cta'
 import { trackContactAgentEmail, submitListingInquiry } from '@/app/actions/track-contact-agent'
 import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 type Props = {
   address: string
@@ -153,38 +164,38 @@ export default function ListingCtaSidebar({
       className="sticky top-[4.25rem] shrink-0 lg:w-80"
       aria-label="Contact and schedule"
     >
-      <div className="rounded-lg border border-border bg-white p-5 shadow-sm">
+      <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
         <div className="flex flex-col gap-3">
-          <button
+          <Button
             type="button"
             onClick={() => setShowModal('showing')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-green-500/85 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-success px-4 py-3 text-base font-semibold text-success-foreground shadow-sm hover:bg-success/85 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
           >
             <span aria-hidden>📅</span>
             Schedule a showing
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setShowModal('question')}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-border bg-white px-4 py-3 text-base font-semibold text-foreground hover:border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-[var(--border)] focus:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-border bg-card px-4 py-3 text-base font-semibold text-foreground hover:border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
           >
             Ask a question
-          </button>
+          </Button>
           <div className="relative" ref={ref}>
-            <button
+            <Button
               type="button"
               onClick={() => setOpen((o) => !o)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border-2 border-border bg-white px-4 py-3 text-base font-semibold text-foreground hover:border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-[var(--border)] focus:ring-offset-2"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border-2 border-border bg-card px-4 py-3 text-base font-semibold text-foreground hover:border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
               aria-expanded={open}
               aria-haspopup="true"
             >
               <span aria-hidden>📞</span>
               Contact agent
               <HugeiconsIcon icon={ArrowDown01Icon} className="h-4 w-4 text-muted-foreground" aria-hidden />
-            </button>
+            </Button>
             {open && (
               <div
-                className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-border bg-white py-1 shadow-md"
+                className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-border bg-card py-1 shadow-md"
                 role="menu"
               >
                 <a
@@ -203,68 +214,65 @@ export default function ListingCtaSidebar({
                 >
                   Call
                 </a>
-                <button
+                <Button
                   type="button"
                   role="menuitem"
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                   onClick={handleSendEmail}
                 >
                   Send an email
-                </button>
+                </Button>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Modals: Schedule Showing + Ask a Question — portaled to body so they sit above sticky nav (z-[100]) */}
-      {showModal && createPortal(
-        <>
-          <div className="fixed inset-0 z-[100] bg-black/50" aria-hidden onClick={() => { setShowModal(null); setSubmitStatus('idle'); setSubmitError(null) }} />
-          <div className="fixed left-1/2 top-1/2 z-[100] w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-white p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-foreground">
+      <Dialog open={!!showModal} onOpenChange={(isOpen) => { if (!isOpen) { setShowModal(null); setSubmitStatus('idle'); setSubmitError(null) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
               {showModal === 'showing' ? 'Schedule a showing' : 'Ask a question'}
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            </DialogTitle>
+            <DialogDescription>
               {address}{cityStateZip ? `, ${cityStateZip}` : ''}
-            </p>
-            {submitStatus === 'done' ? (
-              <p className="mt-4 text-green-500 font-medium">Thanks! We&apos;ll be in touch soon.</p>
-            ) : (
-              <form onSubmit={(e) => handleInquirySubmit(e, showModal)} className="mt-4 space-y-3">
+            </DialogDescription>
+          </DialogHeader>
+          {submitStatus === 'done' ? (
+            <p className="text-success font-medium">Thanks! We&apos;ll be in touch soon.</p>
+          ) : (
+            <form onSubmit={(e) => showModal && handleInquirySubmit(e, showModal)} className="space-y-3">
+              <div>
+                <Label htmlFor="inquiry-name">Name</Label>
+                <Input id="inquiry-name" name="name" type="text" defaultValue={userName ?? ''} className="mt-1" placeholder="Your name" />
+              </div>
+              <div>
+                <Label htmlFor="inquiry-email">Email</Label>
+                <Input id="inquiry-email" name="email" type="email" required defaultValue={userEmail ?? ''} className="mt-1" placeholder="you@example.com" />
+              </div>
+              <div>
+                <Label htmlFor="inquiry-phone">Phone</Label>
+                <Input id="inquiry-phone" name="phone" type="tel" className="mt-1" placeholder="(555) 123-4567" />
+              </div>
+              {showModal === 'question' && (
                 <div>
-                  <label htmlFor="inquiry-name" className="block text-sm font-medium text-muted-foreground">Name</label>
-                  <input id="inquiry-name" name="name" type="text" defaultValue={userName ?? ''} className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground" placeholder="Your name" />
+                  <Label htmlFor="inquiry-message">Message</Label>
+                  <Textarea id="inquiry-message" name="message" rows={3} className="mt-1" placeholder="Your question..." />
                 </div>
-                <div>
-                  <label htmlFor="inquiry-email" className="block text-sm font-medium text-muted-foreground">Email</label>
-                  <input id="inquiry-email" name="email" type="email" required defaultValue={userEmail ?? ''} className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground" placeholder="you@example.com" />
-                </div>
-                <div>
-                  <label htmlFor="inquiry-phone" className="block text-sm font-medium text-muted-foreground">Phone</label>
-                  <input id="inquiry-phone" name="phone" type="tel" className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground" placeholder="(555) 123-4567" />
-                </div>
-                {showModal === 'question' && (
-                  <div>
-                    <label htmlFor="inquiry-message" className="block text-sm font-medium text-muted-foreground">Message</label>
-                    <textarea id="inquiry-message" name="message" rows={3} className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground" placeholder="Your question..." />
-                  </div>
-                )}
-                {submitError && <p className="text-sm text-destructive">{submitError}</p>}
-                <div className="flex gap-2">
-                  <button type="submit" disabled={submitStatus === 'sending'} className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500/85 disabled:opacity-50">
-                    {submitStatus === 'sending' ? 'Sending…' : 'Submit'}
-                  </button>
-                  <button type="button" onClick={() => { setShowModal(null); setSubmitStatus('idle'); setSubmitError(null) }} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </>,
-        document.body
-      )}
+              )}
+              {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+              <DialogFooter>
+                <Button type="submit" disabled={submitStatus === 'sending'}>
+                  {submitStatus === 'sending' ? 'Sending…' : 'Submit'}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => { setShowModal(null); setSubmitStatus('idle'); setSubmitError(null) }}>
+                  Cancel
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </aside>
   )
 }

@@ -26,6 +26,16 @@ import {
   type ReportFilters,
 } from '../../actions/reports'
 import ShareButton from '../../../components/ShareButton'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 function toYMD(d: Date): string {
   return (
@@ -340,14 +350,14 @@ export default function ExploreClient({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-wrap items-end gap-3">
           <div ref={containerRef} className="relative flex flex-col gap-1">
-            <span className="text-sm font-medium text-[var(--muted-foreground)]">Location</span>
-            <input
+            <span className="text-sm font-medium text-muted-foreground">Location</span>
+            <Input
               type="text"
               value={locationQuery}
               onChange={(e) => setLocationQuery(e.target.value)}
               onFocus={() => suggestions.length > 0 && setSuggestionsOpen(true)}
               placeholder="City, community, neighborhood, or address…"
-              className="min-w-[280px] rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
+              className="min-w-[280px] rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
               aria-label="Search location"
               aria-autocomplete="list"
               aria-expanded={suggestionsOpen}
@@ -358,24 +368,24 @@ export default function ExploreClient({
               <ul
                 id="location-suggestions"
                 role="listbox"
-                className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full min-w-[280px] overflow-auto rounded-lg border border-[var(--border)] bg-white py-1 shadow-md"
+                className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full min-w-[280px] overflow-auto rounded-lg border border-border bg-card py-1 shadow-md"
               >
                 {suggestionsLoading && suggestions.length === 0 ? (
                   <li className="px-3 py-2 text-sm text-muted-foreground">Searching…</li>
                 ) : (
                   suggestions.map((loc) => (
                     <li key={`${loc.type}-${loc.city}-${loc.subdivision ?? ''}-${loc.label}`}>
-                      <button
+                      <Button
                         type="button"
                         role="option"
-                        className="w-full px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
+                        className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
                         onClick={() => selectLocation(loc)}
                       >
                         {loc.type === 'city' && <span className="text-muted-foreground" aria-hidden>City · </span>}
                         {loc.type === 'subdivision' && <span className="text-muted-foreground" aria-hidden>Community · </span>}
                         {loc.type === 'address' && <span className="text-muted-foreground" aria-hidden>Address · </span>}
                         {loc.label}
-                      </button>
+                      </Button>
                     </li>
                   ))
                 )}
@@ -383,124 +393,124 @@ export default function ExploreClient({
             )}
           </div>
           {!customMode ? (
-            <label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[var(--muted-foreground)]">Period</span>
-              <select
-                value={presetId}
-                onChange={(e) => applyPreset(e.target.value)}
-                className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
-                aria-label="Date range preset"
-              >
-                {PRESETS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">Period</span>
+              <Select value={presetId} onValueChange={applyPreset}>
+                <SelectTrigger className="rounded-lg" aria-label="Date range preset">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESETS.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Label>
           ) : (
             <div className="flex flex-wrap items-end gap-2">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-[var(--muted-foreground)]">Start</span>
-                <input
+              <Label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-muted-foreground">Start</span>
+                <Input
                   type="date"
                   value={start}
                   onChange={(e) => setStart(e.target.value)}
-                  className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                   aria-label="Start date"
                 />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-[var(--muted-foreground)]">End</span>
-                <input
+              </Label>
+              <Label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-muted-foreground">End</span>
+                <Input
                   type="date"
                   value={end}
                   onChange={(e) => setEnd(e.target.value)}
-                  className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                   aria-label="End date"
                 />
-              </label>
+              </Label>
             </div>
           )}
-          <label className="flex items-center gap-2 py-2">
-            <input
+          <Label className="flex items-center gap-2 py-2">
+            <Input
               type="checkbox"
               checked={customMode}
               onChange={(e) => {
                 setCustomMode(e.target.checked)
                 if (!e.target.checked) applyPreset(presetId)
               }}
-              className="rounded border-[var(--border)]"
+              className="rounded border-border"
             />
             <span className="text-sm text-muted-foreground">Custom range</span>
-          </label>
-          <div className="flex flex-col gap-2 border-l border-[var(--border)] pl-4">
-            <span className="text-sm font-medium text-[var(--muted-foreground)]">Property type</span>
+          </Label>
+          <div className="flex flex-col gap-2 border-l border-border pl-4">
+            <span className="text-sm font-medium text-muted-foreground">Property type</span>
             <div className="flex flex-wrap gap-4">
-              <label className="flex items-center gap-2">
-                <input
+              <Label className="flex items-center gap-2">
+                <Input
                   type="checkbox"
                   checked={includeCondoTown}
                   onChange={(e) => setIncludeCondoTown(e.target.checked)}
-                  className="rounded border-[var(--border)]"
+                  className="rounded border-border"
                 />
                 <span className="text-sm text-muted-foreground">Include condos & townhomes</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
+              </Label>
+              <Label className="flex items-center gap-2">
+                <Input
                   type="checkbox"
                   checked={includeManufactured}
                   onChange={(e) => setIncludeManufactured(e.target.checked)}
-                  className="rounded border-[var(--border)]"
+                  className="rounded border-border"
                 />
                 <span className="text-sm text-muted-foreground">Include manufactured</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
+              </Label>
+              <Label className="flex items-center gap-2">
+                <Input
                   type="checkbox"
                   checked={includeAcreage}
                   onChange={(e) => setIncludeAcreage(e.target.checked)}
-                  className="rounded border-[var(--border)]"
+                  className="rounded border-border"
                 />
                 <span className="text-sm text-muted-foreground">Include acreage/land</span>
-              </label>
+              </Label>
             </div>
             <p className="text-xs text-muted-foreground">Default: single-family residential only. Check to add other types.</p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[var(--muted-foreground)]">Min price ($)</span>
-              <input
+            <Label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">Min price ($)</span>
+              <Input
                 type="text"
                 inputMode="numeric"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="Optional"
-                className="w-28 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
+                className="w-28 rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                 aria-label="Minimum price filter"
               />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[var(--muted-foreground)]">Max price ($)</span>
-              <input
+            </Label>
+            <Label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-muted-foreground">Max price ($)</span>
+              <Input
                 type="text"
                 inputMode="numeric"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 placeholder="Optional"
-                className="w-28 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--foreground)] shadow-sm"
+                className="w-28 rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                 aria-label="Maximum price filter"
               />
-            </label>
+            </Label>
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleApply}
             disabled={loading || !city.trim()}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent/90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
           >
             {loading ? 'Loading…' : 'Apply'}
-          </button>
+          </Button>
         </div>
         {shareUrl && (
           <ShareButton
@@ -527,44 +537,44 @@ export default function ExploreClient({
               Key metrics
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Sales (period)</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{metrics.sold_count}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sold_count}</p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Median price</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+                <p className="mt-1 text-2xl font-semibold text-foreground">
                   ${Number(metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Median DOM</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{metrics.median_dom} days</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.median_dom} days</p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Median $/sqft</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">
+                <p className="mt-1 text-2xl font-semibold text-foreground">
                   ${Number(metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Current listings</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{metrics.current_listings}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.current_listings}</p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Sales (12 mo)</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{metrics.sales_12mo}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sales_12mo}</p>
               </div>
-              <div className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
+              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
                 <p className="text-sm font-medium text-muted-foreground">Inventory (months)</p>
-                <p className="mt-1 text-2xl font-semibold text-[var(--foreground)]">{metrics.inventory_months ?? '—'}</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.inventory_months ?? '—'}</p>
               </div>
             </div>
           </section>
 
           {trendChartData.length > 0 && (
-            <section aria-labelledby="trend-heading" className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-              <h2 id="trend-heading" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
+            <section aria-labelledby="trend-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <h2 id="trend-heading" className="mb-4 text-lg font-semibold text-foreground">
                 Monthly trend (last {NUM_MONTHS_TREND} months)
               </h2>
               <div className="h-[320px] w-full">
@@ -630,8 +640,8 @@ export default function ExploreClient({
           )}
 
           {priceBandChartData.length > 0 && (
-            <section aria-labelledby="bands-heading" className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
-              <h2 id="bands-heading" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
+            <section aria-labelledby="bands-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <h2 id="bands-heading" className="mb-4 text-lg font-semibold text-foreground">
                 Price bands: sales vs current listings
               </h2>
               <div className="h-[320px] w-full">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 
 const COOKIE_NAME = 'pwa_install_dismissed'
 const MIN_VISITS = 2
@@ -73,26 +74,26 @@ export default function InstallPrompt() {
     <div
       role="dialog"
       aria-label="Install app"
-      className="fixed bottom-4 left-4 right-4 z-50 rounded-lg border border-border bg-white p-4 shadow-md sm:left-auto sm:right-4 sm:max-w-sm"
+      className="fixed bottom-4 left-4 right-4 z-50 rounded-lg border border-border bg-card p-4 shadow-md sm:left-auto sm:right-4 sm:max-w-sm"
     >
       <p className="text-sm font-medium text-primary">
         Add Ryan Realty to your home screen for the fastest experience.
       </p>
       <div className="mt-3 flex gap-2">
-        <button
+        <Button
           type="button"
           onClick={handleInstall}
           className="rounded bg-primary px-3 py-1.5 text-sm text-white hover:opacity-90"
         >
           Install
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleDismiss}
-          className="rounded border border-border px-3 py-1.5 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+          className="rounded border border-border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
         >
           Not now
-        </button>
+        </Button>
       </div>
     </div>
   )

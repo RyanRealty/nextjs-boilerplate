@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 const COLUMN_OPTIONS = [1, 2, 3, 4] as const
 const PER_PAGE_OPTIONS = [6, 12, 24, 48] as const
@@ -55,7 +58,7 @@ export default function SearchListingsToolbar({
   }
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-white p-4">
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Per page</span>
@@ -113,10 +116,10 @@ export default function SearchListingsToolbar({
             </Link>
             {totalPages > 2 && (
               <form onSubmit={handleJump} className="ml-2 flex items-center gap-1">
-                <label htmlFor="jump-page" className="sr-only">
+                <Label htmlFor="jump-page" className="sr-only">
                   Jump to page
-                </label>
-                <input
+                </Label>
+                <Input
                   id="jump-page"
                   type="number"
                   min={1}
@@ -126,12 +129,12 @@ export default function SearchListingsToolbar({
                   className="w-14 rounded-lg border border-border px-2 py-1.5 text-center text-sm"
                   aria-label="Page number"
                 />
-                <button
+                <Button
                   type="submit"
                   className="rounded-lg bg-primary px-2.5 py-1.5 text-sm font-medium text-white hover:bg-accent/90"
                 >
                   Go
-                </button>
+                </Button>
               </form>
             )}
           </nav>

@@ -16,7 +16,7 @@ import { getSession } from './actions/auth'
 import { getSavedListingKeys } from './actions/saved-listings'
 import { getLikedListingKeys } from './actions/likes'
 import { getBuyingPreferences } from './actions/buying-preferences'
-import { getOrCreatePlaceBanner } from './actions/banners'
+import { getBannersBatch } from './actions/banners'
 import { getCitiesForIndex } from './actions/cities'
 import { getEngagementCountsBatch } from './actions/engagement'
 import { subdivisionEntityKey } from '../lib/slug'
@@ -67,12 +67,12 @@ export default async function Home(props: HomeProps) {
   if (!url?.trim() || !anonKey?.trim()) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-6 text-foreground">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-6 text-foreground">
           <h1 className="text-xl font-semibold">Setup required</h1>
           <p className="mt-2 text-sm">
-            Add <code className="rounded bg-yellow-500/15 px-1">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
-            <code className="rounded bg-yellow-500/15 px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to{' '}
-            <code className="rounded bg-yellow-500/15 px-1">.env.local</code> and restart the dev server.
+            Add <code className="rounded bg-warning/15 px-1">NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code className="rounded bg-warning/15 px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to{' '}
+            <code className="rounded bg-warning/15 px-1">.env.local</code> and restart the dev server.
           </p>
         </div>
       </main>
@@ -83,46 +83,58 @@ export default async function Home(props: HomeProps) {
   const citySlug = (typeof searchParams?.city === 'string' ? searchParams.city : '') || 'bend'
   const currentCityName = (await getCityFromSlug(citySlug)) ?? DEFAULT_HOME_CITY
 
-  const [session, brokerage, featured, recentlySold, communityHighlights, marketSnapshot, trending, blogPosts, citiesForSlider] =
-    await Promise.all([
-      getSession(),
-      getBrokerageSettings(),
-      getFeaturedListings(currentCityName),
-      getRecentlySold(currentCityName),
-      getCommunityHighlights(),
-      getMarketSnapshot(),
-      getTrendingListings(currentCityName),
-      getBlogPostsForHome(),
-      getCitiesForIndex(),
-    ])
+  // Single parallel fetch — no waterfall. Session-dependent calls use .then() chaining.
+  const sessionPromise = getSession()
+  const featuredPromise = getFeaturedListings(currentCityName)
+  const trendingPromise = getTrendingListings(currentCityName)
+  const recentlySoldPromise = getRecentlySold(currentCityName)
+  const communityHighlightsPromise = getCommunityHighlights()
 
+  const [
+    session, brokerage, featured, recentlySold, communityHighlights,
+    marketSnapshot, trending, blogPosts, citiesForSlider,
+    savedKeys, likedKeys, savedCommunityKeys, savedCitySlugs, prefs,
+  ] = await Promise.all([
+    sessionPromise,
+    getBrokerageSettings(),
+    featuredPromise,
+    recentlySoldPromise,
+    communityHighlightsPromise,
+    getMarketSnapshot(),
+    trendingPromise,
+    getBlogPostsForHome(),
+    getCitiesForIndex(),
+    // User-specific data — chain off session to avoid waterfall
+    sessionPromise.then((s) => s?.user ? getSavedListingKeys() : []),
+    sessionPromise.then((s) => s?.user ? getLikedListingKeys() : []),
+    sessionPromise.then((s) => s?.user ? getSavedCommunityKeys() : []),
+    sessionPromise.then((s) => s?.user ? getSavedCitySlugs() : []),
+    sessionPromise.then((s) => s?.user ? getBuyingPreferences().catch(() => null) : null),
+  ])
+
+  // Engagement counts + community banners — parallel, after listings resolve
   const allListingKeys = [
     ...featured.map((r) => (r.ListingKey ?? r.ListNumber ?? '').toString().trim()).filter(Boolean),
     ...trending.map((r) => (r.ListingKey ?? r.ListNumber ?? '').toString().trim()).filter(Boolean),
     ...recentlySold.map((r) => (r.ListingKey ?? r.ListNumber ?? '').toString().trim()).filter(Boolean),
   ]
-  const engagementCounts = allListingKeys.length > 0 ? await getEngagementCountsBatch(allListingKeys) : {}
+  const [engagementCounts, communityBannerUrls] = await Promise.all([
+    allListingKeys.length > 0 ? getEngagementCountsBatch(allListingKeys) : {},
+    communityHighlights.length > 0
+      ? getBannersBatch(
+          'subdivision',
+          communityHighlights.map((c) => subdivisionEntityKey(currentCityName, c.subdivisionName))
+        ).then((bannerMap) =>
+          communityHighlights.map((c) => {
+            const key = subdivisionEntityKey(currentCityName, c.subdivisionName)
+            return bannerMap.get(key)?.url ?? null
+          })
+        ).catch(() => [] as (string | null)[])
+      : Promise.resolve([] as (string | null)[]),
+  ])
 
   // Explore by city / Browse by city: only primary Central Oregon cities (Bend, Redmond, Sisters, etc.)
   const sortedSliderCities = filterToPrimaryCitiesOnly(citiesForSlider)
-
-  const [savedKeys, likedKeys, savedCommunityKeys, savedCitySlugs, prefs, communityBannerUrls] = await Promise.all([
-    session?.user ? getSavedListingKeys() : Promise.resolve([]),
-    session?.user ? getLikedListingKeys() : Promise.resolve([]),
-    session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
-    session?.user ? getSavedCitySlugs() : Promise.resolve([]),
-    session?.user ? getBuyingPreferences().catch(() => null) : Promise.resolve(null),
-    communityHighlights.length > 0
-      ? Promise.all(
-          communityHighlights.map((c) =>
-            getOrCreatePlaceBanner(
-              'subdivision',
-              subdivisionEntityKey(currentCityName, c.subdivisionName),
-            ).then((r) => r?.url ?? null).catch(() => null)
-          )
-        )
-      : Promise.resolve([] as string[]),
-  ])
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -144,7 +156,7 @@ export default async function Home(props: HomeProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

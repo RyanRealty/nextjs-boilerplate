@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function JoinPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Grow Your Career With Us"
         subtitle="A passionate Central Oregon brokerage built on community and excellence. Licensed or thinking about it—we'd love to talk."
@@ -30,12 +30,12 @@ export default function JoinPage() {
         ]}
       />
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
+      <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="why-heading" className="text-center font-display text-3xl font-bold text-primary sm:text-4xl">
             Why Ryan Realty?
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
             We combine local market expertise with a culture that values transparency, collaboration,
             and putting clients first.
           </p>
@@ -63,7 +63,7 @@ export default function JoinPage() {
                 className="rounded-xl border border-border bg-muted p-6 shadow-sm"
               >
                 <h3 className="text-lg font-semibold text-primary">{item.title}</h3>
-                <p className="mt-2 text-[var(--muted-foreground)]">{item.body}</p>
+                <p className="mt-2 text-muted-foreground">{item.body}</p>
               </li>
             ))}
           </ul>
@@ -75,20 +75,20 @@ export default function JoinPage() {
           <h2 id="next-heading" className="font-display text-2xl font-bold text-primary sm:text-3xl">
             Ready to start the conversation?
           </h2>
-          <p className="mt-4 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-muted-foreground">
             Tell us a bit about yourself and your goals. We&apos;ll follow up to discuss fit,
             support, and next steps. No pressure—just a real conversation.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/contact?inquiry=Join%20Our%20Team"
-              className="rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-accent/90"
+              className="rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Contact us
             </Link>
             <Link
               href="/team"
-              className="rounded-lg border-2 border-primary px-6 py-3 font-semibold text-primary hover:bg-primary hover:text-white"
+              className="rounded-lg border-2 border-primary px-6 py-3 font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Meet the team
             </Link>

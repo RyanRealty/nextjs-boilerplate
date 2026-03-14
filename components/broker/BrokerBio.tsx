@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { AgentDetail } from '@/app/actions/agents'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   broker: AgentDetail
@@ -25,7 +26,7 @@ export default function BrokerBio({ broker }: Props) {
         </h2>
         {bio ? (
           <div className="mt-4">
-            <div className="prose prose-[var(--primary)] max-w-none text-[var(--muted-foreground)]">
+            <div className="prose prose-primary max-w-none text-muted-foreground">
               {(expanded ? bio : truncated).split(/\n\n+/).map((p, i) => (
                 <p key={i} className="mt-3">
                   {p.trim()}
@@ -33,17 +34,17 @@ export default function BrokerBio({ broker }: Props) {
               ))}
             </div>
             {showMore && (
-              <button
+              <Button
                 type="button"
                 onClick={() => setExpanded((e) => !e)}
                 className="mt-3 text-sm font-semibold text-accent-foreground hover:underline"
               >
                 {expanded ? 'Read less' : 'Read more'}
-              </button>
+              </Button>
             )}
           </div>
         ) : (
-          <p className="mt-4 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-muted-foreground">
             {firstName} is a dedicated real estate professional serving Central Oregon. Get in touch to learn how they can help with your next move.
           </p>
         )}
@@ -54,7 +55,7 @@ export default function BrokerBio({ broker }: Props) {
               {(broker.specialties ?? []).filter((s): s is string => Boolean(s?.trim())).map((s) => (
                 <span
                   key={s}
-                  className="rounded-full bg-[var(--muted)] px-3 py-1 text-sm text-[var(--muted-foreground)]"
+                  className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground"
                 >
                   {s.trim()}
                 </span>
@@ -63,12 +64,12 @@ export default function BrokerBio({ broker }: Props) {
           </div>
         )}
         {broker.years_experience != null && broker.years_experience > 0 && (
-          <p className="mt-4 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-4 text-sm text-muted-foreground">
             {broker.years_experience} {broker.years_experience === 1 ? 'year' : 'years'} of experience
           </p>
         )}
         {broker.license_number?.trim() && (
-          <p className="mt-6 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-6 text-sm text-muted-foreground">
             Oregon Real Estate License # {broker.license_number.trim()}
           </p>
         )}

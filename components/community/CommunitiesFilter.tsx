@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import type { CommunityForIndex } from '@/lib/communities'
 import type { CommunityEngagementCounts } from '@/app/actions/community-engagement'
 import CommunityCard from './CommunityCard'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   communities: CommunityForIndex[]
@@ -34,16 +36,16 @@ export default function CommunitiesFilter({
 
   return (
     <>
-      <label htmlFor="community-search" className="sr-only">
+      <Label htmlFor="community-search" className="sr-only">
         Filter communities by name
-      </label>
-      <input
+      </Label>
+      <Input
         id="community-search"
         type="search"
         placeholder="Search communities..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="mt-4 w-full max-w-md rounded-lg border border-[var(--border)] bg-white px-4 py-3 text-primary placeholder:text-[var(--muted-foreground)] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        className="mt-4 w-full max-w-md rounded-lg border border-border bg-card px-4 py-3 text-primary placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {filtered.map((c) => (
@@ -65,7 +67,7 @@ export default function CommunitiesFilter({
         ))}
       </div>
       {filtered.length === 0 && (
-        <p className="mt-6 text-[var(--muted-foreground)]">
+        <p className="mt-6 text-muted-foreground">
           No communities match your search.
         </p>
       )}

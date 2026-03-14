@@ -3,6 +3,7 @@ import { unstable_noStore } from 'next/cache'
 import { getAdminSyncCounts, getListingSyncStatusBreakdown } from '@/app/actions/listings'
 import { getSyncStatus, getDeltaSyncLog } from '@/app/actions/sync-full-cron'
 import { getSparkListingsCountForSync, getSparkListingsCountsByStatus } from '@/lib/spark'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import SyncSmart from './SyncSmart'
 import SyncHistoryTable from './SyncHistoryTable'
 import SyncRunLog from './SyncRunLog'
@@ -103,7 +104,7 @@ export default async function SyncPage() {
       <SyncAutoRefresh runInProgress={runInProgress} />
 
       {/* Step 1: Listings (source vs DB, gap) */}
-      <section className="mt-6 rounded-lg border border-border bg-white p-5 shadow-sm" aria-labelledby="step1-heading">
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm" aria-labelledby="step1-heading">
         <h2 id="step1-heading" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">1. Listings</h2>
         <div className="mt-3 grid grid-cols-3 gap-4 text-center sm:text-left">
           <div>
@@ -118,13 +119,13 @@ export default async function SyncPage() {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Gap (missing)</p>
-            <p className={`mt-0.5 font-mono text-lg font-semibold ${gap != null && gap > 0 ? 'text-yellow-500' : 'text-foreground'}`}>
+            <p className={`mt-0.5 font-mono text-lg font-semibold ${gap != null && gap > 0 ? 'text-warning' : 'text-foreground'}`}>
               {gap != null ? gap.toLocaleString() : '—'}
             </p>
           </div>
         </div>
         {gap != null && gap > 0 && (
-          <p className="mt-2 text-sm text-yellow-500">{gap.toLocaleString()} listings missing. Try <strong>Refresh active &amp; pending</strong> first; use Smart Sync (full) only if the gap persists.</p>
+          <p className="mt-2 text-sm text-warning">{gap.toLocaleString()} listings missing. Try <strong>Refresh active &amp; pending</strong> first; use Smart Sync (full) only if the gap persists.</p>
         )}
         {/* Spark vs DB by status: DB always from breakdown (RPC or direct fallback); Spark per-status when API filters work */}
         {(statusBreakdown.total > 0 || totalListings > 0) && (
@@ -150,38 +151,38 @@ export default async function SyncPage() {
               ]
               return (
                 <>
-                  <table className="min-w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="py-1.5 pr-2 text-left font-medium text-muted-foreground">Status</th>
-                        <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Spark</th>
-                        <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">DB</th>
-                        <th className="py-1.5 pl-2 text-right font-medium text-muted-foreground">Gap</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table className="min-w-full border-collapse text-sm">
+                    <TableHeader>
+                      <TableRow className="border-b border-border">
+                        <TableHead className="py-1.5 pr-2 text-left font-medium text-muted-foreground">Status</TableHead>
+                        <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Spark</TableHead>
+                        <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">DB</TableHead>
+                        <TableHead className="py-1.5 pl-2 text-right font-medium text-muted-foreground">Gap</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {rows.map(({ key, label, spark, db }) => {
                         const sparkNum = spark ?? 0
                         const gapVal = spark != null ? Math.max(0, spark - db) : null
                         return (
-                          <tr key={key} className="border-b border-border">
-                            <td className="py-1.5 pr-2 text-foreground">{label}</td>
-                            <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{spark != null ? spark.toLocaleString() : '—'}</td>
-                            <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{db.toLocaleString()}</td>
-                            <td className={`py-1.5 pl-2 text-right font-mono ${gapVal != null && gapVal > 0 ? 'text-yellow-500' : 'text-muted-foreground'}`}>
+                          <TableRow key={key} className="border-b border-border">
+                            <TableCell className="py-1.5 pr-2 text-foreground">{label}</TableCell>
+                            <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{spark != null ? spark.toLocaleString() : '—'}</TableCell>
+                            <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{db.toLocaleString()}</TableCell>
+                            <TableCell className={`py-1.5 pl-2 text-right font-mono ${gapVal != null && gapVal > 0 ? 'text-warning' : 'text-muted-foreground'}`}>
                               {gapVal != null && gapVal > 0 ? gapVal.toLocaleString() : '—'}
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         )
                       })}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                   <p className="mt-1.5 text-xs text-muted-foreground">Gap = Spark − DB (missing in database). DB counts by status always from Supabase.</p>
                   {sparkCountsByStatus && !sparkCountsByStatus.error && !sparkStatusesOk && sparkCountsByStatus.total > 0 && (
                     <p className="mt-1 text-xs text-muted-foreground">Spark per-status not available for this MLS (filters not applied). Total Spark vs DB still shown.</p>
                   )}
                   {sparkCountsByStatus?.error && (
-                    <p className="mt-1 text-xs text-yellow-500">Spark: {sparkCountsByStatus.error}</p>
+                    <p className="mt-1 text-xs text-warning">Spark: {sparkCountsByStatus.error}</p>
                   )}
                 </>
               )
@@ -197,7 +198,7 @@ export default async function SyncPage() {
       </section>
 
       {/* Step 2: History */}
-      <section className="mt-6 rounded-lg border border-border bg-white p-5 shadow-sm" aria-labelledby="step2-heading">
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm" aria-labelledby="step2-heading">
         <h2 id="step2-heading" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">2. History</h2>
         <div className="mt-3 flex flex-wrap gap-6">
           <div>
@@ -210,7 +211,7 @@ export default async function SyncPage() {
           </div>
         </div>
         {historyError && (
-          <p className="mt-2 text-sm text-yellow-500">{historyError}</p>
+          <p className="mt-2 text-sm text-warning">{historyError}</p>
         )}
         <div className="mt-4">
           <SyncHistoryButtons compact />
@@ -218,103 +219,103 @@ export default async function SyncPage() {
       </section>
 
       {/* Step 3: Keep current (2‑min ingest) */}
-      <section className="mt-6 rounded-lg border border-border bg-white p-5 shadow-sm" aria-labelledby="step3-heading">
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm" aria-labelledby="step3-heading">
         <h2 id="step3-heading" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">3. Keep current (2‑min ingest)</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          Last run: {lastDeltaSyncAt ? <span className="text-green-500">{formatDateTime(lastDeltaSyncAt)} ({relativeTime(lastDeltaSyncAt)})</span> : <span className="text-yellow-500">Never</span>}
+          Last run: {lastDeltaSyncAt ? <span className="text-success">{formatDateTime(lastDeltaSyncAt)} ({relativeTime(lastDeltaSyncAt)})</span> : <span className="text-warning">Never</span>}
         </p>
         {deltaStale && (
-          <div className="mt-2 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-foreground" role="alert">
+          <div className="mt-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-foreground" role="alert">
             Ingest may have stopped. <a href="https://app.inngest.com" target="_blank" rel="noopener noreferrer" className="font-medium underline">Inngest dashboard</a> · check env (INNGEST_EVENT_KEY, INNGEST_SIGNING_KEY).
           </div>
         )}
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <TriggerDeltaSyncButton />
-          {!lastDeltaSyncAt && <span className="text-xs text-yellow-500">Requires Inngest (dev or Cloud).</span>}
+          {!lastDeltaSyncAt && <span className="text-xs text-warning">Requires Inngest (dev or Cloud).</span>}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">Or sync only listings changed since a date (faster than full sync):</p>
         <SyncSinceDateButton />
       </section>
 
       {/* Listing status: all buckets + by city */}
-      <section className="mt-6 rounded-lg border border-border bg-white p-5 shadow-sm" aria-labelledby="status-heading">
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm" aria-labelledby="status-heading">
         <h2 id="status-heading" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Listing status (DB)</h2>
         {statusBreakdown.total === 0 && totalListings > 0 && (
-          <p className="mt-2 text-sm text-yellow-500">DB breakdown RPC not available. Apply migrations: npx supabase db push</p>
+          <p className="mt-2 text-sm text-warning">DB breakdown RPC not available. Apply migrations: npx supabase db push</p>
         )}
         {statusBreakdown.error ? (
-          <p className="mt-2 text-sm text-yellow-500">{statusBreakdown.error}</p>
+          <p className="mt-2 text-sm text-warning">{statusBreakdown.error}</p>
         ) : (
           <>
             <div className="mt-3 overflow-x-auto">
-              <table className="min-w-full border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="py-1.5 pr-2 text-left font-medium text-muted-foreground">Total</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Active</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Pending</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Contingent</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Closed</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Finalized</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Expired</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Withdrawn</th>
-                    <th className="py-1.5 px-2 text-right font-medium text-muted-foreground">Cancelled</th>
-                    <th className="py-1.5 pl-2 text-right font-medium text-muted-foreground">Other</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border">
-                    <td className="py-1.5 pr-2 font-mono text-foreground">{statusBreakdown.total.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.active.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.pending.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.contingent.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.closed.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-green-500" title="Closed with full history; no re-fetch">{statusBreakdown.closed_finalized.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.expired.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.withdrawn.toLocaleString()}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.cancelled.toLocaleString()}</td>
-                    <td className="py-1.5 pl-2 text-right font-mono text-muted-foreground">{statusBreakdown.other.toLocaleString()}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <Table className="min-w-full border-collapse text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border">
+                    <TableHead className="py-1.5 pr-2 text-left font-medium text-muted-foreground">Total</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Active</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Pending</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Contingent</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Closed</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Finalized</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Expired</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Withdrawn</TableHead>
+                    <TableHead className="py-1.5 px-2 text-right font-medium text-muted-foreground">Cancelled</TableHead>
+                    <TableHead className="py-1.5 pl-2 text-right font-medium text-muted-foreground">Other</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="border-b border-border">
+                    <TableCell className="py-1.5 pr-2 font-mono text-foreground">{statusBreakdown.total.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.active.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.pending.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.contingent.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.closed.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-success" title="Closed with full history; no re-fetch">{statusBreakdown.closed_finalized.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.expired.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.withdrawn.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 px-2 text-right font-mono text-muted-foreground">{statusBreakdown.cancelled.toLocaleString()}</TableCell>
+                    <TableCell className="py-1.5 pl-2 text-right font-mono text-muted-foreground">{statusBreakdown.other.toLocaleString()}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">Finalized = closed with full history; excluded from future sync.</p>
             {statusBreakdown.by_city.length > 0 && (
               <>
                 <h3 className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">By city (A–Z)</h3>
                 <div className="mt-2 max-h-[320px] overflow-auto overflow-x-auto">
-                  <table className="min-w-full border-collapse text-sm">
-                    <thead className="sticky top-0 bg-white">
-                      <tr className="border-b border-border">
-                        <th className="py-1 pr-2 text-left font-medium text-muted-foreground">City</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Active</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Pending</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Cont.</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Closed</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Fin.</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Exp.</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">W/d</th>
-                        <th className="py-1 px-1 text-right font-medium text-muted-foreground">Can.</th>
-                        <th className="py-1 pl-1 text-right font-medium text-muted-foreground">Other</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table className="min-w-full border-collapse text-sm">
+                    <TableHeader className="sticky top-0 bg-card">
+                      <TableRow className="border-b border-border">
+                        <TableHead className="py-1 pr-2 text-left font-medium text-muted-foreground">City</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Active</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Pending</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Cont.</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Closed</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Fin.</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Exp.</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">W/d</TableHead>
+                        <TableHead className="py-1 px-1 text-right font-medium text-muted-foreground">Can.</TableHead>
+                        <TableHead className="py-1 pl-1 text-right font-medium text-muted-foreground">Other</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {statusBreakdown.by_city.map((row) => (
-                        <tr key={row.city} className="border-b border-border">
-                          <td className="py-1 pr-2 text-foreground">{row.city}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.active}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.pending}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.contingent}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.closed}</td>
-                          <td className="py-1 px-1 text-right font-mono text-green-500">{row.closed_finalized}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.expired}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.withdrawn}</td>
-                          <td className="py-1 px-1 text-right font-mono text-muted-foreground">{row.cancelled}</td>
-                          <td className="py-1 pl-1 text-right font-mono text-muted-foreground">{row.other}</td>
-                        </tr>
+                        <TableRow key={row.city} className="border-b border-border">
+                          <TableCell className="py-1 pr-2 text-foreground">{row.city}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.active}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.pending}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.contingent}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.closed}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-success">{row.closed_finalized}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.expired}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.withdrawn}</TableCell>
+                          <TableCell className="py-1 px-1 text-right font-mono text-muted-foreground">{row.cancelled}</TableCell>
+                          <TableCell className="py-1 pl-1 text-right font-mono text-muted-foreground">{row.other}</TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </>
             )}
@@ -323,7 +324,7 @@ export default async function SyncPage() {
       </section>
 
       {/* Run log (delta only) & data */}
-      <section className="mt-6 rounded-lg border border-border bg-white p-5 shadow-sm" aria-labelledby="step5-heading">
+      <section className="mt-6 rounded-lg border border-border bg-card p-5 shadow-sm" aria-labelledby="step5-heading">
         <h2 id="step5-heading" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Run log & data</h2>
         <div className="mt-3">
           <SyncRunLog deltaRows={deltaSyncRows} fullRows={[]} limit={40} />

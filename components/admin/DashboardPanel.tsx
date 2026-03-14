@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 
 const STORAGE_KEY = 'admin_dashboard_panels'
 
@@ -47,8 +48,8 @@ export default function DashboardPanel({ id, title, children, defaultOpen = true
   }
 
   return (
-    <section className="rounded-lg border border-border bg-white shadow-sm">
-      <button
+    <section className="rounded-lg border border-border bg-card shadow-sm">
+      <Button
         type="button"
         onClick={toggle}
         className="flex w-full items-center justify-between px-4 py-3 text-left font-semibold text-foreground hover:bg-muted"
@@ -58,7 +59,7 @@ export default function DashboardPanel({ id, title, children, defaultOpen = true
         <span className="text-muted-foreground" aria-hidden>
           {open ? '\u25BC' : '\u25B6'}
         </span>
-      </button>
+      </Button>
       {open && <div className="border-t border-border px-4 py-4">{children}</div>}
     </section>
   )

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ListingTileRow } from '@/app/actions/listings'
+import { Button } from "@/components/ui/button"
 type Props = {
   addressLabel: string
   activeListings: ListingTileRow[]
@@ -11,8 +12,8 @@ type Props = {
 
 function statusBadge(status: string | null | undefined): string {
   const s = (status ?? '').toLowerCase()
-  if (!s || s.includes('active') || s.includes('for sale') || s.includes('coming soon')) return 'bg-green-500/15 text-green-500'
-  if (s.includes('pending')) return 'bg-yellow-500/15 text-yellow-500'
+  if (!s || s.includes('active') || s.includes('for sale') || s.includes('coming soon')) return 'bg-success/15 text-success'
+  if (s.includes('pending')) return 'bg-warning/15 text-warning'
   if (s.includes('closed')) return 'bg-border text-muted-foreground'
   return 'bg-muted text-muted-foreground'
 }
@@ -105,7 +106,7 @@ export default function ListingOtherListingsAtAddress({
   if (activeListings.length === 0 && !hasPast) return null
 
   return (
-    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
       <h3 className="text-lg font-semibold text-foreground">Other listings at this address</h3>
       <p className="mt-1 text-sm text-muted-foreground">
         {addressLabel}. There {activeListings.length + pastListings.length === 1 ? 'is' : 'are'} {activeListings.length + pastListings.length} other listing{activeListings.length + pastListings.length !== 1 ? 's' : ''} at this address.
@@ -119,7 +120,7 @@ export default function ListingOtherListingsAtAddress({
             <li key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="min-w-0">
                 {href ? (
-                  <Link href={href} className="font-medium text-foreground hover:text-green-500 hover:underline">
+                  <Link href={href} className="font-medium text-foreground hover:text-success hover:underline">
                     ${Number(l.ListPrice ?? 0).toLocaleString()}
                     {l.BedroomsTotal != null || l.BathroomsTotal != null ? (
                       <span className="ml-2 text-muted-foreground">
@@ -151,7 +152,7 @@ export default function ListingOtherListingsAtAddress({
             <li key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="min-w-0">
                 {href ? (
-                  <Link href={href} className="font-medium text-foreground hover:text-green-500 hover:underline">
+                  <Link href={href} className="font-medium text-foreground hover:text-success hover:underline">
                     ${Number(l.ListPrice ?? 0).toLocaleString()}
                     {l.BedroomsTotal != null || l.BathroomsTotal != null ? (
                       <span className="ml-2 text-muted-foreground">
@@ -179,13 +180,13 @@ export default function ListingOtherListingsAtAddress({
         })}
       </ul>
       {hasPast && !showPast && (
-        <button
+        <Button
           type="button"
           onClick={() => setShowPast(true)}
-          className="mt-4 text-sm font-medium text-green-500 hover:text-green-500 hover:underline"
+          className="mt-4 text-sm font-medium text-success hover:text-success hover:underline"
         >
           Show {pastListings.length} past listing{pastListings.length !== 1 ? 's' : ''} at this address
-        </button>
+        </Button>
       )}
     </div>
   )

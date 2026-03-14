@@ -22,7 +22,7 @@ export default function ListingSimilarListings({ subdivisionName, sectionTitle, 
   const heading = sectionTitle?.trim() || `Other homes for sale in ${subdivisionName}`
 
   return (
-    <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+    <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-semibold">
         {heading}
       </h2>

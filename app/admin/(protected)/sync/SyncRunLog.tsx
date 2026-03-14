@@ -1,5 +1,6 @@
 import type { DeltaCheckpointRow } from '@/app/actions/sync-full-cron'
 import type { SyncHistoryRow } from '@/app/actions/sync-history'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 function formatDateTime(iso: string): string {
   try {
@@ -53,7 +54,7 @@ export default function SyncRunLog({ deltaRows, fullRows, limit = 60 }: Props) {
 
   if (show.length === 0) {
     return (
-      <div className="mt-6 rounded-lg border border-border bg-white p-6 shadow-sm">
+      <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Sync run log</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           No sync runs yet. Delta (2-min) runs appear when Inngest is active; full runs appear when Smart Sync or cron completes.
@@ -63,34 +64,34 @@ export default function SyncRunLog({ deltaRows, fullRows, limit = 60 }: Props) {
   }
 
   return (
-    <div className="mt-6 rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Sync run log</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {fullRows.length === 0 ? 'Delta (2‑min Inngest) runs only.' : 'When each sync ran and what was updated. Delta = 2‑min Inngest; Full = Smart Sync / cron.'}
       </p>
       <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="py-2 pr-4 text-left font-medium text-muted-foreground">When</th>
-              <th className="py-2 pr-4 text-left font-medium text-muted-foreground">Type</th>
-              <th className="py-2 pl-4 text-left font-medium text-muted-foreground">Updated</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-muted-foreground">When</TableHead>
+              <TableHead className="text-muted-foreground">Type</TableHead>
+              <TableHead className="text-muted-foreground">Updated</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {show.map((entry, i) => (
-              <tr key={`${entry.type}-${entry.at}-${i}`} className="border-b border-border">
-                <td className="py-2 pr-4 text-foreground whitespace-nowrap">{formatDateTime(entry.at)}</td>
-                <td className="py-2 pr-4">
-                  <span className={entry.type === 'delta' ? 'text-green-500 font-medium' : 'text-muted-foreground'}>
+              <TableRow key={`${entry.type}-${entry.at}-${i}`}>
+                <TableCell className="text-foreground whitespace-nowrap">{formatDateTime(entry.at)}</TableCell>
+                <TableCell>
+                  <span className={entry.type === 'delta' ? 'text-success font-medium' : 'text-muted-foreground'}>
                     {entry.type === 'delta' ? 'Delta' : 'Full'}
                   </span>
-                </td>
-                <td className="py-2 pl-4 text-muted-foreground">{entry.summary}</td>
-              </tr>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{entry.summary}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

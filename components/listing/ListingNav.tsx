@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react'
 import type { AdjacentListingThumb } from '@/app/actions/listings'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeft01Icon, ArrowRight01Icon, Camera01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type SliceShape = { prevList: AdjacentListingThumb[]; nextList: AdjacentListingThumb[] }
 
@@ -29,7 +30,7 @@ function addressOneLine(listing: AdjacentListingThumb): string {
 }
 
 const arrowBtnClass =
-  'flex shrink-0 items-center justify-center rounded-lg border border-border bg-white p-2 text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted hover:text-muted-foreground disabled:opacity-40 disabled:pointer-events-none'
+  'flex shrink-0 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted hover:text-muted-foreground disabled:opacity-40 disabled:pointer-events-none'
 
 function PrevNextCard({
   listing,
@@ -56,7 +57,6 @@ function PrevNextCard({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <HugeiconsIcon icon={Camera01Icon} className="h-6 w-6" />
-            </svg>
           </div>
         )}
       </div>
@@ -75,7 +75,7 @@ function PrevNextCard({
     return (
       <Link
         href={href}
-        className="flex min-w-0 max-w-[200px] sm:max-w-[240px] items-center gap-2 overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:border-border hover:shadow"
+        className="flex min-w-0 max-w-[200px] sm:max-w-[240px] items-center gap-2 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:border-border hover:shadow"
       >
         <div className="min-w-0 py-1.5 pl-2 pr-0 text-right">
           <p className="text-xs font-medium text-muted-foreground truncate">{label}</p>
@@ -99,7 +99,6 @@ function PrevNextCard({
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <HugeiconsIcon icon={Camera01Icon} className="h-6 w-6" />
-              </svg>
             </div>
           )}
         </div>
@@ -109,7 +108,7 @@ function PrevNextCard({
   return (
     <Link
       href={href}
-      className="flex min-w-0 max-w-[200px] sm:max-w-[240px] items-center gap-2 overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:border-border hover:shadow"
+      className="flex min-w-0 max-w-[200px] sm:max-w-[240px] items-center gap-2 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:border-border hover:shadow"
     >
       {content}
     </Link>
@@ -190,28 +189,28 @@ export default function ListingNav({
       <nav className="flex flex-1 min-w-0 items-center" aria-label="Listings in this community">
         {/* Scrollable strip: hover-overlay arrows only (same as city/community sliders) */}
         <div className="group/strip relative flex min-w-0 flex-1 items-center">
-          <button
+          <Button
             type="button"
             onClick={() => scrollStrip('left')}
             disabled={!hasOverflow}
             className="absolute left-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
             aria-label="Scroll listings left"
           >
-            <span className="rounded-full bg-white/90 p-2 shadow">
+            <span className="rounded-full bg-card/90 p-2 shadow">
               <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4 text-foreground" />
             </span>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => scrollStrip('right')}
             disabled={!hasOverflow}
             className="absolute right-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
             aria-label="Scroll listings right"
           >
-            <span className="rounded-full bg-white/90 p-2 shadow">
+            <span className="rounded-full bg-card/90 p-2 shadow">
               <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4 text-foreground" />
             </span>
-          </button>
+          </Button>
           <div
             ref={scrollRef}
             onScroll={updateScrollState}
@@ -224,7 +223,7 @@ export default function ListingNav({
                 <Link
                   key={item.ListingKey}
                   href={href}
-                  className={`flex shrink-0 scroll-snap-align-center gap-2 overflow-hidden rounded-lg border bg-white shadow-sm transition hover:shadow min-w-[140px] max-w-[160px] ${
+                  className={`flex shrink-0 scroll-snap-align-center gap-2 overflow-hidden rounded-lg border bg-card shadow-sm transition hover:shadow min-w-[140px] max-w-[160px] ${
                     isCurrent
                       ? 'border-accent ring-2 ring-accent ring-offset-1'
                       : 'border-border hover:border-border'
@@ -243,7 +242,6 @@ export default function ListingNav({
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <HugeiconsIcon icon={Camera01Icon} className="h-5 w-5" />
-                        </svg>
                       </div>
                     )}
                   </div>
@@ -273,7 +271,7 @@ export default function ListingNav({
         ) : (
           <Link
             href={`/listing/${prevKey}`}
-            className="flex min-w-[120px] items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
+            className="flex min-w-[120px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
           >
             ← Previous
           </Link>
@@ -289,7 +287,7 @@ export default function ListingNav({
         ) : (
           <Link
             href={`/listing/${nextKey}`}
-            className="flex min-w-[120px] justify-end rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
+            className="flex min-w-[120px] justify-end rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
           >
             Next →
           </Link>

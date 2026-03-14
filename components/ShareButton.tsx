@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { ShareIcon as ActionShareIcon } from '@/components/icons/ActionIcons'
 import { trackEvent } from '@/lib/tracking'
+import { Button } from "@/components/ui/button"
 
 export type ShareButtonProps = {
   /** Page or content title for share text (e.g. "123 Main St, Bend | $549,000") */
@@ -114,73 +115,73 @@ export default function ShareButton({
 
   return (
     <div className="relative inline-block">
-      <button
+      <Button
         type="button"
         onClick={() => (typeof navigator?.share === 'function' ? handleNativeShare() : setOpen((o) => !o))}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:shadow-none ${className}`}
+        className={`inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:shadow-none ${className}`}
       >
         <ShareIcon className={iconClassName ?? (variant === 'compact' ? 'size-3.5 shrink-0 sm:size-4' : 'size-5 shrink-0')} />
         {variant === 'default' && <span>Share</span>}
-      </button>
+      </Button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-border bg-white py-2 shadow-md"
+            className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-border bg-card py-2 shadow-md"
             role="menu"
           >
-            <button
+            <Button
               type="button"
               role="menuitem"
               onClick={handleCopyLink}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">🔗</span> Copy link
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               role="menuitem"
               onClick={() => handlePlatformShare('email')}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">✉️</span> Email
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               role="menuitem"
               onClick={() => handlePlatformShare('twitter')}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">𝕏</span> X (Twitter)
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               role="menuitem"
               onClick={() => handlePlatformShare('facebook')}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">f</span> Facebook
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               role="menuitem"
               onClick={() => handlePlatformShare('linkedin')}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">in</span> LinkedIn
-            </button>
+            </Button>
             {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-              <button
+              <Button
                 type="button"
                 role="menuitem"
                 onClick={handleNativeShare}
                 className="flex w-full items-center gap-3 border-t border-border px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
               >
                 <span className="text-muted-foreground">⋯</span> More options…
-              </button>
+              </Button>
             )}
           </div>
         </>

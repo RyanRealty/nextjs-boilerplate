@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function AdminLoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-white p-8 shadow-sm">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Link href="/" className="text-xl font-bold text-primary">
             Ryan Realty

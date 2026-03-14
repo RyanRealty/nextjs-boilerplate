@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   publicRemarks?: string
@@ -22,17 +23,17 @@ export default function ListingDescription({ publicRemarks, directions }: Props)
         <div className="text-primary whitespace-pre-line">
           {expanded ? text : (truncated ?? text)}
           {showReadMore && !expanded && (
-            <button
+            <Button
               type="button"
               onClick={() => setExpanded(true)}
               className="ml-1 text-accent-foreground font-medium hover:underline"
             >
               Read More
-            </button>
+            </Button>
           )}
         </div>
       ) : (
-        <p className="text-[var(--muted-foreground)]">No description available.</p>
+        <p className="text-muted-foreground">No description available.</p>
       )}
       {directions?.trim() && (
         <div>

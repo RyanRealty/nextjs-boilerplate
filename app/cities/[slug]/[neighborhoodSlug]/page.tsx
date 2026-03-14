@@ -149,7 +149,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
   ]
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

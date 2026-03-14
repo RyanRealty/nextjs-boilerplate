@@ -11,6 +11,7 @@ import { toggleCommunityLike } from '@/app/actions/community-engagement'
 import { subdivisionEntityKey } from '@/lib/slug'
 import ShareButton from '@/components/ShareButton'
 import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   community: CommunityForIndex
@@ -60,14 +61,14 @@ export default function CommunityBarCard({ community, signedIn = false, saved = 
     if (result.error == null) setLikedState(result.liked)
   }
 
-  const btn = 'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-[var(--muted-foreground)] transition hover:bg-[var(--border)] hover:text-[var(--foreground)]'
+  const btn = 'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground transition hover:bg-border hover:text-foreground'
   const btnLike = likedState ? 'border-destructive/60 text-destructive' : ''
   const btnSave = savedState ? 'border-primary/60 text-primary' : ''
 
   return (
-    <div className="flex flex-shrink-0 scroll-snap-align-start min-w-[140px] max-w-[160px] flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm transition hover:shadow-md">
+    <div className="flex flex-shrink-0 scroll-snap-align-start min-w-[140px] max-w-[160px] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md">
       <Link href={href} className="group flex flex-1 items-center gap-2 overflow-hidden">
-        <div className="relative h-10 w-14 shrink-0 overflow-hidden bg-[var(--border)]">
+        <div className="relative h-10 w-14 shrink-0 overflow-hidden bg-border">
           {community.heroImageUrl ? (
             <Image
               src={community.heroImageUrl}
@@ -77,7 +78,7 @@ export default function CommunityBarCard({ community, signedIn = false, saved = 
               sizes="56px"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--primary / 0.8)]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-[var(--primary / 0.8)]" />
           )}
           {community.isResort && (
             <div className="absolute right-0.5 top-0.5">
@@ -91,13 +92,13 @@ export default function CommunityBarCard({ community, signedIn = false, saved = 
         </div>
       </Link>
       <div className="flex items-center justify-end gap-0.5 border-t border-border px-1 py-1" onClick={(e) => e.stopPropagation()}>
-        <ShareButton url={shareUrl} title={`${community.subdivision} homes for sale`} variant="compact" iconClassName="h-3 w-3" className={`${btn} text-[var(--foreground)]`} aria-label="Share" />
-        <button type="button" onClick={handleLike} className={`${btn} ${btnLike}`} aria-label={signedIn ? (likedState ? 'Unlike' : 'Like') : 'Like'}>
+        <ShareButton url={shareUrl} title={`${community.subdivision} homes for sale`} variant="compact" iconClassName="h-3 w-3" className={`${btn} text-foreground`} aria-label="Share" />
+        <Button type="button" onClick={handleLike} className={`${btn} ${btnLike}`} aria-label={signedIn ? (likedState ? 'Unlike' : 'Like') : 'Like'}>
           <ActionHeartIcon filled={likedState} className="h-3 w-3" />
-        </button>
-        <button type="button" onClick={handleSave} className={`${btn} ${btnSave}`} aria-label={signedIn ? (savedState ? 'Remove from saved' : 'Save community') : 'Save community'}>
+        </Button>
+        <Button type="button" onClick={handleSave} className={`${btn} ${btnSave}`} aria-label={signedIn ? (savedState ? 'Remove from saved' : 'Save community') : 'Save community'}>
           <ActionBookmarkIcon filled={savedState} className="h-3 w-3" />
-        </button>
+        </Button>
       </div>
     </div>
   )

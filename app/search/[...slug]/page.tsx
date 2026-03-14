@@ -651,7 +651,7 @@ export default async function SearchPage({
 
       {/* About this community (subdivision pages with description) */}
       {subdivision && (subdivisionBlurb ?? subdivisionTabContent?.about) && (
-        <section className="mb-10 rounded-lg border border-border bg-white p-6 shadow-sm">
+        <section className="mb-10 rounded-lg border border-border bg-card p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-foreground">About {displayName}</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
             {subdivisionBlurb ?? subdivisionTabContent?.about ?? ''}
@@ -661,7 +661,7 @@ export default async function SearchPage({
 
       {/* Amenities & lifestyle (resort communities — section always shown when flagged; content or placeholder) */}
       {subdivision && city && decodedSubdivision && isResortCommunity(city, decodedSubdivision, resortEntityKeys) && (
-        <section className="mb-10 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="amenities-heading">
+        <section className="mb-10 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="amenities-heading">
           <h2 id="amenities-heading" className="text-lg font-semibold text-foreground">Amenities & lifestyle</h2>
           {subdivisionTabContent?.attractions || subdivisionTabContent?.dining ? (
             <>
@@ -713,12 +713,12 @@ export default async function SearchPage({
               </p>
             )}
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-              <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+              <div className="rounded-lg bg-card border border-border p-4">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Homes for sale (active)</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{marketStats.count.toLocaleString()}</p>
               </div>
               {marketStats.avgPrice != null && (
-                <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+                <div className="rounded-lg bg-card border border-border p-4">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Avg. list price (active)</p>
                   <p className="mt-1 text-2xl font-bold text-foreground">
                     ${marketStats.avgPrice.toLocaleString()}
@@ -726,25 +726,25 @@ export default async function SearchPage({
                 </div>
               )}
               {marketStats.medianPrice != null && (
-                <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+                <div className="rounded-lg bg-card border border-border p-4">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Median list price</p>
                   <p className="mt-1 text-2xl font-bold text-foreground">
                     ${marketStats.medianPrice.toLocaleString()}
                   </p>
                 </div>
               )}
-              <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+              <div className="rounded-lg bg-card border border-border p-4">
                 <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">New (last 30 days)</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{marketStats.newListingsLast30Days}</p>
               </div>
               {marketStats.pendingCount > 0 && (
-                <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+                <div className="rounded-lg bg-card border border-border p-4">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Pending</p>
                   <p className="mt-1 text-2xl font-bold text-foreground">{marketStats.pendingCount}</p>
                 </div>
               )}
               {marketStats.closedLast12Months > 0 && (
-                <div className="rounded-lg bg-[var(--card)] border border-border p-4">
+                <div className="rounded-lg bg-card border border-border p-4">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Closed (12 mo)</p>
                   <p className="mt-1 text-2xl font-bold text-foreground">{marketStats.closedLast12Months}</p>
                 </div>
@@ -785,7 +785,7 @@ export default async function SearchPage({
               <Link
                 key={subdivisionName}
                 href={communityPagePath(city, subdivisionName)}
-                className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-primary/20 hover:shadow"
+                className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-primary/20 hover:shadow"
               >
                 {getSubdivisionDisplayName(subdivisionName)} <span className="text-muted-foreground">({count})</span>
               </Link>
@@ -904,7 +904,7 @@ export default async function SearchPage({
                   <Link
                     key={c.subdivisionName}
                     href={communityPagePath(city!, c.subdivisionName)}
-                    className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-primary/20 hover:shadow"
+                    className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-primary/20 hover:shadow"
                   >
                     {getSubdivisionDisplayName(c.subdivisionName)} <span className="text-muted-foreground">({c.count})</span>
                   </Link>

@@ -1,7 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { revalidatePath } from 'next/cache'
 
 export type BrokerageSettingsRow = {
@@ -31,8 +31,16 @@ function getServiceSupabase() {
   return createServiceClient(url, key)
 }
 
-export async function getBrokerageSettings(): Promise<BrokerageSettingsRow | null> {
-  const supabase = await createClient()
+function getAnonSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url?.trim() || !anonKey?.trim()) return null
+  return createServiceClient(url, anonKey)
+}
+
+async function _getBrokerageSettingsUncached(): Promise<BrokerageSettingsRow | null> {
+  const supabase = getAnonSupabase()
+  if (!supabase) return null
   const { data } = await supabase
     .from('brokerage_settings')
     .select('id, name, logo_url, tagline, primary_email, primary_phone, address_line1, address_line2, city, state, postal_code, hero_video_url, hero_image_url, updated_at')
@@ -40,6 +48,12 @@ export async function getBrokerageSettings(): Promise<BrokerageSettingsRow | nul
     .single()
   return data as BrokerageSettingsRow | null
 }
+
+export const getBrokerageSettings = unstable_cache(
+  _getBrokerageSettingsUncached,
+  ['brokerage-settings'],
+  { revalidate: 300, tags: ['brokerage-settings'] }
+)
 
 /** Update brokerage logo URL (admin). Call from admin only. */
 export async function updateBrokerageLogoUrl(logoUrl: string | null): Promise<{ ok: boolean; error?: string }> {

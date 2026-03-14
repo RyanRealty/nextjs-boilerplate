@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import SitePageEditor, { EDITABLE_PAGES } from './SitePageEditor'
+import { Button } from "@/components/ui/button"
 
 export default function SitePagesList() {
   const [editingKey, setEditingKey] = useState<string | null>(null)
@@ -9,7 +10,7 @@ export default function SitePagesList() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-border bg-white p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-semibold text-foreground">Editable pages</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Edit title and body (HTML) for each page. Changes appear on the live site immediately.
@@ -21,13 +22,13 @@ export default function SitePagesList() {
                 <span className="font-medium text-foreground">{p.label}</span>
                 <span className="ml-2 text-sm text-muted-foreground">{p.path}</span>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => setEditingKey(p.key)}
                 className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
               >
                 Edit
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

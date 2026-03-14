@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { getSearchSuggestions, type SearchSuggestionsResult } from '@/app/actions/listings'
 import { trackEvent } from '@/lib/tracking'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 // No stock photography — fallback is empty; hero renders a navy gradient when no brokerage image is set.
 const DEFAULT_HERO_IMAGE = ''
@@ -125,7 +127,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             className="h-full w-full object-cover bg-primary"
             aria-hidden
           >
@@ -153,8 +155,8 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
           Search homes for sale across Central Oregon
         </p>
         <form onSubmit={handleSubmit} className="relative mt-8" ref={panelRef}>
-          <div className="flex rounded-lg overflow-hidden shadow-lg bg-white">
-            <input
+          <div className="flex rounded-lg overflow-hidden shadow-lg bg-card">
+            <Input
               ref={inputRef}
               type="search"
               autoComplete="off"
@@ -164,57 +166,57 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
               onFocus={() => query.trim().length >= 2 && setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 200)}
               onKeyDown={handleKeyDown}
-              className="flex-1 min-w-0 px-4 py-4 text-primary placeholder:text-[var(--muted-foreground)] focus:outline-none border-0"
+              className="flex-1 min-w-0 px-4 py-4 text-primary placeholder:text-muted-foreground focus:outline-none border-0"
             />
-            <button
+            <Button
               type="submit"
               className="px-6 py-4 bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               Search
-            </button>
+            </Button>
           </div>
           {open && suggestions && totalItems > 0 && (
-            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-white shadow-lg max-h-64 overflow-auto z-20">
+            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-card shadow-lg max-h-64 overflow-auto z-20">
               {suggestions.addresses.slice(0, 5).map((a, i) => (
-                <button
+                <Button
                   key={a.href + i}
                   type="button"
                   role="option"
                   aria-selected={highlight === i}
-                  className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === i ? 'bg-[var(--muted)]' : ''}`}
+                  className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === i ? 'bg-muted' : ''}`}
                   onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(a.href); setOpen(false); }}
                 >
                   {a.label}
-                </button>
+                </Button>
               ))}
               {suggestions.cities.slice(0, 5).map((c, i) => {
                 const idx = suggestions.addresses.length + i
                 return (
-                  <button
+                  <Button
                     key={c.city}
                     type="button"
                     role="option"
                     aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === idx ? 'bg-[var(--muted)]' : ''}`}
+                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
                     onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(c.city)}`); setOpen(false); }}
                   >
                     {c.city} {c.count > 0 ? `(${c.count})` : ''}
-                  </button>
+                  </Button>
                 )
               })}
               {suggestions.subdivisions.slice(0, 6).map((s, i) => {
                 const idx = suggestions.addresses.length + suggestions.cities.length + i
                 return (
-                  <button
+                  <Button
                     key={`${s.city}-${s.subdivisionName}`}
                     type="button"
                     role="option"
                     aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === idx ? 'bg-[var(--muted)]' : ''}`}
+                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
                     onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`); setOpen(false); }}
                   >
                     {s.subdivisionName}, {s.city}
-                  </button>
+                  </Button>
                 )
               })}
             </div>

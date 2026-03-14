@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { ListingDetailListing, ListingDetailCommunity } from '@/app/actions/listing-detail'
 import { Card, CardContent } from '@/components/ui/card'
 import PropertyTypeBadge from '@/components/ui/PropertyTypeBadge'
+import { Button } from "@/components/ui/button"
 
 function parseList(value: string | null | undefined): string[] {
   if (!value?.trim()) return []
@@ -41,22 +42,22 @@ export default function PropertyDetails({ listing, community }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('property')}
               aria-expanded={openSections.property}
             >
               <span>Property Details</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.property ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.property ? '▼' : '▶'}</span>
+            </Button>
             {openSections.property && (
-              <ul className="mt-3 space-y-2 text-sm text-primary">
+              <ul className="mt-3 space-y-2 text-sm text-foreground">
                 {(listing.property_type || listing.property_sub_type) && (
                   <li className="flex items-center gap-2">
                     <span>Property Type:</span>
                     <PropertyTypeBadge value={listing.property_type} />
-                    {listing.property_sub_type && <span className="text-primary">· {listing.property_sub_type}</span>}
+                    {listing.property_sub_type && <span className="text-foreground">· {listing.property_sub_type}</span>}
                   </li>
                 )}
                 {listing.year_built != null && <li>Year Built: {listing.year_built}</li>}
@@ -73,24 +74,24 @@ export default function PropertyDetails({ listing, community }: Props) {
 
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('interior')}
               aria-expanded={openSections.interior}
             >
               <span>Interior Features</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.interior ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.interior ? '▼' : '▶'}</span>
+            </Button>
             {openSections.interior && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {interiorTags.length > 0
                   ? interiorTags.map((t) => (
-                      <span key={t} className="rounded-full bg-[var(--muted)] px-3 py-1 text-sm text-primary">
+                      <span key={t} className="rounded-full bg-muted px-3 py-1 text-sm text-foreground">
                         {t}
                       </span>
                     ))
-                  : <span className="text-sm text-[var(--muted-foreground)]">—</span>}
+                  : <span className="text-sm text-muted-foreground">—</span>}
               </div>
             )}
           </CardContent>
@@ -98,24 +99,24 @@ export default function PropertyDetails({ listing, community }: Props) {
 
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('exterior')}
               aria-expanded={openSections.exterior}
             >
               <span>Exterior Features</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.exterior ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.exterior ? '▼' : '▶'}</span>
+            </Button>
             {openSections.exterior && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {exteriorTags.length > 0
                   ? exteriorTags.map((t) => (
-                      <span key={t} className="rounded-full bg-[var(--muted)] px-3 py-1 text-sm text-primary">
+                      <span key={t} className="rounded-full bg-muted px-3 py-1 text-sm text-foreground">
                         {t}
                       </span>
                     ))
-                  : <span className="text-sm text-[var(--muted-foreground)]">—</span>}
+                  : <span className="text-sm text-muted-foreground">—</span>}
               </div>
             )}
           </CardContent>
@@ -123,17 +124,17 @@ export default function PropertyDetails({ listing, community }: Props) {
 
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('heating')}
               aria-expanded={openSections.heating}
             >
               <span>Heating & Cooling</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.heating ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.heating ? '▼' : '▶'}</span>
+            </Button>
             {openSections.heating && (
-              <p className="mt-3 text-sm text-primary">
+              <p className="mt-3 text-sm text-foreground">
                 {[listing.heating, listing.cooling].filter(Boolean).join(' · ') || '—'}
               </p>
             )}
@@ -142,15 +143,15 @@ export default function PropertyDetails({ listing, community }: Props) {
 
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('kitchen')}
               aria-expanded={openSections.kitchen}
             >
               <span>Kitchen & Appliances</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.kitchen ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.kitchen ? '▼' : '▶'}</span>
+            </Button>
             {openSections.kitchen && (
               <p className="mt-3 text-sm text-primary">{listing.kitchen_appliances?.trim() || '—'}</p>
             )}
@@ -159,17 +160,17 @@ export default function PropertyDetails({ listing, community }: Props) {
 
         <Card>
           <CardContent className="p-4">
-            <button
+            <Button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-primary"
+              className="flex w-full items-center justify-between text-left font-medium text-foreground"
               onClick={() => toggle('community')}
               aria-expanded={openSections.community}
             >
               <span>Community Features</span>
-              <span className="text-[var(--muted-foreground)]">{openSections.community ? '▼' : '▶'}</span>
-            </button>
+              <span className="text-muted-foreground">{openSections.community ? '▼' : '▶'}</span>
+            </Button>
             {openSections.community && (
-              <ul className="mt-3 space-y-1 text-sm text-primary">
+              <ul className="mt-3 space-y-1 text-sm text-foreground">
                 {listing.pool_features && <li>Pool: {listing.pool_features}</li>}
                 {listing.waterfront_yn && <li>Waterfront</li>}
                 {listing.view && <li>View: {listing.view}</li>}

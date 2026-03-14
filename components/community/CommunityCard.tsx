@@ -94,7 +94,7 @@ export default function CommunityCard({
   }
 
   return (
-    <Card className="overflow-hidden border-[var(--border)] shadow-sm transition hover:shadow-md group">
+    <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md group">
       <div className={`relative w-full overflow-hidden ${aspectClass}`}>
         <Link href={href} className="absolute inset-0 block">
           {heroImageUrl ? (
@@ -106,7 +106,7 @@ export default function CommunityCard({
               sizes={size === 'large' ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] to-[var(--foreground)]" />
+            <div className="h-full w-full bg-gradient-to-br from-primary to-foreground" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           {isResort && (
@@ -164,12 +164,12 @@ export default function CommunityCard({
       </div>
       {size === 'large' && description && (
         <div className="p-4">
-          <p className="line-clamp-2 text-sm text-[var(--muted-foreground)]">{description}</p>
+          <p className="line-clamp-2 text-sm text-muted-foreground">{description}</p>
         </div>
       )}
       {size === 'default' && (
         <div className="p-3">
-          <p className="text-sm text-[var(--muted-foreground)]">
+          <p className="text-sm text-muted-foreground">
             {activeCount} homes for sale
             {medianPrice != null && ` · ${formatPrice(medianPrice)}`}
           </p>

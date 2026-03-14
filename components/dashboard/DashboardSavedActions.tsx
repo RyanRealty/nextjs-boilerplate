@@ -3,6 +3,7 @@
 import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { unsaveListing } from '@/app/actions/saved-listings'
+import { Button } from "@/components/ui/button"
 
 type Props = { listingKey: string }
 
@@ -28,30 +29,30 @@ export default function DashboardSavedActions({ listingKey }: Props) {
       {confirmRemove ? (
         <>
           <span className="text-sm text-muted-foreground">Remove from saved?</span>
-          <button
+          <Button
             type="button"
             onClick={handleRemove}
             disabled={pending}
             className="text-sm font-medium text-destructive hover:underline disabled:opacity-50"
           >
             {pending ? 'Removing…' : 'Yes, remove'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setConfirmRemove(false)}
             className="text-sm font-medium text-muted-foreground hover:text-muted-foreground"
           >
             Cancel
-          </button>
+          </Button>
         </>
       ) : (
-        <button
+        <Button
           type="button"
           onClick={handleRemove}
           className="text-sm font-medium text-muted-foreground hover:text-destructive"
         >
           Remove
-        </button>
+        </Button>
       )}
     </div>
   )

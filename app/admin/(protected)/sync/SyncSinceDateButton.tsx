@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { runDeltaSyncSince } from '@/app/actions/sync-full-cron'
 import { useRouter } from 'next/navigation'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 function toLocalDateString(d: Date): string {
   const y = d.getFullYear()
@@ -51,26 +54,26 @@ export default function SyncSinceDateButton() {
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-3">
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Label className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Sync changes since:</span>
-        <input
+        <Input
           type="date"
           value={dateValue}
           onChange={(e) => setDateValue(e.target.value)}
           disabled={loading}
           className="rounded border border-border px-2 py-1.5 text-sm disabled:opacity-50"
         />
-      </label>
-      <button
+      </Label>
+      <Button
         type="button"
         onClick={handleClick}
         disabled={loading}
         className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
       >
         {loading ? 'Syncing…' : 'Sync since this date'}
-      </button>
+      </Button>
       {message && (
-        <span className={message.type === 'success' ? 'text-sm text-green-500' : 'text-sm text-destructive'}>
+        <span className={message.type === 'success' ? 'text-sm text-success' : 'text-sm text-destructive'}>
           {message.text}
         </span>
       )}

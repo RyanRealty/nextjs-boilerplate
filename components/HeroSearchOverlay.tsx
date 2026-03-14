@@ -10,6 +10,8 @@ import { communityPagePath } from '@/lib/community-slug'
 import VoiceSearchButton from '@/components/VoiceSearchButton'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Search01Icon } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 const DEBOUNCE_MS = 220
 const MIN_QUERY_LENGTH = 2
@@ -127,16 +129,16 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
 
   let itemIndex = 0
   const linkClass = (isHighlight: boolean) =>
-    `block w-full px-4 py-2.5 text-left text-sm transition ${isHighlight ? 'bg-white/20 text-white' : 'text-white/90 hover:bg-white/10'}`
+    `block w-full px-4 py-2.5 text-left text-sm transition ${isHighlight ? 'bg-card/20 text-white' : 'text-white/90 hover:bg-card/10'}`
 
   return (
     <div className="relative w-full max-w-2xl" ref={panelRef}>
-      <label htmlFor="hero-search-input" className="sr-only">
+      <Label htmlFor="hero-search-input" className="sr-only">
         Enter an address, neighborhood, city, or zip code
-      </label>
-      <div className="flex items-center gap-3 rounded-lg border-2 border-white/30 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-sm">
+      </Label>
+      <div className="flex items-center gap-3 rounded-lg border-2 border-white/30 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-sm">
         <HugeiconsIcon icon={Search01Icon} className="h-6 w-6 shrink-0 text-muted-foreground" aria-hidden />
-        <input
+        <Input
           id="hero-search-input"
           ref={inputRef}
           type="search"
@@ -164,7 +166,7 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(50vh,320px)] overflow-auto rounded-lg border border-border bg-white py-2 shadow-lg"
+          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(50vh,320px)] overflow-auto rounded-lg border border-border bg-card py-2 shadow-lg"
         >
           {query.trim().length < MIN_QUERY_LENGTH ? (
             <p className="px-4 py-2 text-sm text-muted-foreground">Type at least {MIN_QUERY_LENGTH} characters…</p>

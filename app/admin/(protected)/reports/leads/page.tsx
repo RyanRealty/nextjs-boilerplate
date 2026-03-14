@@ -62,7 +62,7 @@ export default async function AdminLeadsReportPage() {
         <h2 className="text-lg font-semibold text-foreground">Lead scoring distribution</h2>
         <div className="mt-4 flex flex-wrap gap-4">
           {['cold', 'warm', 'hot', 'very_hot'].map((tier) => (
-            <div key={tier} className="rounded-lg border border-border bg-white px-4 py-3 shadow-sm">
+            <div key={tier} className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
               <span className="font-medium capitalize text-foreground">{tier.replace('_', ' ')}</span>
               <span className="ml-2 text-2xl font-bold text-primary">{tierMap.get(tier) ?? 0}</span>
             </div>

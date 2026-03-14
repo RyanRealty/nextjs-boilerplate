@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import {
   getListingsForHomeTiles,
   getHomeTileRowsByKeys,
@@ -29,7 +30,7 @@ const ACTIVE_OR =
 const CLOSED_OR = 'StandardStatus.ilike.%Closed%'
 
 /** Featured: top 6 by engagement view_count (optional city filter), then by ModificationTimestamp. Active only. */
-export async function getFeaturedListings(city?: string): Promise<HomeTileRow[]> {
+async function _getFeaturedListingsUncached(city?: string): Promise<HomeTileRow[]> {
   try {
     const sb = supabase()
     const { data: em } = await sb
@@ -59,6 +60,12 @@ export async function getFeaturedListings(city?: string): Promise<HomeTileRow[]>
     return []
   }
 }
+
+export const getFeaturedListings = unstable_cache(
+  _getFeaturedListingsUncached,
+  ['featured-listings'],
+  { revalidate: 60, tags: ['featured-listings'] }
+)
 
 /** Just listed: 8 newest Active by OnMarketDate (or ModificationTimestamp fallback) for the given city. */
 export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[]> {
@@ -92,7 +99,7 @@ export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[
 }
 
 /** Recently sold: 4 newest Closed with close price/date, optional city filter. */
-export async function getRecentlySold(city?: string): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
+async function _getRecentlySoldUncached(city?: string): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
   try {
     const sb = supabase()
     let query = sb
@@ -101,11 +108,10 @@ export async function getRecentlySold(city?: string): Promise<(HomeTileRow & { C
       .or(CLOSED_OR)
       .not('CloseDate', 'is', null)
       .order('CloseDate', { ascending: false, nullsFirst: false })
-      .limit(8)
+      .limit(4)
     if (city?.trim()) query = query.ilike('City', city.trim())
     const { data } = await query
-    const rows = (data ?? []) as (HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]
-    return rows.slice(0, 4)
+    return (data ?? []) as (HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]
   } catch {
     try {
       const sb = supabase()
@@ -115,11 +121,11 @@ export async function getRecentlySold(city?: string): Promise<(HomeTileRow & { C
         .or(CLOSED_OR)
         .not('close_date', 'is', null)
         .order('close_date', { ascending: false, nullsFirst: false })
-        .limit(8)
+        .limit(4)
       if (city?.trim()) query = query.ilike('City', city.trim())
       const { data } = await query
       const rows = (data ?? []) as (HomeTileRow & { close_price?: number | null; close_date?: string | null })[]
-      return rows.slice(0, 4).map((r) => ({
+      return rows.map((r) => ({
         ...r,
         ClosePrice: (r as { close_price?: number }).close_price,
         CloseDate: (r as { close_date?: string }).close_date,
@@ -129,6 +135,12 @@ export async function getRecentlySold(city?: string): Promise<(HomeTileRow & { C
     }
   }
 }
+
+export const getRecentlySold = unstable_cache(
+  _getRecentlySoldUncached,
+  ['recently-sold'],
+  { revalidate: 120, tags: ['recently-sold'] }
+)
 
 /** Price drops: 6 listings where original price > current price (from listings table), optional city filter. */
 export async function getPriceDrops(city?: string): Promise<(HomeTileRow & { originalPrice?: number; savings?: number })[]> {
@@ -184,21 +196,52 @@ export async function getPriceDrops(city?: string): Promise<(HomeTileRow & { ori
 }
 
 /** Community highlights: top 6 by listing count (Bend city). */
-export async function getCommunityHighlights(): Promise<HotCommunity[]> {
+async function _getCommunityHighlightsUncached(): Promise<HotCommunity[]> {
   const list = await getHotCommunitiesInCity('Bend')
   return list.slice(0, 6)
 }
 
-/** Market snapshot for Bend (active count, median price, avg DOM). */
-export async function getMarketSnapshot(): Promise<CityMarketStats & { avgDom?: number | null }> {
+export const getCommunityHighlights = unstable_cache(
+  _getCommunityHighlightsUncached,
+  ['community-highlights'],
+  { revalidate: 300, tags: ['community-highlights'] }
+)
+
+/** Market snapshot for Bend — uses RPC for single-scan aggregation instead of 4 queries + 15k row JS median. */
+async function _getMarketSnapshotUncached(): Promise<CityMarketStats & { avgDom?: number | null }> {
+  try {
+    const sb = supabase()
+    const { data, error } = await sb.rpc('get_homepage_market_stats', { p_city: 'Bend' })
+    if (!error && data && (Array.isArray(data) ? data.length > 0 : data)) {
+      const row = Array.isArray(data) ? data[0] : data
+      return {
+        count: row.active_count ?? 0,
+        avgPrice: Math.round(row.avg_price ?? 0),
+        medianPrice: Math.round(row.median_price ?? 0),
+        avgDom: row.avg_dom ? Math.round(row.avg_dom) : null,
+        newListingsLast30Days: row.new_listings_last_30_days ?? 0,
+        pendingCount: row.pending_count ?? 0,
+        closedLast12Months: row.closed_last_12_months ?? 0,
+      }
+    }
+  } catch {
+    // Fall through to legacy path
+  }
+  // Fallback to legacy multi-query path
   const stats = await getCityMarketStats({ city: 'Bend' })
   return { ...stats, avgDom: null }
 }
 
+export const getMarketSnapshot = unstable_cache(
+  _getMarketSnapshotUncached,
+  ['market-snapshot'],
+  { revalidate: 120, tags: ['market-snapshot'] }
+)
+
 const TRENDING_MIN_COUNT = 5
 
 /** Trending: listings by view count (listing_views) for the given city; if fewer than 5, fill with newest listings. */
-export async function getTrendingListings(city: string = 'Bend'): Promise<HomeTileRow[]> {
+async function _getTrendingListingsUncached(city: string = 'Bend'): Promise<HomeTileRow[]> {
   const cityName = city.trim() || 'Bend'
   const keys = await getTrendingListingKeys(cityName, 12)
   const rows = keys.length > 0
@@ -217,6 +260,12 @@ export async function getTrendingListings(city: string = 'Bend'): Promise<HomeTi
   const combined = [...rows, ...extra.slice(0, fillCount)]
   return combined.slice(0, TRENDING_MIN_COUNT)
 }
+
+export const getTrendingListings = unstable_cache(
+  _getTrendingListingsUncached,
+  ['trending-listings'],
+  { revalidate: 60, tags: ['trending-listings'] }
+)
 
 /** Blog posts for homepage teaser. Returns empty until blog CMS exists. */
 export async function getBlogPostsForHome(): Promise<Array<{

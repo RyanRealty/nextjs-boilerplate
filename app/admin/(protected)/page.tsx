@@ -11,6 +11,7 @@ import DashboardSyncPanel from '@/components/admin/DashboardSyncPanel'
 import DashboardLeadPanel from '@/components/admin/DashboardLeadPanel'
 import DashboardGA4Panel from '@/components/admin/DashboardGA4Panel'
 import DashboardNotificationsPanel from '@/components/admin/DashboardNotificationsPanel'
+import { Button } from "@/components/ui/button"
 
 export const dynamic = 'force-dynamic'
 
@@ -31,19 +32,19 @@ export default async function AdminDashboardPage() {
         Single view of system health, sync, leads, and observability. Panel state is saved in your browser.
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-white px-4 py-3">
+      <div className="mt-6 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
         <span className="text-sm font-medium text-muted-foreground">Date range</span>
         <div className="flex flex-wrap gap-2">
           <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white">Last 30 days</span>
-          <button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
+          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
             Last 7 days
-          </button>
-          <button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
+          </Button>
+          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
             Today
-          </button>
-          <button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
+          </Button>
+          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
             Custom
-          </button>
+          </Button>
         </div>
         <p className="text-xs text-muted-foreground">GA4 and report panels will use this range when wired.</p>
       </div>
@@ -96,12 +97,12 @@ export default async function AdminDashboardPage() {
       <div className="mt-10 rounded-lg border border-border bg-muted p-4">
         <h2 className="text-sm font-semibold text-muted-foreground">Quick links</h2>
         <ul className="mt-2 flex flex-wrap gap-4 text-sm">
-          <li><Link href="/admin/sync" className="text-green-500 hover:underline">Sync & history</Link></li>
-          <li><Link href="/admin/geo" className="text-green-500 hover:underline">Geo hierarchy</Link></li>
-          <li><Link href="/admin/resort-communities" className="text-green-500 hover:underline">Resort communities</Link></li>
-          <li><Link href="/admin/banners" className="text-green-500 hover:underline">Banners</Link></li>
-          <li><Link href="/admin/reports" className="text-green-500 hover:underline">Reports</Link></li>
-          <li><Link href="/admin/spark-status" className="text-green-500 hover:underline">Spark API status</Link></li>
+          <li><Link href="/admin/sync" className="text-success hover:underline">Sync & history</Link></li>
+          <li><Link href="/admin/geo" className="text-success hover:underline">Geo hierarchy</Link></li>
+          <li><Link href="/admin/resort-communities" className="text-success hover:underline">Resort communities</Link></li>
+          <li><Link href="/admin/banners" className="text-success hover:underline">Banners</Link></li>
+          <li><Link href="/admin/reports" className="text-success hover:underline">Reports</Link></li>
+          <li><Link href="/admin/spark-status" className="text-success hover:underline">Spark API status</Link></li>
         </ul>
       </div>
     </main>

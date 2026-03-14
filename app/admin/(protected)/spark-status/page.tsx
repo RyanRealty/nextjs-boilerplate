@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import { getSparkConnectionStatus, getSparkDataRange } from '@/lib/spark'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 function formatDate(iso?: string) {
   if (!iso) return '—'
@@ -17,33 +19,35 @@ export default async function SparkStatusPage() {
   ])
 
   return (
-    <main style={{ padding: '40px', fontFamily: 'system-ui', maxWidth: '600px' }}>
-      <h1>Spark API connection</h1>
+    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+      <h1 className="text-2xl font-bold text-foreground">Spark API connection</h1>
       {status.connected ? (
-        <div style={{ background: '#e6f7ed', padding: '20px', borderRadius: '8px', marginTop: '16px' }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#0d6832' }}>Connected</p>
-          <p style={{ margin: 0, color: '#333' }}>
+        <Alert className="mt-4 border-success bg-success/10">
+          <AlertTitle className="text-success">Connected</AlertTitle>
+          <AlertDescription className="text-foreground">
             You have access to <strong>{status.totalListings?.toLocaleString() ?? '—'}</strong> listings.
-          </p>
-          {status.totalPages != null && (
-            <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: '#666' }}>
-              ({status.totalPages} pages at {status.pageSize ?? 100} per page)
-            </p>
-          )}
-          {!dateRange.error && (dateRange.oldest || dateRange.newest) && (
-            <p style={{ margin: '12px 0 0 0', fontSize: '0.9rem', color: '#333' }}>
-              <strong>Data range (On Market Date):</strong> from {formatDate(dateRange.oldest)} to {formatDate(dateRange.newest)}
-            </p>
-          )}
-        </div>
+            {status.totalPages != null && (
+              <div className="mt-2 text-sm">
+                ({status.totalPages} pages at {status.pageSize ?? 100} per page)
+              </div>
+            )}
+            {!dateRange.error && (dateRange.oldest || dateRange.newest) && (
+              <div className="mt-2 text-sm">
+                <strong>Data range (On Market Date):</strong> from {formatDate(dateRange.oldest)} to {formatDate(dateRange.newest)}
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
       ) : (
-        <div style={{ background: '#fde8e8', padding: '20px', borderRadius: '8px', marginTop: '16px' }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#b91c1c' }}>Not connected</p>
-          <p style={{ margin: 0, color: '#333' }}>{status.error ?? 'Unknown error'}</p>
-        </div>
+        <Alert className="mt-4 border-destructive bg-destructive/10">
+          <AlertTitle className="text-destructive">Not connected</AlertTitle>
+          <AlertDescription className="text-foreground">
+            {status.error ?? 'Unknown error'}
+          </AlertDescription>
+        </Alert>
       )}
-      <p style={{ marginTop: '24px', fontSize: '0.9rem', color: '#666' }}>
-        <a href="/admin/sync">Sync listings to Supabase</a>
+      <p className="mt-6 text-sm text-muted-foreground">
+        <Link href="/admin/sync" className="underline hover:no-underline">Sync listings to Supabase</Link>
       </p>
     </main>
   )

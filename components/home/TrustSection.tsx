@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -8,7 +6,7 @@ export default function TrustSection() {
     <section className="w-full bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="trust-section-heading">
       <div className="w-full">
         <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-[var(--muted)]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted">
             <Image
               src="/images/team.png"
               alt="Ryan Realty team"
@@ -21,32 +19,32 @@ export default function TrustSection() {
             <h2 id="trust-section-heading" className="text-2xl font-bold tracking-tight text-primary">
               Local Expertise You Can Trust
             </h2>
-            <p className="mt-4 text-[var(--muted-foreground)]">
+            <p className="mt-4 text-muted-foreground">
               Ryan Realty brings deep Central Oregon market knowledge—from Bend and Redmond to Sisters and Sunriver.
               We help buyers and sellers navigate one of the most sought-after regions in the West.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
                 <p className="text-2xl font-bold text-primary">15+</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Years Experience</p>
+                <p className="text-sm text-muted-foreground">Years Experience</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-primary">500+</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Homes Sold</p>
+                <p className="text-sm text-muted-foreground">Homes Sold</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-primary">4.9</p>
-                <p className="text-sm text-[var(--muted-foreground)]">5-Star Reviews</p>
+                <p className="text-sm text-muted-foreground">5-Star Reviews</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-primary">20+</p>
-                <p className="text-sm text-[var(--muted-foreground)]">Communities Served</p>
+                <p className="text-sm text-muted-foreground">Communities Served</p>
               </div>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
                 href="/about"
-                className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
+                className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:bg-accent/90"
               >
                 Meet the Team
               </Link>

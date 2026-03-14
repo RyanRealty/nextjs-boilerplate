@@ -12,6 +12,7 @@ import {
   getCityPinIcon,
   MAP_LABEL_CITY,
 } from '@/lib/map-constants'
+import { Button } from "@/components/ui/button"
 
 const BEND_CENTER = { ...MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM_CITY } as const
 
@@ -276,13 +277,13 @@ export default function ListingMapGoogle({
                         {[l.BedroomsTotal != null ? `${l.BedroomsTotal} bed` : null, l.BathroomsTotal != null ? `${l.BathroomsTotal} bath` : null].filter(Boolean).join(' · ')}
                       </div>
                     )}
-                    <button
+                    <Button
                       type="button"
                       className="mt-1.5 block text-sm font-medium text-primary hover:underline"
                       onClick={() => router.push(`/listing/${id}`)}
                     >
                       View listing →
-                    </button>
+                    </Button>
                   </div>
                 </InfoWindow>
               )}

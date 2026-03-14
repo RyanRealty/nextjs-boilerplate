@@ -40,7 +40,7 @@ export default async function AccountPage() {
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <Link
           href="/account/profile"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Profile</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -49,7 +49,7 @@ export default async function AccountPage() {
         </Link>
         <Link
           href="/account/saved-searches"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Saved searches</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export default async function AccountPage() {
         </Link>
         <Link
           href="/account/saved-homes"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Saved homes</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -67,7 +67,7 @@ export default async function AccountPage() {
         </Link>
         <Link
           href="/account/saved-cities"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Saved cities</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -76,7 +76,7 @@ export default async function AccountPage() {
         </Link>
         <Link
           href="/account/saved-communities"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Saved communities</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export default async function AccountPage() {
         </Link>
         <Link
           href="/account/buying-preferences"
-          className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm transition hover:border-border hover:shadow"
+          className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm transition hover:border-border hover:shadow"
         >
           <span className="text-lg font-semibold text-foreground">Buying preferences</span>
           <span className="mt-1 text-sm text-muted-foreground">
@@ -94,7 +94,7 @@ export default async function AccountPage() {
               : 'Set down payment %, interest rate, and term to see estimated monthly payment on listings'}
           </span>
         </Link>
-        <div className="flex flex-col rounded-lg border border-border bg-white p-6 shadow-sm">
+        <div className="flex flex-col rounded-lg border border-border bg-card p-6 shadow-sm">
           <span className="text-lg font-semibold text-foreground">Privacy & data</span>
           <span className="mt-1 text-sm text-muted-foreground">
             Download a copy of your data (saved homes, searches, profile, activity). For deletion requests, contact us.

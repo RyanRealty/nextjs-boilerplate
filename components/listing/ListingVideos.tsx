@@ -33,7 +33,7 @@ export default function ListingVideos({ videos, virtualTours }: Props) {
             {(videos ?? []).map((v, i) => (
               <div
                 key={v.Id ?? i}
-                className="overflow-hidden rounded-lg border border-border bg-white p-2 shadow-sm"
+                className="overflow-hidden rounded-lg border border-border bg-card p-2 shadow-sm"
               >
                 {v.ObjectHtml ? (
                   <div
@@ -93,7 +93,7 @@ export default function ListingVideos({ videos, virtualTours }: Props) {
                 href={vt.Uri ?? '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
+                className="inline-flex items-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
               >
                 {vt.Name ?? 'Virtual tour'} →
               </a>

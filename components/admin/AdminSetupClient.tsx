@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setSetupComplete } from '@/app/actions/admin-setup'
+import { Button } from "@/components/ui/button"
 
 export default function AdminSetupClient() {
   const router = useRouter()
@@ -31,13 +32,13 @@ export default function AdminSetupClient() {
           <p className="mt-1 text-sm text-muted-foreground">
             Ensure your admin account exists. Sign in at the main site or use the admin login page. Your email must be granted admin access (e.g. in admin_roles or as the designated superuser).
           </p>
-          <button
+          <Button
             type="button"
             onClick={() => setStep(2)}
             className="mt-3 rounded-lg bg-border px-4 py-2 text-sm font-medium text-foreground hover:bg-border"
           >
             Next
-          </button>
+          </Button>
         </section>
       )}
       {step === 2 && (
@@ -46,13 +47,13 @@ export default function AdminSetupClient() {
           <p className="mt-1 text-sm text-muted-foreground">
             Configure brokerage name and branding in Settings after setup.
           </p>
-          <button
+          <Button
             type="button"
             onClick={() => setStep(3)}
             className="mt-3 rounded-lg bg-border px-4 py-2 text-sm font-medium text-foreground hover:bg-border"
           >
             Next
-          </button>
+          </Button>
         </section>
       )}
       {step === 3 && (
@@ -62,14 +63,14 @@ export default function AdminSetupClient() {
             You&apos;re all set! Welcome to your admin dashboard.
           </p>
           {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-          <button
+          <Button
             type="button"
             onClick={handleComplete}
             disabled={loading}
             className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {loading ? 'Completing…' : 'Finish setup'}
-          </button>
+          </Button>
         </section>
       )}
     </div>

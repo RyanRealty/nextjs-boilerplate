@@ -1,4 +1,5 @@
 import type { SyncHistoryRow } from '@/app/actions/sync-history'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 /** Format ISO date for display. Use UTC and fixed format to avoid server/client hydration mismatch. */
 function formatDateTime(iso: string): string {
@@ -29,7 +30,7 @@ type Props = { rows: SyncHistoryRow[] }
 export default function SyncHistoryTable({ rows }: Props) {
   if (rows.length === 0) {
     return (
-      <div className="mt-6 rounded-lg border border-border bg-white p-6 shadow-sm">
+      <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Full run history</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           No completed full syncs yet. One row is added here each time a full sync finishes (listings + history).
@@ -39,38 +40,38 @@ export default function SyncHistoryTable({ rows }: Props) {
   }
 
   return (
-    <div className="mt-6 rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Full run history</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         One row per completed full sync. Date, duration, and total listings and history rows for that run.
       </p>
       <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="py-2 pr-4 text-left font-medium text-muted-foreground">Date</th>
-              <th className="py-2 pr-4 text-left font-medium text-muted-foreground">Type</th>
-              <th className="py-2 pr-4 text-right font-medium text-muted-foreground">Time</th>
-              <th className="py-2 pr-4 text-right font-medium text-muted-foreground">Listings</th>
-              <th className="py-2 pr-4 text-right font-medium text-muted-foreground">History</th>
-              <th className="py-2 pr-4 text-right font-medium text-muted-foreground">Photos</th>
-              <th className="py-2 pl-4 text-left font-medium text-muted-foreground">Error</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="text-sm">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-muted-foreground">Date</TableHead>
+              <TableHead className="text-muted-foreground">Type</TableHead>
+              <TableHead className="text-right text-muted-foreground">Time</TableHead>
+              <TableHead className="text-right text-muted-foreground">Listings</TableHead>
+              <TableHead className="text-right text-muted-foreground">History</TableHead>
+              <TableHead className="text-right text-muted-foreground">Photos</TableHead>
+              <TableHead className="text-muted-foreground">Error</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row) => (
-              <tr key={row.id} className="border-b border-border">
-                <td className="py-2 pr-4 text-foreground whitespace-nowrap">{formatDateTime(row.completed_at)}</td>
-                <td className="py-2 pr-4 text-muted-foreground capitalize">{row.run_type}</td>
-                <td className="py-2 pr-4 text-right font-mono text-muted-foreground">{formatDuration(row.duration_seconds)}</td>
-                <td className="py-2 pr-4 text-right font-mono text-muted-foreground">{row.listings_upserted > 0 ? row.listings_upserted.toLocaleString() : '—'}</td>
-                <td className="py-2 pr-4 text-right font-mono text-muted-foreground">{row.history_rows_upserted > 0 ? row.history_rows_upserted.toLocaleString() : '—'}</td>
-                <td className="py-2 pr-4 text-right font-mono text-muted-foreground">{row.photos_updated > 0 ? row.photos_updated.toLocaleString() : '—'}</td>
-                <td className="py-2 pl-4 text-destructive text-xs max-w-[200px] truncate" title={row.error ?? undefined}>{row.error ?? '—'}</td>
-              </tr>
+              <TableRow key={row.id}>
+                <TableCell className="text-foreground whitespace-nowrap">{formatDateTime(row.completed_at)}</TableCell>
+                <TableCell className="text-muted-foreground capitalize">{row.run_type}</TableCell>
+                <TableCell className="text-right font-mono text-muted-foreground">{formatDuration(row.duration_seconds)}</TableCell>
+                <TableCell className="text-right font-mono text-muted-foreground">{row.listings_upserted > 0 ? row.listings_upserted.toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-right font-mono text-muted-foreground">{row.history_rows_upserted > 0 ? row.history_rows_upserted.toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-right font-mono text-muted-foreground">{row.photos_updated > 0 ? row.photos_updated.toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-destructive text-xs max-w-[200px] truncate" title={row.error ?? undefined}>{row.error ?? '—'}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

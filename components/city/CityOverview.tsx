@@ -48,7 +48,7 @@ function toQuickFactsList(q: QuickFacts): QuickFact[] {
 
 function renderParagraphs(paragraphs: string[]) {
   return (
-    <div className="prose prose-[var(--primary)] max-w-none">
+    <div className="prose prose-primary max-w-none">
       {paragraphs.map((p, i) => (
         <p key={i} className="mt-3 first:mt-0">
           {p.trim()}

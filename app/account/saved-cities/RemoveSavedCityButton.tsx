@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { unsaveCity } from '@/app/actions/saved-cities'
+import { Button } from "@/components/ui/button"
 
 type Props = { citySlug: string }
 
@@ -18,13 +19,13 @@ export default function RemoveSavedCityButton({ citySlug }: Props) {
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleRemove}
       disabled={pending}
       className="text-sm font-medium text-muted-foreground hover:text-destructive disabled:opacity-50"
     >
       {pending ? 'Removing…' : 'Remove'}
-    </button>
+    </Button>
   )
 }

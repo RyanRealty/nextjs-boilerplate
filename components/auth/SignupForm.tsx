@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSignInUrl, signUpWithEmailPassword } from '@/app/actions/auth'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type Props = { next: string }
 
@@ -51,71 +54,71 @@ export default function SignupForm({ next }: Props) {
 
   return (
     <div className="mt-6 space-y-4">
-      <button
+      <Button
         type="button"
         onClick={handleGoogle}
         disabled={!!loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
       >
         {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
-      </button>
+      </Button>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-muted-foreground">or</span>
+          <span className="bg-card px-2 text-muted-foreground">or</span>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="signup-name" className="block text-sm font-medium text-muted-foreground">
+          <Label htmlFor="signup-name" className="block text-sm font-medium text-muted-foreground">
             Full name
-          </label>
-          <input
+          </Label>
+          <Input
             id="signup-name"
             type="text"
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+            className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
           />
         </div>
         <div>
-          <label htmlFor="signup-email" className="block text-sm font-medium text-muted-foreground">
+          <Label htmlFor="signup-email" className="block text-sm font-medium text-muted-foreground">
             Email
-          </label>
-          <input
+          </Label>
+          <Input
             id="signup-email"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+            className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
           />
         </div>
         <div>
-          <label htmlFor="signup-password" className="block text-sm font-medium text-muted-foreground">
+          <Label htmlFor="signup-password" className="block text-sm font-medium text-muted-foreground">
             Password
-          </label>
-          <input
+          </Label>
+          <Input
             id="signup-password"
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+            className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
           />
           <p className="mt-0.5 text-xs text-muted-foreground">At least 6 characters</p>
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <button
+        <Button
           type="submit"
           disabled={!!loading}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
         >
           {loading === 'email' ? 'Creating account…' : 'Create account'}
-        </button>
+        </Button>
       </form>
     </div>
   )

@@ -56,7 +56,7 @@ export default function FeaturedListings({
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16"
+      className="w-full bg-card px-4 py-12 sm:px-6 sm:py-16"
       aria-labelledby="featured-listings-heading"
     >
       <div className="mx-auto w-full max-w-7xl">

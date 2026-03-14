@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export default async function AdminBrokerReportsPage() {
   const supabase = await createClient()
@@ -23,39 +24,39 @@ export default async function AdminBrokerReportsPage() {
         Pre-computed daily by reporting/compute-broker-stats. Match by listing agent email.
       </p>
       <div className="mt-6 overflow-x-auto">
-        <table className="min-w-full border border-border">
-          <thead>
-            <tr className="bg-muted">
-              <th className="border-b border-border px-4 py-2 text-left text-sm font-semibold">Broker</th>
-              <th className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Volume (12mo)</th>
-              <th className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Transactions (12mo)</th>
-              <th className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Avg Sale</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="min-w-full border border-border">
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="border-b border-border px-4 py-2 text-left text-sm font-semibold">Broker</TableHead>
+              <TableHead className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Volume (12mo)</TableHead>
+              <TableHead className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Transactions (12mo)</TableHead>
+              <TableHead className="border-b border-border px-4 py-2 text-right text-sm font-semibold">Avg Sale</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {(brokers ?? []).map((b) => {
               const bRow = b as { id: string; slug: string; display_name: string }
               const entry = byBroker.get(bRow.id)
               const yearly = entry?.yearly as { total_volume?: number; transaction_count?: number; avg_sale_price?: number } | undefined
               return (
-                <tr key={bRow.id} className="border-b border-border">
-                  <td className="px-4 py-2">
+                <TableRow key={bRow.id} className="border-b border-border">
+                  <TableCell className="px-4 py-2">
                     <Link href={`/admin/brokers/${bRow.id}`} className="text-primary hover:underline">
                       {bRow.display_name}
                     </Link>
-                  </td>
-                  <td className="px-4 py-2 text-right">
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-right">
                     {yearly?.total_volume != null ? `$${Number(yearly.total_volume).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '—'}
-                  </td>
-                  <td className="px-4 py-2 text-right">{yearly?.transaction_count ?? '—'}</td>
-                  <td className="px-4 py-2 text-right">
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-right">{yearly?.transaction_count ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-2 text-right">
                     {yearly?.avg_sale_price != null ? `$${Number(yearly.avg_sale_price).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       <p className="mt-8 text-sm text-muted-foreground">
         <Link href="/admin/reports" className="underline hover:no-underline">Back to Reports</Link>

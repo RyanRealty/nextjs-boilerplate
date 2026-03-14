@@ -104,7 +104,7 @@ export default async function TeamMemberPage({ params }: Props) {
   const firstName = broker.display_name.split(' ')[0] ?? broker.display_name
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

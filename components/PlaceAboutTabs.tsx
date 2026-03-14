@@ -8,6 +8,7 @@ import {
   generateSubdivisionDescription,
   generateSubdivisionAttractions,
 } from '../app/actions/subdivision-descriptions'
+import { Button } from "@/components/ui/button"
 
 export type PlaceAttractionItem = {
   id: string
@@ -75,22 +76,22 @@ export default function PlaceAboutTabs({
   const aboutImageUrl = sectionImageAttractions
 
   return (
-    <section className="mb-10 rounded-lg border border-border bg-white shadow-sm overflow-hidden">
+    <section className="mb-10 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div className="border-b border-border bg-muted/80">
         <nav className="flex gap-1 p-2" aria-label="About this area">
           {tabs.map(({ id, label }) => (
-            <button
+            <Button
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
               className={`rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                 activeTab === id
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-white/60 hover:text-foreground'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'
               }`}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </nav>
       </div>
@@ -120,14 +121,14 @@ export default function PlaceAboutTabs({
               ) : canGenerate ? (
                 <div>
                   <p className="text-sm text-muted-foreground mb-3">No about content yet.</p>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleGenerate('about')}
                     disabled={loadingTab === 'about'}
-                    className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-60"
+                    className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-60"
                   >
                     {loadingTab === 'about' ? 'Generating…' : 'Generate about'}
-                  </button>
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -153,14 +154,14 @@ export default function PlaceAboutTabs({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-foreground">{a.name}</span>
                       {a.is_coming && (
-                        <span className="rounded bg-yellow-500/15 px-2 py-0.5 text-xs font-medium text-yellow-500">
+                        <span className="rounded bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
                           Coming
                         </span>
                       )}
                     </div>
                     {a.phone && (
                       <p className="mt-1 text-sm">
-                        <a href={`tel:${a.phone.replace(/\D/g, '')}`} className="text-green-500 hover:underline">
+                        <a href={`tel:${a.phone.replace(/\D/g, '')}`} className="text-success hover:underline">
                           {a.phone}
                         </a>
                       </p>
@@ -176,14 +177,14 @@ export default function PlaceAboutTabs({
             ) : canGenerate ? (
               <div>
                 <p className="text-sm text-muted-foreground mb-3">No attractions content yet.</p>
-                <button
+                <Button
                   type="button"
                   onClick={() => handleGenerate('attractions')}
                   disabled={loadingTab === 'attractions'}
-                  className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-60"
+                  className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted disabled:opacity-60"
                 >
                   {loadingTab === 'attractions' ? 'Generating…' : 'Generate attractions'}
-                </button>
+                </Button>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No attractions content for this area yet.</p>

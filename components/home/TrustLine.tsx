@@ -16,12 +16,12 @@ type Props = {
 export default function TrustLine({ listingCount, cityName }: Props) {
   return (
     <section
-      className="w-full bg-white px-4 py-4 sm:px-6 border-b border-border"
+      className="w-full bg-card px-4 py-4 sm:px-6 border-b border-border"
       aria-labelledby="trust-line-heading"
     >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <p id="trust-line-heading" className="text-sm font-medium text-[var(--muted-foreground)]">
+          <p id="trust-line-heading" className="text-sm font-medium text-muted-foreground">
             <span className="font-semibold text-primary">
               {listingCount.toLocaleString()}
             </span>

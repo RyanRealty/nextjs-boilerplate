@@ -32,7 +32,7 @@ export default async function AuthErrorPage({ searchParams }: Props) {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <Link
           href={tryAgainHref}
-          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          className="inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Try again
         </Link>

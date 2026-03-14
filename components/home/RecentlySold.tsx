@@ -44,7 +44,7 @@ export default function RecentlySold({
   if (listings.length === 0) return null
 
   return (
-    <section className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="recently-sold-heading">
+    <section className="w-full bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="recently-sold-heading">
       <div className="mx-auto w-full max-w-7xl">
         <TilesSlider
           title="Recently Sold"

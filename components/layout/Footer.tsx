@@ -73,7 +73,7 @@ export default function Footer({
 
   return (
     <footer>
-      <div className={brokerageLogoUrl ? "bg-[var(--card)] border-b border-[var(--border)]" : "hidden"} suppressHydrationWarning>
+      <div className={brokerageLogoUrl ? "bg-card border-b border-border" : "hidden"} suppressHydrationWarning>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
           {brokerageLogoUrl && (
             <Link href="/" className="inline-block" aria-label={name}>
@@ -193,7 +193,7 @@ export default function Footer({
                   href={SOCIAL_FACEBOOK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-muted hover:bg-white/20 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-card/10 text-muted hover:bg-card/20 hover:text-white"
                   aria-label="Facebook"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -206,7 +206,7 @@ export default function Footer({
                   href={SOCIAL_INSTAGRAM}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-muted hover:bg-white/20 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-card/10 text-muted hover:bg-card/20 hover:text-white"
                   aria-label="Instagram"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -219,7 +219,7 @@ export default function Footer({
                   href={SOCIAL_LINKEDIN}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-muted hover:bg-white/20 hover:text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-card/10 text-muted hover:bg-card/20 hover:text-white"
                   aria-label="LinkedIn"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { fetchExpiredFromSpark } from '@/app/actions/expired-listings'
+import { Button } from "@/components/ui/button"
 
 export function ExpiredListingsClient() {
   const [loading, setLoading] = useState<'backfill' | 'recent' | null>(null)
@@ -49,24 +50,23 @@ export function ExpiredListingsClient() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
           onClick={runBackfill}
           disabled={!!loading}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-60"
         >
           {loading === 'backfill' ? 'Fetching…' : 'Backfill last 6 months from Spark'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={runRecent}
           disabled={!!loading}
-          className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-60"
+          variant="outline"
         >
           {loading === 'recent' ? 'Fetching…' : 'Fetch last 30 days (ongoing)'}
-        </button>
+        </Button>
       </div>
-      {message && <p className="text-sm text-green-500">{message}</p>}
+      {message && <p className="text-sm text-success">{message}</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   )

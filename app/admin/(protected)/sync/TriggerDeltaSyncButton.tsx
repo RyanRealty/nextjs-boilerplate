@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 
 export default function TriggerDeltaSyncButton() {
   const [loading, setLoading] = useState(false)
@@ -26,16 +27,16 @@ export default function TriggerDeltaSyncButton() {
 
   return (
     <div className="mt-3 flex flex-wrap items-center gap-3">
-      <button
+      <Button
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-500/85 disabled:opacity-50"
+        className="rounded-lg bg-success px-4 py-2 text-sm font-medium text-white hover:bg-success/85 disabled:opacity-50"
       >
         {loading ? 'Starting…' : 'Run ingest now'}
-      </button>
+      </Button>
       {message && (
-        <span className={message.type === 'success' ? 'text-sm text-green-500' : 'text-sm text-destructive'}>
+        <span className={message.type === 'success' ? 'text-sm text-success' : 'text-sm text-destructive'}>
           {message.text}
         </span>
       )}

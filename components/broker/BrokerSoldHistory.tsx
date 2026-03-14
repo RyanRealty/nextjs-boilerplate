@@ -29,12 +29,12 @@ export default function BrokerSoldHistory({ brokerFirstName, soldListings }: Pro
 
   if (displayList.length === 0) {
     return (
-      <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-sold-heading">
+      <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-sold-heading">
         <div className="mx-auto max-w-7xl">
           <h2 id="broker-sold-heading" className="text-2xl font-bold tracking-tight text-primary">
             Recent Sales
           </h2>
-          <p className="mt-6 text-[var(--muted-foreground)]">No recent sales to display.</p>
+          <p className="mt-6 text-muted-foreground">No recent sales to display.</p>
         </div>
       </section>
     )
@@ -46,7 +46,7 @@ export default function BrokerSoldHistory({ brokerFirstName, soldListings }: Pro
       : `${soldListings.length} sales (24 mo)`
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-sold-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-sold-heading">
       <div className="mx-auto max-w-7xl">
         <TilesSlider
           title="Recent Sales"
@@ -59,13 +59,13 @@ export default function BrokerSoldHistory({ brokerFirstName, soldListings }: Pro
               <TilesSliderItem key={String(key)} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                 <Link
                   href={`/listing/${key}`}
-                  className="block h-full rounded-lg border border-[var(--border)] bg-[var(--muted)] p-4 transition hover:shadow-md"
+                  className="block h-full rounded-lg border border-border bg-muted p-4 transition hover:shadow-md"
                   onClick={() => trackEvent('view_listing', { context: 'broker_sold_history', listing_key: String(key) })}
                 >
                   <p className="font-semibold text-primary">
                     {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ')} {listing.City}
                   </p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Sold {formatPrice(listing.ClosePrice)} · {formatDate(listing.CloseDate)}
                   </p>
                 </Link>

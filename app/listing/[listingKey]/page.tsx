@@ -518,7 +518,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
       />
 
       {/* Top bar: back to search (when from search) + All listings + prev/next with thumbnails */}
-      <header className="sticky top-0 z-30 border-b border-border bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <BackToSearchLink returnUrl={returnUrl ?? undefined} />
@@ -551,7 +551,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
             {areaSearchHref && !subdivision && (
               <Link
                 href={areaSearchHref}
-                className="mb-6 flex overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow"
+                className="mb-6 flex overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow"
               >
                 {areaBannerUrl ? (
                   <img
@@ -587,10 +587,10 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
                   <span
                     className={`mt-2 inline-block rounded-full px-3 py-1 text-sm font-medium ${
                       String(fields.StandardStatus).toLowerCase().includes('pending')
-                        ? 'bg-yellow-500/15 text-yellow-500'
+                        ? 'bg-warning/15 text-warning'
                         : String(fields.StandardStatus).toLowerCase().includes('closed')
                           ? 'bg-border text-muted-foreground'
-                          : 'bg-green-500/15 text-green-500'
+                          : 'bg-success/15 text-success'
                     }`}
                   >
                     {String(fields.StandardStatus).trim() || 'Active'}
@@ -633,7 +633,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
 
             {/* 3. Key facts strip — with icons (beds, baths, sq ft, lot, year built, days on market) */}
             {(keyFacts.beds != null || keyFacts.baths != null || keyFacts.sqFt != null || keyFacts.lotAcres != null || keyFacts.yearBuilt != null || keyFacts.daysOnMarket != null) && (
-              <div className="mb-8 grid grid-cols-2 gap-4 rounded-lg border border-border bg-white px-6 py-4 shadow-sm sm:flex sm:flex-wrap sm:gap-6">
+              <div className="mb-8 grid grid-cols-2 gap-4 rounded-lg border border-border bg-card px-6 py-4 shadow-sm sm:flex sm:flex-wrap sm:gap-6">
                 {keyFacts.beds != null && Number.isFinite(keyFacts.beds) && (
                   <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
@@ -729,7 +729,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
 
             {/* 5. Property Description — full copy before details per audit */}
             {(fields.PublicRemarks ?? fields.PrivateRemarks) && (
-              <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm">
+              <section className="mb-8 rounded-lg border border-border bg-card p-6 shadow-sm">
                 <h2 className="mb-3 text-lg font-semibold text-foreground">Property description</h2>
                 <p className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground">{String(fields.PublicRemarks ?? fields.PrivateRemarks).trim()}</p>
               </section>

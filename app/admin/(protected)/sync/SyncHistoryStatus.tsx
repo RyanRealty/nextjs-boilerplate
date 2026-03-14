@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { syncListingHistory } from '@/app/actions/sync-spark'
 import type { SyncHistoryResult } from '@/app/actions/sync-spark'
+import { Button } from "@/components/ui/button"
 
 const BATCH_LIMIT = 50
 
@@ -109,28 +110,28 @@ const SyncHistoryStatus = forwardRef<SyncHistoryStatusHandle>(function SyncHisto
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold text-foreground">Listing history</h2>
       <p className="mb-4 text-sm text-muted-foreground">
         Backfill price/status history from Spark into Supabase so listing pages and reports (CMAs, market analytics) don’t call the API. Run after listing sync.
       </p>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <button
+        <Button
           type="button"
           onClick={handleStart}
           disabled={status === 'running'}
           className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {status === 'running' ? 'Syncing history…' : 'Sync history'}
-        </button>
+        </Button>
         {status === 'running' && (
-          <button
+          <Button
             type="button"
             onClick={handleStop}
-            className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Stop
-          </button>
+          </Button>
         )}
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -171,7 +172,7 @@ const SyncHistoryStatus = forwardRef<SyncHistoryStatusHandle>(function SyncHisto
         <p className="mt-2 text-sm text-destructive">{error}</p>
       )}
       {sparkHint && (
-        <p className="mt-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-foreground">
+        <p className="mt-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-foreground">
           {sparkHint}
         </p>
       )}

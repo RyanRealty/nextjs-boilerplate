@@ -190,7 +190,7 @@ export default async function CityDetailPage({ params }: Props) {
   })()
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

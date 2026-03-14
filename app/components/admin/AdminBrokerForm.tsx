@@ -32,6 +32,10 @@ import {
   setBrokerIntroVideoFromGenerated,
   type BrokerGeneratedMediaRow,
 } from '@/app/actions/broker-generated-media'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   broker: BrokerRow
@@ -453,26 +457,26 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
   }
 
   return (
-    <div className={`space-y-6 rounded-lg border border-border bg-white p-6 ${className}`}>
+    <div className={`space-y-6 rounded-lg border border-border bg-card p-6 ${className}`}>
       {message && (
-        <p className={`text-sm ${message.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}>
+        <p className={`text-sm ${message.type === 'ok' ? 'text-success' : 'text-destructive'}`}>
           {message.text}
         </p>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Display name <span className="text-destructive">*</span></span>
-          <input
+          <Input
             type="text"
             required
             value={form.display_name}
             onChange={(e) => setForm((f) => ({ ...f, display_name: e.target.value }))}
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Title <span className="text-destructive">*</span></span>
-          <input
+          <Input
             type="text"
             required
             value={form.title}
@@ -480,12 +484,12 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             placeholder="e.g. Principal Broker, Broker"
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
+        </Label>
       </div>
-      <label className="block">
+      <Label className="block">
         <span className="text-sm font-medium text-muted-foreground">Oregon license number <span className="text-destructive">*</span></span>
         <p className="mt-0.5 text-xs text-muted-foreground">Required for advertising compliance (Oregon Real Estate Agency).</p>
-        <input
+        <Input
           type="text"
           required
           value={form.license_number}
@@ -493,53 +497,53 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
           placeholder="e.g. 201206613"
           className="mt-1 block w-full max-w-xs rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-      </label>
-      <label className="block">
+      </Label>
+      <Label className="block">
         <span className="text-sm font-medium text-muted-foreground">Tagline</span>
-        <input
+        <Input
           type="text"
           value={form.tagline}
           onChange={(e) => setForm((f) => ({ ...f, tagline: e.target.value }))}
           placeholder="Short tagline for agent hero"
           className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-      </label>
-      <label className="block">
+      </Label>
+      <Label className="block">
         <span className="text-sm font-medium text-muted-foreground">Bio</span>
-        <textarea
+        <Textarea
           value={form.bio}
           onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
           rows={4}
           className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-      </label>
+      </Label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Specialties</span>
           <p className="mt-0.5 text-xs text-muted-foreground">Comma-separated, e.g. First-time buyers, Luxury, Land</p>
-          <input
+          <Input
             type="text"
             value={form.specialties}
             onChange={(e) => setForm((f) => ({ ...f, specialties: e.target.value }))}
             placeholder="First-time buyers, Luxury, Land"
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Designations</span>
           <p className="mt-0.5 text-xs text-muted-foreground">Comma-separated, e.g. CRS, GRI</p>
-          <input
+          <Input
             type="text"
             value={form.designations}
             onChange={(e) => setForm((f) => ({ ...f, designations: e.target.value }))}
             placeholder="CRS, GRI"
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
+        </Label>
       </div>
-      <label className="block">
+      <Label className="block">
         <span className="text-sm font-medium text-muted-foreground">Years of experience</span>
-        <input
+        <Input
           type="number"
           min={0}
           value={form.years_experience === '' ? '' : form.years_experience}
@@ -547,24 +551,24 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
           placeholder="e.g. 10"
           className="mt-1 block w-24 rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-      </label>
+      </Label>
       <div ref={headshotSectionRef} className="border-t border-border pt-4">
         <h3 className="text-sm font-semibold text-foreground">Headshot</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Upload a headshot or generate one with AI. Only the default photo is used on the site; you can save multiple and pick one.
         </p>
         {headshotGenerating && (
-          <div className="mt-4 flex items-center gap-4 rounded-lg border-2 border-yellow-500/40 bg-yellow-500/10 p-4" role="status" aria-live="polite">
-            <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" aria-hidden />
+          <div className="mt-4 flex items-center gap-4 rounded-lg border-2 border-warning/40 bg-warning/10 p-4" role="status" aria-live="polite">
+            <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-warning border-t-transparent" aria-hidden />
             <div>
               <p className="text-sm font-medium text-foreground">Generating professional headshot…</p>
-              <p className="text-xs text-yellow-500">This usually takes 1–2 minutes. Please wait — do not leave or refresh.</p>
+              <p className="text-xs text-warning">This usually takes 1–2 minutes. Please wait — do not leave or refresh.</p>
             </div>
           </div>
         )}
         {form.photo_url && (
           <div className="mt-3 flex items-start gap-4">
-            <button
+            <Button
               type="button"
               onClick={() => setHeadshotLightboxUrl(form.photo_url!)}
               className="relative flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
@@ -576,17 +580,17 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                 alt={`${broker.display_name} headshot`}
                 className="h-full w-full object-contain"
               />
-            </button>
+            </Button>
             <div className="min-w-0 flex-1 text-xs text-muted-foreground">
               Current default (shown on team/agent pages). Replace by uploading, generating with AI, or choosing a saved headshot below.
             </div>
           </div>
         )}
         {generatedPreviewUrl && (
-          <div ref={generatedPreviewRef} className="mt-4 rounded-lg border-2 border-green-500/40 bg-green-500/10/80 p-4">
-            <p className="text-sm font-medium text-green-500">Your new headshot — review and choose an action</p>
+          <div ref={generatedPreviewRef} className="mt-4 rounded-lg border-2 border-success/40 bg-success/10/80 p-4">
+            <p className="text-sm font-medium text-success">Your new headshot — review and choose an action</p>
             <div className="mt-3 flex flex-wrap items-start gap-4">
-              <button
+              <Button
                 type="button"
                 onClick={() => setHeadshotLightboxUrl(generatedPreviewUrl)}
                 className="relative flex h-44 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
@@ -598,36 +602,36 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   alt="Generated headshot — review before saving or setting as default"
                   className="h-full w-full object-contain"
                 />
-              </button>
+              </Button>
               <div className="flex flex-col gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={handleSetGeneratedAsDefault}
-                  className="rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500/85"
+                  className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-success/85"
                 >
                   Set as default (use on site)
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handleSaveGenerated}
-                  className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
                   Save for later
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => { setGeneratedPreviewUrl(null); setMessage(null); }}
-                  className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
                   Generate another
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => { setGeneratedPreviewUrl(null); setMessage(null); }}
-                  className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
                   Disregard (don’t save)
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -645,19 +649,19 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                       {/* eslint-disable-next-line @next/next/no-img-element -- Saved headshot from storage; dynamic URL in admin form */}
                       <img src={url} alt="Broker headshot" className="h-full w-full object-cover" />
                       {isDefault && (
-                        <span className="absolute bottom-0 left-0 right-0 bg-green-500 px-1 py-0.5 text-center text-[10px] font-medium text-white">
+                        <span className="absolute bottom-0 left-0 right-0 bg-success px-1 py-0.5 text-center text-[10px] font-medium text-white">
                           Default
                         </span>
                       )}
                     </div>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleSetSavedAsDefault(url)}
                       disabled={isDefault}
-                      className="rounded border border-border bg-white px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-default"
+                      className="rounded border border-border bg-card px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-60 disabled:cursor-default"
                     >
                       {isDefault ? 'Default' : 'Set as default'}
-                    </button>
+                    </Button>
                   </li>
                 )
               })}
@@ -669,23 +673,23 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             <p className="text-sm font-medium text-muted-foreground">1. Upload headshot</p>
             <p className="mt-0.5 text-xs text-muted-foreground">Choose an image file and click Upload to set it as the broker photo.</p>
             <div className="mt-3 flex flex-wrap items-end gap-3">
-              <label className="block">
+              <Label className="block">
                 <span className="sr-only">Headshot image</span>
-                <input
+                <Input
                   ref={headshotFileRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-green-500 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-green-500/85"
+                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-success file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-success/85"
                 />
-              </label>
-              <button
+              </Label>
+              <Button
                 type="button"
                 onClick={handleUploadHeadshot}
                 disabled={headshotUploading}
-                className="rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
+                className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-success/85 disabled:opacity-50"
               >
                 {headshotUploading ? 'Uploading…' : 'Upload headshot'}
-              </button>
+              </Button>
             </div>
           </div>
           <div className="rounded-lg border border-border bg-muted/50 p-4">
@@ -694,16 +698,16 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
               Choose a prompt, upload a source photo, then generate. The AI will create a headshot matching the prompt (e.g. studio, wardrobe, background). Takes 1–2 minutes. Then set as default, save, or generate another.
             </p>
             {replicateConfigured === false && (
-              <p className="mt-2 text-sm text-yellow-500">
-                Replicate not configured. Add <code className="rounded bg-yellow-500/15 px-1">REPLICATE_API_TOKEN</code> to <code className="rounded bg-yellow-500/15 px-1">.env.local</code> and restart the dev server (npm run dev).
+              <p className="mt-2 text-sm text-warning">
+                Replicate not configured. Add <code className="rounded bg-warning/15 px-1">REPLICATE_API_TOKEN</code> to <code className="rounded bg-warning/15 px-1">.env.local</code> and restart the dev server (npm run dev).
               </p>
             )}
             {replicateConfigured === true && (
-              <p className="mt-1 text-xs text-green-500">Replicate configured.</p>
+              <p className="mt-1 text-xs text-success">Replicate configured.</p>
             )}
             <div className="mt-4 space-y-3">
               <div className="flex flex-wrap items-center gap-3">
-                <label className="block">
+                <Label className="block">
                   <span className="mr-2 text-sm font-medium text-muted-foreground">Prompt</span>
                   <select
                     value={selectedPromptId}
@@ -718,25 +722,25 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                       </option>
                     ))}
                   </select>
-                </label>
-                <button
+                </Label>
+                <Button
                   type="button"
                   onClick={() => setPromptPreviewOpen((o) => !o)}
                   className="text-sm text-muted-foreground underline hover:text-foreground"
                 >
                   {promptPreviewOpen ? 'Hide prompt text' : 'View prompt text'}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => {
                     setManagePromptsOpen((o) => !o)
                     setPromptMessage(null)
                     if (!managePromptsOpen) loadPrompts()
                   }}
-                  className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                  className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
                   {managePromptsOpen ? 'Close manage prompts' : 'Manage prompts'}
-                </button>
+                </Button>
               </div>
               <p id="prompt-select-help" className="text-xs text-muted-foreground">
                 The selected prompt is sent to the AI. Use &quot;Manage prompts&quot; to add, edit, or delete custom prompts. Use <code className="rounded bg-border px-1">[GENDER]</code> in custom prompts to insert Male/Female.
@@ -751,13 +755,13 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
               })()}
             </div>
             {managePromptsOpen && (
-              <div className="mt-4 rounded-lg border border-border bg-white p-4">
+              <div className="mt-4 rounded-lg border border-border bg-card p-4">
                 <p className="text-sm font-semibold text-foreground">Manage prompts</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Add custom prompts or edit saved ones. The default prompt is read-only; duplicate it to create an editable copy.
                 </p>
                 {promptMessage && (
-                  <p className={`mt-2 text-sm ${promptMessage.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}>
+                  <p className={`mt-2 text-sm ${promptMessage.type === 'ok' ? 'text-success' : 'text-destructive'}`}>
                     {promptMessage.text}
                   </p>
                 )}
@@ -767,98 +771,98 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                       <span className="font-medium text-foreground">{p.name}</span>
                       {p.isDefault && <span className="rounded bg-border px-1.5 py-0.5 text-xs text-muted-foreground">Built-in</span>}
                       {p.isDefault ? (
-                        <button
+                        <Button
                           type="button"
                           onClick={handleDuplicateDefault}
                           disabled={promptsLoading}
-                          className="text-sm text-green-500 hover:underline disabled:opacity-50"
+                          className="text-sm text-success hover:underline disabled:opacity-50"
                         >
                           Duplicate to edit
-                        </button>
+                        </Button>
                       ) : editingPromptId === p.id ? (
                         <>
-                          <button type="button" onClick={handleUpdatePrompt} disabled={promptsLoading} className="text-sm text-green-500 hover:underline disabled:opacity-50">Save</button>
-                          <button type="button" onClick={() => { setEditingPromptId(null); setEditingPromptForm({ name: '', body: '' }); }} className="text-sm text-muted-foreground hover:underline">Cancel</button>
-                          <button type="button" onClick={() => handleDeletePrompt(p.id)} disabled={promptsLoading} className="text-sm text-destructive hover:underline disabled:opacity-50">Delete</button>
+                          <Button type="button" onClick={handleUpdatePrompt} disabled={promptsLoading} className="text-sm text-success hover:underline disabled:opacity-50">Save</Button>
+                          <Button type="button" onClick={() => { setEditingPromptId(null); setEditingPromptForm({ name: '', body: '' }); }} className="text-sm text-muted-foreground hover:underline">Cancel</Button>
+                          <Button type="button" onClick={() => handleDeletePrompt(p.id)} disabled={promptsLoading} className="text-sm text-destructive hover:underline disabled:opacity-50">Delete</Button>
                         </>
                       ) : (
                         <>
-                          <button type="button" onClick={() => startEditingPrompt(p)} className="text-sm text-green-500 hover:underline">Edit</button>
-                          <button type="button" onClick={() => handleDeletePrompt(p.id)} disabled={promptsLoading} className="text-sm text-destructive hover:underline disabled:opacity-50">Delete</button>
+                          <Button type="button" onClick={() => startEditingPrompt(p)} className="text-sm text-success hover:underline">Edit</Button>
+                          <Button type="button" onClick={() => handleDeletePrompt(p.id)} disabled={promptsLoading} className="text-sm text-destructive hover:underline disabled:opacity-50">Delete</Button>
                         </>
                       )}
                     </li>
                   ))}
                 </ul>
                 {editingPromptId && (
-                  <div className="mt-4 rounded border border-green-500/30 bg-green-500/10/50 p-4">
+                  <div className="mt-4 rounded border border-success/30 bg-success/10/50 p-4">
                     <p className="text-sm font-medium text-foreground">Edit prompt</p>
-                    <label className="mt-2 block">
+                    <Label className="mt-2 block">
                       <span className="text-xs text-muted-foreground">Name</span>
-                      <input
+                      <Input
                         type="text"
                         value={editingPromptForm.name}
                         onChange={(e) => setEditingPromptForm((f) => ({ ...f, name: e.target.value }))}
                         className="mt-0.5 block w-full max-w-md rounded border border-border px-2 py-1.5 text-sm"
                         placeholder="e.g. Outdoor casual"
                       />
-                    </label>
-                    <label className="mt-2 block">
+                    </Label>
+                    <Label className="mt-2 block">
                       <span className="text-xs text-muted-foreground">Prompt text (use [GENDER] for Male/Female)</span>
-                      <textarea
+                      <Textarea
                         value={editingPromptForm.body}
                         onChange={(e) => setEditingPromptForm((f) => ({ ...f, body: e.target.value }))}
                         rows={8}
                         className="mt-0.5 block w-full rounded border border-border px-2 py-1.5 text-sm font-mono"
                         placeholder="Professional headshot..."
                       />
-                    </label>
+                    </Label>
                   </div>
                 )}
                 <div className="mt-4 rounded border border-border bg-muted/50 p-4">
                   <p className="text-sm font-medium text-foreground">Add new prompt</p>
-                  <label className="mt-2 block">
+                  <Label className="mt-2 block">
                     <span className="text-xs text-muted-foreground">Name</span>
-                    <input
+                    <Input
                       type="text"
                       value={newPromptForm.name}
                       onChange={(e) => setNewPromptForm((f) => ({ ...f, name: e.target.value }))}
                       className="mt-0.5 block w-full max-w-md rounded border border-border px-2 py-1.5 text-sm"
                       placeholder="e.g. Outdoor casual"
                     />
-                  </label>
-                  <label className="mt-2 block">
+                  </Label>
+                  <Label className="mt-2 block">
                     <span className="text-xs text-muted-foreground">Prompt text (use [GENDER] for Male/Female)</span>
-                    <textarea
+                    <Textarea
                       value={newPromptForm.body}
                       onChange={(e) => setNewPromptForm((f) => ({ ...f, body: e.target.value }))}
                       rows={8}
                       className="mt-0.5 block w-full rounded border border-border px-2 py-1.5 text-sm font-mono"
                       placeholder="Professional headshot, [GENDER] subject..."
                     />
-                  </label>
-                  <button
+                  </Label>
+                  <Button
                     type="button"
                     onClick={handleCreatePrompt}
                     disabled={promptsLoading}
-                    className="mt-3 rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-500/85 disabled:opacity-50"
+                    className="mt-3 rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white hover:bg-success/85 disabled:opacity-50"
                   >
                     {promptsLoading ? 'Saving…' : 'Save prompt'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-end gap-3">
-              <label className="block">
+              <Label className="block">
                 <span className="sr-only">Source photo</span>
-                <input
+                <Input
                   ref={aiSourceFileRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-green-500 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-green-500/85"
+                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-success file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-success/85"
                 />
-              </label>
-              <label className="flex items-center gap-2">
+              </Label>
+              <Label className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Subject:</span>
                 <select
                   ref={headshotGenderRef}
@@ -868,15 +872,15 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
-              </label>
-              <button
+              </Label>
+              <Button
                 type="button"
                 onClick={handleGenerateHeadshot}
                 disabled={headshotGenerating}
-                className="rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
+                className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-success/85 disabled:opacity-50"
               >
                 {headshotGenerating ? 'Generating…' : 'Generate professional headshot'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -896,36 +900,36 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             <p className="text-sm font-medium text-muted-foreground">Upload intro video</p>
             <p className="mt-0.5 text-xs text-muted-foreground">MP4 or WebM. Stored in broker storage and set as hero video.</p>
             <div className="mt-3 flex flex-wrap items-end gap-3">
-              <label className="block">
+              <Label className="block">
                 <span className="sr-only">Intro video file</span>
-                <input
+                <Input
                   ref={introVideoFileRef}
                   type="file"
                   accept="video/mp4,video/webm"
-                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-green-500 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-green-500/85"
+                  className="block w-full max-w-xs text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-success file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white file:hover:bg-success/85"
                 />
-              </label>
-              <button
+              </Label>
+              <Button
                 type="button"
                 onClick={handleUploadIntroVideo}
                 disabled={introVideoUploading}
-                className="rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
+                className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-success/85 disabled:opacity-50"
               >
                 {introVideoUploading ? 'Uploading…' : 'Upload intro video'}
-              </button>
+              </Button>
             </div>
           </div>
-          <label className="block">
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">Intro video URL</span>
             <p className="mt-0.5 text-xs text-muted-foreground">Or paste a URL (e.g. from Vimeo, YouTube embed, or direct MP4/WebM). Save changes below to apply.</p>
-            <input
+            <Input
               type="url"
               value={form.intro_video_url}
               onChange={(e) => setForm((f) => ({ ...f, intro_video_url: e.target.value }))}
               placeholder="https://..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
+          </Label>
         </div>
 
         {synthesiaConfigured === true && (
@@ -934,17 +938,17 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             <p className="mt-0.5 text-xs text-muted-foreground">
               Create an AI avatar video with a default prompt. Use <code className="rounded bg-border px-0.5">[Broker Name]</code> in the script and it will be replaced with this broker&apos;s name.
             </p>
-            <label className="mt-3 block">
+            <Label className="mt-3 block">
               <span className="text-xs font-medium text-muted-foreground">Script</span>
-              <textarea
+              <Textarea
                 value={synthesiaPrompt}
                 onChange={(e) => setSynthesiaPrompt(e.target.value)}
                 rows={4}
                 placeholder={DEFAULT_INTRO_PROMPT}
                 className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
-            </label>
-            <label className="mt-3 block">
+            </Label>
+            <Label className="mt-3 block">
               <span className="text-xs font-medium text-muted-foreground">Avatar</span>
               <select
                 value={synthesiaAvatarId}
@@ -957,25 +961,25 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   </option>
                 ))}
               </select>
-            </label>
+            </Label>
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2">
-                <input
+              <Label className="flex items-center gap-2">
+                <Input
                   type="checkbox"
                   checked={synthesiaSetAsIntro}
                   onChange={(e) => setSynthesiaSetAsIntro(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-green-500 focus:ring-accent"
+                  className="h-4 w-4 rounded border-border text-success focus:ring-accent"
                 />
                 <span className="text-sm text-muted-foreground">Set as intro video when done</span>
-              </label>
-              <button
+              </Label>
+              <Button
                 type="button"
                 onClick={handleGenerateSynthesiaVideo}
                 disabled={synthesiaGenerating}
-                className="rounded-lg bg-green-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
+                className="rounded-lg bg-success px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-success/85 disabled:opacity-50"
               >
                 {synthesiaGenerating ? 'Generating… (this may take a few minutes)' : 'Generate video'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -989,7 +993,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             <p className="mt-0.5 text-xs text-muted-foreground">Generated or uploaded media. Edit title, delete, or set a video as the intro.</p>
             <ul className="mt-3 space-y-3">
               {generatedMedia.map((m) => (
-                <li key={m.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-white p-3">
+                <li key={m.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
                   {m.type === 'video' ? (
                     <video src={m.url} className="h-20 w-32 rounded object-cover" muted playsInline />
                   ) : (
@@ -998,23 +1002,23 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   <div className="min-w-0 flex-1">
                     {editingMediaId === m.id ? (
                       <div className="flex flex-wrap items-center gap-2">
-                        <input
+                        <Input
                           type="text"
                           value={editingMediaTitle}
                           onChange={(e) => setEditingMediaTitle(e.target.value)}
                           placeholder="Title"
                           className="rounded border border-border px-2 py-1 text-sm"
                         />
-                        <button
+                        <Button
                           type="button"
                           onClick={() => handleUpdateGeneratedMediaTitle(m.id, editingMediaTitle)}
-                          className="text-sm text-green-500 hover:underline"
+                          className="text-sm text-success hover:underline"
                         >
                           Save
-                        </button>
-                        <button type="button" onClick={() => { setEditingMediaId(null); setEditingMediaTitle('') }} className="text-sm text-muted-foreground hover:underline">
+                        </Button>
+                        <Button type="button" onClick={() => { setEditingMediaId(null); setEditingMediaTitle('') }} className="text-sm text-muted-foreground hover:underline">
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       <p className="text-sm font-medium text-foreground">{m.title || (m.type === 'video' ? 'Video' : 'Photo')}</p>
@@ -1023,30 +1027,30 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {editingMediaId !== m.id && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => { setEditingMediaId(m.id); setEditingMediaTitle(m.title || '') }}
                         className="text-sm text-muted-foreground hover:underline"
                       >
                         Edit title
-                      </button>
+                      </Button>
                     )}
                     {m.type === 'video' && form.intro_video_url !== m.url && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleSetGeneratedAsIntro(m.id)}
-                        className="text-sm text-green-500 hover:underline"
+                        className="text-sm text-success hover:underline"
                       >
                         Set as intro
-                      </button>
+                      </Button>
                     )}
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleDeleteGeneratedMedia(m.id)}
                       className="text-sm text-destructive hover:underline"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </li>
               ))}
@@ -1055,155 +1059,155 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
         )}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Photo URL</span>
           <p className="mt-0.5 text-xs text-muted-foreground">Or paste a URL to use an external image.</p>
-          <input
+          <Input
             type="url"
             value={form.photo_url}
             onChange={(e) => setForm((f) => ({ ...f, photo_url: e.target.value }))}
             placeholder="https://..."
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Email</span>
-          <input
+          <Input
             type="email"
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-        </label>
+        </Label>
       </div>
-      <label className="block">
+      <Label className="block">
         <span className="text-sm font-medium text-muted-foreground">Phone</span>
-        <input
+        <Input
           type="tel"
           value={form.phone}
           onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           className="mt-1 block w-full max-w-xs rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
-      </label>
+      </Label>
       <div className="border-t border-border pt-4">
         <h3 className="text-sm font-semibold text-foreground">Review links</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Add your Google and Zillow review page URLs so they appear on your public profile.
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <label className="block">
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">Google reviews URL</span>
-            <input
+            <Input
               type="url"
               value={form.google_review_url}
               onChange={(e) => setForm((f) => ({ ...f, google_review_url: e.target.value }))}
               placeholder="https://g.page/... or Google Business profile link"
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
-          <label className="block">
+          </Label>
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">Zillow reviews URL</span>
-            <input
+            <Input
               type="url"
               value={form.zillow_review_url}
               onChange={(e) => setForm((f) => ({ ...f, zillow_review_url: e.target.value }))}
               placeholder="https://www.zillow.com/..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
+          </Label>
         </div>
       </div>
       <div className="border-t border-border pt-4">
         <h3 className="text-sm font-semibold text-foreground">Social links</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">Profile URLs for Instagram, Facebook, LinkedIn, YouTube, TikTok. Shown on public agent page when set.</p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <label className="block">
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">Instagram</span>
-            <input
+            <Input
               type="url"
               value={form.social_instagram}
               onChange={(e) => setForm((f) => ({ ...f, social_instagram: e.target.value }))}
               placeholder="https://instagram.com/..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
-          <label className="block">
+          </Label>
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">Facebook</span>
-            <input
+            <Input
               type="url"
               value={form.social_facebook}
               onChange={(e) => setForm((f) => ({ ...f, social_facebook: e.target.value }))}
               placeholder="https://facebook.com/..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
-          <label className="block">
+          </Label>
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">LinkedIn</span>
-            <input
+            <Input
               type="url"
               value={form.social_linkedin}
               onChange={(e) => setForm((f) => ({ ...f, social_linkedin: e.target.value }))}
               placeholder="https://linkedin.com/in/..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
-          <label className="block">
+          </Label>
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">YouTube</span>
-            <input
+            <Input
               type="url"
               value={form.social_youtube}
               onChange={(e) => setForm((f) => ({ ...f, social_youtube: e.target.value }))}
               placeholder="https://youtube.com/..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
-          <label className="block">
+          </Label>
+          <Label className="block">
             <span className="text-sm font-medium text-muted-foreground">TikTok</span>
-            <input
+            <Input
               type="url"
               value={form.social_tiktok}
               onChange={(e) => setForm((f) => ({ ...f, social_tiktok: e.target.value }))}
               placeholder="https://tiktok.com/@..."
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </label>
+          </Label>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-6 border-t border-border pt-4">
-        <label className="flex items-center gap-2">
-          <input
+        <Label className="flex items-center gap-2">
+          <Input
             type="checkbox"
             checked={form.is_active}
             onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
-            className="h-4 w-4 rounded border-border text-green-500 focus:ring-accent"
+            className="h-4 w-4 rounded border-border text-success focus:ring-accent"
           />
           <span className="text-sm font-medium text-muted-foreground">Active (visible on team page)</span>
-        </label>
-        <label className="flex items-center gap-2">
+        </Label>
+        <Label className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Sort order</span>
-          <input
+          <Input
             type="number"
             min={0}
             value={form.sort_order}
             onChange={(e) => setForm((f) => ({ ...f, sort_order: Number(e.target.value) || 0 }))}
             className="w-20 rounded-lg border border-border px-2 py-1.5 text-foreground"
           />
-        </label>
+        </Label>
       </div>
       <div className="flex gap-3">
-        <button
+        <Button
           type="button"
           onClick={() => handleSubmit()}
           disabled={loading}
-          className="rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
+          className="rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-success/85 disabled:opacity-50"
         >
           {loading ? 'Saving…' : 'Save changes'}
-        </button>
+        </Button>
         <a
           href={`/agents/${broker.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
+          className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
         >
           View agent page
         </a>
@@ -1211,18 +1215,18 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
           href={`/team/${broker.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
+          className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"
         >
           View team page
         </a>
-        <button
+        <Button
           type="button"
           onClick={handleRemove}
           disabled={loading}
-          className="rounded-lg border border-destructive/30 bg-white px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          className="rounded-lg border border-destructive/30 bg-card px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
         >
           Remove broker
-        </button>
+        </Button>
       </div>
 
       {/* Full-size headshot lightbox */}
@@ -1234,14 +1238,14 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
           aria-label="Headshot full size"
           onClick={() => setHeadshotLightboxUrl(null)}
         >
-          <button
+          <Button
             type="button"
             onClick={() => setHeadshotLightboxUrl(null)}
-            className="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-foreground shadow hover:bg-white"
+            className="absolute right-4 top-4 rounded-full bg-card/90 p-2 text-foreground shadow hover:bg-card"
             aria-label="Close"
           >
             <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
-          </button>
+          </Button>
           <div
             className="max-h-[90vh] max-w-[90vw] overflow-auto"
             onClick={(e) => e.stopPropagation()}

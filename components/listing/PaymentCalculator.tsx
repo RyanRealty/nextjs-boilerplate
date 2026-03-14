@@ -2,6 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import { trackEvent } from '@/lib/tracking'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   listPrice: number
@@ -49,80 +52,80 @@ export default function PaymentCalculator({ listPrice, taxAmount, associationFee
       <h2 className="text-xl font-semibold text-primary">Estimated Monthly Payment</h2>
       <p className="text-3xl font-bold text-accent-foreground">
         ${total.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-        <span className="text-lg font-normal text-[var(--muted-foreground)]">/mo</span>
+        <span className="text-lg font-normal text-muted-foreground">/mo</span>
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <label className="flex flex-col gap-1">
+        <Label className="flex flex-col gap-1">
           <span className="text-primary">Purchase price</span>
-          <input
+          <Input
             type="number"
             value={price}
             onChange={(e) => { setPrice(Number(e.target.value) || 0); handleInteract() }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-primary"
+            className="rounded-lg border border-border px-3 py-2 text-primary"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-primary">Down payment %</span>
-          <input
+          <Input
             type="number"
             min={0}
             max={100}
             value={downPct}
             onChange={(e) => { setDownPct(Number(e.target.value) || 0); handleInteract() }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-primary"
+            className="rounded-lg border border-border px-3 py-2 text-primary"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-primary">Interest rate %</span>
-          <input
+          <Input
             type="number"
             step={0.1}
             value={rate}
             onChange={(e) => { setRate(Number(e.target.value) || 0); handleInteract() }}
-            className="rounded-lg border border-[var(--border)] px-3 py-2 text-primary"
+            className="rounded-lg border border-border px-3 py-2 text-primary"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-primary">Loan term</span>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => { setTermYears(30); handleInteract() }}
-              className={`flex-1 rounded-lg border px-3 py-2 ${termYears === 30 ? 'border-accent bg-accent/10 text-primary' : 'border-[var(--border)] text-[var(--muted-foreground)]'}`}
+              className={`flex-1 rounded-lg border px-3 py-2 ${termYears === 30 ? 'border-accent bg-accent/10 text-primary' : 'border-border text-muted-foreground'}`}
             >
               30 yr
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => { setTermYears(15); handleInteract() }}
-              className={`flex-1 rounded-lg border px-3 py-2 ${termYears === 15 ? 'border-accent bg-accent/10 text-primary' : 'border-[var(--border)] text-[var(--muted-foreground)]'}`}
+              className={`flex-1 rounded-lg border px-3 py-2 ${termYears === 15 ? 'border-accent bg-accent/10 text-primary' : 'border-border text-muted-foreground'}`}
             >
               15 yr
-            </button>
+            </Button>
           </div>
-        </label>
+        </Label>
       </div>
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-[var(--muted-foreground)]">Principal & Interest</span>
+          <span className="text-muted-foreground">Principal & Interest</span>
           <span className="text-primary">${monthlyPandI.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-[var(--muted-foreground)]">Property Tax</span>
+          <span className="text-muted-foreground">Property Tax</span>
           <span className="text-primary">${monthlyTax.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         {monthlyHoa > 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-[var(--muted-foreground)]">HOA</span>
+            <span className="text-muted-foreground">HOA</span>
             <span className="text-primary">${monthlyHoa.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
-          <span className="text-[var(--muted-foreground)]">Home Insurance</span>
+          <span className="text-muted-foreground">Home Insurance</span>
           <span className="text-primary">${monthlyInsurance.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
       </div>
-      <div className="h-3 flex rounded-full overflow-hidden bg-[var(--border)]" role="presentation">
+      <div className="h-3 flex rounded-full overflow-hidden bg-border" role="presentation">
         <div
           className="bg-accent"
           style={{ width: `${(monthlyPandI / total) * 100}%` }}
@@ -133,12 +136,12 @@ export default function PaymentCalculator({ listPrice, taxAmount, associationFee
         />
         {monthlyHoa > 0 && (
           <div
-            className="bg-[var(--muted-foreground)]"
+            className="bg-muted-foreground"
             style={{ width: `${(monthlyHoa / total) * 100}%` }}
           />
         )}
         <div
-          className="bg-[var(--muted-foreground)]"
+          className="bg-muted-foreground"
           style={{ width: `${(monthlyInsurance / total) * 100}%` }}
         />
       </div>

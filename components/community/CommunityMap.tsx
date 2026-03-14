@@ -12,6 +12,7 @@ import {
   MAP_LABEL_LISTING,
   MAP_LABEL_CITY,
 } from '@/lib/map-constants'
+import { Button } from "@/components/ui/button"
 
 type GeoJSONPolygon = {
   type: 'Polygon'
@@ -131,8 +132,8 @@ export default function CommunityMap({
     [placeSearchQuery]
   )
 
-  if (loadError) return <div className="h-[400px] rounded-lg bg-[var(--muted)] flex items-center justify-center text-[var(--muted-foreground)]">Map failed to load.</div>
-  if (!isLoaded) return <div className="h-[400px] rounded-lg bg-[var(--muted)] animate-pulse" />
+  if (loadError) return <div className="h-[400px] rounded-lg bg-muted flex items-center justify-center text-muted-foreground">Map failed to load.</div>
+  if (!isLoaded) return <div className="h-[400px] rounded-lg bg-muted animate-pulse" />
 
   return (
     <section className="bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-map-heading">
@@ -200,10 +201,10 @@ export default function CommunityMap({
                   <p className="font-semibold text-primary">
                     {[infoListing.StreetNumber, infoListing.StreetName].filter(Boolean).join(' ')}
                   </p>
-                  <p className="text-sm text-[var(--muted-foreground)]">
+                  <p className="text-sm text-muted-foreground">
                     {formatPrice(infoListing.ListPrice)} · {infoListing.BedroomsTotal} bed · {infoListing.BathroomsTotal} bath
                   </p>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       const k = infoListing.ListingKey ?? infoListing.ListNumber
@@ -212,7 +213,7 @@ export default function CommunityMap({
                     className="mt-2 text-sm font-semibold text-accent-foreground hover:underline"
                   >
                     View listing
-                  </button>
+                  </Button>
                 </div>
               </InfoWindow>
             )}

@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateGeoPlace } from '@/app/actions/geo-places'
 import type { GeoPlaceRow } from '@/app/actions/geo-places'
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 export default function AssignCommunity({
   cities,
@@ -37,7 +39,7 @@ export default function AssignCommunity({
       <h2 className="font-semibold text-foreground">Assign community to neighborhood</h2>
       <p className="mt-1 text-sm text-muted-foreground">Set a community&apos;s parent to a neighborhood or leave under city.</p>
       <div className="mt-3 flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1">
+        <Label className="flex flex-col gap-1">
           <span className="text-sm text-muted-foreground">Community</span>
           <select
             value={communityId}
@@ -49,8 +51,8 @@ export default function AssignCommunity({
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm text-muted-foreground">Neighborhood</span>
           <select
             value={neighborhoodId}
@@ -62,15 +64,15 @@ export default function AssignCommunity({
               <option key={n.id} value={n.id}>{n.name}</option>
             ))}
           </select>
-        </label>
-        <button
+        </Label>
+        <Button
           type="button"
           onClick={handleAssign}
           disabled={loading || !communityId}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-60"
         >
           {loading ? 'Saving…' : 'Assign'}
-        </button>
+        </Button>
       </div>
     </section>
   )

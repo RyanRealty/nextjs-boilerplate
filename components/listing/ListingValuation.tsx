@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import AuthModal from '@/components/auth/AuthModal'
 import { trackEvent } from '@/lib/tracking'
+import { Button } from "@/components/ui/button"
 
 type ValuationData = {
   estimatedValue: number
@@ -63,13 +64,13 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
 
   const confidenceColor =
     valuation.confidence === 'high'
-      ? 'text-green-500 bg-green-500/15'
+      ? 'text-success bg-success/15'
       : valuation.confidence === 'medium'
-        ? 'text-yellow-500 bg-yellow-500/15'
+        ? 'text-warning bg-warning/15'
         : 'text-muted-foreground bg-muted'
 
   return (
-    <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="valuation-heading">
+    <section className="mb-8 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="valuation-heading">
       <h2 id="valuation-heading" className="mb-4 text-lg font-semibold text-foreground">
         Estimated Value
       </h2>
@@ -94,14 +95,14 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
         How we calculate value
       </Link>
       <div className="mt-4">
-        <button
+        <Button
           type="button"
           onClick={handleDownload}
           disabled={downloading}
           className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-accent/90 disabled:opacity-70"
         >
           {downloading ? 'Preparing…' : 'Download Full Value Report'}
-        </button>
+        </Button>
         {!signedIn && (
           <p className="mt-2 text-xs text-muted-foreground">
             Sign in to download the full CMA PDF (lead magnet).

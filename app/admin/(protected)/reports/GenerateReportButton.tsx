@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { generateWeeklyMarketReport } from '@/app/actions/generate-market-report'
+import { Button } from "@/components/ui/button"
 
 type GenerateAction = typeof generateWeeklyMarketReport
 
@@ -22,17 +23,16 @@ export default function GenerateReportButton({ generateAction }: { generateActio
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         onClick={handleGenerate}
         disabled={loading}
-        className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary disabled:bg-muted-foreground disabled:cursor-not-allowed"
       >
         {loading ? 'Generating…' : 'Generate weekly report'}
-      </button>
+      </Button>
       {result && (
         <div
-          className={`mt-4 rounded-lg border p-4 text-sm ${result.ok ? 'border-border bg-muted text-foreground' : 'border-yellow-500/30 bg-yellow-500/10 text-foreground'}`}
+          className={`mt-4 rounded-lg border p-4 text-sm ${result.ok ? 'border-border bg-muted text-foreground' : 'border-warning/30 bg-warning/10 text-foreground'}`}
         >
           {result.ok ? (
             <>

@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import type { syncSparkListings } from '@/app/actions/sync-spark'
 import type { SyncSparkResult } from '@/app/actions/sync-spark'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 const CHUNK_PAGES = 20
 const PAGE_SIZE = 100
@@ -115,10 +118,10 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
+        <Label className="flex cursor-pointer items-center gap-2">
+          <Input
             type="checkbox"
             checked={insertOnlyMode}
             onChange={(e) => setInsertOnlyMode(e.target.checked)}
@@ -126,9 +129,9 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
             className="rounded border-border"
           />
           <span className="text-sm text-muted-foreground">New only (faster — skip updating existing rows)</span>
-        </label>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
+        </Label>
+        <Label className="flex cursor-pointer items-center gap-2">
+          <Input
             type="checkbox"
             checked={autoStartHistorySync}
             onChange={(e) => setAutoStartHistorySync(e.target.checked)}
@@ -136,23 +139,23 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
             className="rounded border-border"
           />
           <span className="text-sm text-muted-foreground">Start history sync when listing sync completes</span>
-        </label>
-        <button
+        </Label>
+        <Button
           type="button"
           onClick={handleStart}
           disabled={status === 'running'}
           className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           {status === 'running' ? 'Syncing…' : 'Start sync'}
-        </button>
+        </Button>
         {status === 'running' && (
-          <button
+          <Button
             type="button"
             onClick={handleStop}
-            className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Stop
-          </button>
+          </Button>
         )}
       </div>
 

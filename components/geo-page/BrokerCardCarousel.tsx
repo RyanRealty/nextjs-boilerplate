@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { BrokerRow } from '@/app/actions/brokers'
 import BrokerCardCompact from './BrokerCardCompact'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   brokers: BrokerRow[]
@@ -23,25 +24,27 @@ export default function BrokerCardCarousel({ brokers }: Props) {
     <div className="space-y-3">
       <BrokerCardCompact broker={current} />
       <div className="flex items-center justify-between">
-        <button
+        <Button
           type="button"
           onClick={prev}
-          className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-sm font-medium text-primary hover:bg-[var(--muted)]"
+          variant="outline"
+          size="sm"
           aria-label="Previous broker"
         >
           ← Previous
-        </button>
-        <span className="text-xs text-[var(--muted-foreground)]">
+        </Button>
+        <span className="text-xs text-muted-foreground">
           {index + 1} of {brokers.length}
         </span>
-        <button
+        <Button
           type="button"
           onClick={next}
-          className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-sm font-medium text-primary hover:bg-[var(--muted)]"
+          variant="outline"
+          size="sm"
           aria-label="Next broker"
         >
           Next →
-        </button>
+        </Button>
       </div>
     </div>
   )

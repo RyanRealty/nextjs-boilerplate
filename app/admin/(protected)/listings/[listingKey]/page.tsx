@@ -51,7 +51,7 @@ export default async function AdminListingDetailPage({ params }: Props) {
       </p>
 
       <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-border bg-white p-4">
+        <section className="rounded-lg border border-border bg-card p-4">
           <h2 className="text-lg font-semibold text-foreground">Sync info</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Listing key: <code className="rounded bg-muted px-1">{key}</code>
@@ -60,7 +60,7 @@ export default async function AdminListingDetailPage({ params }: Props) {
             Last modified: {listing.ModificationTimestamp ? new Date(listing.ModificationTimestamp).toLocaleString() : '—'}
           </p>
         </section>
-        <section className="rounded-lg border border-border bg-white p-4">
+        <section className="rounded-lg border border-border bg-card p-4">
           <h2 className="text-lg font-semibold text-foreground">Database summary</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Active: {counts.activeCount} · Total: {counts.totalListings}

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { startRefreshActivePending, runOneSyncChunk, getSyncStatus, setSyncAbortRequested } from '@/app/actions/sync-full-cron'
 import type { SyncCursor } from '@/app/actions/sync-full-cron'
+import { Button } from "@/components/ui/button"
 
 const CHUNK_DELAY_MS = 200
 
@@ -97,23 +98,23 @@ export default function RefreshActivePendingButton({ runInProgress = false, sync
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-3">
-        <button
+        <Button
           type="button"
           onClick={handleClick}
           disabled={buttonDisabled}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
         >
           {loading ? 'Refreshing…' : refreshRunningElsewhere ? 'Refresh in progress' : 'Refresh active & pending'}
-        </button>
+        </Button>
         {loading && (
-          <button
+          <Button
             type="button"
             onClick={handleStop}
             disabled={stopPending}
             className="rounded-lg border-2 border-destructive bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/15 disabled:opacity-50"
           >
             {stopPending ? 'Stopping…' : 'Stop'}
-          </button>
+          </Button>
         )}
         {refreshRunningElsewhere && (
           <span className="text-xs text-muted-foreground">Use Pause/Stop above to cancel.</span>
@@ -123,7 +124,7 @@ export default function RefreshActivePendingButton({ runInProgress = false, sync
         )}
       </div>
       {message && (
-        <span className={message.type === 'success' ? 'text-sm text-green-500' : 'text-sm text-destructive'}>
+        <span className={message.type === 'success' ? 'text-sm text-success' : 'text-sm text-destructive'}>
           {message.text}
         </span>
       )}

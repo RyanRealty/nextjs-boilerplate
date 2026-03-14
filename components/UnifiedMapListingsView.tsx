@@ -8,6 +8,8 @@ import ListingTile, { type ListingTileListing } from '@/components/ListingTile'
 import { MAP_DEFAULT_CENTER } from '@/lib/map-constants'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
 import type { GetListingsForMapOptions } from '@/app/actions/listings'
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const PER_PAGE = 20
 const SORT_OPTIONS = [
@@ -238,31 +240,30 @@ export default function UnifiedMapListingsView({
   return (
     <div className={`flex flex-col overflow-hidden ${containerClassName ?? 'h-[calc(100vh-4rem)]'}`}>
       {filterBar != null && (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-white px-4 py-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3">
           {filterBar}
         </div>
       )}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left: scrollable sidebar — fixed width, list scrolls */}
-        <div className="flex w-full flex-col min-h-0 border-r border-border bg-[var(--card)] md:w-[420px] lg:w-[480px] shrink-0">
-          <div className="shrink-0 border-b border-border bg-white px-4 py-3">
+        <div className="flex w-full flex-col min-h-0 border-r border-border bg-card md:w-[420px] lg:w-[480px] shrink-0">
+          <div className="shrink-0 border-b border-border bg-card px-4 py-3">
             <h2 className="text-lg font-semibold text-primary">{pageTitle}</h2>
             {bounds != null && (
-              <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {loading ? 'Loading…' : `${totalCount.toLocaleString()} result${totalCount !== 1 ? 's' : ''} in this area`}
               </p>
             )}
             {bounds == null && (
-              <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">Move or zoom the map to see listings in that area.</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Move or zoom the map to see listings in that area.</p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-[var(--muted-foreground)]">Sort:</span>
-              <select
-                className="rounded-lg border border-border bg-white px-2 py-1.5 text-sm text-[var(--foreground)]"
+              <span className="text-xs font-medium text-muted-foreground">Sort:</span>
+              <Select
                 value={sort}
-                onChange={(e) => {
-                  const v = e.target.value as typeof sort
-                  setSort(v)
+                onValueChange={(v) => {
+                  const value = v as typeof sort
+                  setSort(value)
                   if (bounds) {
                     setPage(1)
                     setLoading(true)
@@ -284,7 +285,7 @@ export default function UnifiedMapListingsView({
                       propertyType: propertyType ?? undefined,
                       limit: PER_PAGE,
                       offset: 0,
-                      sort: v,
+                      sort: value,
                     }).then(({ listings: rows, totalCount: total }) => {
                       setListings(rows)
                       setTotalCount(total)
@@ -293,17 +294,22 @@ export default function UnifiedMapListingsView({
                   }
                 }}
               >
-                {SORT_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto p-4">
             {loading && listings.length === 0 ? (
-              <p className="text-[var(--muted-foreground)]">Loading listings…</p>
+              <p className="text-muted-foreground">Loading listings…</p>
             ) : (
               <>
                 <ul className="space-y-4">
@@ -339,20 +345,20 @@ export default function UnifiedMapListingsView({
                 </ul>
                 {hasMore && (
                   <div className="mt-6 flex justify-center">
-                    <button
+                    <Button
                       type="button"
                       onClick={loadMore}
                       disabled={loadingMore}
-                      className="rounded-lg border border-border bg-white px-5 py-2.5 text-sm font-medium text-primary shadow-sm hover:bg-muted disabled:opacity-60"
+                      className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-primary shadow-sm hover:bg-muted disabled:opacity-60"
                     >
                       {loadingMore ? 'Loading…' : `Load more (${listings.length} of ${totalCount})`}
-                    </button>
+                    </Button>
                   </div>
                 )}
                 <div className="mt-6 flex justify-center">
                   <Link
                     href={basePath}
-                    className="rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
+                    className="rounded-lg bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
                   >
                     List view
                   </Link>

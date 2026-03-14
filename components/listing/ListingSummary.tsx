@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 
 export type ListingSummaryProps = {
   /** Last time listing was synced from Spark (our DB updated_at or ModificationTimestamp). Null when data is live from Spark. */
@@ -74,46 +75,46 @@ export default function ListingSummary({
       </h2>
       <div className="space-y-3 text-sm">
         {lastSyncedAt && (
-          <p className="text-[var(--muted-foreground)]">
-            Listing information current as of <span className="font-medium text-[var(--foreground)]">{formatTimestamp(lastSyncedAt)}</span>
-            <span className="ml-1 text-[var(--muted-foreground)]">({relativeTime(lastSyncedAt)})</span>
+          <p className="text-muted-foreground">
+            Listing information current as of <span className="font-medium text-foreground">{formatTimestamp(lastSyncedAt)}</span>
+            <span className="ml-1 text-muted-foreground">({relativeTime(lastSyncedAt)})</span>
           </p>
         )}
         {daysOnMarket != null && Number.isFinite(daysOnMarket) && (
-          <p className="text-[var(--muted-foreground)]">
-            <span className="font-medium text-[var(--foreground)]">{formatDaysOnMarket(daysOnMarket)}</span>
+          <p className="text-muted-foreground">
+            <span className="font-medium text-foreground">{formatDaysOnMarket(daysOnMarket)}</span>
           </p>
         )}
         {hasAnyEngagement && (
           <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <p className="text-[var(--muted-foreground)]">
-              <span className="font-medium text-[var(--foreground)]">{v.toLocaleString()}</span> view{v !== 1 ? 's' : ''}
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">{v.toLocaleString()}</span> view{v !== 1 ? 's' : ''}
             </p>
-            <p className="text-[var(--muted-foreground)]">
-              <span className="font-medium text-[var(--foreground)]">{s.toLocaleString()}</span> save{s !== 1 ? 's' : ''}
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">{s.toLocaleString()}</span> save{s !== 1 ? 's' : ''}
             </p>
-            <p className="text-[var(--muted-foreground)]">
-              <span className="font-medium text-[var(--foreground)]">{l.toLocaleString()}</span> like{l !== 1 ? 's' : ''}
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">{l.toLocaleString()}</span> like{l !== 1 ? 's' : ''}
             </p>
           </div>
         )}
         {hasMore && (
           <>
             {showMore ? (
-              <div className="space-y-1 border-t border-border pt-3 text-[var(--muted-foreground)]">
+              <div className="space-y-1 border-t border-border pt-3 text-muted-foreground">
                 {sourceName?.trim() && (
-                  <p>Source: <span className="font-medium text-[var(--foreground)]">{sourceName.trim()}</span></p>
+                  <p>Source: <span className="font-medium text-foreground">{sourceName.trim()}</span></p>
                 )}
               </div>
             ) : null}
-            <button
+            <Button
               type="button"
               onClick={() => setShowMore(!showMore)}
-              className="text-accent-foreground font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[0 0 0 3px rgba(212, 168, 83, 0.4)] focus:ring-offset-2 rounded"
+              className="text-accent-foreground font-medium hover:underline focus:outline-none rounded"
               aria-expanded={showMore}
             >
               {showMore ? 'Show less' : 'Show more'}
-            </button>
+            </Button>
           </>
         )}
       </div>

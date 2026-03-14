@@ -6,6 +6,9 @@ import { updateProfile } from '@/app/actions/profile'
 import { setBuyingPreferences } from '@/app/actions/buying-preferences'
 import type { Profile } from '@/app/actions/profile'
 import type { BuyingPreferences } from '@/app/actions/buying-preferences'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 type Props = {
   profile: Profile | null
@@ -54,22 +57,22 @@ export default function DashboardSettingsForm({ profile, buyingPrefs, userEmail 
 
   return (
     <div className="mt-8 space-y-10">
-      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Profile</h2>
         <form onSubmit={handleSaveProfile} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-muted-foreground">Display name</label>
-            <input
+            <Label htmlFor="displayName" className="block text-sm font-medium text-muted-foreground">Display name</Label>
+            <Input
               id="displayName"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-muted-foreground">Email</label>
-            <input
+            <Label htmlFor="email" className="block text-sm font-medium text-muted-foreground">Email</Label>
+            <Input
               id="email"
               type="email"
               value={userEmail}
@@ -79,86 +82,86 @@ export default function DashboardSettingsForm({ profile, buyingPrefs, userEmail 
             <p className="mt-0.5 text-xs text-muted-foreground">Linked to your account; change in your auth provider.</p>
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground">Phone</label>
-            <input
+            <Label htmlFor="phone" className="block text-sm font-medium text-muted-foreground">Phone</Label>
+            <Input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="defaultCity" className="block text-sm font-medium text-muted-foreground">Default city</label>
-            <input
+            <Label htmlFor="defaultCity" className="block text-sm font-medium text-muted-foreground">Default city</Label>
+            <Input
               id="defaultCity"
               type="text"
               value={defaultCity}
               onChange={(e) => setDefaultCity(e.target.value)}
               placeholder="e.g. Bend"
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={pending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {pending ? 'Saving…' : 'Save profile'}
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+      <section className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Buying preferences</h2>
         <p className="mt-1 text-sm text-muted-foreground">Used for personalized recommendations.</p>
         <form onSubmit={handleSaveBuying} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="maxPrice" className="block text-sm font-medium text-muted-foreground">Max price</label>
-            <input
+            <Label htmlFor="maxPrice" className="block text-sm font-medium text-muted-foreground">Max price</Label>
+            <Input
               id="maxPrice"
               type="number"
               min={0}
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               placeholder="e.g. 800000"
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="minBeds" className="block text-sm font-medium text-muted-foreground">Min bedrooms</label>
-            <input
+            <Label htmlFor="minBeds" className="block text-sm font-medium text-muted-foreground">Min bedrooms</Label>
+            <Input
               id="minBeds"
               type="number"
               min={0}
               value={minBeds}
               onChange={(e) => setMinBeds(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="minBaths" className="block text-sm font-medium text-muted-foreground">Min bathrooms</label>
-            <input
+            <Label htmlFor="minBaths" className="block text-sm font-medium text-muted-foreground">Min bathrooms</Label>
+            <Input
               id="minBaths"
               type="number"
               min={0}
               step={0.5}
               value={minBaths}
               onChange={(e) => setMinBaths(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
             />
           </div>
-          <button
+          <Button
             type="submit"
             disabled={pending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {pending ? 'Saving…' : 'Save preferences'}
-          </button>
+          </Button>
         </form>
       </section>
 
-      {message === 'success' && <p className="text-sm font-medium text-green-500" role="status">Saved.</p>}
+      {message === 'success' && <p className="text-sm font-medium text-success" role="status">Saved.</p>}
       {message === 'error' && <p className="text-sm font-medium text-destructive" role="alert">Something went wrong.</p>}
 
       <section className="rounded-lg border border-border bg-muted p-6">

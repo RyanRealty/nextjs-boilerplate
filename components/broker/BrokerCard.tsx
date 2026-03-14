@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { AgentForIndex } from '@/app/actions/agents'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import CardActionBar from '@/components/ui/CardActionBar'
 
 type Props = {
@@ -19,7 +20,7 @@ function formatVolume(n: number): string {
 }
 
 function StarRating({ rating, count }: { rating: number | null; count: number }) {
-  if (count === 0) return <span className="text-sm text-[var(--muted-foreground)]">No reviews yet</span>
+  if (count === 0) return <span className="text-sm text-muted-foreground">No reviews yet</span>
   const r = rating ?? 0
   const full = Math.floor(r)
   const half = r - full >= 0.5 ? 1 : 0
@@ -31,9 +32,9 @@ function StarRating({ rating, count }: { rating: number | null; count: number })
       ))}
       {half ? <span className="text-accent-foreground" aria-hidden>★</span> : null}
       {[...Array(empty)].map((_, i) => (
-        <span key={`e-${i}`} className="text-[var(--border)]" aria-hidden>★</span>
+        <span key={`e-${i}`} className="text-border" aria-hidden>★</span>
       ))}
-      <span className="ml-1 text-sm text-[var(--muted-foreground)]">
+      <span className="ml-1 text-sm text-muted-foreground">
         {r.toFixed(1)} ({count})
       </span>
     </span>
@@ -51,7 +52,7 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
     <Card className="relative overflow-hidden transition hover:shadow-md">
       <Link href={profileHref} className="block">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 sm:p-6">
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-[var(--muted)]">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-muted">
             {agent.photo_url ? (
               <Image
                 src={agent.photo_url}
@@ -61,7 +62,7 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
                 sizes="96px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--muted-foreground)]">
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-muted-foreground">
                 {agent.display_name.charAt(0)}
               </div>
             )}
@@ -69,18 +70,18 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
           <div className="min-w-0 flex-1">
             <h2 className="font-bold text-lg text-primary">{agent.display_name}</h2>
             {agent.title && (
-              <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">{agent.title}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{agent.title}</p>
             )}
             <div className="mt-2">
               <StarRating rating={agent.avgRating} count={agent.reviewCount} />
             </div>
             {agent.bio && (
-              <p className="mt-2 line-clamp-2 text-sm text-[var(--muted-foreground)]">{agent.bio}</p>
+              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{agent.bio}</p>
             )}
             {agent.license_number && (
-              <p className="mt-1 text-xs text-[var(--muted-foreground)]">License #{agent.license_number}</p>
+              <p className="mt-1 text-xs text-muted-foreground">License #{agent.license_number}</p>
             )}
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted-foreground)]">
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <span>{agent.activeCount} Active Listings</span>
               <span>{agent.soldCount24Mo} Sold (24mo)</span>
               <span>{formatVolume(agent.soldVolume24Mo)} Volume</span>
@@ -90,7 +91,7 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
                 {specialties.slice(0, 3).map((s) => (
                   <span
                     key={s}
-                    className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]"
+                    className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                   >
                     {s}
                   </span>
@@ -98,9 +99,9 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary hover:bg-accent/90">
+              <Button variant="default" className="text-sm">
                 View Profile
-              </span>
+              </Button>
               {agent.phone && (
                 <a
                   href={`tel:${agent.phone.replace(/\D/g, '')}`}

@@ -6,6 +6,7 @@ import type { SyncSparkResult, SyncHistoryResult, SyncPhotosResult } from '@/app
 import { recordSyncRun, refreshListingsBreakdown } from '@/app/actions/sync-history'
 import { updateSyncCursorAfterListingsComplete, updateSyncCursorToIdle } from '@/app/actions/sync-full-cron'
 import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
 
 const LISTING_CHUNK_PAGES = 20
 const LISTING_PAGE_SIZE = 100
@@ -237,7 +238,7 @@ export default function SyncAllButtons() {
   const photosRunning = photosState === 'running'
 
   return (
-    <div className="rounded-lg border-2 border-border bg-white p-6 shadow-sm">
+    <div className="rounded-lg border-2 border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Sync</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Sync all listings from Spark, or all listing history. Safe to run multiple times.
@@ -245,60 +246,60 @@ export default function SyncAllButtons() {
 
       <div className="mt-4 flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => runAllListings()}
             disabled={listingsRunning || historyRunning || photosRunning}
-            className="rounded-lg bg-green-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-500/75 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success/75 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {listingsRunning ? 'Syncing listings…' : 'Sync all listings'}
-          </button>
+          </Button>
           {listingsRunning && (
-            <button
+            <Button
               type="button"
               onClick={() => { listingsAbortRef.current = true }}
-              className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+              className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
             >
               Stop
-            </button>
+            </Button>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => runAllHistory()}
             disabled={listingsRunning || historyRunning || photosRunning}
             className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
             {historyRunning ? 'Syncing history…' : 'Sync all history'}
-          </button>
+          </Button>
           {historyRunning && (
-            <button
+            <Button
               type="button"
               onClick={() => { historyAbortRef.current = true }}
-              className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+              className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
             >
               Stop
-            </button>
+            </Button>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => runAllPhotos()}
             disabled={listingsRunning || historyRunning || photosRunning}
             className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {photosRunning ? 'Syncing photos…' : 'Sync photos only'}
-          </button>
+          </Button>
           {photosRunning && (
-            <button
+            <Button
               type="button"
               onClick={() => { photosAbortRef.current = true }}
-              className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+              className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
             >
               Stop
-            </button>
+            </Button>
           )}
         </div>
       </div>

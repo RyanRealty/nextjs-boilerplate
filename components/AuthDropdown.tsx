@@ -8,6 +8,8 @@ import { getSignInUrl, signInWithEmailPassword, signUpWithEmailPassword, signOut
 import type { AuthUser } from '@/app/actions/auth'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 type Props = { user: AuthUser | null }
 
@@ -96,7 +98,7 @@ export default function AuthDropdown({ user }: Props) {
     const avatarUrl = user.avatar_url ?? user.user_metadata?.avatar_url ?? user.user_metadata?.picture
     return (
       <div className="relative">
-        <button
+        <Button
           type="button"
           onClick={() => setOpen((o) => !o)}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -119,11 +121,11 @@ export default function AuthDropdown({ user }: Props) {
           )}
           <span className="hidden sm:inline">Welcome, {displayName.split(/\s+/)[0]}</span>
           <HugeiconsIcon icon={ArrowDown01Icon} className="h-4 w-4 text-muted-foreground" />
-        </button>
+        </Button>
         {open && (
           <>
             <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
-            <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-border bg-white py-2 shadow-md">
+            <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-border bg-card py-2 shadow-md">
               <p className="border-b border-border px-4 py-2 text-xs font-medium text-muted-foreground">Account</p>
               <Link
                 href="/account"
@@ -168,13 +170,13 @@ export default function AuthDropdown({ user }: Props) {
                 Buying preferences
               </Link>
               <div className="mt-1 border-t border-border pt-1">
-                <button
+                <Button
                   type="button"
                   onClick={handleSignOut}
                   className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
                 >
                   Sign out
-                </button>
+                </Button>
               </div>
             </div>
           </>
@@ -185,7 +187,7 @@ export default function AuthDropdown({ user }: Props) {
 
   return (
     <div className="relative">
-      <button
+      <Button
         type="button"
         onClick={() => { setOpen((o) => !o); setMode('choose'); setEmailError(null); }}
         className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -193,37 +195,37 @@ export default function AuthDropdown({ user }: Props) {
         aria-haspopup="true"
       >
         Sign in
-      </button>
+      </Button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-[280px] rounded-lg border border-border bg-white py-2 shadow-md">
+          <div className="absolute right-0 top-full z-50 mt-1 w-[280px] rounded-lg border border-border bg-card py-2 shadow-md">
             {mode === 'choose' && (
               <>
                 <p className="px-4 py-1 text-xs text-muted-foreground">Sign in with</p>
-                <button
+                <Button
                   type="button"
                   disabled={!!loading}
                   onClick={handleSignInGoogle}
                   className="flex w-full items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
                 >
                   {loading === 'google' ? '…' : 'Google'}
-                </button>
+                </Button>
                 <div className="my-2 border-t border-border" />
-                <button
+                <Button
                   type="button"
                   onClick={() => setMode('signin')}
                   className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
                 >
                   Email and password
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => setMode('signup')}
                   className="w-full px-4 py-1 text-left text-xs text-muted-foreground hover:bg-muted"
                 >
                   Create account
-                </button>
+                </Button>
               </>
             )}
             {(mode === 'signin' || mode === 'signup') && (
@@ -231,11 +233,11 @@ export default function AuthDropdown({ user }: Props) {
                 onSubmit={mode === 'signup' ? handleEmailSignUp : handleEmailSignIn}
                 className="px-4 py-2 space-y-2"
               >
-                <button type="button" onClick={() => { setMode('choose'); setEmailError(null); }} className="text-xs text-muted-foreground hover:text-muted-foreground">
+                <Button type="button" onClick={() => { setMode('choose'); setEmailError(null); }} className="text-xs text-muted-foreground hover:text-muted-foreground">
                   ← Back
-                </button>
+                </Button>
                 {mode === 'signup' && (
-                  <input
+                  <Input
                     type="text"
                     placeholder="Name (optional)"
                     value={fullName}
@@ -243,7 +245,7 @@ export default function AuthDropdown({ user }: Props) {
                     className="w-full rounded-lg border border-primary/20 px-3 py-2 text-sm text-foreground"
                   />
                 )}
-                <input
+                <Input
                   type="email"
                   placeholder="Email"
                   value={email}
@@ -251,7 +253,7 @@ export default function AuthDropdown({ user }: Props) {
                   className="w-full rounded-lg border border-primary/20 px-3 py-2 text-sm text-foreground"
                   autoComplete="email"
                 />
-                <input
+                <Input
                   type="password"
                   placeholder={mode === 'signup' ? 'Password (min 6)' : 'Password'}
                   value={password}
@@ -260,13 +262,13 @@ export default function AuthDropdown({ user }: Props) {
                   autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 />
                 {emailError && <p className="text-xs text-destructive">{emailError}</p>}
-                <button
+                <Button
                   type="submit"
                   disabled={!!loading}
                   className="w-full rounded-lg bg-foreground py-2 text-sm font-medium text-white hover:bg-muted-foreground disabled:opacity-50"
                 >
                   {loading === 'email' ? '…' : mode === 'signup' ? 'Create account' : 'Sign in'}
-                </button>
+                </Button>
               </form>
             )}
           </div>

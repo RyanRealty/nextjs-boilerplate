@@ -44,7 +44,7 @@ export default async function AdminGeoPage({
           Ensures country (US), state (Oregon), and cities from current listing cities.
         </p>
         <EnsureGeoButton />
-        {result?.ok && <p className="mt-2 text-sm text-green-500">Cities ensured: {result.citiesEnsured}</p>}
+        {result?.ok && <p className="mt-2 text-sm text-success">Cities ensured: {result.citiesEnsured}</p>}
       </section>
 
       <section className="mt-8">

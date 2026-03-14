@@ -76,7 +76,7 @@ export default async function ReportGeoPage({ params }: PageProps) {
   })
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-4xl">
           <nav className="mb-4 text-sm text-muted/80" aria-label="Breadcrumb">
@@ -90,7 +90,7 @@ export default async function ReportGeoPage({ params }: PageProps) {
           <p className="mt-2 text-muted/90">
             {periodStart} through {periodEnd}
           </p>
-          <div className="mt-4 inline-block rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white">
+          <div className="mt-4 inline-block rounded-full bg-card/20 px-4 py-2 text-sm font-medium text-white">
             {condition.label}
           </div>
         </div>
@@ -98,28 +98,28 @@ export default async function ReportGeoPage({ params }: PageProps) {
       <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {medianPrice != null && (
-            <div className="rounded-lg border border-border bg-[var(--card)] p-4 shadow-sm">
-              <p className="text-xs text-[var(--muted-foreground)]">Median Price</p>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs text-muted-foreground">Median Price</p>
               <p className="text-xl font-semibold text-primary">
                 ${medianPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
             </div>
           )}
           {currentListings != null && (
-            <div className="rounded-lg border border-border bg-[var(--card)] p-4 shadow-sm">
-              <p className="text-xs text-[var(--muted-foreground)]">Active Listings</p>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs text-muted-foreground">Active Listings</p>
               <p className="text-xl font-semibold text-primary">{currentListings}</p>
             </div>
           )}
           {medianDom != null && (
-            <div className="rounded-lg border border-border bg-[var(--card)] p-4 shadow-sm">
-              <p className="text-xs text-[var(--muted-foreground)]">Median DOM</p>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs text-muted-foreground">Median DOM</p>
               <p className="text-xl font-semibold text-primary">{medianDom} days</p>
             </div>
           )}
           {soldCount != null && (
-            <div className="rounded-lg border border-border bg-[var(--card)] p-4 shadow-sm">
-              <p className="text-xs text-[var(--muted-foreground)]">Sold (period)</p>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-xs text-muted-foreground">Sold (period)</p>
               <p className="text-xl font-semibold text-primary">{soldCount}</p>
             </div>
           )}
@@ -132,13 +132,13 @@ export default async function ReportGeoPage({ params }: PageProps) {
           >
             Download as PDF
           </TrackedReportDownloadLink>
-          <TrackedReportListingsLink className="inline-flex rounded-lg border border-primary/20 bg-[var(--card)] px-4 py-2.5 text-sm font-medium text-primary hover:bg-[var(--muted)]">
+          <TrackedReportListingsLink className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted">
             View Listings
           </TrackedReportListingsLink>
-          <TrackedReportExploreLink className="inline-flex rounded-lg border border-primary/20 bg-[var(--card)] px-4 py-2.5 text-sm font-medium text-primary hover:bg-[var(--muted)]">
+          <TrackedReportExploreLink className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted">
             Explore more data
           </TrackedReportExploreLink>
-          <TrackedReportValuationLink className="inline-flex rounded-lg border border-primary/20 bg-[var(--card)] px-4 py-2.5 text-sm font-medium text-primary hover:bg-[var(--muted)]">
+          <TrackedReportValuationLink className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted">
             What&apos;s Your Home Worth?
           </TrackedReportValuationLink>
         </div>

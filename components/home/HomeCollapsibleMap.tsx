@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   mapContent: React.ReactNode
@@ -18,15 +19,15 @@ export default function HomeCollapsibleMap({ mapContent, cityName, totalInCity, 
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6" aria-label="Explore on map">
-      <button
+      <Button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3.5 text-left text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
+        className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
         aria-expanded={!collapsed}
       >
         <span>Explore on map</span>
         <HugeiconsIcon icon={ArrowDown01Icon} className={`h-5 w-5 text-muted-foreground transition-transform ${collapsed ? '' : 'rotate-180'}`} aria-hidden />
-      </button>
+      </Button>
       {!collapsed && (
         <div className="mt-0 rounded-b-xl border border-t-0 border-border overflow-hidden shadow-md">
           {mapContent}

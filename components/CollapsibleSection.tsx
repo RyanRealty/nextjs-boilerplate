@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   id: string
@@ -39,7 +40,7 @@ export default function CollapsibleSection({ id, title, defaultOpen = true, chil
       className="border-b border-border last:border-b-0"
       aria-labelledby={`${id}-heading`}
     >
-      <button
+      <Button
         type="button"
         id={`${id}-heading`}
         onClick={() => setOpen((o) => !o)}
@@ -58,7 +59,7 @@ export default function CollapsibleSection({ id, title, defaultOpen = true, chil
         >
           <HugeiconsIcon icon={ArrowDown01Icon} className="h-5 w-5" />
         </span>
-      </button>
+      </Button>
       <div
         id={`${id}-content`}
         ref={contentRef}

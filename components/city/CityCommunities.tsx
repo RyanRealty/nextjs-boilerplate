@@ -11,7 +11,7 @@ export default function CityCommunities({ cityName, communities }: Props) {
   const resortFirst = [...communities].sort((a, b) => (b.isResort ? 1 : 0) - (a.isResort ? 1 : 0))
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="city-communities-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="city-communities-heading">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between gap-4">
           <h2 id="city-communities-heading" className="text-2xl font-bold tracking-tight text-primary">
@@ -24,9 +24,9 @@ export default function CityCommunities({ cityName, communities }: Props) {
             View All Communities
           </Link>
         </div>
-        <p className="mt-1 text-[var(--muted-foreground)]">{communities.length} communities</p>
+        <p className="mt-1 text-muted-foreground">{communities.length} communities</p>
         {communities.length === 0 ? (
-          <p className="mt-4 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-muted-foreground">
             No community data for {cityName} yet. Check back soon.
           </p>
         ) : (

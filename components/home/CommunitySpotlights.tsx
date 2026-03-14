@@ -46,7 +46,7 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
   return (
     <section
       ref={sectionRef}
-      className="bg-white px-4 py-12 sm:px-6 sm:py-16"
+      className="bg-card px-4 py-12 sm:px-6 sm:py-16"
       aria-labelledby="community-spotlights-heading"
     >
       <div className="mx-auto max-w-7xl">
@@ -81,16 +81,16 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
                       sizes="(max-width: 768px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary / 0.8)]" />
+                    <div className="h-full w-full bg-gradient-to-br from-primary to-primary/30" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-primary">{c.subdivisionName}</h3>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {(c.forSale ?? 0) + (c.pending ?? 0)} homes for sale
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-[var(--foreground)]">
+                  <p className="mt-0.5 text-sm font-medium text-foreground">
                     Median {formatPrice(c.medianListPrice)}
                   </p>
                 </div>

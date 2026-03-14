@@ -97,7 +97,7 @@ export default async function DashboardHistoryPage() {
                 if (!listing) return null
                 const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString().trim()
                 return (
-                  <li key={v.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-white p-3">
+                  <li key={v.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-3">
                     <Link href={`/listing/${key}`} className="font-medium text-foreground hover:underline">
                       {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ').trim() || listing.City || key}
                     </Link>

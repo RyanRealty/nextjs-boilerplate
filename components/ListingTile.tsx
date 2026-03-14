@@ -8,9 +8,11 @@ import type { HomeTileRow, ListingTileRow } from '@/app/actions/listings'
 import { isResortCommunity } from '@/lib/resort-communities'
 import { toggleSavedListing } from '@/app/actions/saved-listings'
 import { toggleLikeListing } from '@/app/actions/likes'
+import { cn } from '@/lib/utils'
 import CardActionBar from '@/components/ui/CardActionBar'
 import { useComparison } from '@/contexts/ComparisonContext'
 import CardBadges from '@/components/ui/CardBadges'
+import { Button } from '@/components/ui/button'
 import { getCanonicalSiteUrl, listingShareText } from '@/lib/share-metadata'
 import { trackListingTileClick } from '@/app/actions/track-listing-click'
 import { trackListingClick } from '@/lib/tracking'
@@ -38,9 +40,9 @@ function statusLabel(s: string | null | undefined): string {
 
 function statusColor(s: string | null | undefined): string {
   const t = (s ?? '').toLowerCase()
-  if (t.includes('pending')) return 'bg-yellow-500/15 text-yellow-500'
+  if (t.includes('pending')) return 'bg-warning/15 text-warning'
   if (t.includes('closed')) return 'bg-border text-muted-foreground'
-  return 'bg-green-500/15 text-green-500'
+  return 'bg-success/15 text-success'
 }
 
 /** Listing tile accepts full HomeTileRow or ListingTileRow (missing fields shown as empty). */
@@ -240,7 +242,7 @@ function ListingTile({
     <Link
       href={href}
       onClick={handleTileClick}
-      className="group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:border-border hover:shadow-md"
+      className="group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1"
     >
       {/* Photo / video area */}
       <div className="relative aspect-[4/3] bg-muted">
@@ -260,21 +262,21 @@ function ListingTile({
         )}
 
         {/* Compare toggle: top-right */}
-        <button
+        <Button
           type="button"
           onClick={handleCompareToggle}
           disabled={!inCompare && comparisonItems.length >= 4}
-          className={[
-            'absolute top-2 right-2 z-10 flex items-center justify-center rounded-full border-2 shadow-md transition disabled:opacity-40',
+          className={cn(
+            'absolute top-2 right-2 z-10 flex items-center justify-center rounded-full border-2 shadow-sm transition disabled:opacity-40',
             'h-8 w-8',
             inCompare
-              ? 'border-accent bg-accent text-primary'
+              ? 'border-accent bg-accent text-accent-foreground'
               : 'border-white/30 bg-black/40 text-white hover:bg-black/60',
-          ].join(' ')}
+          )}
           aria-label={inCompare ? 'Remove from comparison' : 'Add to comparison'}
         >
           <HugeiconsIcon icon={ArrowLeftRightIcon} className="h-4 w-4" />
-        </button>
+        </Button>
 
         {/* Smart badges: top-left — max 3, no wrap */}
         <CardBadges
@@ -304,10 +306,10 @@ function ListingTile({
       </div>
 
       {/* White content below photo: price row (price + action icons) and details */}
-      <div className="flex flex-1 flex-col bg-white p-4">
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex flex-nowrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-xl font-bold text-foreground">
+            <p className="text-xl font-semibold text-foreground">
               ${price > 0 ? price.toLocaleString() : '—'}
             </p>
             {monthlyPayment && (
@@ -384,33 +386,33 @@ function VideoSlider({ urls, address }: { urls: string[]; address: string }) {
       )}
       {urls.length > 1 && (
         <>
-          <button
+          <Button
             type="button"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
               setIndex((i) => (i - 1 + urls.length) % urls.length)
             }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-1.5 shadow"
+            className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-1.5 shadow-shadow-subtle"
             aria-label="Previous video"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
               setIndex((i) => (i + 1) % urls.length)
             }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-1.5 shadow"
+            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-1.5 shadow-shadow-subtle"
             aria-label="Next video"
           >
             <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
-          </button>
+          </Button>
           <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
             {urls.map((_, i) => (
-              <button
+              <Button
                 key={i}
                 type="button"
                 onClick={(e) => {
@@ -418,7 +420,7 @@ function VideoSlider({ urls, address }: { urls: string[]; address: string }) {
                   e.stopPropagation()
                   setIndex(i)
                 }}
-                className={`h-1.5 w-1.5 rounded-full ${i === index ? 'bg-white' : 'bg-white/50'}`}
+                className={`h-1.5 w-1.5 rounded-full ${i === index ? 'bg-card' : 'bg-card/50'}`}
                 aria-label={`Video ${i + 1}`}
               />
             ))}

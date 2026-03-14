@@ -30,7 +30,7 @@ export default async function CitiesPage() {
   const signedIn = !!session?.user
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

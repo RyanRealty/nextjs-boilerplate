@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { subscribeNewsletter } from '@/app/actions/home'
 import { trackEvent } from '@/lib/tracking'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 export default function EmailSignup() {
   const [email, setEmail] = useState('')
@@ -32,19 +35,19 @@ export default function EmailSignup() {
         <h2 id="email-signup-heading" className="text-2xl font-bold tracking-tight text-primary">
           Stay Ahead of the Market
         </h2>
-        <p className="mt-2 text-[var(--muted-foreground)]">
+        <p className="mt-2 text-muted-foreground">
           Get new listings, price drops, and market insights delivered to your inbox.
         </p>
         {status === 'success' ? (
-          <p className="mt-6 rounded-lg bg-[#22C55E]/20 px-4 py-3 text-primary font-medium">
+          <p className="mt-6 rounded-lg bg-success/20 px-4 py-3 text-success font-medium">
             You&apos;re in! Check your email for a welcome message.
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-            <label htmlFor="newsletter-email" className="sr-only">
+            <Label htmlFor="newsletter-email" className="sr-only">
               Email address
-            </label>
-            <input
+            </Label>
+            <Input
               id="newsletter-email"
               type="email"
               required
@@ -52,19 +55,18 @@ export default function EmailSignup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
-              className="min-w-0 flex-1 rounded-lg border border-border bg-white px-4 py-3 text-primary placeholder:text-[var(--muted-foreground)] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60"
+              className="min-w-0 flex-1"
             />
-            <button
+            <Button
               type="submit"
               disabled={status === 'loading'}
-              className="rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90 disabled:opacity-60"
             >
               {status === 'loading' ? 'Subscribing…' : 'Subscribe'}
-            </button>
+            </Button>
           </form>
         )}
         {status === 'error' && errorMessage && (
-          <p className="mt-2 text-sm text-[var(--destructive)]" role="alert">
+          <p className="mt-2 text-sm text-destructive" role="alert">
             {errorMessage}
           </p>
         )}

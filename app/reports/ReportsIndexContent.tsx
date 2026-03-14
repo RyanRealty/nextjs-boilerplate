@@ -37,18 +37,18 @@ export default function ReportsIndexContent({ reports, salesCards }: Props) {
         <span aria-hidden>→</span>
       </Link>
       {reports.length === 0 ? (
-        <p className="mt-6 text-[var(--muted-foreground)]">No weekly reports yet. Weekly summaries are generated on a schedule.</p>
+        <p className="mt-6 text-muted-foreground">No weekly reports yet. Weekly summaries are generated on a schedule.</p>
       ) : (
         <ul className="mt-6 space-y-3">
           {reports.map((r) => (
             <li key={r.slug}>
               <Link
                 href={`/reports/${r.slug}`}
-                className="block rounded-lg border border-border bg-[var(--card)] p-4 shadow-sm transition hover:shadow-md hover:border-primary/20"
+                className="block rounded-lg border border-border bg-card p-4 shadow-sm transition hover:shadow-md hover:border-primary/20"
                 onClick={() => trackEvent('view_market_report', { context: 'reports_index_weekly', slug: r.slug, title: r.title })}
               >
                 <span className="font-semibold text-primary">{r.title}</span>
-                <span className="ml-2 text-sm text-[var(--muted-foreground)]">
+                <span className="ml-2 text-sm text-muted-foreground">
                   {r.period_start} – {r.period_end}
                 </span>
               </Link>

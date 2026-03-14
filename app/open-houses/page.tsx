@@ -60,7 +60,7 @@ export default async function OpenHousesPage({ searchParams }: { searchParams: P
   const jsonLd = buildJsonLd(openHouses)
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Open Houses in Central Oregon"
         subtitle="This weekend and upcoming. Browse by list, map, or calendar—add showings to your calendar or RSVP from the listing."

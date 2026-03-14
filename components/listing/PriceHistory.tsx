@@ -34,14 +34,14 @@ export default function PriceHistory({ priceHistory }: Props) {
           return (
             <li
               key={entry.id}
-              className="flex flex-wrap items-center gap-2 text-sm border-b border-[var(--border)] pb-3 last:border-0"
+              className="flex flex-wrap items-center gap-2 text-sm border-b border-border pb-3 last:border-0"
             >
-              <span className="text-[var(--muted-foreground)]">{formatDate(entry.changed_at)}</span>
+              <span className="text-muted-foreground">{formatDate(entry.changed_at)}</span>
               <span className="text-primary">{formatPrice(entry.old_price)}</span>
-              <span className="text-[var(--muted-foreground)]">→</span>
+              <span className="text-muted-foreground">→</span>
               <span className="text-primary font-medium">{formatPrice(entry.new_price)}</span>
               {change !== 0 && (
-                <span className={isDrop ? 'text-[#22C55E]' : 'text-[var(--destructive)]'}>
+                <span className={isDrop ? 'text-success' : 'text-destructive'}>
                   {isDrop ? '' : '+'}{formatPrice(change)}
                   {entry.change_pct != null && ` (${entry.change_pct > 0 ? '+' : ''}${Number(entry.change_pct).toFixed(1)}%)`}
                 </span>

@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
 import { getSession } from '@/app/actions/auth'
 import { redirect } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export const metadata: Metadata = {
   title: 'Email campaigns',
@@ -46,52 +48,49 @@ export default async function AdminEmailCampaignsPage() {
     <main className="mx-auto max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Email campaigns</h1>
-        <Link
-          href="/admin/email/compose"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
-        >
-          Compose
-        </Link>
+        <Button asChild>
+          <Link href="/admin/email/compose">Compose</Link>
+        </Button>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
         Sent campaigns. Stats updated via Resend webhooks.
       </p>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-white">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted">
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Subject</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Type</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Sent</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Opens</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Clicks</th>
-              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Date</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted">
+              <TableHead className="text-muted-foreground">Subject</TableHead>
+              <TableHead className="text-muted-foreground">Type</TableHead>
+              <TableHead className="text-muted-foreground">Sent</TableHead>
+              <TableHead className="text-muted-foreground">Opens</TableHead>
+              <TableHead className="text-muted-foreground">Clicks</TableHead>
+              <TableHead className="text-muted-foreground">Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {campaigns.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                   No campaigns yet. Compose an email to send.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               campaigns.map((c) => (
-                <tr key={c.id} className="border-b border-border">
-                  <td className="px-3 py-2">{c.subject ?? '—'}</td>
-                  <td className="px-3 py-2">{c.template_type ?? '—'}</td>
-                  <td className="px-3 py-2">{c.sent_count}</td>
-                  <td className="px-3 py-2">{c.open_count}</td>
-                  <td className="px-3 py-2">{c.click_count}</td>
-                  <td className="px-3 py-2 text-muted-foreground">
+                <TableRow key={c.id}>
+                  <TableCell>{c.subject ?? '—'}</TableCell>
+                  <TableCell>{c.template_type ?? '—'}</TableCell>
+                  <TableCell>{c.sent_count}</TableCell>
+                  <TableCell>{c.open_count}</TableCell>
+                  <TableCell>{c.click_count}</TableCell>
+                  <TableCell className="text-muted-foreground">
                     {c.sent_at ? new Date(c.sent_at).toLocaleDateString() : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </main>
   )

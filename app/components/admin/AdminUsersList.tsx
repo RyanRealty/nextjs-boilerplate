@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import type { AdminRoleRow, AdminRoleType } from '@/app/actions/admin-roles'
 import type { BrokerRow } from '@/app/actions/brokers'
 import { upsertAdminRole, removeAdminRole } from '@/app/actions/admin-roles'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 type Props = {
   initialRoles?: AdminRoleRow[]
@@ -55,29 +59,29 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
 
   return (
     <div className="mt-6 space-y-6">
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-white p-4">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="min-w-[200px]">
-          <label htmlFor="user-email" className="block text-xs font-medium text-muted-foreground">
+          <Label htmlFor="user-email" className="block text-xs font-medium text-muted-foreground">
             Email (Google account)
-          </label>
-          <input
+          </Label>
+          <Input
             id="user-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="user@example.com"
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full"
           />
         </div>
         <div>
-          <label htmlFor="user-role" className="block text-xs font-medium text-muted-foreground">
+          <Label htmlFor="user-role" className="block text-xs font-medium text-muted-foreground">
             Role
-          </label>
+          </Label>
           <select
             id="user-role"
             value={role}
             onChange={(e) => setRole(e.target.value as AdminRoleType)}
-            className="mt-1 rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
             <option value="report_viewer">Report viewer (reports only)</option>
             <option value="broker">Broker (profile + reviews)</option>
@@ -86,14 +90,14 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
         </div>
         {role === 'broker' && (
           <div className="min-w-[180px]">
-            <label htmlFor="user-broker" className="block text-xs font-medium text-muted-foreground">
+            <Label htmlFor="user-broker" className="block text-xs font-medium text-muted-foreground">
               Broker profile
-            </label>
+            </Label>
             <select
               id="user-broker"
               value={brokerId}
               onChange={(e) => setBrokerId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">— Select —</option>
               {brokers.map((b) => (
@@ -104,61 +108,58 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
             </select>
           </div>
         )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading}>
           {loading ? 'Adding…' : 'Add user'}
-        </button>
+        </Button>
       </form>
       {message && (
-        <p className={message.type === 'ok' ? 'text-sm text-green-500' : 'text-sm text-destructive'}>
+        <p className={message.type === 'ok' ? 'text-sm text-success' : 'text-sm text-destructive'}>
           {message.text}
         </p>
       )}
-      <div className="overflow-hidden rounded-lg border border-border bg-white">
-        <table className="min-w-full divide-y divide-border">
-          <thead>
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Email</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Broker</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-muted-foreground">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs font-medium uppercase text-muted-foreground">Email</TableHead>
+              <TableHead className="text-xs font-medium uppercase text-muted-foreground">Role</TableHead>
+              <TableHead className="text-xs font-medium uppercase text-muted-foreground">Broker</TableHead>
+              <TableHead className="text-right text-xs font-medium uppercase text-muted-foreground">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {initialRoles.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-8">
                   No users yet. Add an email and role above.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               initialRoles.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-3 text-sm text-foreground">{r.email}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{r.role}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                <TableRow key={r.id}>
+                  <TableCell className="text-sm text-foreground">{r.email}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{r.role}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {r.broker_id ? brokers.find((b) => b.id === r.broker_id)?.display_name ?? '—' : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="text-right">
                     {r.role !== 'superuser' && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleRemove(r.email)}
                         disabled={loading}
-                        className="text-sm text-destructive hover:underline disabled:opacity-50"
+                        variant="ghost"
+                        size="sm"
                       >
                         Remove
-                      </button>
+                      </Button>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

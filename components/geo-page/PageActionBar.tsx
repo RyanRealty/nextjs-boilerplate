@@ -2,6 +2,7 @@
 
 import ShareButton from '@/components/ShareButton'
 import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
+import { Button } from "@/components/ui/button"
 
 export type PageActionBarProps = {
   /** e.g. "Save city" | "Save community" | "Save home" */
@@ -50,10 +51,10 @@ export default function PageActionBar({
   const isOverlay = variant === 'overlay'
   const buttonBase = isOverlay
     ? 'inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-black/40 backdrop-blur-sm px-3 py-2 text-sm font-medium text-white shadow-md transition hover:bg-black/55 disabled:opacity-60'
-    : 'inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-medium text-primary shadow-sm transition hover:bg-[var(--muted)] disabled:opacity-60'
+    : 'inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-primary shadow-sm transition hover:bg-muted disabled:opacity-60'
   const wrapperClass = isOverlay
     ? 'flex flex-wrap items-center justify-end gap-2'
-    : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-muted border-b border-[var(--border)] px-4 py-3 sm:px-6'
+    : 'flex flex-wrap items-center justify-center gap-2 sm:gap-3 bg-muted border-b border-border px-4 py-3 sm:px-6'
 
   return (
     <div
@@ -62,7 +63,7 @@ export default function PageActionBar({
       aria-label="Page actions"
     >
       {signedIn && saveLabel && onSave && (
-        <button
+        <Button
           type="button"
           onClick={onSave}
           disabled={saveDisabled}
@@ -71,10 +72,10 @@ export default function PageActionBar({
         >
           <ActionBookmarkIcon filled={saveActive} className="h-5 w-5 flex-shrink-0" />
           {!isOverlay && <span>{saveActive ? 'Saved' : saveLabel}</span>}
-        </button>
+        </Button>
       )}
       {signedIn && like && onLike && (
-        <button
+        <Button
           type="button"
           onClick={onLike}
           disabled={likeDisabled}
@@ -83,7 +84,7 @@ export default function PageActionBar({
         >
           <ActionHeartIcon filled={likeActive} className="h-5 w-5 flex-shrink-0" />
           {!isOverlay && <span>Like</span>}
-        </button>
+        </Button>
       )}
       {showShareButton && (
         <ShareButton

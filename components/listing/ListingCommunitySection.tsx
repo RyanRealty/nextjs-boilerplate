@@ -38,7 +38,7 @@ export default function ListingCommunitySection({
 }: Props) {
   const searchHref = homesForSalePath(city, subdivisionName)
   return (
-    <section className="rounded-lg border border-border bg-white overflow-hidden shadow-sm" aria-labelledby="listing-community-heading">
+    <section className="rounded-lg border border-border bg-card overflow-hidden shadow-sm" aria-labelledby="listing-community-heading">
       <h2 id="listing-community-heading" className="sr-only">
         {getSubdivisionDisplayName(subdivisionName)}
       </h2>
@@ -87,7 +87,7 @@ export default function ListingCommunitySection({
 
         <Link
           href={searchHref}
-          className="mt-4 inline-block font-medium text-green-500 hover:text-green-500 hover:underline"
+          className="mt-4 inline-block font-medium text-success hover:text-success hover:underline"
         >
           View all homes in {getSubdivisionDisplayName(subdivisionName)} →
         </Link>

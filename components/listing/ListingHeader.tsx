@@ -57,10 +57,10 @@ export default function ListingHeader({ listing, address, city, state, postalCod
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={variant}>{status}</Badge>
       </div>
-      <h1 className="text-2xl sm:text-3xl font-semibold text-primary" style={{ color: 'var(--primary)' }}>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
         {address || 'Property'}
       </h1>
-      {cityStateZip && <p className="text-[var(--muted-foreground)]">{cityStateZip}</p>}
+      {cityStateZip && <p className="text-muted-foreground">{cityStateZip}</p>}
       {community && (
         <p>
           <Link
@@ -77,12 +77,12 @@ export default function ListingHeader({ listing, address, city, state, postalCod
         </span>
         {hasPriceDrop && (
           <>
-            <span className="text-xl text-[var(--muted-foreground)] line-through">{formatPrice(listing.original_list_price)}</span>
+            <span className="text-xl text-muted-foreground line-through">{formatPrice(listing.original_list_price)}</span>
             <Badge variant="destructive">Price Reduced · {formatPrice(savings)}</Badge>
           </>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)] border-t border-b border-[var(--border)] py-2">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground border-t border-b border-border py-2">
         <span>{listing.beds_total ?? '—'} Beds</span>
         <span aria-hidden>|</span>
         <span>{baths} Baths</span>
@@ -108,12 +108,12 @@ export default function ListingHeader({ listing, address, city, state, postalCod
         )}
       </div>
       {listing.updated_at && (
-        <p className="text-xs text-[var(--muted-foreground)]" title={new Date(listing.updated_at).toLocaleString()}>
+        <p className="text-xs text-muted-foreground" title={new Date(listing.updated_at).toLocaleString()}>
           Data last checked: {formatDataLastChecked(listing.updated_at)}
         </p>
       )}
       {mlsNumber && (
-        <p className="text-xs text-[var(--muted-foreground)]">MLS# {mlsNumber}</p>
+        <p className="text-xs text-muted-foreground">MLS# {mlsNumber}</p>
       )}
     </header>
   )

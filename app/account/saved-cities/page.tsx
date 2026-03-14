@@ -34,7 +34,7 @@ export default async function SavedCitiesPage() {
           <p className="text-muted-foreground">You haven’t saved any cities yet.</p>
           <Link
             href="/cities"
-            className="mt-4 inline-block rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-white hover:bg-muted-foreground"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Browse cities
           </Link>
@@ -44,7 +44,7 @@ export default async function SavedCitiesPage() {
           {savedSlugs.map((slug) => (
             <li
               key={slug}
-              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-white px-4 py-3 shadow-sm"
+              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
             >
               <Link href={`/cities/${slug}`} className="font-medium text-foreground hover:text-muted-foreground">
                 {slugToName(slug)}

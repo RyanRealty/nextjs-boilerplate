@@ -10,7 +10,7 @@ export default async function AdminOptimizationPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         Weekly cron analyzes GA4 and Search Console (when configured) and records findings here.
       </p>
-      <div className="mt-6 rounded-lg border border-border bg-white p-4">
+      <div className="mt-6 rounded-lg border border-border bg-card p-4">
         {last ? (
           <>
             <p className="text-sm font-medium text-foreground">

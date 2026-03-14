@@ -15,7 +15,7 @@ export default function AccessibilityPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">Accessibility Statement</h1>
-      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Last updated: March 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
 
       <section className="mt-8 space-y-6 text-sm text-primary">
         <div>
@@ -45,7 +45,7 @@ export default function AccessibilityPage() {
             If you have trouble accessing any part of this site or have suggestions for improvement, please contact us:
           </p>
           <p className="mt-2">
-            <a href={`mailto:${contactEmail}`} className="text-accent-foreground underline hover:no-underline">{contactEmail}</a>
+            <a href={`mailto:${contactEmail}`} className="text-accent underline hover:no-underline">{contactEmail}</a>
           </p>
           <p className="mt-2">
             We will respond and work to address the issue where feasible.
@@ -61,7 +61,7 @@ export default function AccessibilityPage() {
       </section>
 
       <p className="mt-10">
-        <Link href="/" className="text-accent-foreground underline hover:no-underline">Back to home</Link>
+        <Link href="/" className="text-accent underline hover:no-underline">Back to home</Link>
       </p>
     </main>
   )

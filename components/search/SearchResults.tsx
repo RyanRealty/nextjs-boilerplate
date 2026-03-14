@@ -112,7 +112,7 @@ export default function SearchResults({
   return (
     <div className="w-full p-4 space-y-4">
       {showEmptyState ? (
-        <div className="rounded-lg border border-border bg-white p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
           <p className="text-lg font-medium text-foreground">
             No homes match your current filters.
           </p>
@@ -128,7 +128,7 @@ export default function SearchResults({
         </div>
       ) : (
         <>
-          <p className="text-[var(--muted-foreground)]">
+          <p className="text-muted-foreground">
             {total.toLocaleString()} home{total !== 1 ? 's' : ''} found
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -138,8 +138,8 @@ export default function SearchResults({
           const photoUrl = listing.PhotoURL ?? ''
           return (
             <Link key={key} href={href} className="group" data-listing-key={key}>
-              <article className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-shadow">
-                <div className="relative aspect-[4/3] bg-[var(--border)]">
+              <article className="bg-card rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-shadow">
+                <div className="relative aspect-[4/3] bg-border">
                   {photoUrl ? (
                     <Image
                       src={photoUrl}
@@ -149,7 +149,7 @@ export default function SearchResults({
                       sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-[var(--muted-foreground)] text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                       No photo
                     </div>
                   )}
@@ -161,7 +161,7 @@ export default function SearchResults({
                   <p className="font-medium text-primary truncate">
                     {formatAddress(listing)}
                   </p>
-                  <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     {listing.BedroomsTotal ?? '—'} Beds · {listing.BathroomsTotal ?? '—'} Baths
                     {listing.SubdivisionName && ` · ${listing.SubdivisionName}`}
                   </p>
@@ -173,7 +173,7 @@ export default function SearchResults({
       </div>
       {listings.length < total && (
         <div ref={sentinelRef} className="flex justify-center py-8">
-          {loading && <span className="text-[var(--muted-foreground)]">Loading more…</span>}
+          {loading && <span className="text-muted-foreground">Loading more…</span>}
         </div>
       )}
         </>

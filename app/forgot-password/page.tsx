@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function ForgotPasswordPage() {
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="rounded-xl border border-border bg-white p-8 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Link href="/" className="text-xl font-bold text-primary">
             Ryan Realty

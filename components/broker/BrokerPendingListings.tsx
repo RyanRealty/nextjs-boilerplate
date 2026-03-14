@@ -30,19 +30,19 @@ export default function BrokerPendingListings({
 
   if (listings.length === 0) {
     return (
-      <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-pending-heading">
+      <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-pending-heading">
         <div className="mx-auto max-w-7xl">
           <h2 id="broker-pending-heading" className="text-2xl font-bold tracking-tight text-primary">
             {firstName}&apos;s Pending Listings
           </h2>
-          <p className="mt-4 text-[var(--muted-foreground)]">No pending or under-contract listings at this time.</p>
+          <p className="mt-4 text-muted-foreground">No pending or under-contract listings at this time.</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-pending-heading">
+    <section className="bg-card px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-pending-heading">
       <div className="mx-auto max-w-7xl">
         <TilesSlider
           title={`${firstName}'s Pending Listings`}

@@ -37,7 +37,7 @@ const PLAN_STEPS = [
 
 export default function SellPlanPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-accent-foreground">
@@ -60,7 +60,7 @@ export default function SellPlanPage() {
             </Link>
             <Link
               href="/contact?inquiry=Selling"
-              className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-white/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/20"
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-card/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm hover:bg-card/20"
             >
               Talk to our team
             </Link>
@@ -68,12 +68,12 @@ export default function SellPlanPage() {
         </div>
       </section>
 
-      <section className="border-b border-border bg-[var(--card)] px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="plan-heading">
+      <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="plan-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="plan-heading" className="text-center font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">
             The Ryan Realty Plan
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-[var(--muted-foreground)]">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
             Every listing gets the same attention: data-driven pricing, strong marketing, and
             local expertise from day one to closing.
           </p>
@@ -85,7 +85,7 @@ export default function SellPlanPage() {
                 </span>
                 <div className="rounded-lg border border-border bg-muted p-6 shadow-sm">
                   <h3 className="text-xl font-semibold text-primary">{step.title}</h3>
-                  <p className="mt-3 text-[var(--muted-foreground)]">{step.body}</p>
+                  <p className="mt-3 text-muted-foreground">{step.body}</p>
                 </div>
               </li>
             ))}
@@ -98,7 +98,7 @@ export default function SellPlanPage() {
           <h2 id="why-heading" className="font-display text-3xl font-bold text-primary sm:text-4xl">
             Why list with us?
           </h2>
-          <p className="mt-4 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-muted-foreground">
             We combine <strong>data-driven pricing</strong>, <strong>professional marketing</strong>,
             and <strong>local expertise</strong> so your home stands out in Central Oregon&apos;s
             market. No cookie-cutter approach—we tailor the plan to your property and timeline.

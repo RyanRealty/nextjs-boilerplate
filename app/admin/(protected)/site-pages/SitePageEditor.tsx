@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { getPageContent, updatePageContent } from '@/app/actions/site-pages'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 type EditablePage = { key: string; label: string; path: string }
 
@@ -54,14 +58,14 @@ export default function SitePageEditor({ page, onClose }: Props) {
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
         <p className="text-muted-foreground">Loading…</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-lg font-semibold text-foreground">Edit: {page.label}</h3>
         <div className="flex gap-2">
@@ -69,23 +73,23 @@ export default function SitePageEditor({ page, onClose }: Props) {
             href={page.path}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-green-500 hover:underline"
+            className="text-sm text-success hover:underline"
           >
             View page →
           </a>
-          <button
+          <Button
             type="button"
             onClick={onClose}
             className="text-sm text-muted-foreground hover:text-muted-foreground"
           >
             Close
-          </button>
+          </Button>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-muted-foreground">Title</label>
-          <input
+          <Label className="block text-sm font-medium text-muted-foreground">Title</Label>
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -93,8 +97,8 @@ export default function SitePageEditor({ page, onClose }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-muted-foreground">Body (HTML)</label>
-          <textarea
+          <Label className="block text-sm font-medium text-muted-foreground">Body (HTML)</Label>
+          <Textarea
             value={bodyHtml}
             onChange={(e) => setBodyHtml(e.target.value)}
             rows={14}
@@ -105,21 +109,21 @@ export default function SitePageEditor({ page, onClose }: Props) {
           </p>
         </div>
         {message && (
-          <p className={`text-sm ${message.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}>
+          <p className={`text-sm ${message.type === 'ok' ? 'text-success' : 'text-destructive'}`}>
             {message.text}
           </p>
         )}
         <div className="flex gap-2">
-          <button
+          <Button
             type="submit"
             disabled={saving}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60"
           >
             {saving ? 'Saving…' : 'Save'}
-          </button>
-          <button type="button" onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted">
+          </Button>
+          <Button type="button" onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted">
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>

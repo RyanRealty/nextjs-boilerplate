@@ -4,6 +4,10 @@ import { useTransition, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateProfile } from '@/app/actions/profile'
 import type { NotificationPreferences } from '@/app/actions/profile'
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Props = { initialPrefs: NotificationPreferences }
 
@@ -37,125 +41,70 @@ export default function DashboardNotificationPrefs({ initialPrefs }: Props) {
   }, [router])
 
   return (
-    <div className="mt-6 space-y-6 rounded-lg border border-border bg-white p-6 shadow-sm">
+    <div className="mt-6 space-y-6 rounded-lg border border-border bg-card p-6 shadow-sm">
       {saved && (
-        <p className="text-sm font-medium text-green-500" role="status">Saved</p>
+        <p className="text-sm font-medium text-success" role="status">Saved</p>
       )}
       <div className="flex items-center justify-between gap-4">
-        <label className="font-medium text-foreground">Email notifications</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={prefs.emailEnabled ?? true}
-          onClick={() => update({ emailEnabled: !(prefs.emailEnabled ?? true) })}
-          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors ${
-            prefs.emailEnabled ?? true
-              ? 'border-accent bg-accent'
-              : 'border-border bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              prefs.emailEnabled ?? true ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        <Label className="font-medium text-foreground">Email notifications</Label>
+        <Switch
+          checked={prefs.emailEnabled ?? true}
+          onCheckedChange={(checked) => update({ emailEnabled: checked })}
+        />
       </div>
       <div>
-        <label className="font-medium text-foreground">Saved search matches</label>
-        <select
-          value={prefs.savedSearchFrequency ?? 'daily'}
-          onChange={(e) => update({ savedSearchFrequency: e.target.value as 'instant' | 'daily' | 'weekly' })}
-          className="mt-1 block w-full max-w-xs rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
-        >
-          <option value="instant">Instant</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-        </select>
+        <Label className="font-medium text-foreground">Saved search matches</Label>
+        <Select value={prefs.savedSearchFrequency ?? 'daily'} onValueChange={(v) => update({ savedSearchFrequency: v as 'instant' | 'daily' | 'weekly' })}>
+          <SelectTrigger className="mt-1 w-full max-w-xs rounded-lg border border-border bg-card px-3 py-2 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="instant">Instant</SelectItem>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="weekly">Weekly</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <label className="text-muted-foreground">Price drop alerts on saved homes</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={prefs.priceDropAlerts ?? true}
-          onClick={() => update({ priceDropAlerts: !(prefs.priceDropAlerts ?? true) })}
-          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors ${
-            prefs.priceDropAlerts ?? true ? 'border-accent bg-accent' : 'border-border bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              prefs.priceDropAlerts ?? true ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        <Label className="text-muted-foreground">Price drop alerts on saved homes</Label>
+        <Switch
+          checked={prefs.priceDropAlerts ?? true}
+          onCheckedChange={(checked) => update({ priceDropAlerts: checked })}
+        />
       </div>
       <div className="flex items-center justify-between gap-4">
-        <label className="text-muted-foreground">Status change alerts (pending/sold)</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={prefs.statusChangeAlerts ?? true}
-          onClick={() => update({ statusChangeAlerts: !(prefs.statusChangeAlerts ?? true) })}
-          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors ${
-            prefs.statusChangeAlerts ?? true ? 'border-accent bg-accent' : 'border-border bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              prefs.statusChangeAlerts ?? true ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        <Label className="text-muted-foreground">Status change alerts (pending/sold)</Label>
+        <Switch
+          checked={prefs.statusChangeAlerts ?? true}
+          onCheckedChange={(checked) => update({ statusChangeAlerts: checked })}
+        />
       </div>
       <div className="flex items-center justify-between gap-4">
-        <label className="text-muted-foreground">Open house reminders</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={prefs.openHouseReminders ?? true}
-          onClick={() => update({ openHouseReminders: !(prefs.openHouseReminders ?? true) })}
-          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors ${
-            prefs.openHouseReminders ?? true ? 'border-accent bg-accent' : 'border-border bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              prefs.openHouseReminders ?? true ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        <Label className="text-muted-foreground">Open house reminders</Label>
+        <Switch
+          checked={prefs.openHouseReminders ?? true}
+          onCheckedChange={(checked) => update({ openHouseReminders: checked })}
+        />
       </div>
       <div>
-        <label className="font-medium text-foreground">Market digest</label>
-        <select
-          value={prefs.marketDigestFrequency ?? 'weekly'}
-          onChange={(e) => update({ marketDigestFrequency: e.target.value as 'weekly' | 'monthly' | 'off' })}
-          className="mt-1 block w-full max-w-xs rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
-        >
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="off">Off</option>
-        </select>
+        <Label className="font-medium text-foreground">Market digest</Label>
+        <Select value={prefs.marketDigestFrequency ?? 'weekly'} onValueChange={(v) => update({ marketDigestFrequency: v as 'weekly' | 'monthly' | 'off' })}>
+          <SelectTrigger className="mt-1 w-full max-w-xs rounded-lg border border-border bg-card px-3 py-2 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="off">Off</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex items-center justify-between gap-4">
-        <label className="text-muted-foreground">Blog / content updates</label>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={prefs.blogUpdates ?? false}
-          onClick={() => update({ blogUpdates: !(prefs.blogUpdates ?? false) })}
-          className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors ${
-            prefs.blogUpdates ?? false ? 'border-accent bg-accent' : 'border-border bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              prefs.blogUpdates ?? false ? 'translate-x-5' : 'translate-x-0.5'
-            }`}
-          />
-        </button>
+        <Label className="text-muted-foreground">Blog / content updates</Label>
+        <Switch
+          checked={prefs.blogUpdates ?? false}
+          onCheckedChange={(checked) => update({ blogUpdates: checked })}
+        />
       </div>
       {pending && <p className="text-sm text-muted-foreground">Saving…</p>}
     </div>

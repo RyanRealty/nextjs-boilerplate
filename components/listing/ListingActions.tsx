@@ -98,70 +98,70 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
   return (
     <>
       {/* Sticky bar - desktop */}
-      <div className="sticky top-0 z-30 hidden md:flex flex-wrap items-center gap-2 py-3 bg-muted border-b border-[var(--border)] -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-0 z-30 hidden md:flex flex-wrap items-center gap-2 py-3 bg-muted border-b border-border -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <Button variant="default" size="default" onClick={handleScheduleTour}>
           Schedule Tour
         </Button>
         <Button variant="secondary" size="default" onClick={handleContactAgent}>
           Contact Agent
         </Button>
-        <button
+        <Button
           type="button"
           onClick={handleSaveClick}
-          className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary hover:bg-[var(--muted)]"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
           aria-label={isSaved ? 'Remove from saved homes' : 'Save to saved homes'}
         >
-          <BookmarkIcon filled={isSaved} className={`h-5 w-5 flex-shrink-0 ${isSaved ? 'text-primary' : 'text-[var(--muted-foreground)]'}`} />
+          <BookmarkIcon filled={isSaved} className={`h-5 w-5 flex-shrink-0 ${isSaved ? 'text-primary' : 'text-muted-foreground'}`} />
           <span className="hidden sm:inline">{isSaved ? 'Saved' : 'Save home'}</span>
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={handleLikeClick}
           disabled={likePending}
-          className={`inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-[var(--muted)] disabled:opacity-60 ${liked ? 'border-destructive/60 text-destructive' : 'border-[var(--border)] text-primary'}`}
+          className={`inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60 ${liked ? 'border-destructive/60 text-destructive' : 'border-border text-foreground'}`}
           aria-label={liked ? 'Unlike' : 'Like'}
         >
           <ActionHeartIcon filled={liked} className="h-5 w-5 flex-shrink-0" />
           <span className="hidden sm:inline">Like</span>
-        </button>
+        </Button>
         <div onClick={handleShareClick}>
-          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="default" trackContext="listing_detail" className="!rounded-lg !border-[var(--border)] !bg-white !text-primary !px-4 !py-2" />
+          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="default" trackContext="listing_detail" className="!rounded-lg !border-border !bg-card !text-primary !px-4 !py-2" />
         </div>
-        <button
+        <Button
           type="button"
           onClick={handleCompareToggle}
           disabled={!inCompare && comparisonItems.length >= 4}
           className={[
             'inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
             inCompare
-              ? 'border-accent bg-accent/10 text-primary'
-              : 'border-[var(--border)] bg-white text-primary hover:bg-[var(--muted)]',
+              ? 'border-accent bg-accent/10 text-foreground'
+              : 'border-border bg-card text-foreground hover:bg-muted',
             'disabled:opacity-50',
           ].join(' ')}
           aria-label={inCompare ? 'Remove from comparison' : 'Add to comparison'}
         >
           <HugeiconsIcon icon={ArrowLeftRightIcon} className="h-5 w-5 flex-shrink-0" />
           <span className="hidden sm:inline">{inCompare ? 'Comparing' : 'Compare'}</span>
-        </button>
+        </Button>
       </div>
       {/* Fixed bottom bar - mobile */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 flex md:hidden items-center justify-center gap-2 py-3 px-4 bg-white border-t border-[var(--border)] safe-area-pb">
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex md:hidden items-center justify-center gap-2 py-3 px-4 bg-card border-t border-border safe-area-pb">
         <Button variant="default" size="sm" onClick={handleScheduleTour}>
           Schedule Tour
         </Button>
         <Button variant="outline" size="sm" onClick={handleContactAgent}>
           Contact
         </Button>
-        <button type="button" onClick={handleSaveClick} className="p-2 rounded-full border border-[var(--border)]" aria-label={isSaved ? 'Unsave' : 'Save'}>
-          <BookmarkIcon filled={isSaved} className={`h-5 w-5 ${isSaved ? 'text-primary' : 'text-[var(--muted-foreground)]'}`} />
-        </button>
-        <button type="button" onClick={handleLikeClick} disabled={likePending} className="p-2 rounded-full border border-[var(--border)]" aria-label={liked ? 'Unlike' : 'Like'}>
-          <ActionHeartIcon filled={liked} className={`h-5 w-5 ${liked ? 'text-destructive' : 'text-[var(--muted-foreground)]'}`} />
-        </button>
+        <Button type="button" onClick={handleSaveClick} className="p-2 rounded-full border border-border" aria-label={isSaved ? 'Unsave' : 'Save'}>
+          <BookmarkIcon filled={isSaved} className={`h-5 w-5 ${isSaved ? 'text-primary' : 'text-muted-foreground'}`} />
+        </Button>
+        <Button type="button" onClick={handleLikeClick} disabled={likePending} className="p-2 rounded-full border border-border" aria-label={liked ? 'Unlike' : 'Like'}>
+          <ActionHeartIcon filled={liked} className={`h-5 w-5 ${liked ? 'text-destructive' : 'text-muted-foreground'}`} />
+        </Button>
         <div onClick={handleShareClick}>
-          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="compact" aria-label="Share" trackContext="listing_detail" className="!p-2 !rounded-full !border-[var(--border)]" />
+          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="compact" aria-label="Share" trackContext="listing_detail" className="!p-2 !rounded-full !border-border" />
         </div>
-        <button
+        <Button
           type="button"
           onClick={handleCompareToggle}
           disabled={!inCompare && comparisonItems.length >= 4}
@@ -169,12 +169,12 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
             'p-2 rounded-full border transition-colors disabled:opacity-50',
             inCompare
               ? 'border-accent bg-accent/10'
-              : 'border-[var(--border)]',
+              : 'border-border',
           ].join(' ')}
           aria-label={inCompare ? 'Remove from comparison' : 'Compare'}
         >
-          <HugeiconsIcon icon={ArrowLeftRightIcon} className={`h-5 w-5 ${inCompare ? 'text-accent-foreground' : 'text-[var(--muted-foreground)]'}`} />
-        </button>
+          <HugeiconsIcon icon={ArrowLeftRightIcon} className={`h-5 w-5 ${inCompare ? 'text-accent-foreground' : 'text-muted-foreground'}`} />
+        </Button>
       </div>
       {/* Spacer so content isn't hidden behind fixed mobile bar */}
       <div className="h-16 md:hidden" aria-hidden />

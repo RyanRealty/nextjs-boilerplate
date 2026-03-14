@@ -1,6 +1,15 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -67,11 +76,11 @@ export default function MortgageCalculator({
     }, [homePrice, downPaymentPct, interestRate, loanTermYears, propertyTaxYear, insuranceYear])
 
   return (
-    <div className="mt-8 space-y-8 rounded-xl border border-border bg-white p-6 shadow-sm">
+    <div className="mt-8 space-y-8 rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="grid gap-6 sm:grid-cols-2">
-        <label className="block">
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Home price</span>
-          <input
+          <Input
             type="number"
             value={homePrice}
             onChange={(e) => setHomePrice(Number(e.target.value) || 0)}
@@ -79,10 +88,10 @@ export default function MortgageCalculator({
             step={10000}
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Down payment (%)</span>
-          <input
+          <Input
             type="number"
             value={downPaymentPct}
             onChange={(e) => setDownPaymentPct(Number(e.target.value) || 0)}
@@ -91,10 +100,10 @@ export default function MortgageCalculator({
             step={1}
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Interest rate (%)</span>
-          <input
+          <Input
             type="number"
             value={interestRate}
             onChange={(e) => setInterestRate(Number(e.target.value) || 0)}
@@ -103,23 +112,24 @@ export default function MortgageCalculator({
             step={0.125}
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
-        </label>
-        <label className="block">
+        </Label>
+        <Label className="block">
           <span className="text-sm font-medium text-muted-foreground">Loan term (years)</span>
-          <select
-            value={loanTermYears}
-            onChange={(e) => setLoanTermYears(Number(e.target.value))}
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
-          >
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-            <option value={30}>30</option>
-          </select>
-        </label>
-        <label className="block sm:col-span-2">
+          <Select value={String(loanTermYears)} onValueChange={(e) => setLoanTermYears(Number(e))}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="15">15</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="30">30</SelectItem>
+            </SelectContent>
+          </Select>
+        </Label>
+        <Label className="block sm:col-span-2">
           <span className="text-sm font-medium text-muted-foreground">Property tax (yearly, optional)</span>
-          <input
+          <Input
             type="number"
             value={propertyTaxYear}
             onChange={(e) => setPropertyTaxYear(Number(e.target.value) || 0)}
@@ -127,10 +137,10 @@ export default function MortgageCalculator({
             step={500}
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
-        </label>
-        <label className="block sm:col-span-2">
+        </Label>
+        <Label className="block sm:col-span-2">
           <span className="text-sm font-medium text-muted-foreground">Home insurance (yearly, optional)</span>
-          <input
+          <Input
             type="number"
             value={insuranceYear}
             onChange={(e) => setInsuranceYear(Number(e.target.value) || 0)}
@@ -138,14 +148,14 @@ export default function MortgageCalculator({
             step={100}
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
-        </label>
+        </Label>
       </div>
 
       <div className="border-t border-border pt-6">
         <p className="text-sm text-muted-foreground">
           Down payment: {formatCurrency(downPayment)} · Loan amount: {formatCurrency(loanAmount)}
           {pmi > 0 && (
-            <span className="ml-2 text-yellow-500">· PMI (est.): {formatCurrency(pmi)}/mo</span>
+            <span className="ml-2 text-warning">· PMI (est.): {formatCurrency(pmi)}/mo</span>
           )}
         </p>
         <p className="mt-4 text-3xl font-bold text-foreground">

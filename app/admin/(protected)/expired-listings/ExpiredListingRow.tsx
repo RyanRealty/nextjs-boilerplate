@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { updateExpiredListingContact } from '@/app/actions/expired-listings'
 import type { ExpiredListingRow as Row } from '@/app/actions/expired-listings'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { TableCell, TableRow } from "@/components/ui/table"
 
 type Props = { row: Row }
 
@@ -61,75 +65,72 @@ export function ExpiredListingRow({ row }: Props) {
   }
 
   return (
-    <tr className="border-b border-border hover:bg-muted">
-      <td className="px-3 py-2 text-foreground">{row.full_address}</td>
-      <td className="px-3 py-2 text-muted-foreground">{row.city ?? '—'}</td>
-      <td className="px-3 py-2 text-muted-foreground">
+    <TableRow className="hover:bg-muted">
+      <TableCell className="text-foreground">{row.full_address}</TableCell>
+      <TableCell className="text-muted-foreground">{row.city ?? '—'}</TableCell>
+      <TableCell className="text-muted-foreground">
         {editing ? (
-          <input
+          <Input
             type="text"
             value={ownerName}
             onChange={(e) => setOwnerName(e.target.value)}
             placeholder="Owner (from tax/search)"
-            className="w-full max-w-[140px] rounded border border-border px-2 py-1 text-sm"
+            className="w-full max-w-[140px]"
           />
         ) : (
           row.owner_name ?? '—'
         )}
-      </td>
-      <td className="px-3 py-2 text-muted-foreground">{row.list_agent_name ?? '—'}</td>
-      <td className="px-3 py-2 text-muted-foreground">{row.list_office_name ?? '—'}</td>
-      <td className="px-3 py-2 text-muted-foreground">{formatPrice(row.list_price)}</td>
-      <td className="px-3 py-2 text-muted-foreground">{row.days_on_market ?? '—'}</td>
-      <td className="px-3 py-2 text-muted-foreground">{formatDate(row.expired_at)}</td>
-      <td className="px-3 py-2 text-muted-foreground">{row.standard_status ?? '—'}</td>
-      <td className="px-3 py-2">
+      </TableCell>
+      <TableCell className="text-muted-foreground">{row.list_agent_name ?? '—'}</TableCell>
+      <TableCell className="text-muted-foreground">{row.list_office_name ?? '—'}</TableCell>
+      <TableCell className="text-muted-foreground">{formatPrice(row.list_price)}</TableCell>
+      <TableCell className="text-muted-foreground">{row.days_on_market ?? '—'}</TableCell>
+      <TableCell className="text-muted-foreground">{formatDate(row.expired_at)}</TableCell>
+      <TableCell className="text-muted-foreground">{row.standard_status ?? '—'}</TableCell>
+      <TableCell>
         {editing ? (
           <div className="flex flex-col gap-1 text-sm">
-            <input
+            <Input
               type="text"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
               placeholder="Phone"
-              className="rounded border border-border px-2 py-1"
             />
-            <input
+            <Input
               type="text"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
               placeholder="Email"
-              className="rounded border border-border px-2 py-1"
             />
-            <input
+            <Input
               type="text"
               value={contactSource}
               onChange={(e) => setContactSource(e.target.value)}
               placeholder="Source (e.g. Facebook, White pages)"
-              className="rounded border border-border px-2 py-1"
             />
-            <textarea
+            <Textarea
               value={enrichmentNotes}
               onChange={(e) => setEnrichmentNotes(e.target.value)}
               placeholder="Notes"
               rows={2}
-              className="rounded border border-border px-2 py-1"
             />
             <div className="flex gap-2">
-              <button
+              <Button
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded bg-green-500 px-2 py-1 text-xs text-white hover:bg-green-500/85 disabled:opacity-50"
+                size="sm"
               >
                 {saving ? 'Saving…' : 'Save'}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded bg-border px-2 py-1 text-xs text-muted-foreground hover:bg-border"
+                variant="outline"
+                size="sm"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
@@ -140,8 +141,8 @@ export function ExpiredListingRow({ row }: Props) {
             {!row.contact_phone && !row.contact_email && !row.contact_source && <span className="text-muted-foreground">—</span>}
           </div>
         )}
-      </td>
-      <td className="px-3 py-2">
+      </TableCell>
+      <TableCell>
         <div className="flex flex-wrap gap-1">
           {googleUrl && (
             <a
@@ -164,16 +165,17 @@ export function ExpiredListingRow({ row }: Props) {
             </a>
           )}
           {!editing && (
-            <button
+            <Button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground hover:bg-border"
+              variant="ghost"
+              size="sm"
             >
               Edit
-            </button>
+            </Button>
           )}
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }

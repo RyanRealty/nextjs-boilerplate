@@ -12,6 +12,7 @@ import { cityEntityKey } from '@/lib/slug'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import SalesReportCharts from '@/components/reports/SalesReportCharts'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -92,7 +93,7 @@ export default async function SalesReportPage({ params }: PageProps) {
   const pdfHref = `/api/pdf/report?geoName=${encodeURIComponent(cityName)}&period=${encodeURIComponent(periodLabel + ' — ' + dateRangeStr)}`
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    <main className="min-h-screen bg-background">
       <ContentPageHero
         title={`${cityName} — ${periodLabel}`}
         subtitle={dateRangeStr}
@@ -117,27 +118,27 @@ export default async function SalesReportPage({ params }: PageProps) {
             <h2 className="mt-14 font-display text-xl font-bold text-primary">
               Closed sales ({closed.length})
             </h2>
-            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+            <p className="mt-1 text-sm text-muted-foreground">
               Address, sold date, days on market, property type, and sale price. Click a row to view the listing.
             </p>
-            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-[var(--card)] shadow-sm">
+            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted">
-                      <th className="px-4 py-3 font-semibold text-primary">Address</th>
-                      <th className="px-4 py-3 font-semibold text-primary">Sold date</th>
-                      <th className="px-4 py-3 font-semibold text-primary">Days on market</th>
-                      <th className="px-4 py-3 font-semibold text-primary">Property type</th>
-                      <th className="px-4 py-3 font-semibold text-primary text-right">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[640px] text-left text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b border-border bg-muted">
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Address</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Sold date</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Days on market</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Property type</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary text-right">Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {closed.map((item) => (
                       <ListingTableRow key={item.listing_key} item={item} />
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </>
@@ -148,30 +149,30 @@ export default async function SalesReportPage({ params }: PageProps) {
             <h2 className="mt-14 font-display text-xl font-bold text-primary">
               Went pending ({pending.length})
             </h2>
-            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-[var(--card)] shadow-sm">
+            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[520px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted">
-                      <th className="px-4 py-3 font-semibold text-primary">Address / listing</th>
-                      <th className="px-4 py-3 font-semibold text-primary">Pending date</th>
-                      <th className="px-4 py-3 font-semibold text-primary">Property type</th>
-                      <th className="px-4 py-3 font-semibold text-primary text-right">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="w-full min-w-[520px] text-left text-sm">
+                  <TableHeader>
+                    <TableRow className="border-b border-border bg-muted">
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Address / listing</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Pending date</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary">Property type</TableHead>
+                      <TableHead className="px-4 py-3 font-semibold text-primary text-right">Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {pending.map((item) => (
                       <PendingTableRow key={item.listing_key} item={item} />
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </>
         )}
 
         {closed.length === 0 && pending.length === 0 && (
-          <p className="text-[var(--muted-foreground)]">No closed or pending sales in this period for {cityName}.</p>
+          <p className="text-muted-foreground">No closed or pending sales in this period for {cityName}.</p>
         )}
 
         <p className="mt-14">
@@ -186,8 +187,8 @@ export default async function SalesReportPage({ params }: PageProps) {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-border bg-[var(--card)] p-5 shadow-sm">
-      <p className="text-sm font-medium text-[var(--muted-foreground)]">{label}</p>
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-bold text-primary">{value}</p>
     </div>
   )
@@ -197,19 +198,19 @@ function ListingTableRow({ item }: { item: ReportListing }) {
   const href = `/listing/${encodeURIComponent(item.listing_key)}`
   const address = item.description?.trim() || 'Address not available'
   return (
-    <tr className="group border-b border-border last:border-b-0">
-      <td className="px-4 py-3">
+    <TableRow className="group border-b border-border last:border-b-0">
+      <TableCell className="px-4 py-3">
         <Link href={href} className="font-medium text-primary hover:text-accent-foreground hover:underline">
           {address}
         </Link>
-      </td>
-      <td className="px-4 py-3 text-[var(--muted-foreground)]">{formatSoldDate(item.event_date)}</td>
-      <td className="px-4 py-3 text-[var(--muted-foreground)]">
+      </TableCell>
+      <TableCell className="px-4 py-3 text-muted-foreground">{formatSoldDate(item.event_date)}</TableCell>
+      <TableCell className="px-4 py-3 text-muted-foreground">
         {item.days_on_market != null && Number.isFinite(item.days_on_market) ? `${item.days_on_market} days` : '—'}
-      </td>
-      <td className="px-4 py-3 text-[var(--muted-foreground)]">{getPropertyTypeLabel(item.property_type)}</td>
-      <td className="px-4 py-3 text-right font-semibold text-primary">{formatPrice(item.price)}</td>
-    </tr>
+      </TableCell>
+      <TableCell className="px-4 py-3 text-muted-foreground">{getPropertyTypeLabel(item.property_type)}</TableCell>
+      <TableCell className="px-4 py-3 text-right font-semibold text-primary">{formatPrice(item.price)}</TableCell>
+    </TableRow>
   )
 }
 
@@ -217,15 +218,15 @@ function PendingTableRow({ item }: { item: ReportListing }) {
   const href = `/listing/${encodeURIComponent(item.listing_key)}`
   const address = item.description?.trim() || `Listing ${item.listing_key}`
   return (
-    <tr className="group border-b border-border last:border-b-0">
-      <td className="px-4 py-3">
+    <TableRow className="group border-b border-border last:border-b-0">
+      <TableCell className="px-4 py-3">
         <Link href={href} className="font-medium text-primary hover:text-accent-foreground hover:underline">
           {address}
         </Link>
-      </td>
-      <td className="px-4 py-3 text-[var(--muted-foreground)]">{formatSoldDate(item.event_date)}</td>
-      <td className="px-4 py-3 text-[var(--muted-foreground)]">{getPropertyTypeLabel(item.property_type)}</td>
-      <td className="px-4 py-3 text-right font-semibold text-primary">{formatPrice(item.price)}</td>
-    </tr>
+      </TableCell>
+      <TableCell className="px-4 py-3 text-muted-foreground">{formatSoldDate(item.event_date)}</TableCell>
+      <TableCell className="px-4 py-3 text-muted-foreground">{getPropertyTypeLabel(item.property_type)}</TableCell>
+      <TableCell className="px-4 py-3 text-right font-semibold text-primary">{formatPrice(item.price)}</TableCell>
+    </TableRow>
   )
 }

@@ -74,7 +74,7 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
                   <Link
                     key={cta.href}
                     href={cta.href}
-                    className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-white/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+                    className="inline-flex items-center gap-2 rounded-lg border-2 border-white/40 bg-card/10 px-6 py-3.5 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-card/20"
                   >
                     {cta.label}
                   </Link>

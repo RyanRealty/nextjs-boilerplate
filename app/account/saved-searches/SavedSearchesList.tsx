@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { homesForSalePath } from '@/lib/slug'
 import { deleteSavedSearch } from '@/app/actions/saved-searches'
 import type { SavedSearchRow } from '@/app/actions/saved-searches'
+import { Button } from "@/components/ui/button"
 
 type Props = { searches: SavedSearchRow[] }
 
@@ -41,7 +42,7 @@ export default function SavedSearchesList({ searches }: Props) {
       {searches.map((s) => (
         <li
           key={s.id}
-          className="flex items-center justify-between gap-4 rounded-lg border border-border bg-white p-4 shadow-sm"
+          className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-4 shadow-sm"
         >
           <Link
             href={buildSearchUrl(s.filters)}
@@ -49,13 +50,13 @@ export default function SavedSearchesList({ searches }: Props) {
           >
             {s.name}
           </Link>
-          <button
+          <Button
             type="button"
             onClick={() => handleDelete(s.id)}
             className="text-sm text-muted-foreground hover:text-destructive"
           >
             Remove
-          </button>
+          </Button>
         </li>
       ))}
     </ul>

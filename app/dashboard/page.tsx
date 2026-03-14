@@ -46,15 +46,15 @@ export default async function DashboardOverviewPage() {
       <p className="mt-1 text-muted-foreground">Your personalized feed and quick stats.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
           <p className="text-sm font-medium text-muted-foreground">Saved Homes</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{savedCount}</p>
         </div>
-        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
           <p className="text-sm font-medium text-muted-foreground">Saved Searches</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{searchCount}</p>
         </div>
-        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
           <p className="text-sm font-medium text-muted-foreground">New Matches This Week</p>
           <p className="mt-1 text-2xl font-semibold text-foreground">{newMatchesCount}</p>
         </div>
@@ -75,7 +75,7 @@ export default async function DashboardOverviewPage() {
               </Link>
               <Link
                 href="/homes-for-sale"
-                className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+                className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
                 Create a search
               </Link>

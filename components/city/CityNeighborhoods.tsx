@@ -33,7 +33,7 @@ export default function CityNeighborhoods({ cityName, citySlug, neighborhoods }:
             <Link key={n.slug} href={`/cities/${citySlug}/${n.slug}`}>
               <Card className="p-4 transition hover:shadow-md">
                 <h3 className="font-bold text-primary">{n.name}</h3>
-                <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {n.listingCount} for sale
                   {n.medianPrice != null && ` · ${formatPrice(n.medianPrice)}`}
                 </p>

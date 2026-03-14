@@ -11,6 +11,7 @@ import ShareButton from '@/components/ShareButton'
 import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Camera01Icon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   listing: ListingTileRow
@@ -74,12 +75,12 @@ export default function ListingBarCard({ listing, listingKey, signedIn = false, 
     setLikedState(result.liked)
   }
 
-  const btn = 'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-[var(--muted-foreground)] transition hover:bg-[var(--border)] hover:text-[var(--foreground)]'
+  const btn = 'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground transition hover:bg-border hover:text-foreground'
   const btnLike = likedState ? 'border-destructive/60 text-destructive' : ''
   const btnSave = savedState ? 'border-primary/60 text-primary' : ''
 
   return (
-    <div className="relative flex shrink-0 scroll-snap-align-center min-w-[140px] max-w-[160px] flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow">
+    <div className="relative flex shrink-0 scroll-snap-align-center min-w-[140px] max-w-[160px] flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1">
       <Link href={href} className="flex gap-2 p-0">
         <div className="relative h-10 w-14 shrink-0 overflow-hidden bg-muted">
           {listing.PhotoURL ? (
@@ -94,7 +95,6 @@ export default function ListingBarCard({ listing, listingKey, signedIn = false, 
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <HugeiconsIcon icon={Camera01Icon} className="h-5 w-5" />
-              </svg>
             </div>
           )}
         </div>
@@ -106,13 +106,13 @@ export default function ListingBarCard({ listing, listingKey, signedIn = false, 
         </div>
       </Link>
       <div className="flex items-center justify-end gap-0.5 border-t border-border px-1 py-1" onClick={(e) => e.stopPropagation()}>
-        <ShareButton url={shareUrl} title={shareTitle} text={shareText} variant="compact" iconClassName="h-3 w-3" className={`${btn} text-[var(--foreground)]`} aria-label="Share" />
-        <button type="button" onClick={handleLike} className={`${btn} ${btnLike}`} aria-label={signedIn ? (likedState ? 'Unlike' : 'Like') : 'Like'}>
+        <ShareButton url={shareUrl} title={shareTitle} text={shareText} variant="compact" iconClassName="h-3 w-3" className={`${btn} text-foreground`} aria-label="Share" />
+        <Button type="button" onClick={handleLike} className={`${btn} ${btnLike}`} aria-label={signedIn ? (likedState ? 'Unlike' : 'Like') : 'Like'}>
           <ActionHeartIcon filled={likedState} className="h-3 w-3" />
-        </button>
-        <button type="button" onClick={handleSave} className={`${btn} ${btnSave}`} aria-label={signedIn ? (savedState ? 'Remove from saved' : 'Save listing') : 'Save listing'}>
+        </Button>
+        <Button type="button" onClick={handleSave} className={`${btn} ${btnSave}`} aria-label={signedIn ? (savedState ? 'Remove from saved' : 'Save listing') : 'Save listing'}>
           <ActionBookmarkIcon filled={savedState} className="h-3 w-3" />
-        </button>
+        </Button>
       </div>
     </div>
   )

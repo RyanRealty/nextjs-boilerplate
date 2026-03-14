@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { runQueryBuilderSearch } from '@/app/actions/query-builder'
 import type { ListingTileRow } from '@/app/actions/listings'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const MAX_ROWS = 500
 
@@ -67,72 +71,72 @@ export default function AdminQueryBuilderForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4 rounded-lg border border-border bg-white p-4">
-        <label className="flex flex-col gap-1">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4 rounded-lg border border-border bg-card p-4">
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">City</span>
-          <input
+          <Input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="e.g. Bend"
             className="rounded border border-border px-3 py-2 text-sm"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Min price</span>
-          <input
+          <Input
             type="number"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             placeholder="Optional"
             className="w-28 rounded border border-border px-3 py-2 text-sm"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Max price</span>
-          <input
+          <Input
             type="number"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             placeholder="Optional"
             className="w-28 rounded border border-border px-3 py-2 text-sm"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Min beds</span>
-          <input
+          <Input
             type="number"
             min={0}
             value={beds}
             onChange={(e) => setBeds(e.target.value)}
             className="w-20 rounded border border-border px-3 py-2 text-sm"
           />
-        </label>
-        <label className="flex flex-col gap-1">
+        </Label>
+        <Label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-muted-foreground">Min baths</span>
-          <input
+          <Input
             type="number"
             min={0}
             value={baths}
             onChange={(e) => setBaths(e.target.value)}
             className="w-20 rounded border border-border px-3 py-2 text-sm"
           />
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={hasPool} onChange={(e) => setHasPool(e.target.checked)} className="rounded" />
+        </Label>
+        <Label className="flex items-center gap-2">
+          <Input type="checkbox" checked={hasPool} onChange={(e) => setHasPool(e.target.checked)} className="rounded" />
           <span className="text-sm text-muted-foreground">Pool</span>
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={hasView} onChange={(e) => setHasView(e.target.checked)} className="rounded" />
+        </Label>
+        <Label className="flex items-center gap-2">
+          <Input type="checkbox" checked={hasView} onChange={(e) => setHasView(e.target.checked)} className="rounded" />
           <span className="text-sm text-muted-foreground">View</span>
-        </label>
-        <button
+        </Label>
+        <Button
           type="submit"
           disabled={loading}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
         >
           {loading ? 'Running…' : 'Run query'}
-        </button>
+        </Button>
       </form>
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
@@ -141,47 +145,47 @@ export default function AdminQueryBuilderForm() {
         <div className="mt-6">
           <p className="text-sm text-muted-foreground">
             Showing {result.listings.length} of {result.totalCount} (max {MAX_ROWS}).{' '}
-            <button
+            <Button
               type="button"
               onClick={() => downloadCsv(result.listings, `query-builder-${Date.now()}.csv`)}
               className="font-medium text-foreground underline hover:no-underline"
             >
               Download CSV
-            </button>
+            </Button>
           </p>
           <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-            <table className="min-w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted">
-                  <th className="px-4 py-2 font-medium text-foreground">Address</th>
-                  <th className="px-4 py-2 font-medium text-foreground">City</th>
-                  <th className="px-4 py-2 font-medium text-foreground">Price</th>
-                  <th className="px-4 py-2 font-medium text-foreground">Beds</th>
-                  <th className="px-4 py-2 font-medium text-foreground">Baths</th>
-                  <th className="px-4 py-2 font-medium text-foreground">Key</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="min-w-full text-left text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-border bg-muted">
+                  <TableHead className="px-4 py-2 font-medium text-foreground">Address</TableHead>
+                  <TableHead className="px-4 py-2 font-medium text-foreground">City</TableHead>
+                  <TableHead className="px-4 py-2 font-medium text-foreground">Price</TableHead>
+                  <TableHead className="px-4 py-2 font-medium text-foreground">Beds</TableHead>
+                  <TableHead className="px-4 py-2 font-medium text-foreground">Baths</TableHead>
+                  <TableHead className="px-4 py-2 font-medium text-foreground">Key</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {result.listings.slice(0, 50).map((row) => {
                   const key = (row.ListingKey ?? row.ListNumber ?? '').toString()
                   const addr = [row.StreetNumber, row.StreetName].filter(Boolean).join(' ')
                   return (
-                    <tr key={key} className="border-b border-border">
-                      <td className="px-4 py-2">{addr || '—'}</td>
-                      <td className="px-4 py-2">{row.City ?? '—'}</td>
-                      <td className="px-4 py-2">{row.ListPrice != null ? `$${Number(row.ListPrice).toLocaleString()}` : '—'}</td>
-                      <td className="px-4 py-2">{row.BedroomsTotal ?? '—'}</td>
-                      <td className="px-4 py-2">{row.BathroomsTotal ?? '—'}</td>
-                      <td className="px-4 py-2">
+                    <TableRow key={key} className="border-b border-border">
+                      <TableCell className="px-4 py-2">{addr || '—'}</TableCell>
+                      <TableCell className="px-4 py-2">{row.City ?? '—'}</TableCell>
+                      <TableCell className="px-4 py-2">{row.ListPrice != null ? `$${Number(row.ListPrice).toLocaleString()}` : '—'}</TableCell>
+                      <TableCell className="px-4 py-2">{row.BedroomsTotal ?? '—'}</TableCell>
+                      <TableCell className="px-4 py-2">{row.BathroomsTotal ?? '—'}</TableCell>
+                      <TableCell className="px-4 py-2">
                         <a href={`/listing/${encodeURIComponent(key)}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground underline hover:no-underline">
                           {key}
                         </a>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
             {result.listings.length > 50 && (
               <p className="px-4 py-2 text-xs text-muted-foreground">Showing first 50 rows. Use Download CSV for full set.</p>
             )}

@@ -52,7 +52,7 @@ export default function MarketCTA({ stats }: Props) {
           <Link
             href="/reports"
             onClick={() => trackEvent('click_cta', { cta_location: 'market_report_cta' })}
-            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:bg-accent/90"
           >
             View Full Market Report
           </Link>

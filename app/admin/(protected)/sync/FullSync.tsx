@@ -6,6 +6,9 @@ import type { SyncSparkResult, SyncHistoryResult } from '@/app/actions/sync-spar
 import { recordSyncRun, refreshListingsBreakdown } from '@/app/actions/sync-history'
 import { updateSyncCursorAfterListingsComplete, updateSyncCursorToIdle } from '@/app/actions/sync-full-cron'
 import { useRouter } from 'next/navigation'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 const CHUNK_PAGES = 20
 const PAGE_SIZE = 100
@@ -168,15 +171,15 @@ export default function FullSync() {
   const isRunning = phase === 'listings' || phase === 'history'
 
   return (
-    <div className="rounded-lg border-2 border-green-500/30 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border-2 border-success/30 bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Full sync (listings + history)</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         One button: syncs all listings from Spark, then syncs listing history for every listing. Start it before bed and everything will be synced by morning.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <label className="flex cursor-pointer items-center gap-2">
-          <input
+        <Label className="flex cursor-pointer items-center gap-2">
+          <Input
             type="checkbox"
             checked={insertOnlyMode}
             onChange={(e) => setInsertOnlyMode(e.target.checked)}
@@ -184,23 +187,23 @@ export default function FullSync() {
             className="rounded border-border"
           />
           <span className="text-sm text-muted-foreground">New only (faster — skip updating existing listing rows)</span>
-        </label>
-        <button
+        </Label>
+        <Button
           type="button"
           onClick={() => runFullSync()}
           disabled={isRunning}
-          className="rounded-lg bg-green-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-500/75 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success/75 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isRunning ? (phase === 'listings' ? 'Syncing listings…' : 'Syncing history…') : 'Start full sync'}
-        </button>
+        </Button>
         {isRunning && (
-          <button
+          <Button
             type="button"
             onClick={handleStop}
-            className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
+            className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Stop
-          </button>
+          </Button>
         )}
       </div>
 

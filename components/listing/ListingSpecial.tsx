@@ -17,12 +17,12 @@ export default function ListingSpecial({ highlights, featureTags }: Props) {
   if (!hasHighlights && !hasTags) return null
 
   return (
-    <section className="rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="listing-special-heading">
+    <section className="rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="listing-special-heading">
       <h2 id="listing-special-heading" className="mb-4 text-lg font-semibold text-foreground">
         What makes this property special
       </h2>
       {hasHighlights && (
-        <blockquote className="border-l-4 border-green-500 pl-4 text-base leading-relaxed text-muted-foreground md:text-lg md:leading-relaxed">
+        <blockquote className="border-l-4 border-success pl-4 text-base leading-relaxed text-muted-foreground md:text-lg md:leading-relaxed">
           {highlights.map((s, i) => (
             <p key={i} className={i > 0 ? 'mt-3' : ''}>
               {s}

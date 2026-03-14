@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { trackEvent } from '@/lib/tracking'
 
 export type GeoMarketStats = {
@@ -61,24 +63,32 @@ export default function GeoMarketOverview({
           {placeName} Market Overview
         </h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg bg-white p-4 shadow-sm">
-            <p className="text-2xl font-bold text-primary">{formatPrice(stats.medianPrice)}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Median Price</p>
-          </div>
-          <div className="rounded-lg bg-white p-4 shadow-sm">
-            <p className="text-2xl font-bold text-primary">{stats.count}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Active Listings</p>
-          </div>
-          <div className="rounded-lg bg-white p-4 shadow-sm">
-            <p className="text-2xl font-bold text-primary">
-              {stats.avgDom != null && stats.avgDom > 0 ? Math.round(stats.avgDom) : '—'}
-            </p>
-            <p className="text-sm text-[var(--muted-foreground)]">Avg Days on Market</p>
-          </div>
-          <div className="rounded-lg bg-white p-4 shadow-sm">
-            <p className="text-2xl font-bold text-primary">{stats.closedLast12Months}</p>
-            <p className="text-sm text-[var(--muted-foreground)]">Homes Sold (12 mo)</p>
-          </div>
+          <Card className="shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-2xl font-bold text-primary">{formatPrice(stats.medianPrice)}</p>
+              <p className="text-sm text-muted-foreground">Median Price</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-2xl font-bold text-primary">{stats.count}</p>
+              <p className="text-sm text-muted-foreground">Active Listings</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-2xl font-bold text-primary">
+                {stats.avgDom != null && stats.avgDom > 0 ? Math.round(stats.avgDom) : '—'}
+              </p>
+              <p className="text-sm text-muted-foreground">Avg Days on Market</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="pt-4">
+              <p className="text-2xl font-bold text-primary">{stats.closedLast12Months}</p>
+              <p className="text-sm text-muted-foreground">Homes Sold (12 mo)</p>
+            </CardContent>
+          </Card>
         </div>
         {hasChartData ? (
           <div className="mt-6">
@@ -95,25 +105,28 @@ export default function GeoMarketOverview({
             </div>
           </div>
         ) : (
-          <p className="mt-6 text-sm text-[var(--muted-foreground)]">
+          <p className="mt-6 text-sm text-muted-foreground">
             Market data building — check back soon for price trends and sales volume.
           </p>
         )}
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href={fullReportHref}
-            className="inline-flex items-center justify-center rounded-lg bg-accent px-5 py-2.5 font-semibold text-primary hover:bg-accent/90"
+          <Button
+            asChild
             onClick={() => trackEvent('view_market_report', { context: trackContext, place: placeName })}
           >
-            Full market report
-          </Link>
-          <Link
-            href={exploreHref}
-            className="inline-flex items-center justify-center rounded-lg border border-primary/20 bg-white px-5 py-2.5 font-medium text-primary hover:bg-[var(--muted)]"
+            <Link href={fullReportHref}>
+              Full market report
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
             onClick={() => trackEvent('view_market_report', { context: `${trackContext}_explore`, place: placeName })}
           >
-            Explore market data
-          </Link>
+            <Link href={exploreHref}>
+              Explore market data
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

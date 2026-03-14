@@ -52,7 +52,7 @@ export default function TrendingListings({
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16"
+      className="w-full bg-background px-4 py-12 sm:px-6 sm:py-16"
       aria-labelledby="trending-listings-heading"
     >
       <div className="mx-auto w-full max-w-7xl">
@@ -63,7 +63,7 @@ export default function TrendingListings({
           headerRight={
             <Link
               href="/homes-for-sale?sort=popular"
-              className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
+              className="text-sm font-semibold text-primary hover:text-accent"
             >
               Browse trending →
             </Link>

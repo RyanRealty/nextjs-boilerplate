@@ -52,9 +52,9 @@ export default function ActivityFeedCard({ item }: Props) {
   return (
     <Link
       href={href}
-      className="group flex h-full min-h-full flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm transition hover:shadow-md"
+      className="group flex h-full min-h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[var(--border)]">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-border">
         {item.PhotoURL ? (
           <Image
             src={item.PhotoURL}
@@ -72,7 +72,7 @@ export default function ActivityFeedCard({ item }: Props) {
       </div>
       <div className="flex flex-1 flex-col p-3">
         <p className="font-medium text-primary line-clamp-2">{address}</p>
-        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+        <p className="mt-1 text-sm text-muted-foreground">
           {formatPrice(item.ListPrice)}
           {item.BedroomsTotal != null && ` · ${item.BedroomsTotal} bed`}
         </p>

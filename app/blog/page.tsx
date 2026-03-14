@@ -75,7 +75,7 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
 
       {featured && page === 1 && (
         <article className="mt-8">
-          <Link href={`/blog/${featured.slug}`} className="block overflow-hidden rounded-xl border border-border bg-white shadow-sm transition hover:shadow-md">
+          <Link href={`/blog/${featured.slug}`} className="block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition hover:shadow-md">
             {featured.hero_image_url && (
               <div className="relative aspect-[2/1] w-full">
                 <Image src={featured.hero_image_url} alt={featured.title || 'Featured blog post'} fill className="object-cover" sizes="(max-width: 768px) 100vw, 1024px" />
@@ -97,7 +97,7 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {(page === 1 ? posts.slice(1) : posts).map((post) => (
           <article key={post.id}>
-            <Link href={`/blog/${post.slug}`} className="block overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow-md">
+            <Link href={`/blog/${post.slug}`} className="block overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md">
               {post.hero_image_url && (
                 <div className="relative aspect-[16/10] w-full">
                   <Image src={post.hero_image_url} alt={post.title || 'Blog post image'} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />

@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { MessageAdd01Icon, Cancel01Icon, SentIcon } from '@hugeicons/core-free-icons'
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 
 interface Message {
   id: string
@@ -115,7 +117,7 @@ export default function ChatWidget() {
       {/* Chat panel */}
       {isOpen && (
         <div
-          className="fixed bottom-20 right-4 z-50 flex w-[min(380px,calc(100vw-2rem))] flex-col rounded-xl border border-[var(--border)] bg-white shadow-lg sm:bottom-24 sm:right-6"
+          className="fixed bottom-20 right-4 z-50 flex w-[min(380px,calc(100vw-2rem))] flex-col rounded-xl border border-border bg-card shadow-lg sm:bottom-24 sm:right-6"
           style={{ height: 'min(520px, calc(100vh - 160px))' }}
           role="dialog"
           aria-label="Chat With Us"
@@ -131,14 +133,14 @@ export default function ChatWidget() {
                 <p className="text-xs text-white/70">Ryan Realty • Central Oregon</p>
               </div>
             </div>
-            <button
+            <Button
               type="button"
               onClick={toggleOpen}
-              className="rounded-lg p-1 text-white/80 hover:bg-white/10 hover:text-white"
+              className="rounded-lg p-1 text-white/80 hover:bg-card/10 hover:text-white"
               aria-label="Close chat"
             >
               <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
 
           {/* Messages */}
@@ -153,7 +155,7 @@ export default function ChatWidget() {
                     'max-w-[85%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed',
                     msg.role === 'user'
                       ? 'bg-primary text-white rounded-br-md'
-                      : 'bg-[var(--muted)] text-[var(--foreground)] rounded-bl-md',
+                      : 'bg-muted text-foreground rounded-bl-md',
                   ].join(' ')}
                 >
                   {msg.content}
@@ -162,11 +164,11 @@ export default function ChatWidget() {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="rounded-xl rounded-bl-md bg-[var(--muted)] px-4 py-3">
+                <div className="rounded-xl rounded-bl-md bg-muted px-4 py-3">
                   <div className="flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--muted-foreground)]" style={{ animationDelay: '0ms' }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--muted-foreground)]" style={{ animationDelay: '150ms' }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-[var(--muted-foreground)]" style={{ animationDelay: '300ms' }} />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '0ms' }} />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '150ms' }} />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -175,20 +177,20 @@ export default function ChatWidget() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-[var(--border)] p-3">
+          <div className="border-t border-border p-3">
             <div className="flex items-end gap-2">
-              <textarea
+              <Textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about Central Oregon real estate…"
                 rows={1}
-                className="flex-1 resize-none rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="flex-1 resize-none rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 style={{ maxHeight: '80px' }}
                 disabled={loading}
               />
-              <button
+              <Button
                 type="button"
                 onClick={sendMessage}
                 disabled={loading || !input.trim()}
@@ -196,9 +198,9 @@ export default function ChatWidget() {
                 aria-label="Send message"
               >
                 <HugeiconsIcon icon={SentIcon} className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
-            <p className="mt-1.5 text-center text-[10px] text-[var(--muted-foreground)]">
+            <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
               AI assistant • May not always be accurate
             </p>
           </div>
@@ -206,13 +208,13 @@ export default function ChatWidget() {
       )}
 
       {/* Floating button */}
-      <button
+      <Button
         type="button"
         onClick={toggleOpen}
         className={[
           'fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full px-5 py-3 font-semibold shadow-md transition-all hover:scale-105 sm:bottom-6 sm:right-6',
           isOpen
-            ? 'bg-[var(--muted)] text-primary'
+            ? 'bg-muted text-primary'
             : 'bg-primary text-white',
         ].join(' ')}
         aria-label={isOpen ? 'Close chat' : 'Chat With Us'}
@@ -225,7 +227,7 @@ export default function ChatWidget() {
             <span className="hidden sm:inline">Chat With Us</span>
           </>
         )}
-      </button>
+      </Button>
     </>
   )
 }

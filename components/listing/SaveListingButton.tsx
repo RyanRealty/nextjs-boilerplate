@@ -5,6 +5,7 @@ import { toggleSavedListing } from '../../app/actions/saved-listings'
 import { trackSavedPropertyAction } from '../../app/actions/track-saved-property'
 import { trackSaveListing } from '@/lib/tracking'
 import { BookmarkIcon } from '@/components/icons/ActionIcons'
+import { Button } from "@/components/ui/button"
 
 type Props = {
   listingKey: string
@@ -44,10 +45,10 @@ export default function SaveListingButton({ listingKey, saved, userEmail, listin
   }
 
   return (
-    <button
+    <Button
       type="button"
       onClick={handleClick}
-      className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
+      className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
       aria-label={saved ? 'Remove from saved homes' : 'Save to saved homes'}
     >
       {saved ? (
@@ -61,6 +62,6 @@ export default function SaveListingButton({ listingKey, saved, userEmail, listin
           Save home
         </>
       )}
-    </button>
+    </Button>
   )
 }
