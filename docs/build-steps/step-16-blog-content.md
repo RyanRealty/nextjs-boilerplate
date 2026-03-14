@@ -1,6 +1,6 @@
 # Build Step 16: Blog & Content Pages
 
-Read docs/MASTER_PLAN.md, specifically Section 14 (Blog Engine), Section 46 (AI Content Generation), Section 15 (Content Engine & Social Publishing).
+Scope: Blog engine, AI content generation, content engine & social publishing.
 
 Build the blog and content system:
 

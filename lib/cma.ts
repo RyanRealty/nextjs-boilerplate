@@ -3,13 +3,11 @@
  * Fetches subject property, finds closed comps via PostGIS, applies adjustments, stores valuation.
  */
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/service'
 
 function getServiceSupabase(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url?.trim() || !key?.trim()) throw new Error('Supabase service role not configured')
-  return createClient(url, key)
+  return createServiceClient()
 }
 
 const ADJUSTMENT = {
@@ -152,7 +150,7 @@ async function getCompCandidates(
   propertyId: string,
   communityId: string | null
 ): Promise<CMACompRow[]> {
-  let rows = await supabase.rpc('get_cma_comps', {
+  const rows = await supabase.rpc('get_cma_comps', {
     p_subject_property_id: propertyId,
     p_radius_miles: 1,
     p_months_back: 6,

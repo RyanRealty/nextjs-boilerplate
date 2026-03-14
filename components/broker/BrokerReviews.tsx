@@ -20,11 +20,11 @@ function StarDisplay({ rating }: { rating: number }) {
   return (
     <span className="inline-flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
       {[...Array(full)].map((_, i) => (
-        <span key={i} className="text-[var(--accent)]">★</span>
+        <span key={i} className="text-accent-foreground">★</span>
       ))}
-      {half ? <span className="text-[var(--accent)]">★</span> : null}
+      {half ? <span className="text-accent-foreground">★</span> : null}
       {[...Array(empty)].map((_, i) => (
-        <span key={i} className="text-[var(--gray-border)]">★</span>
+        <span key={i} className="text-[var(--border)]">★</span>
       ))}
     </span>
   )
@@ -75,29 +75,29 @@ export default function BrokerReviews({
   if (reviewCount === 0) return null
 
   return (
-    <section className="bg-[var(--brand-cream)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-reviews-heading">
+    <section className="bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-reviews-heading">
       <div className="mx-auto max-w-7xl">
-        <h2 id="broker-reviews-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+        <h2 id="broker-reviews-heading" className="text-2xl font-bold tracking-tight text-primary">
           Client Reviews
         </h2>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {avgRating != null && (
             <div className="flex items-center gap-2">
               <StarDisplay rating={avgRating} />
-              <span className="text-lg font-semibold text-[var(--brand-navy)]">
+              <span className="text-lg font-semibold text-primary">
                 {avgRating.toFixed(1)} out of 5
               </span>
-              <span className="text-[var(--text-secondary)]">— {reviewCount} reviews</span>
+              <span className="text-[var(--muted-foreground)]">— {reviewCount} reviews</span>
             </div>
           )}
         </div>
         {sourceCounts.length > 0 && (
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
             {sourceCounts.map((s) => `${s.count} from ${sourceLabel(s.source)}`).join(', ')}
           </p>
         )}
         <div className="mt-6 flex items-center gap-2">
-          <label htmlFor="review-sort" className="text-sm text-[var(--text-secondary)]">Sort:</label>
+          <label htmlFor="review-sort" className="text-sm text-[var(--muted-foreground)]">Sort:</label>
           <select
             id="review-sort"
             value={sort}
@@ -105,7 +105,7 @@ export default function BrokerReviews({
               setSort(e.target.value as 'newest' | 'highest' | 'lowest')
               setPage(0)
             }}
-            className="rounded border border-[var(--gray-border)] bg-white px-3 py-2 text-sm text-[var(--brand-navy)]"
+            className="rounded border border-[var(--border)] bg-white px-3 py-2 text-sm text-primary"
           >
             <option value="newest">Newest first</option>
             <option value="highest">Highest rated</option>
@@ -123,18 +123,18 @@ export default function BrokerReviews({
               type="button"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="rounded-lg border border-[var(--gray-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--brand-navy)] disabled:opacity-50 hover:bg-[var(--gray-bg)]"
+              className="rounded-lg border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 hover:bg-[var(--muted)]"
             >
               Previous
             </button>
-            <span className="text-sm text-[var(--text-secondary)]">
+            <span className="text-sm text-[var(--muted-foreground)]">
               Page {page + 1} of {totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="rounded-lg border border-[var(--gray-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--brand-navy)] disabled:opacity-50 hover:bg-[var(--gray-bg)]"
+              className="rounded-lg border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary disabled:opacity-50 hover:bg-[var(--muted)]"
             >
               Next
             </button>
@@ -152,21 +152,21 @@ function ReviewCard({ review }: { review: ReviewRow }) {
   const showMore = text.length > REVIEW_TRUNCATE
 
   return (
-    <li className="rounded-xl border border-[var(--gray-border)] bg-white p-4 shadow-sm">
+    <li className="rounded-lg border border-[var(--border)] bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <StarDisplay rating={review.rating} />
-        <span className="rounded bg-[var(--gray-bg)] px-2 py-0.5 text-xs text-[var(--text-secondary)]">
+        <span className="rounded bg-[var(--muted)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]">
           {review.source}
         </span>
       </div>
       {text && (
-        <p className="mt-2 text-[var(--text-primary)]">
+        <p className="mt-2 text-[var(--foreground)]">
           {expanded ? text : truncated}
           {showMore && (
             <button
               type="button"
               onClick={() => setExpanded((e) => !e)}
-              className="ml-1 text-sm font-medium text-[var(--accent)] hover:underline"
+              className="ml-1 text-sm font-medium text-accent-foreground hover:underline"
             >
               {expanded ? ' Less' : ' Read more'}
             </button>
@@ -174,7 +174,7 @@ function ReviewCard({ review }: { review: ReviewRow }) {
         </p>
       )}
       {(review.reviewer_name || review.review_date) && (
-        <p className="mt-2 text-sm text-[var(--text-muted)]">
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           {review.reviewer_name ?? 'Anonymous'}
           {review.review_date && ` · ${new Date(review.review_date).toLocaleDateString('en-US')}`}
         </p>

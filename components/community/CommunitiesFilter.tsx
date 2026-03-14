@@ -2,13 +2,24 @@
 
 import { useState, useMemo } from 'react'
 import type { CommunityForIndex } from '@/lib/communities'
+import type { CommunityEngagementCounts } from '@/app/actions/community-engagement'
 import CommunityCard from './CommunityCard'
 
 type Props = {
   communities: CommunityForIndex[]
+  signedIn?: boolean
+  savedKeys?: string[]
+  likedKeys?: string[]
+  engagementMap?: Record<string, CommunityEngagementCounts>
 }
 
-export default function CommunitiesFilter({ communities }: Props) {
+export default function CommunitiesFilter({
+  communities,
+  signedIn = false,
+  savedKeys = [],
+  likedKeys = [],
+  engagementMap = {},
+}: Props) {
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -32,7 +43,7 @@ export default function CommunitiesFilter({ communities }: Props) {
         placeholder="Search communities..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="mt-4 w-full max-w-md rounded-lg border border-[var(--gray-border)] bg-white px-4 py-3 text-[var(--brand-navy)] placeholder:text-[var(--gray-muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+        className="mt-4 w-full max-w-md rounded-lg border border-[var(--border)] bg-white px-4 py-3 text-primary placeholder:text-[var(--muted-foreground)] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {filtered.map((c) => (
@@ -46,11 +57,15 @@ export default function CommunitiesFilter({ communities }: Props) {
             heroImageUrl={c.heroImageUrl}
             isResort={c.isResort}
             size="default"
+            signedIn={signedIn}
+            saved={savedKeys.includes(c.entityKey)}
+            liked={likedKeys.includes(c.entityKey)}
+            engagement={engagementMap[c.entityKey] ?? null}
           />
         ))}
       </div>
       {filtered.length === 0 && (
-        <p className="mt-6 text-[var(--text-secondary)]">
+        <p className="mt-6 text-[var(--muted-foreground)]">
           No communities match your search.
         </p>
       )}

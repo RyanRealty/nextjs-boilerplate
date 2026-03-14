@@ -2,14 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition, useState } from 'react'
-
-const PROPERTY_TYPES = [
-  { value: '', label: 'All types' },
-  { value: 'Residential', label: 'Residential' },
-  { value: 'Commercial', label: 'Commercial' },
-  { value: 'Land', label: 'Land' },
-  { value: 'Rental', label: 'Rental' },
-]
+import { PROPERTY_TYPES } from '@/lib/property-type'
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -95,7 +88,8 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
     basePath,
   } = props
   const router = useRouter()
-  const pathname = basePath ?? (usePathname()?.split('?')[0] ?? '/listings')
+  const rawPathname = usePathname()
+  const pathname = basePath ?? (rawPathname?.split('?')[0] ?? '/listings')
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
   const [advancedOpen, setAdvancedOpen] = useState(
@@ -157,11 +151,11 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
     })
   }
 
-  const labelClass = 'text-xs font-medium text-zinc-500'
-  const inputClass = 'rounded-lg border border-zinc-200 px-3 py-2 text-sm'
+  const labelClass = 'text-xs font-medium text-muted-foreground'
+  const inputClass = 'rounded-lg border border-border px-3 py-2 text-sm'
 
   return (
-    <form onSubmit={applyFilters} className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+    <form onSubmit={applyFilters} className="rounded-lg border border-border bg-white shadow-sm overflow-hidden">
       {/* Quick filters — always visible */}
       <div className="p-4 flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
@@ -219,25 +213,25 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
           </select>
         </label>
         <label className="flex items-center gap-2 self-end pb-2">
-          <input type="checkbox" name="includeClosed" defaultChecked={includeClosed === '1'} className="h-4 w-4 rounded border-zinc-300" />
-          <span className="text-sm text-zinc-600">Include closed</span>
+          <input type="checkbox" name="includeClosed" defaultChecked={includeClosed === '1'} className="h-4 w-4 rounded border-primary/20" />
+          <span className="text-sm text-muted-foreground">Include closed</span>
         </label>
         <button
           type="button"
           onClick={() => setAdvancedOpen((o) => !o)}
-          className="self-end pb-2 text-sm font-medium text-zinc-600 hover:text-zinc-900"
+          className="self-end pb-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           {advancedOpen ? 'Fewer filters' : 'More filters'}
         </button>
-        <button type="submit" disabled={isPending} className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-70 ml-auto">
+        <button type="submit" disabled={isPending} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-70 ml-auto">
           {isPending ? 'Applying…' : 'Apply'}
         </button>
       </div>
 
       {/* Advanced filters — collapsible */}
       {advancedOpen && (
-        <div className="border-t border-zinc-200 bg-zinc-50/60 p-4 flex flex-wrap items-end gap-4">
-          <span className="w-full text-xs font-semibold text-zinc-600 uppercase tracking-wider">More filters</span>
+        <div className="border-t border-border bg-muted p-4 flex flex-wrap items-end gap-4">
+          <span className="w-full text-xs font-semibold text-muted-foreground uppercase tracking-wider">More filters</span>
           <label className="flex flex-col gap-1">
             <span className={labelClass}>Max beds</span>
             <select name="maxBeds" defaultValue={maxBeds ?? ''} className={`w-20 ${inputClass}`}>
@@ -316,20 +310,20 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
           </label>
           <div className="flex flex-wrap items-center gap-6 self-end pb-2">
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="hasOpenHouse" defaultChecked={hasOpenHouse === '1'} className="h-4 w-4 rounded border-zinc-300" />
-              <span className="text-sm text-zinc-600">Open house</span>
+              <input type="checkbox" name="hasOpenHouse" defaultChecked={hasOpenHouse === '1'} className="h-4 w-4 rounded border-primary/20" />
+              <span className="text-sm text-muted-foreground">Open house</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="hasPool" defaultChecked={hasPool === '1'} className="h-4 w-4 rounded border-zinc-300" />
-              <span className="text-sm text-zinc-600">Pool</span>
+              <input type="checkbox" name="hasPool" defaultChecked={hasPool === '1'} className="h-4 w-4 rounded border-primary/20" />
+              <span className="text-sm text-muted-foreground">Pool</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="hasView" defaultChecked={hasView === '1'} className="h-4 w-4 rounded border-zinc-300" />
-              <span className="text-sm text-zinc-600">View</span>
+              <input type="checkbox" name="hasView" defaultChecked={hasView === '1'} className="h-4 w-4 rounded border-primary/20" />
+              <span className="text-sm text-muted-foreground">View</span>
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" name="hasWaterfront" defaultChecked={hasWaterfront === '1'} className="h-4 w-4 rounded border-zinc-300" />
-              <span className="text-sm text-zinc-600">Waterfront</span>
+              <input type="checkbox" name="hasWaterfront" defaultChecked={hasWaterfront === '1'} className="h-4 w-4 rounded border-primary/20" />
+              <span className="text-sm text-muted-foreground">Waterfront</span>
             </label>
           </div>
         </div>

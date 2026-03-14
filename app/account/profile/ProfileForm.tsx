@@ -35,35 +35,35 @@ export default function ProfileForm({ initial }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-8 max-w-md space-y-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm"
+      className="mt-8 max-w-md space-y-6 rounded-lg border border-border bg-white p-6 shadow-sm"
     >
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Display name</span>
+        <span className="text-sm font-medium text-muted-foreground">Display name</span>
         <input
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="How we should address you"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder:text-zinc-400"
+          className="mt-1 w-full rounded-lg border border-primary/20 px-3 py-2 text-foreground placeholder:text-muted-foreground"
         />
       </label>
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Phone</span>
+        <span className="text-sm font-medium text-muted-foreground">Phone</span>
         <input
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="(555) 123-4567"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder:text-zinc-400"
+          className="mt-1 w-full rounded-lg border border-primary/20 px-3 py-2 text-foreground placeholder:text-muted-foreground"
         />
       </label>
       {initial.email && (
         <div className="block">
-          <span className="text-sm font-medium text-zinc-700">Email</span>
-          <p className="mt-1 text-zinc-600" aria-readonly>
+          <span className="text-sm font-medium text-muted-foreground">Email</span>
+          <p className="mt-1 text-muted-foreground" aria-readonly>
             {initial.email}
           </p>
-          <p className="mt-0.5 text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             From your sign-in provider. Change it in your Google (or other) account settings.
           </p>
         </div>
@@ -72,12 +72,12 @@ export default function ProfileForm({ initial }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
         >
           {saving ? 'Saving…' : 'Save profile'}
         </button>
-        {msg === 'saved' && <span className="text-sm text-emerald-600">Saved.</span>}
-        {msg === 'error' && <span className="text-sm text-red-600">Could not save.</span>}
+        {msg === 'saved' && <span className="text-sm text-green-500">Saved.</span>}
+        {msg === 'error' && <span className="text-sm text-destructive">Could not save.</span>}
       </div>
     </form>
   )

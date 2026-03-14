@@ -22,7 +22,7 @@ const PRESETS: { value: DateRangePreset; label: string }[] = [
 
 function getRangeForPreset(preset: DateRangePreset): { start: string; end: string } {
   const end = new Date()
-  let start = new Date()
+  const start = new Date()
   switch (preset) {
     case 'today':
       start.setHours(0, 0, 0, 0)
@@ -81,7 +81,7 @@ export default function DateRangeSelector({ value, onChange }: Props) {
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="text-sm font-medium text-zinc-600">Date range</span>
+      <span className="text-sm font-medium text-muted-foreground">Date range</span>
       <div className="flex flex-wrap gap-2">
         {PRESETS.map(({ value: p, label }) => (
           <button
@@ -90,8 +90,8 @@ export default function DateRangeSelector({ value, onChange }: Props) {
             onClick={() => handlePresetChange(p)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
               preset === p
-                ? 'bg-zinc-900 text-white'
-                : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
+                ? 'bg-primary text-white'
+                : 'bg-muted text-muted-foreground hover:bg-border'
             }`}
           >
             {label}
@@ -104,19 +104,19 @@ export default function DateRangeSelector({ value, onChange }: Props) {
             type="date"
             value={start}
             onChange={(e) => setStart(e.target.value)}
-            className="rounded border border-zinc-200 px-2 py-1 text-sm"
+            className="rounded border border-border px-2 py-1 text-sm"
           />
-          <span className="text-zinc-400">to</span>
+          <span className="text-muted-foreground">to</span>
           <input
             type="date"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
-            className="rounded border border-zinc-200 px-2 py-1 text-sm"
+            className="rounded border border-border px-2 py-1 text-sm"
           />
           <button
             type="button"
             onClick={handleCustomApply}
-            className="rounded bg-zinc-800 px-3 py-1 text-sm text-white hover:bg-zinc-700"
+            className="rounded bg-primary px-3 py-1 text-sm text-white hover:bg-primary"
           >
             Apply
           </button>

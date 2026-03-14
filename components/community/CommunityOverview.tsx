@@ -1,5 +1,6 @@
 import type { ListingRow } from '@/app/actions/communities'
-import Card from '@/components/ui/Card'
+import type { ResortCommunityContent } from '@/lib/community-content'
+import GeoAboutSection, { type QuickFact } from '@/components/geo-page/GeoAboutSection'
 
 type ResortContent = Record<string, unknown>
 
@@ -10,10 +11,33 @@ type Props = {
   communityName: string
   city: string
   listings: ListingRow[]
+  resortStaticContent?: ResortCommunityContent | null
+  dataDrivenParagraphs?: string[]
 }
 
 function formatPrice(n: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+}
+
+function renderParagraphs(paragraphs: string[]) {
+  return (
+    <div className="prose max-w-none">
+      {paragraphs.map((p, i) => (
+        <p key={i} className="mt-3 first:mt-0">
+          {p.trim()}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mt-5">
+      <h3 className="text-base font-semibold text-primary">{title}</h3>
+      <div className="mt-2">{children}</div>
+    </div>
+  )
 }
 
 export default function CommunityOverview({
@@ -23,6 +47,8 @@ export default function CommunityOverview({
   communityName,
   city,
   listings,
+  resortStaticContent,
+  dataDrivenParagraphs,
 }: Props) {
   const prices = listings
     .map((l) => l.ListPrice)
@@ -43,95 +69,88 @@ export default function CommunityOverview({
   const hasHoa = listings.some((l) => (l as { AssociationYN?: boolean }).AssociationYN === true)
   const waterfront = listings.some((l) => (l as { WaterfrontYN?: boolean }).WaterfrontYN === true)
 
-  return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-overview-heading">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-          <div className="min-w-0">
-            <h2 id="community-overview-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
-              About {communityName}
-            </h2>
-            {description ? (
-              <div className="mt-4 prose prose-[var(--brand-navy)] max-w-none">
-                {description.split(/\n\n+/).map((p, i) => (
-                  <p key={i} className="mt-3 text-[var(--text-secondary)]">
-                    {p.trim()}
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-4 text-[var(--text-secondary)]">
-                {communityName} is a community in {city}, Oregon. Browse active listings below for the latest homes for sale.
-              </p>
-            )}
-            {isResort && resortContent && typeof resortContent === 'object' && Object.keys(resortContent).length > 0 && (
-              <div className="mt-8 space-y-6">
-                {Object.entries(resortContent).map(([key, value]) => (
-                  <div key={key}>
-                    <h3 className="text-lg font-semibold text-[var(--brand-navy)]">
-                      {key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                    </h3>
-                    <div className="mt-2 text-[var(--text-secondary)]">
-                      {typeof value === 'string' ? value : JSON.stringify(value)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+  const quickFacts: QuickFact[] = []
+  if (propertyTypes.length > 0) quickFacts.push({ label: 'Property types', value: propertyTypes.slice(0, 5).join(', ') })
+  if (minPrice != null || maxPrice != null) {
+    const val =
+      minPrice != null && maxPrice != null
+        ? `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`
+        : minPrice != null
+          ? formatPrice(minPrice) + '+'
+          : formatPrice(maxPrice!)
+    quickFacts.push({ label: 'Price range', value: val })
+  }
+  if (avgLot != null)
+    quickFacts.push({
+      label: 'Avg lot size',
+      value: avgLot >= 1 ? `${avgLot.toFixed(1)} ac` : `${(avgLot * 43560).toFixed(0)} sq ft`,
+    })
+  if (yearRange)
+    quickFacts.push({
+      label: 'Year built',
+      value: yearRange.min === yearRange.max ? String(yearRange.min) : `${yearRange.min} – ${yearRange.max}`,
+    })
+  quickFacts.push({ label: 'HOA', value: hasHoa ? 'Yes' : 'No' })
+  quickFacts.push({ label: 'Waterfront', value: waterfront ? 'Yes' : 'No' })
+  if (isResort) quickFacts.push({ label: 'Type', value: 'Resort & master plan community' })
+
+  const hasStoredDescription = description && description.trim().length >= 180
+  const useStoredDescription = hasStoredDescription && !resortStaticContent
+  const fallbackParagraphs = dataDrivenParagraphs && dataDrivenParagraphs.length > 0 ? dataDrivenParagraphs : null
+
+  const content = resortStaticContent ? (
+    <>
+      {renderParagraphs([resortStaticContent.overview])}
+      {resortStaticContent.history && (
+        <Section title="History & character">{renderParagraphs([resortStaticContent.history])}</Section>
+      )}
+      {resortStaticContent.amenities && (
+        <Section title="Lifestyle & amenities">{renderParagraphs([resortStaticContent.amenities])}</Section>
+      )}
+      {resortStaticContent.golf_recreation && (
+        <Section title="Golf & recreation">{renderParagraphs([resortStaticContent.golf_recreation])}</Section>
+      )}
+      {resortStaticContent.real_estate && (
+        <Section title={`Real estate in ${communityName}`}>{renderParagraphs([resortStaticContent.real_estate])}</Section>
+      )}
+    </>
+  ) : isResort && resortContent && typeof resortContent === 'object' && Object.keys(resortContent).length > 0 ? (
+    <>
+      {description && renderParagraphs(description.split(/\n\n+/).filter((p) => p.trim()))}
+      <div className="mt-5 space-y-4">
+        {Object.entries(resortContent).map(([key, value]) => (
+          <div key={key}>
+            <h3 className="text-base font-semibold text-primary">
+              {key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+            </h3>
+            <p className="mt-1">{typeof value === 'string' ? value : JSON.stringify(value)}</p>
           </div>
-          <div>
-            <Card className="p-6">
-              <h3 className="font-bold text-[var(--brand-navy)]">Quick facts</h3>
-              <dl className="mt-4 space-y-3 text-sm">
-                {propertyTypes.length > 0 && (
-                  <>
-                    <dt className="text-[var(--text-muted)]">Property types</dt>
-                    <dd className="text-[var(--text-primary)]">{propertyTypes.slice(0, 5).join(', ')}</dd>
-                  </>
-                )}
-                {(minPrice != null || maxPrice != null) && (
-                  <>
-                    <dt className="text-[var(--text-muted)]">Price range</dt>
-                    <dd className="text-[var(--text-primary)]">
-                      {minPrice != null && maxPrice != null
-                        ? `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`
-                        : minPrice != null
-                          ? formatPrice(minPrice) + '+'
-                          : formatPrice(maxPrice!)}
-                    </dd>
-                  </>
-                )}
-                {avgLot != null && (
-                  <>
-                    <dt className="text-[var(--text-muted)]">Avg lot size</dt>
-                    <dd className="text-[var(--text-primary)]">
-                      {avgLot >= 1 ? `${avgLot.toFixed(1)} ac` : `${(avgLot * 43560).toFixed(0)} sq ft`}
-                    </dd>
-                  </>
-                )}
-                {yearRange && (
-                  <>
-                    <dt className="text-[var(--text-muted)]">Year built</dt>
-                    <dd className="text-[var(--text-primary)]">
-                      {yearRange.min === yearRange.max ? yearRange.min : `${yearRange.min} – ${yearRange.max}`}
-                    </dd>
-                  </>
-                )}
-                <dt className="text-[var(--text-muted)]">HOA</dt>
-                <dd className="text-[var(--text-primary)]">{hasHoa ? 'Yes' : 'No'}</dd>
-                <dt className="text-[var(--text-muted)]">Waterfront</dt>
-                <dd className="text-[var(--text-primary)]">{waterfront ? 'Yes' : 'No'}</dd>
-                {isResort && (
-                  <>
-                    <dt className="text-[var(--text-muted)]">Golf</dt>
-                    <dd className="text-[var(--text-primary)]">Resort community</dd>
-                  </>
-                )}
-              </dl>
-            </Card>
-          </div>
-        </div>
+        ))}
       </div>
-    </section>
+    </>
+  ) : useStoredDescription ? (
+    <div className="prose max-w-none">
+      {description!.split(/\n\n+/).map((p, i) => (
+        <p key={i} className="mt-3 first:mt-0">
+          {p.trim()}
+        </p>
+      ))}
+    </div>
+  ) : fallbackParagraphs ? (
+    renderParagraphs(fallbackParagraphs)
+  ) : (
+    <p>
+      {communityName} is a {isResort ? 'resort & master plan ' : ''}community in {city}, Oregon. Browse active listings below for the latest homes for sale, market stats, and property details.
+    </p>
+  )
+
+  return (
+    <GeoAboutSection
+      placeName={communityName}
+      headingId="community-overview-heading"
+      quickFacts={quickFacts}
+    >
+      {content}
+    </GeoAboutSection>
   )
 }

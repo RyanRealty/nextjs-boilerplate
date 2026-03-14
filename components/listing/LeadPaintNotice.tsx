@@ -15,7 +15,7 @@ export default function LeadPaintNotice({ yearBuilt }: LeadPaintNoticeProps) {
   if (yearBuilt == null || yearBuilt >= 1978) return null
 
   return (
-    <p className="mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+    <p className="mt-4 rounded border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-sm text-foreground">
       Homes built before 1978 may contain lead-based paint.{' '}
       <a
         href={EPA_URL}

@@ -20,28 +20,28 @@ export default async function DashboardSearchesPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Saved Searches</h1>
-      <p className="mt-1 text-zinc-600">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Saved Searches</h1>
+      <p className="mt-1 text-muted-foreground">
         We&apos;ll notify you when new homes match. View results or edit filters.
       </p>
 
       <div className="mt-4">
         <Link
-          href="/search"
-          className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand-navy)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+          href="/homes-for-sale"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
         >
           Create new search
         </Link>
       </div>
 
       {searches.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-zinc-200 bg-zinc-50 p-8 text-center">
-          <p className="text-zinc-600">
+        <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
+          <p className="text-muted-foreground">
             Set up a search and we&apos;ll notify you when new homes match.
           </p>
           <Link
-            href="/search"
-            className="mt-4 inline-block rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            href="/homes-for-sale"
+            className="mt-4 inline-block rounded-lg border border-primary/20 bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Go to search
           </Link>

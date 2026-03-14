@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
-import Badge from '@/components/ui/Badge'
-
-const TILE_MIN_HEIGHT_PX = 340
+import type { EngagementCounts } from '@/app/actions/engagement'
+import { Badge } from '@/components/ui/badge'
+import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
+import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
 type ListingWithClose = HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null }
 
@@ -18,6 +19,7 @@ type Props = {
   downPaymentPercent: number
   interestRate: number
   loanTermYears: number
+  engagementCounts?: Record<string, EngagementCounts>
 }
 
 function formatPrice(n: number): string {
@@ -37,41 +39,35 @@ export default function RecentlySold({
   likedKeys,
   signedIn,
   userEmail,
+  engagementCounts,
 }: Props) {
   if (listings.length === 0) return null
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="recently-sold-heading">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between gap-4">
-          <h2 id="recently-sold-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
-            Recently Sold
-          </h2>
-          <Link
-            href="/reports"
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
-          >
-            See Market Reports
-          </Link>
-        </div>
-        <div
-          className="mt-6 flex gap-4 overflow-x-auto pb-2"
-          style={{ scrollbarWidth: 'thin' }}
+    <section className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="recently-sold-heading">
+      <div className="mx-auto w-full max-w-7xl">
+        <TilesSlider
+          title="Recently Sold"
+          titleId="recently-sold-heading"
+          headerRight={
+            <Link
+              href="/reports"
+              className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
+            >
+              View market reports →
+            </Link>
+          }
         >
           {listings.map((listing: ListingWithClose) => {
             const key = listing.ListingKey ?? listing.ListNumber ?? ''
             const closePrice = listing.ClosePrice ?? (listing as { close_price?: number }).close_price
             const closeDate = listing.CloseDate ?? (listing as { close_date?: string }).close_date
             return (
-              <div
-                key={key}
-                className="relative min-w-[280px] shrink-0 md:min-w-[300px]"
-                style={{ minHeight: TILE_MIN_HEIGHT_PX }}
-              >
-                <div className="absolute left-3 top-3 z-10">
-                  <Badge variant="sold">Sold</Badge>
-                </div>
-                <div className="relative">
+              <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
+                <div className="relative h-full">
+                  <div className="absolute left-3 top-3 z-10">
+                    <Badge variant="outline">Sold</Badge>
+                  </div>
                   <HomeTileCard
                     listing={listing}
                     listingKey={String(key)}
@@ -80,6 +76,9 @@ export default function RecentlySold({
                     liked={signedIn && likedKeys.includes(String(key))}
                     signedIn={signedIn}
                     userEmail={userEmail}
+                    likeCount={engagementCounts?.[String(key)]?.like_count}
+                    saveCount={engagementCounts?.[String(key)]?.save_count}
+                    shareCount={engagementCounts?.[String(key)]?.share_count}
                   />
                   {(closePrice != null || closeDate) && (
                     <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/70 px-2 py-1.5 text-sm text-white">
@@ -90,10 +89,10 @@ export default function RecentlySold({
                     </div>
                   )}
                 </div>
-              </div>
+              </TilesSliderItem>
             )
           })}
-        </div>
+        </TilesSlider>
       </div>
     </section>
   )

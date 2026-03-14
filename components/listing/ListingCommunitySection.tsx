@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { cityEntityKey } from '@/lib/slug'
+import { getSubdivisionDisplayName } from '@/lib/slug'
+import { homesForSalePath } from '@/lib/slug'
 import ListingTile from '@/components/ListingTile'
 import type { SimilarListingRow } from '@/app/actions/listings'
 import type { ListingTileListing } from '@/components/ListingTile'
@@ -35,17 +36,17 @@ export default function ListingCommunitySection({
   savedKeys = [],
   likedKeys = [],
 }: Props) {
-  const searchHref = `/search/${cityEntityKey(city)}/${encodeURIComponent(subdivisionName)}`
+  const searchHref = homesForSalePath(city, subdivisionName)
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-sm" aria-labelledby="listing-community-heading">
+    <section className="rounded-lg border border-border bg-white overflow-hidden shadow-sm" aria-labelledby="listing-community-heading">
       <h2 id="listing-community-heading" className="sr-only">
-        {subdivisionName}
+        {getSubdivisionDisplayName(subdivisionName)}
       </h2>
       {bannerUrl && (
         <div className="relative h-32 sm:h-40 w-full">
           <img
             src={bannerUrl}
-            alt=""
+            alt={`${getSubdivisionDisplayName(subdivisionName)} community in ${city}`}
             className="h-full w-full object-cover"
             width={800}
             height={320}
@@ -54,14 +55,14 @@ export default function ListingCommunitySection({
         </div>
       )}
       <div className="p-6">
-        <p className="text-xl font-semibold text-zinc-900">
-          Explore homes in {subdivisionName}
+        <p className="text-xl font-semibold text-foreground">
+          Explore homes in {getSubdivisionDisplayName(subdivisionName)}
         </p>
         {description && (
-          <p className="mt-2 text-base leading-relaxed text-zinc-700">{description}</p>
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">{description}</p>
         )}
         {amenitiesLabel && (
-          <p className="mt-2 text-sm text-zinc-600">{amenitiesLabel}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{amenitiesLabel}</p>
         )}
 
         {listings.length > 0 && (
@@ -86,9 +87,9 @@ export default function ListingCommunitySection({
 
         <Link
           href={searchHref}
-          className="mt-4 inline-block font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+          className="mt-4 inline-block font-medium text-green-500 hover:text-green-500 hover:underline"
         >
-          View all homes in {subdivisionName} →
+          View all homes in {getSubdivisionDisplayName(subdivisionName)} →
         </Link>
       </div>
     </section>

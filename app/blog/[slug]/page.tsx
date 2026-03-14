@@ -3,8 +3,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getBlogPostBySlug, getPublishedBlogPosts } from '../../actions/blog'
+import { sanitizeHtml } from '@/lib/sanitize'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const revalidate = 3600
 
@@ -67,43 +68,43 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <nav className="mb-6 text-sm text-zinc-600">
-        <Link href="/blog" className="hover:text-zinc-900">Blog</Link>
+      <nav className="mb-6 text-sm text-muted-foreground">
+        <Link href="/blog" className="hover:text-foreground">Blog</Link>
         <span className="mx-2">/</span>
-        <span className="text-zinc-900">{post.title}</span>
+        <span className="text-foreground">{post.title}</span>
       </nav>
       {heroImage && (
-        <div className="relative aspect-[2/1] max-h-[50vh] w-full overflow-hidden rounded-xl">
-          <Image src={heroImage} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" priority />
+        <div className="relative aspect-[2/1] max-h-[50vh] w-full overflow-hidden rounded-lg">
+          <Image src={heroImage} alt={post.title || 'Blog post hero'} fill className="object-cover" sizes="(max-width: 768px) 100vw, 768px" priority />
         </div>
       )}
-      <h1 className="mt-6 text-3xl font-bold tracking-tight text-zinc-900">{post.title}</h1>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+      <h1 className="mt-6 text-3xl font-bold tracking-tight text-foreground">{post.title}</h1>
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
         {authorName && (
           authorSlug ? (
-            <Link href={`/team/${authorSlug}`} className="hover:text-zinc-700">{authorName}</Link>
+            <Link href={`/team/${authorSlug}`} className="hover:text-muted-foreground">{authorName}</Link>
           ) : (
             <span>{authorName}</span>
           )
         )}
         {publishedAt && <time dateTime={publishedAt}>{new Date(publishedAt).toLocaleDateString('en-US')}</time>}
-        {category && <span className="rounded bg-zinc-100 px-2 py-0.5">{category}</span>}
+        {category && <span className="rounded bg-muted px-2 py-0.5">{category}</span>}
       </div>
       <div
-        className="prose prose-zinc mt-8 max-w-none prose-headings:font-semibold prose-a:text-[var(--brand-navy)]"
-        dangerouslySetInnerHTML={{ __html: content || '<p>No content yet.</p>' }}
+        className="prose prose-zinc mt-8 max-w-none prose-headings:font-semibold prose-a:text-primary"
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(content || '<p>No content yet.</p>') }}
       />
       {authorName && (
-        <section className="mt-12 rounded-xl border border-zinc-200 bg-zinc-50/50 p-6" aria-labelledby="author-heading">
-          <h2 id="author-heading" className="text-lg font-semibold text-zinc-900">About the author</h2>
+        <section className="mt-12 rounded-lg border border-border bg-muted p-6" aria-labelledby="author-heading">
+          <h2 id="author-heading" className="text-lg font-semibold text-foreground">About the author</h2>
           <div className="mt-3 flex items-center gap-4">
             {authorPhoto && (
-              <Image src={authorPhoto} alt="" width={64} height={64} className="rounded-full object-cover" />
+              <Image src={authorPhoto} alt={`${authorName} — author photo`} width={64} height={64} className="rounded-full object-cover" />
             )}
             <div>
-              <p className="font-medium text-zinc-900">{authorName}</p>
+              <p className="font-medium text-foreground">{authorName}</p>
               {authorSlug && (
-                <Link href={`/team/${authorSlug}`} className="text-sm text-[var(--brand-navy)] hover:underline">
+                <Link href={`/team/${authorSlug}`} className="text-sm text-primary hover:underline">
                   View {authorName}&apos;s listings
                 </Link>
               )}
@@ -113,23 +114,23 @@ export default async function BlogPostPage({ params }: PageProps) {
       )}
       {relatedFiltered.length > 0 && (
         <section className="mt-12" aria-labelledby="related-heading">
-          <h2 id="related-heading" className="text-lg font-semibold text-zinc-900">Related posts</h2>
+          <h2 id="related-heading" className="text-lg font-semibold text-foreground">Related posts</h2>
           <ul className="mt-4 grid gap-4 sm:grid-cols-3">
             {relatedFiltered.map((p) => (
               <li key={p.id}>
-                <Link href={`/blog/${p.slug}`} className="block rounded-lg border border-zinc-200 p-4 hover:bg-zinc-50">
-                  <span className="font-medium text-zinc-900">{p.title}</span>
-                  {p.published_at && <span className="ml-2 text-sm text-zinc-500">{new Date(p.published_at).toLocaleDateString('en-US')}</span>}
+                <Link href={`/blog/${p.slug}`} className="block rounded-lg border border-border p-4 hover:bg-muted">
+                  <span className="font-medium text-foreground">{p.title}</span>
+                  {p.published_at && <span className="ml-2 text-sm text-muted-foreground">{new Date(p.published_at).toLocaleDateString('en-US')}</span>}
                 </Link>
               </li>
             ))}
           </ul>
         </section>
       )}
-      <div className="mt-12 rounded-xl border border-zinc-200 bg-[var(--brand-cream)]/30 p-6 text-center">
-        <p className="font-medium text-zinc-900">Get market updates</p>
-        <p className="mt-1 text-sm text-zinc-600">Stay in the loop with local market insights.</p>
-        <Link href="/contact" className="mt-4 inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+      <div className="mt-12 rounded-lg border border-border bg-muted/30 p-6 text-center">
+        <p className="font-medium text-foreground">Get market updates</p>
+        <p className="mt-1 text-sm text-muted-foreground">Stay in the loop with local market insights.</p>
+        <Link href="/contact" className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90">
           Contact us
         </Link>
       </div>

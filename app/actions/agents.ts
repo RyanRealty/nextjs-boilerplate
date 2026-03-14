@@ -8,6 +8,8 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
+const PENDING_OR =
+  'StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%,StandardStatus.ilike.%Undercontract%,StandardStatus.ilike.%Contingent%'
 const HOME_TILE_SELECT =
   'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details'
 
@@ -25,21 +27,50 @@ export type AgentForIndex = BrokerRow & {
   reviewCount: number
 }
 
-/** Get listing_keys where listing agent matches broker license (list/listing role). */
-async function getListingKeysForBroker(licenseNumber: string | null): Promise<string[]> {
-  if (!licenseNumber?.trim()) return []
-  const { data } = await supabase()
-    .from('listing_agents')
-    .select('listing_key')
-    .or('agent_role.eq.list,agent_role.eq.listing')
-    .ilike('agent_license', licenseNumber.trim())
-  const keys = (data ?? []).map((r: { listing_key: string }) => r.listing_key).filter(Boolean)
-  return [...new Set(keys)]
+/**
+ * Get listing_keys where listing agent matches broker (list/listing role).
+ * Matches by: 1) agent_license containing broker license (e.g. "OR 201206613" matches "201206613"), 2) if email provided, agent_email match.
+ */
+async function getListingKeysForBroker(
+  licenseNumber: string | null,
+  brokerEmail?: string | null
+): Promise<string[]> {
+  const keys = new Set<string>()
+  const roleFilter = 'agent_role.eq.list,agent_role.eq.listing'
+
+  if (licenseNumber?.trim()) {
+    const licenseTrim = licenseNumber.trim()
+    const { data: byLicense } = await supabase()
+      .from('listing_agents')
+      .select('listing_key')
+      .or(roleFilter)
+      .ilike('agent_license', `%${licenseTrim}%`)
+    ;(byLicense ?? []).forEach((r: { listing_key: string }) => {
+      if (r.listing_key) keys.add(r.listing_key)
+    })
+  }
+
+  if (brokerEmail?.trim()) {
+    const emailTrim = brokerEmail.trim()
+    const { data: byEmail } = await supabase()
+      .from('listing_agents')
+      .select('listing_key')
+      .or(roleFilter)
+      .ilike('agent_email', emailTrim)
+    ;(byEmail ?? []).forEach((r: { listing_key: string }) => {
+      if (r.listing_key) keys.add(r.listing_key)
+    })
+  }
+
+  return [...keys]
 }
 
 /** Active listing count for broker. */
-async function getActiveCountForBroker(licenseNumber: string | null): Promise<number> {
-  const keys = await getListingKeysForBroker(licenseNumber)
+async function getActiveCountForBroker(
+  licenseNumber: string | null,
+  brokerEmail?: string | null
+): Promise<number> {
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
   if (keys.length === 0) return 0
   const { count } = await supabase()
     .from('listings')
@@ -50,8 +81,11 @@ async function getActiveCountForBroker(licenseNumber: string | null): Promise<nu
 }
 
 /** Sold count and volume in last 24 months for broker. */
-async function getSoldStatsForBroker(licenseNumber: string | null): Promise<{ count: number; volume: number }> {
-  const keys = await getListingKeysForBroker(licenseNumber)
+async function getSoldStatsForBroker(
+  licenseNumber: string | null,
+  brokerEmail?: string | null
+): Promise<{ count: number; volume: number }> {
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
   if (keys.length === 0) return { count: 0, volume: 0 }
   const twentyFourMoAgo = new Date()
   twentyFourMoAgo.setMonth(twentyFourMoAgo.getMonth() - 24)
@@ -100,8 +134,8 @@ export async function getAgentsForIndex(): Promise<AgentForIndex[]> {
   const result: AgentForIndex[] = []
   for (const b of brokers) {
     const [activeCount, soldStats, reviewStats] = await Promise.all([
-      getActiveCountForBroker(b.license_number),
-      getSoldStatsForBroker(b.license_number),
+      getActiveCountForBroker(b.license_number, b.email),
+      getSoldStatsForBroker(b.license_number, b.email),
       getReviewStatsForBroker(b.id),
     ])
     result.push({
@@ -140,9 +174,10 @@ export type ReviewRow = {
 /** Broker's active listings (limit). */
 export async function getAgentActiveListings(
   licenseNumber: string | null,
-  limit: number
+  limit: number,
+  brokerEmail?: string | null
 ): Promise<HomeTileRow[]> {
-  const keys = await getListingKeysForBroker(licenseNumber)
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
   if (keys.length === 0) return []
   const { data } = await supabase()
     .from('listings')
@@ -157,9 +192,10 @@ export async function getAgentActiveListings(
 /** Broker's sold listings (last 24 months, limit). */
 export async function getAgentSoldListings(
   licenseNumber: string | null,
-  limit: number
+  limit: number,
+  brokerEmail?: string | null
 ): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
-  const keys = await getListingKeysForBroker(licenseNumber)
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
   if (keys.length === 0) return []
   const twentyFourMoAgo = new Date()
   twentyFourMoAgo.setMonth(twentyFourMoAgo.getMonth() - 24)
@@ -176,27 +212,67 @@ export async function getAgentSoldListings(
   return (data ?? []) as (HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]
 }
 
-/** Performance stats from sold listings: avg sale price, avg DOM (if we have DOM in listings). */
-async function getAgentPerformanceStats(licenseNumber: string | null): Promise<{
-  avgSalePrice: number | null
-  avgDom: number | null
-}> {
-  const keys = await getListingKeysForBroker(licenseNumber)
+/** Broker's pending/under-contract listings (limit). */
+export async function getAgentPendingListings(
+  licenseNumber: string | null,
+  limit: number,
+  brokerEmail?: string | null
+): Promise<HomeTileRow[]> {
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
+  if (keys.length === 0) return []
+  const { data } = await supabase()
+    .from('listings')
+    .select(HOME_TILE_SELECT)
+    .in('ListingKey', keys.slice(0, 5000))
+    .or(PENDING_OR)
+    .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
+    .limit(limit)
+  return (data ?? []) as HomeTileRow[]
+}
+
+/** Performance stats from sold listings: avg sale price, avg DOM (uses days_on_market when present, else ListDate/CloseDate). */
+async function getAgentPerformanceStats(
+  licenseNumber: string | null,
+  brokerEmail?: string | null
+): Promise<{ avgSalePrice: number | null; avgDom: number | null }> {
+  const keys = await getListingKeysForBroker(licenseNumber, brokerEmail)
   if (keys.length === 0) return { avgSalePrice: null, avgDom: null }
   const twentyFourMoAgo = new Date()
   twentyFourMoAgo.setMonth(twentyFourMoAgo.getMonth() - 24)
   const since = twentyFourMoAgo.toISOString().slice(0, 10)
   const { data } = await supabase()
     .from('listings')
-    .select('ClosePrice')
+    .select('ClosePrice, CloseDate, ListDate, days_on_market')
     .in('ListingKey', keys.slice(0, 5000))
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)
     .gte('CloseDate', since)
-  const rows = (data ?? []) as { ClosePrice?: number | null }[]
+  const rows = (data ?? []) as {
+    ClosePrice?: number | null
+    CloseDate?: string | null
+    ListDate?: string | null
+    days_on_market?: number | null
+  }[]
   const prices = rows.map((r) => Number(r.ClosePrice)).filter((p) => Number.isFinite(p) && p > 0)
   const avgSalePrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : null
-  return { avgSalePrice, avgDom: null }
+  const domFromColumn = rows
+    .map((r) => (r.days_on_market != null && Number.isFinite(Number(r.days_on_market)) ? Number(r.days_on_market) : null))
+    .filter((d): d is number => d != null && d > 0 && d < 10000)
+  const domFromDates =
+    domFromColumn.length > 0
+      ? []
+      : rows
+          .filter((r) => r.CloseDate && r.ListDate)
+          .map((r) => {
+            const close = new Date(r.CloseDate!).getTime()
+            const list = new Date(r.ListDate!).getTime()
+            const days = Math.round((close - list) / (24 * 60 * 60 * 1000))
+            return days > 0 && days < 10000 ? days : null
+          })
+          .filter((d): d is number => d != null)
+  const allDoms = domFromColumn.length > 0 ? domFromColumn : domFromDates
+  const avgDom = allDoms.length > 0 ? Math.round(allDoms.reduce((a, b) => a + b, 0) / allDoms.length) : null
+  return { avgSalePrice, avgDom }
 }
 
 /** Reviews for broker (not hidden), newest first. */
@@ -243,7 +319,7 @@ export async function submitBrokerInquiry(
   const source = (process.env.NEXT_PUBLIC_SITE_URL ?? '')
     .replace(/^https?:\/\//, '')
     .replace(/\/$/, '')
-    .toLowerCase() || 'ryanrealty.com'
+    .toLowerCase() || 'ryan-realty.com'
   const fullMessage = [
     message,
     helpType ? `Interest: ${helpType}` : '',
@@ -276,10 +352,10 @@ export async function getAgentBySlug(slug: string): Promise<AgentDetail | null> 
   const broker = await getBrokerBySlug(slug)
   if (!broker) return null
   const [activeCount, soldStats, reviewStats, perf] = await Promise.all([
-    getActiveCountForBroker(broker.license_number),
-    getSoldStatsForBroker(broker.license_number),
+    getActiveCountForBroker(broker.license_number, broker.email),
+    getSoldStatsForBroker(broker.license_number, broker.email),
     getReviewStatsForBroker(broker.id),
-    getAgentPerformanceStats(broker.license_number),
+    getAgentPerformanceStats(broker.license_number, broker.email),
   ])
   return {
     ...broker,

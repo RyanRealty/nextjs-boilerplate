@@ -1,6 +1,6 @@
 # Build Step 10: Broker Landing Pages
 
-Read docs/MASTER_PLAN.md, specifically Section 19 (Broker Landing Pages) completely, Section 20 (Broker-Listing Association), Section 21 (Broker Review Aggregation), Section 1 (Design System), Section 30 (Tracking), and Section 28 (FUB Integration).
+Scope: Broker landing pages, broker–listing association, broker reviews, design system, tracking, FUB integration.
 
 Build the complete broker system:
 

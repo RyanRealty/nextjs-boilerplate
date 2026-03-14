@@ -54,67 +54,67 @@ export default function DashboardSettingsForm({ profile, buyingPrefs, userEmail 
 
   return (
     <div className="mt-8 space-y-10">
-      <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-zinc-900">Profile</h2>
+      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Profile</h2>
         <form onSubmit={handleSaveProfile} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-zinc-700">Display name</label>
+            <label htmlFor="displayName" className="block text-sm font-medium text-muted-foreground">Display name</label>
             <input
               id="displayName"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-700">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-muted-foreground">Email</label>
             <input
               id="email"
               type="email"
               value={userEmail}
               readOnly
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             />
-            <p className="mt-0.5 text-xs text-zinc-500">Linked to your account; change in your auth provider.</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Linked to your account; change in your auth provider.</p>
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-zinc-700">Phone</label>
+            <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground">Phone</label>
             <input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="defaultCity" className="block text-sm font-medium text-zinc-700">Default city</label>
+            <label htmlFor="defaultCity" className="block text-sm font-medium text-muted-foreground">Default city</label>
             <input
               id="defaultCity"
               type="text"
               value={defaultCity}
               onChange={(e) => setDefaultCity(e.target.value)}
               placeholder="e.g. Bend"
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {pending ? 'Saving…' : 'Save profile'}
           </button>
         </form>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-zinc-900">Buying preferences</h2>
-        <p className="mt-1 text-sm text-zinc-500">Used for personalized recommendations.</p>
+      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Buying preferences</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Used for personalized recommendations.</p>
         <form onSubmit={handleSaveBuying} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="maxPrice" className="block text-sm font-medium text-zinc-700">Max price</label>
+            <label htmlFor="maxPrice" className="block text-sm font-medium text-muted-foreground">Max price</label>
             <input
               id="maxPrice"
               type="number"
@@ -122,22 +122,22 @@ export default function DashboardSettingsForm({ profile, buyingPrefs, userEmail 
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               placeholder="e.g. 800000"
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="minBeds" className="block text-sm font-medium text-zinc-700">Min bedrooms</label>
+            <label htmlFor="minBeds" className="block text-sm font-medium text-muted-foreground">Min bedrooms</label>
             <input
               id="minBeds"
               type="number"
               min={0}
               value={minBeds}
               onChange={(e) => setMinBeds(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <div>
-            <label htmlFor="minBaths" className="block text-sm font-medium text-zinc-700">Min bathrooms</label>
+            <label htmlFor="minBaths" className="block text-sm font-medium text-muted-foreground">Min bathrooms</label>
             <input
               id="minBaths"
               type="number"
@@ -145,25 +145,25 @@ export default function DashboardSettingsForm({ profile, buyingPrefs, userEmail 
               step={0.5}
               value={minBaths}
               onChange={(e) => setMinBaths(e.target.value)}
-              className="mt-1 block w-full max-w-md rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+              className="mt-1 block w-full max-w-md rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {pending ? 'Saving…' : 'Save preferences'}
           </button>
         </form>
       </section>
 
-      {message === 'success' && <p className="text-sm font-medium text-emerald-600" role="status">Saved.</p>}
-      {message === 'error' && <p className="text-sm font-medium text-red-600" role="alert">Something went wrong.</p>}
+      {message === 'success' && <p className="text-sm font-medium text-green-500" role="status">Saved.</p>}
+      {message === 'error' && <p className="text-sm font-medium text-destructive" role="alert">Something went wrong.</p>}
 
-      <section className="rounded-xl border border-zinc-200 bg-zinc-50 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900">Delete account</h2>
-        <p className="mt-1 text-sm text-zinc-600">
+      <section className="rounded-lg border border-border bg-muted p-6">
+        <h2 className="text-lg font-semibold text-foreground">Delete account</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           To delete your account and data, please contact us. Your saved items will be removed and data anonymized; broker relationship data may be retained per our policy.
         </p>
       </section>

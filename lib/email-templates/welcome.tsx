@@ -18,7 +18,7 @@ export type WelcomeEmailProps = {
 }
 
 export default function WelcomeEmail({ firstName, siteUrl }: WelcomeEmailProps) {
-  const searchUrl = `${siteUrl.replace(/\/$/, '')}/search`
+  const searchUrl = `${siteUrl.replace(/\/$/, '')}/homes-for-sale`
   return (
     <EmailLayout preheader="Welcome to Ryan Realty. Save homes, set up search alerts, and get market reports.">
       <Section>

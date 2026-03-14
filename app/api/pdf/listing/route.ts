@@ -3,8 +3,9 @@ import React from 'react'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { ListingPdfDocument } from '@/lib/pdf/listing-pdf'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/lib/rate-limit'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,6 +15,9 @@ function getServiceSupabase() {
 }
 
 export async function POST(request: Request) {
+  const rl = await checkRateLimit(request, 'strict')
+  if (rl.limited) return rl.response
+
   let body: { listingKey?: string; listingId?: string }
   try {
     body = await request.json()

@@ -209,6 +209,9 @@ export async function fetchListings(params: FetchListingsParams): Promise<FetchL
 
   try {
     const res = await fetchWithRetry(url, { method: 'GET' })
+    if (res.status === 404) {
+      return { records: [], nextUrl: null, totalCount: 0 }
+    }
     if (!res.ok) {
       const text = await res.text()
       const err = new Error(`Spark API error ${res.status}: ${text.slice(0, 500)}`)

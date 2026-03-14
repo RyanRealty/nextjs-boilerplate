@@ -3,15 +3,13 @@
  * Uses Supabase service role. All errors reported to Sentry.
  */
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/service'
 import * as Sentry from '@sentry/nextjs'
 import type { SparkListing, SparkMediaItem } from './spark-odata'
 
 function getServiceSupabase(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url?.trim() || !key?.trim()) throw new Error('Supabase service role not configured')
-  return createClient(url, key)
+  return createServiceClient()
 }
 
 function toSlug(name: string): string {
@@ -41,6 +39,48 @@ function parseNum(val: unknown): number | null {
   if (val == null) return null
   const n = Number(val)
   return Number.isFinite(n) ? n : null
+}
+
+function isExpiredOrWithdrawnStatus(s: string | null | undefined): boolean {
+  const t = String(s ?? '').trim().toLowerCase()
+  return /expired/i.test(t) || /withdrawn/i.test(t) || /cancelled/i.test(t) || /canceled/i.test(t)
+}
+
+/** Build full address from Spark listing (UnparsedAddress or parts). */
+function buildFullAddress(raw: SparkListing): string {
+  const unparsed = (raw.UnparsedAddress ?? '').trim()
+  if (unparsed) return unparsed
+  const parts = [raw.StreetNumber, raw.StreetName, raw.StreetSuffix, raw.City, raw.StateOrProvince, raw.PostalCode].filter(Boolean) as string[]
+  return parts.join(', ') || `unknown-${raw.ListingKey ?? 'no-key'}`
+}
+
+/** Insert or ignore one expired/withdrawn listing for superuser prospecting. Exported for backfill action. */
+export async function upsertExpiredListingFromSpark(supabase: SupabaseClient, raw: SparkListing): Promise<void> {
+  const listingKey = raw.ListingKey ?? ''
+  if (!listingKey) return
+  const fullAddress = buildFullAddress(raw)
+  const listAgentName = (raw.ListAgentName ?? [raw.ListAgentFirstName, raw.ListAgentLastName].filter(Boolean).join(' ')) || null
+  const expiredAt = parseTs(raw.StatusChangeTimestamp) ?? parseTs(raw.ModificationTimestamp) ?? new Date().toISOString()
+  const { error } = await supabase.from('expired_listings').upsert(
+    {
+      listing_key: listingKey,
+      full_address: fullAddress,
+      city: raw.City ?? null,
+      state: raw.StateOrProvince ?? null,
+      postal_code: raw.PostalCode ?? null,
+      owner_name: null,
+      list_agent_name: listAgentName,
+      list_office_name: raw.ListOfficeName ?? null,
+      list_price: parseNum(raw.ListPrice) ?? null,
+      original_list_price: parseNum(raw.OriginalListPrice) ?? null,
+      days_on_market: parseNum(raw.DaysOnMarket) ?? null,
+      expired_at: expiredAt,
+      standard_status: raw.StandardStatus ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'listing_key', ignoreDuplicates: false }
+  )
+  if (error) Sentry.captureException(error, { extra: { listingKey } })
 }
 
 export interface ProcessSparkListingResult {
@@ -227,6 +267,9 @@ export async function processSparkListing(raw: SparkListing): Promise<ProcessSpa
       new_status: newStatus,
       changed_at: parseTs(raw.StatusChangeTimestamp) ?? new Date().toISOString(),
     })
+    if (isExpiredOrWithdrawnStatus(newStatus)) {
+      await upsertExpiredListingFromSpark(supabase, raw)
+    }
   }
   if (hasPriceChange && oldPrice != null && newPrice != null) {
     const changePct = oldPrice !== 0 ? ((newPrice - oldPrice) / oldPrice) * 100 : null

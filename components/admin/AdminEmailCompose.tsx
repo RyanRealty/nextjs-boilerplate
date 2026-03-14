@@ -37,47 +37,47 @@ export default function AdminEmailCompose({ className = '' }: Props) {
   }
 
   return (
-    <form onSubmit={handleSend} className={`space-y-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm ${className}`}>
+    <form onSubmit={handleSend} className={`space-y-4 rounded-lg border border-border bg-white p-6 shadow-sm ${className}`}>
       <div>
-        <label htmlFor="compose-to" className="block text-sm font-medium text-zinc-700">To</label>
+        <label htmlFor="compose-to" className="block text-sm font-medium text-muted-foreground">To</label>
         <input
           id="compose-to"
           type="email"
           value={to}
           onChange={(e) => setTo(e.target.value)}
           placeholder="recipient@example.com"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+          className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
         />
       </div>
       <div>
-        <label htmlFor="compose-subject" className="block text-sm font-medium text-zinc-700">Subject</label>
+        <label htmlFor="compose-subject" className="block text-sm font-medium text-muted-foreground">Subject</label>
         <input
           id="compose-subject"
           type="text"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+          className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
         />
       </div>
       <div>
-        <label htmlFor="compose-body" className="block text-sm font-medium text-zinc-700">Body</label>
+        <label htmlFor="compose-body" className="block text-sm font-medium text-muted-foreground">Body</label>
         <textarea
           id="compose-body"
           rows={8}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+          className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
         />
       </div>
       {message && (
-        <p className={message.type === 'error' ? 'text-sm text-red-600' : 'text-sm text-emerald-600'}>
+        <p className={message.type === 'error' ? 'text-sm text-destructive' : 'text-sm text-green-500'}>
           {message.text}
         </p>
       )}
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
       >
         {loading ? 'Sending…' : 'Send now'}
       </button>

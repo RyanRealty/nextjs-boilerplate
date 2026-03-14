@@ -1,6 +1,6 @@
 # Build Step 21: Legal Pages, Fair Housing & Compliance
 
-Read docs/MASTER_PLAN.md, specifically Section 50 (Security, Compliance & Privacy) completely.
+Scope: Security, compliance, privacy, terms, fair housing, DMCA, MLS attribution.
 
 ## TASK 1: Privacy Policy Page
 Create src/app/(public)/privacy/page.tsx:

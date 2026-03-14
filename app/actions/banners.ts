@@ -3,12 +3,18 @@
 import { createClient } from '@supabase/supabase-js'
 import { fetchPlacePhoto, fetchPlacePhotoOptions } from '../../lib/photo-api'
 import { cityEntityKey, subdivisionEntityKey } from '../../lib/slug'
+import { getBannerSearchQuery } from '../../lib/banner-prompts'
+import { getResortEntityKeys } from './subdivision-flags'
 import { getBrowseCities } from './listings'
 import { getSubdivisionsInCity } from './listings'
 
 const BUCKET = 'banners'
 
-export type BannerEntity = { entityType: 'city'; entityKey: string; displayName: string } | { entityType: 'subdivision'; entityKey: string; displayName: string; city: string }
+export type BannerEntity =
+  | { entityType: 'city'; entityKey: string; displayName: string }
+  | { entityType: 'subdivision'; entityKey: string; displayName: string; city: string; isResort?: boolean }
+
+export { getBannerSearchQuery }
 
 /**
  * Get public URL for a city or subdivision banner, or null if none exists.
@@ -211,16 +217,17 @@ export async function refreshPlaceBanner(
 
 /**
  * List all cities and subdivisions that exist in listings but have no banner yet.
- * Only these entities will be passed to generateAllMissingBanners (one Unsplash fetch per missing entity).
+ * Resort/planned communities get isResort so we fetch community-specific imagery; others get city landscape.
  */
 export async function listMissingBanners(): Promise<BannerEntity[]> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!supabaseUrl?.trim() || !anonKey?.trim()) return []
 
-  const [cities, existing] = await Promise.all([
+  const [cities, existing, resortKeys] = await Promise.all([
     getBrowseCities(),
     createClient(supabaseUrl, anonKey).from('banner_images').select('entity_type, entity_key'),
+    getResortEntityKeys(),
   ])
 
   const existingSet = new Set<string>()
@@ -245,6 +252,7 @@ export async function listMissingBanners(): Promise<BannerEntity[]> {
           entityKey: subKey,
           displayName: subdivisionName,
           city: City,
+          isResort: resortKeys.has(subKey),
         })
       }
     }
@@ -254,14 +262,14 @@ export async function listMissingBanners(): Promise<BannerEntity[]> {
 }
 
 /**
- * Fetch a banner from Unsplash (search by place), store in Storage and banner_images.
- * searchQuery: city = "{city} Oregon", subdivision = "{community} {city} Oregon".
+ * Fetch a banner from Unsplash (pretty landscape), store in Storage and banner_images.
+ * Resort/planned communities: image of that community. Other communities: scenic landscape of the city.
  */
 export async function generateAndStoreBanner(entity: BannerEntity): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const searchQuery =
     entity.entityType === 'city'
-      ? `${entity.displayName} Oregon`
-      : `${entity.displayName} ${entity.city} Oregon`
+      ? getBannerSearchQuery('city', entity.displayName)
+      : getBannerSearchQuery('subdivision', entity.displayName, entity.city, entity.isResort)
   const { url } = await getOrCreatePlaceBanner(entity.entityType, entity.entityKey, searchQuery)
   if (url) return { ok: true, url }
   return { ok: false, error: 'No photo found. Set UNSPLASH_ACCESS_KEY in .env.local.' }
@@ -269,13 +277,14 @@ export async function generateAndStoreBanner(entity: BannerEntity): Promise<{ ok
 
 /**
  * Generate (or regenerate) a single banner for the current page. Call from city/subdivision search page.
- * Returns the new banner URL on success; use router.refresh() after to show it.
+ * Pass isResort for subdivisions so resort communities get community-specific imagery, others get city landscape.
  */
 export async function generateBannerForPage(params: {
   entityType: 'city' | 'subdivision'
   entityKey: string
   displayName: string
   city?: string
+  isResort?: boolean
 }): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const entity: BannerEntity =
     params.entityType === 'city'
@@ -285,6 +294,7 @@ export async function generateBannerForPage(params: {
           entityKey: params.entityKey,
           displayName: params.displayName,
           city: params.city ?? '',
+          isResort: params.isResort,
         }
   return generateAndStoreBanner(entity)
 }

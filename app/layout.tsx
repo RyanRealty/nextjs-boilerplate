@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { validateEnv, logOptionalEnv } from "@/lib/env";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getSession } from "./actions/auth";
 import { getBrokerageSettings } from "./actions/brokerage";
@@ -20,27 +19,21 @@ import SignUpTracker from "../components/tracking/SignUpTracker";
 import AdminHashRedirect from "../components/AdminHashRedirect";
 import GTMHead from "../components/GTMHead";
 import GTMBody from "../components/GTMBody";
-import { ComparisonProvider } from "../contexts/ComparisonContext";
-import ComparisonTray from "../components/comparison/ComparisonTray";
 import InstallPrompt from "../components/pwa/InstallPrompt";
+import { ComparisonProvider } from "@/contexts/ComparisonContext";
+import ComparisonTray from "@/components/comparison/ComparisonTray";
+import ChatWidget from "@/components/chat/ChatWidget";
+import { getCanonicalSiteUrl } from "@/lib/share-metadata";
+import { Inter } from "next/font/google";
+import { cn } from "@/lib/utils";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://ryanrealty.com'
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 /** Always render with fresh data so production matches localhost (no stale static build). */
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(getCanonicalSiteUrl()),
   title: {
     default: "Ryan Realty — Central Oregon Real Estate",
     template: "%s | Ryan Realty — Central Oregon Real Estate",
@@ -52,7 +45,7 @@ export const metadata: Metadata = {
     title: "Ryan Realty — Central Oregon Real Estate",
     description: "Find your next home in Bend and Central Oregon. Expert real estate service, listings, and market insights.",
     type: "website",
-    url: siteUrl,
+    url: getCanonicalSiteUrl(),
     siteName: "Ryan Realty",
   },
   twitter: {
@@ -61,7 +54,7 @@ export const metadata: Metadata = {
     description: "Find your next home in Bend and Central Oregon. Expert real estate service and listings.",
   },
   robots: "index, follow",
-  alternates: { canonical: siteUrl },
+  alternates: { canonical: getCanonicalSiteUrl() },
 };
 
 export const viewport: Viewport = {
@@ -88,7 +81,9 @@ export default async function RootLayout({
   ]);
 
   const brokerageName = brokerage?.name ?? 'Ryan Realty'
-  const brokerageLogoUrl = brokerage?.logo_url ?? null
+  const brokerageLogoUrl = brokerage?.logo_url?.trim() || null
+  // Header logo: prefer brokerage logo from settings; fall back to white logo (relative path so it always loads).
+  const headerLogoUrl = brokerageLogoUrl || '/logo-header-white.png'
   const brokerageAddress =
     brokerage?.address_line1 || brokerage?.city
       ? [brokerage?.address_line1, brokerage?.address_line2, brokerage?.city, brokerage?.state, brokerage?.postal_code]
@@ -97,26 +92,25 @@ export default async function RootLayout({
       : null
 
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", inter.variable)}>
       <head>
         <GTMHead />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden antialiased`}
-      >
-        <GTMBody />
+      <body className="min-h-screen overflow-x-hidden antialiased font-body">
         <ComparisonProvider>
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:p-4 focus:bg-white focus:text-[var(--brand-navy)]">
+        <GTMBody />
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-[100] focus:p-4 focus:bg-white focus:text-primary">
             Skip to main content
           </a>
           <GoogleAnalytics />
           <MetaPixel />
           <JsonLd />
-          <Header user={session?.user} brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} />
-          <div id="main-content" tabIndex={-1} className="min-h-[calc(100vh-120px)]">{children}</div>
-          <Footer brokerageName={brokerageName} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
-          <ComparisonTray />
+          <Header user={session?.user} brokerageName={brokerageName} headerLogoUrl={headerLogoUrl} />
+          <Suspense fallback={<div className="min-h-[calc(100vh-64px)]" aria-hidden />}>
+            <div id="main-content" tabIndex={-1} className="min-h-[calc(100vh-64px)]">{children}</div>
+          </Suspense>
+          <Footer brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
           <CookieConsentBanner />
         <Suspense fallback={null}>
           <SignInPrompt user={session?.user ?? null} />
@@ -130,8 +124,10 @@ export default async function RootLayout({
           <SignUpTracker />
           <AdminHashRedirect />
         </Suspense>
+        <ComparisonTray />
+        <ChatWidget />
         </ComparisonProvider>
-      </body>
+        </body>
     </html>
   );
 }

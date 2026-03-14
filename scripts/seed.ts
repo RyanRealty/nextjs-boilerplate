@@ -2,9 +2,34 @@
  * Seed initial cities, communities, and default settings. Step 23 Task 2.
  * Run: npx tsx scripts/seed.ts
  * Requires SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL in env.
+ *
+ * For local usage we also try to read `.env.local` so you don't have to export
+ * variables manually when running this script from the command line.
  */
 
 import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+
+// Best effort: load NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from .env.local if not already set.
+try {
+  const envPath = path.resolve(process.cwd(), '.env.local')
+  if (fs.existsSync(envPath)) {
+    const contents = fs.readFileSync(envPath, 'utf8')
+    for (const line of contents.split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      const [rawKey, ...rest] = trimmed.split('=')
+      const value = rest.join('=').trim()
+      if (!rawKey || !value) continue
+      if (!process.env[rawKey]) {
+        process.env[rawKey] = value
+      }
+    }
+  }
+} catch {
+  // If .env.local can't be read, we'll fall back to whatever is already in process.env.
+}
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()

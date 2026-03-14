@@ -47,19 +47,19 @@ export default function DashboardPanel({ id, title, children, defaultOpen = true
   }
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white shadow-sm">
+    <section className="rounded-lg border border-border bg-white shadow-sm">
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center justify-between px-4 py-3 text-left font-semibold text-zinc-900 hover:bg-zinc-50"
+        className="flex w-full items-center justify-between px-4 py-3 text-left font-semibold text-foreground hover:bg-muted"
         aria-expanded={open}
       >
         <span>{title}</span>
-        <span className="text-zinc-400" aria-hidden>
+        <span className="text-muted-foreground" aria-hidden>
           {open ? '\u25BC' : '\u25B6'}
         </span>
       </button>
-      {open && <div className="border-t border-zinc-100 px-4 py-4">{children}</div>}
+      {open && <div className="border-t border-border px-4 py-4">{children}</div>}
     </section>
   )
 }

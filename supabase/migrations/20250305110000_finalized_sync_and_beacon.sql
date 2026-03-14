@@ -18,8 +18,11 @@ CREATE INDEX IF NOT EXISTS idx_listings_city_close ON listings ("City", "CloseDa
 CREATE INDEX IF NOT EXISTS idx_listings_history_finalized ON listings (history_finalized) WHERE history_finalized = false;
 CREATE INDEX IF NOT EXISTS idx_listings_media_finalized ON listings (media_finalized) WHERE media_finalized = false;
 
--- City/period metrics: by city and date range. SFR = Single Family Residential (exclude condo, manufactured, etc. via PropertyType if needed).
 -- Returns: sold_count, median_price, median_dom, median_ppsf, current_listings, sales_12mo (for inventory calc).
+-- Ensure we own the function signatures and avoid ambiguity if earlier versions exist.
+DROP FUNCTION IF EXISTS get_beacon_metrics(text, date, date, date);
+DROP FUNCTION IF EXISTS get_beacon_metrics(text, date, date, date, text);
+
 CREATE OR REPLACE FUNCTION get_beacon_metrics(
   p_city text,
   p_period_start date,
@@ -123,23 +126,6 @@ END;
 $$;
 
 COMMENT ON FUNCTION get_beacon_metrics(text, date, date, date) IS 'City/period metrics: sold count, median price, median DOM, median $/sqft, current listings, 12mo sales, inventory.';
-
--- 5-arg overload so get_city_period_metrics can call unambiguously (subdivision ignored until 16100000)
-CREATE OR REPLACE FUNCTION get_beacon_metrics(
-  p_city text,
-  p_period_start date,
-  p_period_end date,
-  p_as_of date DEFAULT NULL,
-  p_subdivision text DEFAULT NULL
-)
-RETURNS JSON
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT get_beacon_metrics(p_city, p_period_start, p_period_end, p_as_of);
-$$;
 
 -- Price band distribution: counts of sales and current listings by price bucket (for histogram).
 CREATE OR REPLACE FUNCTION get_beacon_price_bands(
@@ -256,20 +242,3 @@ END;
 $$;
 
 COMMENT ON FUNCTION get_beacon_price_bands(text, date, date, boolean) IS 'Price band counts for sales and current listings by city/period (or last 12 months).';
-
--- 5-arg overload so get_city_price_bands can call unambiguously (subdivision ignored until 16100000)
-CREATE OR REPLACE FUNCTION get_beacon_price_bands(
-  p_city text,
-  p_period_start date,
-  p_period_end date,
-  p_sales_12mo boolean DEFAULT false,
-  p_subdivision text DEFAULT NULL
-)
-RETURNS JSON
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT get_beacon_price_bands(p_city, p_period_start, p_period_end, p_sales_12mo);
-$$;

@@ -4,22 +4,36 @@ import { useState, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import type { ListingDetailPhoto } from '@/app/actions/listing-detail'
 import { trackEvent } from '@/lib/tracking'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { PlayIcon, Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 
 function photoUrl(p: ListingDetailPhoto): string {
   return p.cdn_url ?? p.photo_url
+}
+
+const DIRECT_VIDEO_EXT = /\.(mp4|webm|ogg|mov)(\?|$)/i
+function isDirectVideoUrl(url: string): boolean {
+  try {
+    return DIRECT_VIDEO_EXT.test(new URL(url).pathname)
+  } catch {
+    return false
+  }
 }
 
 type Props = {
   photos: ListingDetailPhoto[]
   virtualTourUrl?: string
   listingKey: string
+  /** When set (direct mp4/webm URL), show as full-bleed background video hero above the photo grid. */
+  heroVideoUrl?: string | null
 }
 
-export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }: Props) {
+export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, heroVideoUrl }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const list = photos.length > 0 ? photos : []
   const main = list[0]
+  const showBackgroundVideo = Boolean(heroVideoUrl && isDirectVideoUrl(heroVideoUrl))
   const rightTop = list[1]
   const rightBottom = list[2]
 
@@ -42,14 +56,31 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
 
   if (list.length === 0) {
     return (
-      <div className="flex aspect-[16/10] max-h-[70vh] w-full items-center justify-center bg-[var(--gray-border)] text-[var(--gray-muted)]">
+      <div className="flex aspect-[16/10] max-h-[70vh] w-full items-center justify-center bg-[var(--border)] text-[var(--muted-foreground)]">
         No photos
       </div>
     )
   }
 
   return (
-    <>
+    <div className="w-full -mt-16">
+      {showBackgroundVideo && heroVideoUrl && (
+        <section className="relative w-full overflow-hidden bg-black" aria-label="Listing video">
+          <div className="aspect-[16/10] max-h-[75vh] w-full relative">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              className="absolute inset-0 h-full w-full object-cover"
+              src={heroVideoUrl}
+              aria-hidden
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" aria-hidden />
+          </div>
+        </section>
+      )}
       <section className="relative w-full" aria-label="Listing photos">
         {/* Desktop: 60% left + 40% right (2 stacked) */}
         <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-1 max-h-[70vh]">
@@ -60,7 +91,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
           >
             <Image
               src={photoUrl(main!)}
-              alt=""
+              alt={`Property photo 1 of ${list.length}`}
               fill
               className="object-cover"
               sizes="60vw"
@@ -69,9 +100,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             {virtualTourUrl && (
               <span className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                 <span className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-[var(--brand-navy)] ml-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+                  <HugeiconsIcon icon={PlayIcon} className="w-8 h-8 text-primary ml-1" aria-hidden />
                 </span>
               </span>
             )}
@@ -82,9 +111,9 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             onClick={() => openLightbox(rightTop ? 1 : 0)}
           >
             {rightTop ? (
-              <Image src={photoUrl(rightTop)} alt="" fill className="object-cover" sizes="40vw" />
+              <Image src={photoUrl(rightTop)} alt={`Property photo 2 of ${list.length}`} fill className="object-cover" sizes="40vw" />
             ) : (
-              <div className="absolute inset-0 bg-[var(--gray-border)]" />
+              <div className="absolute inset-0 bg-[var(--border)]" />
             )}
           </button>
           <button
@@ -93,9 +122,9 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             onClick={() => openLightbox(rightBottom ? 2 : rightTop ? 1 : 0)}
           >
             {rightBottom ? (
-              <Image src={photoUrl(rightBottom)} alt="" fill className="object-cover" sizes="40vw" />
+              <Image src={photoUrl(rightBottom)} alt={`Property photo 3 of ${list.length}`} fill className="object-cover" sizes="40vw" />
             ) : (
-              <div className="absolute inset-0 bg-[var(--gray-border)]" />
+              <div className="absolute inset-0 bg-[var(--border)]" />
             )}
           </button>
         </div>
@@ -104,7 +133,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
           <button type="button" className="absolute inset-0" onClick={() => openLightbox(0)}>
             <Image
               src={photoUrl(main!)}
-              alt=""
+              alt={`Property photo 1 of ${list.length}`}
               fill
               className="object-cover"
               sizes="100vw"
@@ -114,9 +143,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
           {virtualTourUrl && (
             <span className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
               <span className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-                <svg className="w-7 h-7 text-[var(--brand-navy)] ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+                <HugeiconsIcon icon={PlayIcon} className="w-7 h-7 text-primary ml-0.5" aria-hidden />
               </span>
             </span>
           )}
@@ -128,7 +155,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
           </span>
           <button
             type="button"
-            className="rounded-lg bg-[var(--brand-navy)] text-white px-4 py-2 text-sm font-medium hover:bg-[var(--brand-primary-hover)]"
+            className="rounded-lg bg-primary text-white px-4 py-2 text-sm font-medium hover:bg-accent/90"
             onClick={() => openLightbox(0)}
           >
             View All {list.length} Photos
@@ -139,7 +166,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
       {/* Full-screen gallery modal */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black"
           role="dialog"
           aria-modal="true"
           aria-label="Photo gallery"
@@ -150,7 +177,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             onClick={() => setLightboxOpen(false)}
             aria-label="Close gallery"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            <HugeiconsIcon icon={Cancel01Icon} className="w-6 h-6" />
           </button>
           <button
             type="button"
@@ -158,7 +185,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             onClick={() => setLightboxIndex((i) => (i === 0 ? list.length - 1 : i - 1))}
             aria-label="Previous photo"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            <HugeiconsIcon icon={ArrowLeft01Icon} className="w-8 h-8" />
           </button>
           <button
             type="button"
@@ -166,14 +193,14 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
             onClick={() => setLightboxIndex((i) => (i === list.length - 1 ? 0 : i + 1))}
             aria-label="Next photo"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <HugeiconsIcon icon={ArrowRight01Icon} className="w-8 h-8" />
           </button>
-          <div className="relative w-full h-full flex items-center justify-center p-12">
+          <div className="relative flex h-full w-full items-center justify-center">
             <Image
               src={photoUrl(list[lightboxIndex]!)}
-              alt=""
+              alt={`Property photo ${lightboxIndex + 1} of ${list.length}`}
               fill
-              className="object-contain"
+              className="object-cover"
               sizes="100vw"
               onClick={() => setLightboxOpen(false)}
             />
@@ -183,6 +210,6 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey }
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

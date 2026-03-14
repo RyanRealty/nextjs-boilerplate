@@ -11,6 +11,11 @@ type Props = {
   liked?: boolean
   signedIn: boolean
   userEmail?: string | null
+  /** When true, show "Hot" badge (e.g. Trending section). */
+  hotBadge?: boolean
+  likeCount?: number
+  saveCount?: number
+  shareCount?: number
 }
 
 /** Home page listing card. Uses the shared ListingTile so all listing tiles stay consistent site-wide. */
@@ -22,6 +27,10 @@ export default function HomeTileCard({
   liked,
   signedIn,
   userEmail,
+  hotBadge,
+  likeCount,
+  saveCount,
+  shareCount,
 }: Props) {
   return (
     <ListingTile
@@ -32,6 +41,10 @@ export default function HomeTileCard({
       liked={signedIn ? liked : undefined}
       signedIn={signedIn}
       userEmail={userEmail}
+      hotBadge={hotBadge}
+      likeCount={likeCount}
+      saveCount={saveCount}
+      shareCount={shareCount}
     />
   )
 }

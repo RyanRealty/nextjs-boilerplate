@@ -1,6 +1,27 @@
 # Custom domain setup (Ryan Realty)
 
-Use this when pointing a production domain (e.g. ryan-realty.com) at the Vercel deployment.
+**Production URL:** Ryan-Realty.com → `https://ryan-realty.com` (no trailing slash). Use this when pointing the production domain at the Vercel deployment.
+
+**Note:** Steps below require you to log into Vercel, your DNS registrar, Supabase, and (if used) Google Cloud. The codebase is already configured for this domain; you only need to apply these settings in each dashboard.
+
+---
+
+## Copy-paste values
+
+Use these exact values when configuring each service:
+
+| Where | Name / field | Value to paste |
+|-------|----------------|----------------|
+| **Vercel** env (Production) | `NEXT_PUBLIC_SITE_URL` | `https://ryan-realty.com` |
+| **Supabase** Auth → URL Configuration | Site URL | `https://ryan-realty.com` |
+| **Supabase** Auth → Redirect URLs | (add each) | `https://ryan-realty.com/auth/callback` |
+| | | `https://ryan-realty.com/api/auth/callback` |
+| **Google** OAuth → Authorized redirect URIs | (add each) | `https://ryan-realty.com/auth/callback` |
+| | | `https://ryan-realty.com/api/auth/callback` |
+| **Vercel** Domains | Add domain | `ryan-realty.com` |
+| | (optional) | `www.ryan-realty.com` |
+
+---
 
 ## 1. Vercel domains
 
@@ -33,7 +54,7 @@ Use this when pointing a production domain (e.g. ryan-realty.com) at the Vercel 
 ## 6. Google OAuth (if used)
 
 - Google Cloud Console → APIs & Services → Credentials → your OAuth client
-- **Authorized redirect URIs**: add `https://ryan-realty.com/auth/callback` (and `/api/auth/callback` if used)
+- **Authorized redirect URIs**: add both `https://ryan-realty.com/auth/callback` and `https://ryan-realty.com/api/auth/callback`
 
 ## 7. Email (Resend)
 

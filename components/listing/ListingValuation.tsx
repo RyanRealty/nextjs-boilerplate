@@ -63,20 +63,20 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
 
   const confidenceColor =
     valuation.confidence === 'high'
-      ? 'text-emerald-700 bg-emerald-100'
+      ? 'text-green-500 bg-green-500/15'
       : valuation.confidence === 'medium'
-        ? 'text-amber-700 bg-amber-100'
-        : 'text-zinc-600 bg-zinc-100'
+        ? 'text-yellow-500 bg-yellow-500/15'
+        : 'text-muted-foreground bg-muted'
 
   return (
-    <section className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm" aria-labelledby="valuation-heading">
-      <h2 id="valuation-heading" className="mb-4 text-lg font-semibold text-zinc-900">
+    <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm" aria-labelledby="valuation-heading">
+      <h2 id="valuation-heading" className="mb-4 text-lg font-semibold text-foreground">
         Estimated Value
       </h2>
-      <p className="text-2xl font-bold text-[var(--brand-navy)]">
+      <p className="text-2xl font-bold text-primary">
         {formatPrice(valuation.estimatedValue)}
       </p>
-      <p className="mt-1 text-sm text-zinc-600">
+      <p className="mt-1 text-sm text-muted-foreground">
         Range: {formatPrice(valuation.valueLow)} — {formatPrice(valuation.valueHigh)}
       </p>
       <span
@@ -84,12 +84,12 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
       >
         {valuation.confidence.charAt(0).toUpperCase() + valuation.confidence.slice(1)} confidence
       </span>
-      <p className="mt-3 text-sm text-zinc-500">
+      <p className="mt-3 text-sm text-muted-foreground">
         Based on {valuation.compCount} comparable sale{valuation.compCount !== 1 ? 's' : ''} nearby.
       </p>
       <Link
         href="/listings"
-        className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline"
+        className="mt-2 inline-block text-sm text-accent-foreground hover:underline"
       >
         How we calculate value
       </Link>
@@ -98,12 +98,12 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className="inline-flex items-center rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[var(--accent-hover)] disabled:opacity-70"
+          className="inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-accent/90 disabled:opacity-70"
         >
           {downloading ? 'Preparing…' : 'Download Full Value Report'}
         </button>
         {!signedIn && (
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-muted-foreground">
             Sign in to download the full CMA PDF (lead magnet).
           </p>
         )}

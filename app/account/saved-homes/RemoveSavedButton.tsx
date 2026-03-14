@@ -22,7 +22,7 @@ export default function RemoveSavedButton({ listingKey }: Props) {
       type="button"
       onClick={handleRemove}
       disabled={pending}
-      className="mt-2 text-sm font-medium text-zinc-500 hover:text-red-600 disabled:opacity-50"
+      className="mt-2 text-sm font-medium text-muted-foreground hover:text-destructive disabled:opacity-50"
     >
       {pending ? 'Removing…' : 'Remove from saved'}
     </button>

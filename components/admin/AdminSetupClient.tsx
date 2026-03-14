@@ -27,14 +27,14 @@ export default function AdminSetupClient() {
     <div className="mt-6 space-y-6">
       {step === 1 && (
         <section>
-          <h2 className="font-semibold text-zinc-900">Step 1: Admin account</h2>
-          <p className="mt-1 text-sm text-zinc-600">
+          <h2 className="font-semibold text-foreground">Step 1: Admin account</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Ensure your admin account exists. Sign in at the main site or use the admin login page. Your email must be granted admin access (e.g. in admin_roles or as the designated superuser).
           </p>
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="mt-3 rounded-lg bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-300"
+            className="mt-3 rounded-lg bg-border px-4 py-2 text-sm font-medium text-foreground hover:bg-border"
           >
             Next
           </button>
@@ -42,14 +42,14 @@ export default function AdminSetupClient() {
       )}
       {step === 2 && (
         <section>
-          <h2 className="font-semibold text-zinc-900">Step 2: Brokerage basics</h2>
-          <p className="mt-1 text-sm text-zinc-600">
+          <h2 className="font-semibold text-foreground">Step 2: Brokerage basics</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Configure brokerage name and branding in Settings after setup.
           </p>
           <button
             type="button"
             onClick={() => setStep(3)}
-            className="mt-3 rounded-lg bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-300"
+            className="mt-3 rounded-lg bg-border px-4 py-2 text-sm font-medium text-foreground hover:bg-border"
           >
             Next
           </button>
@@ -57,16 +57,16 @@ export default function AdminSetupClient() {
       )}
       {step === 3 && (
         <section>
-          <h2 className="font-semibold text-zinc-900">Step 3: Complete</h2>
-          <p className="mt-1 text-sm text-zinc-600">
+          <h2 className="font-semibold text-foreground">Step 3: Complete</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             You&apos;re all set! Welcome to your admin dashboard.
           </p>
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
           <button
             type="button"
             onClick={handleComplete}
             disabled={loading}
-            className="mt-3 rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+            className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
           >
             {loading ? 'Completing…' : 'Finish setup'}
           </button>

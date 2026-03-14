@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { BedHugeIcon, BathHugeIcon, ResizeHugeIcon, GlobeHugeIcon, BuildingHugeIcon, CalendarHugeIcon } from '@/components/icons/HugeIcons'
 import {
   fetchSparkListingByKey,
   fetchSparkListingHistory,
@@ -158,6 +159,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       try {
         const res = await fetchSparkListingByKey(token, resolvedKey)
         if (!res) return { title: 'Listing' }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const raw = (res.D as any)?.Results?.[0] ?? res.D
         f = raw?.StandardFields ?? {}
       } catch {
@@ -491,7 +493,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-zinc-50 text-zinc-900">
+    <main className="min-h-screen overflow-x-hidden bg-muted text-foreground">
       <TrackListingView
         listingKey={resolvedKey}
         listingUrl={listingUrl}
@@ -516,11 +518,11 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
       />
 
       {/* Top bar: back to search (when from search) + All listings + prev/next with thumbnails */}
-      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <BackToSearchLink returnUrl={returnUrl ?? undefined} />
-            <Link href="/listings" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+            <Link href="/listings" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               All listings
             </Link>
           </div>
@@ -549,46 +551,46 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
             {areaSearchHref && !subdivision && (
               <Link
                 href={areaSearchHref}
-                className="mb-6 flex overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow"
+                className="mb-6 flex overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow"
               >
                 {areaBannerUrl ? (
                   <img
                     src={areaBannerUrl}
-                    alt=""
+                    alt={`Explore homes in ${areaLabel}`}
                     className="h-20 w-40 shrink-0 object-cover sm:h-24 sm:w-52"
                     width={208}
                     height={96}
                   />
                 ) : (
-                  <div className="flex h-20 w-40 shrink-0 items-center justify-center bg-zinc-100 text-zinc-400 sm:h-24 sm:w-52" />
+                  <div className="flex h-20 w-40 shrink-0 items-center justify-center bg-muted text-muted-foreground sm:h-24 sm:w-52" />
                 )}
                 <div className="flex flex-1 items-center px-4">
-                  <span className="font-medium text-zinc-700">Explore homes in {areaLabel}</span>
-                  <span className="ml-2 text-zinc-400">→</span>
+                  <span className="font-medium text-muted-foreground">Explore homes in {areaLabel}</span>
+                  <span className="ml-2 text-muted-foreground">→</span>
                 </div>
               </Link>
             )}
             {/* 2. Address, price, status */}
             <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-zinc-500">MLS# {mlsDisplay}</p>
+                <p className="text-sm font-medium text-muted-foreground">MLS# {mlsDisplay}</p>
                 {listPrice > 0 && (
-                  <p className="mt-1 text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+                  <p className="mt-1 text-2xl font-bold tracking-tight text-primary">
                     ${listPrice.toLocaleString()}
                   </p>
                 )}
-                <h1 className="mt-2 text-xl font-semibold tracking-tight text-zinc-800 sm:text-2xl">
+                <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                   {address || 'Address not specified'}
                 </h1>
-                {cityStateZip && <p className="mt-0.5 text-zinc-600">{cityStateZip}</p>}
+                {cityStateZip && <p className="mt-0.5 text-muted-foreground">{cityStateZip}</p>}
                 {fields.StandardStatus && (
                   <span
                     className={`mt-2 inline-block rounded-full px-3 py-1 text-sm font-medium ${
                       String(fields.StandardStatus).toLowerCase().includes('pending')
-                        ? 'bg-amber-100 text-amber-800'
+                        ? 'bg-yellow-500/15 text-yellow-500'
                         : String(fields.StandardStatus).toLowerCase().includes('closed')
-                          ? 'bg-zinc-200 text-zinc-700'
-                          : 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-border text-muted-foreground'
+                          : 'bg-green-500/15 text-green-500'
                     }`}
                   >
                     {String(fields.StandardStatus).trim() || 'Active'}
@@ -597,7 +599,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {saveCount > 0 && (
-                  <span className="text-sm text-zinc-500">{saveCount} {saveCount === 1 ? 'person has' : 'people have'} saved this home</span>
+                  <span className="text-sm text-muted-foreground">{saveCount} {saveCount === 1 ? 'person has' : 'people have'} saved this home</span>
                 )}
                 {session?.user && (
                   <SaveListingButton
@@ -631,53 +633,53 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
 
             {/* 3. Key facts strip — with icons (beds, baths, sq ft, lot, year built, days on market) */}
             {(keyFacts.beds != null || keyFacts.baths != null || keyFacts.sqFt != null || keyFacts.lotAcres != null || keyFacts.yearBuilt != null || keyFacts.daysOnMarket != null) && (
-              <div className="mb-8 grid grid-cols-2 gap-4 rounded-xl border border-zinc-200 bg-white px-6 py-4 shadow-sm sm:flex sm:flex-wrap sm:gap-6">
+              <div className="mb-8 grid grid-cols-2 gap-4 rounded-lg border border-border bg-white px-6 py-4 shadow-sm sm:flex sm:flex-wrap sm:gap-6">
                 {keyFacts.beds != null && Number.isFinite(keyFacts.beds) && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <BedHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Beds</p><p className="font-semibold text-zinc-900">{String(keyFacts.beds)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Beds</p><p className="font-semibold text-foreground">{String(keyFacts.beds)}</p></div>
                   </div>
                 )}
                 {keyFacts.baths != null && Number.isFinite(keyFacts.baths) && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <BathHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Baths</p><p className="font-semibold text-zinc-900">{String(keyFacts.baths)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Baths</p><p className="font-semibold text-foreground">{String(keyFacts.baths)}</p></div>
                   </div>
                 )}
                 {keyFacts.sqFt != null && keyFacts.sqFt > 0 && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <ResizeHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Sq Ft</p><p className="font-semibold text-zinc-900">{Number(keyFacts.sqFt).toLocaleString()}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Sq Ft</p><p className="font-semibold text-foreground">{Number(keyFacts.sqFt).toLocaleString()}</p></div>
                   </div>
                 )}
                 {keyFacts.lotAcres != null && Number.isFinite(keyFacts.lotAcres) && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0h.5a2.5 2.5 0 002.5-2.5V3.935M12 12a2 2 0 104 0 2 2 0 00-4 0z" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <GlobeHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Lot</p><p className="font-semibold text-zinc-900">{String(keyFacts.lotAcres)} ac</p></div>
+                    <div><p className="text-xs text-muted-foreground">Lot</p><p className="font-semibold text-foreground">{String(keyFacts.lotAcres)} ac</p></div>
                   </div>
                 )}
                 {keyFacts.yearBuilt != null && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <BuildingHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Year Built</p><p className="font-semibold text-zinc-900">{String(keyFacts.yearBuilt)}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Year Built</p><p className="font-semibold text-foreground">{String(keyFacts.yearBuilt)}</p></div>
                   </div>
                 )}
                 {keyFacts.daysOnMarket != null && Number.isFinite(keyFacts.daysOnMarket) && (
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600" aria-hidden>
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground" aria-hidden>
+                      <CalendarHugeIcon className="h-5 w-5" />
                     </span>
-                    <div><p className="text-xs text-zinc-500">Days on market</p><p className="font-semibold text-zinc-900">{Number(keyFacts.daysOnMarket).toLocaleString()}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Days on market</p><p className="font-semibold text-foreground">{Number(keyFacts.daysOnMarket).toLocaleString()}</p></div>
                   </div>
                 )}
               </div>
@@ -727,9 +729,9 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
 
             {/* 5. Property Description — full copy before details per audit */}
             {(fields.PublicRemarks ?? fields.PrivateRemarks) && (
-              <section className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h2 className="mb-3 text-lg font-semibold text-zinc-900">Property description</h2>
-                <p className="whitespace-pre-wrap text-base leading-relaxed text-zinc-700">{String(fields.PublicRemarks ?? fields.PrivateRemarks).trim()}</p>
+              <section className="mb-8 rounded-lg border border-border bg-white p-6 shadow-sm">
+                <h2 className="mb-3 text-lg font-semibold text-foreground">Property description</h2>
+                <p className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground">{String(fields.PublicRemarks ?? fields.PrivateRemarks).trim()}</p>
               </section>
             )}
 
@@ -768,7 +770,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
                 }))}
             />
             {similarListings.length > 0 && (
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Thumbnail is this listing; others show price. Click a marker to view that listing.
               </p>
             )}
@@ -779,10 +781,10 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
             <CollapsibleSection id="market-context" title="Market context" defaultOpen={historyItems.length > 0}>
               <div className="space-y-4">
                 {keyFacts.pricePerSqFt != null && (
-                  <p className="text-zinc-700">Price per sq ft: <span className="font-semibold">${keyFacts.pricePerSqFt.toLocaleString()}</span></p>
+                  <p className="text-muted-foreground">Price per sq ft: <span className="font-semibold">${keyFacts.pricePerSqFt.toLocaleString()}</span></p>
                 )}
                 {(fields.OnMarketDate ?? fields.ListDate) && (
-                  <p className="text-zinc-700">
+                  <p className="text-muted-foreground">
                     On market: <span className="font-semibold">{new Date((fields.OnMarketDate ?? fields.ListDate) as string).toLocaleDateString()}</span>
                   </p>
                 )}
@@ -804,7 +806,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
                     likedKeys={likedKeys}
                   />
                 ) : (
-                  <p className="text-zinc-500">No similar listings available right now.</p>
+                  <p className="text-muted-foreground">No similar listings available right now.</p>
                 )}
               </CollapsibleSection>
             )}

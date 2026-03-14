@@ -61,7 +61,7 @@ export default function SaveSearchButton({ user }: Props) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+        className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
       >
         Save this search
       </button>
@@ -70,35 +70,35 @@ export default function SaveSearchButton({ user }: Props) {
           <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
           <form
             onSubmit={handleSave}
-            className="absolute right-0 top-full z-50 mt-1 w-72 rounded-xl border border-zinc-200 bg-white p-4 shadow-lg"
+            className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-white p-4 shadow-md"
           >
-            <label className="block text-sm font-medium text-zinc-700">Name this search</label>
+            <label className="block text-sm font-medium text-muted-foreground">Name this search</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Bend under $600k"
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               autoFocus
             />
             <div className="mt-3 flex gap-2">
               <button
                 type="submit"
                 disabled={status === 'saving'}
-                className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+                className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
               >
                 {status === 'saving' ? 'Saving…' : 'Save'}
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700"
+                className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground"
               >
                 Cancel
               </button>
             </div>
-            {status === 'done' && <p className="mt-2 text-sm text-green-600">Saved.</p>}
-            {status === 'error' && <p className="mt-2 text-sm text-red-600">Could not save. Try again.</p>}
+            {status === 'done' && <p className="mt-2 text-sm text-green-500">Saved.</p>}
+            {status === 'error' && <p className="mt-2 text-sm text-destructive">Could not save. Try again.</p>}
           </form>
         </>
       )}

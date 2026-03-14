@@ -30,6 +30,8 @@ type Props = {
   initialPage: number
   filters: SearchFiltersInitial
   view: 'split' | 'list' | 'map'
+  /** When true and totalCount is 0, show a helpful empty state with clear-filters CTA. */
+  hasActiveFilters?: boolean
 }
 
 export default function SearchResults({
@@ -38,6 +40,7 @@ export default function SearchResults({
   initialPage,
   filters,
   view,
+  hasActiveFilters = false,
 }: Props) {
   const [listings, setListings] = useState(initialListings)
   const [page, setPage] = useState(initialPage)
@@ -104,43 +107,61 @@ export default function SearchResults({
   }, [loadMore])
 
   const listingKey = (row: ListingTileRow) => row.ListingKey ?? row.ListNumber ?? ''
+  const showEmptyState = total === 0 && hasActiveFilters
 
   return (
-    <div className="p-4 space-y-4">
-      <p className="text-[var(--gray-secondary)]">
-        {total.toLocaleString()} home{total !== 1 ? 's' : ''} found
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="w-full p-4 space-y-4">
+      {showEmptyState ? (
+        <div className="rounded-lg border border-border bg-white p-8 text-center">
+          <p className="text-lg font-medium text-foreground">
+            No homes match your current filters.
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            Try lowering the minimum price, changing beds/baths, or clear filters to see all Central Oregon listings.
+          </p>
+          <Link
+            href="/homes-for-sale"
+            className="mt-6 inline-block bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
+          >
+            View all listings
+          </Link>
+        </div>
+      ) : (
+        <>
+          <p className="text-[var(--muted-foreground)]">
+            {total.toLocaleString()} home{total !== 1 ? 's' : ''} found
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {listings.map((listing) => {
-          const key = listingKey(listing)
-          const href = `/listings/${encodeURIComponent(key)}`
+          const key = String(listingKey(listing)).trim()
+          const href = `/listing/${encodeURIComponent(key)}`
           const photoUrl = listing.PhotoURL ?? ''
           return (
-            <Link key={key} href={href} className="group">
-              <article className="bg-white rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-shadow">
-                <div className="relative aspect-[4/3] bg-[var(--gray-border)]">
+            <Link key={key} href={href} className="group" data-listing-key={key}>
+              <article className="bg-white rounded-lg overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-shadow">
+                <div className="relative aspect-[4/3] bg-[var(--border)]">
                   {photoUrl ? (
                     <Image
                       src={photoUrl}
-                      alt=""
+                      alt={`${formatAddress(listing)} — property photo`}
                       fill
                       className="object-cover"
                       sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-[var(--gray-muted)] text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center text-[var(--muted-foreground)] text-sm">
                       No photo
                     </div>
                   )}
-                  <div className="absolute top-2 left-2 rounded bg-[var(--brand-navy)] text-white text-sm font-semibold px-2 py-0.5">
+                  <div className="absolute top-2 left-2 rounded bg-primary text-white text-sm font-semibold px-2 py-0.5">
                     {formatPrice(listing.ListPrice)}
                   </div>
                 </div>
                 <div className="p-3">
-                  <p className="font-medium text-[var(--brand-navy)] truncate">
+                  <p className="font-medium text-primary truncate">
                     {formatAddress(listing)}
                   </p>
-                  <p className="text-sm text-[var(--gray-secondary)] mt-0.5">
+                  <p className="text-sm text-[var(--muted-foreground)] mt-0.5">
                     {listing.BedroomsTotal ?? '—'} Beds · {listing.BathroomsTotal ?? '—'} Baths
                     {listing.SubdivisionName && ` · ${listing.SubdivisionName}`}
                   </p>
@@ -152,8 +173,10 @@ export default function SearchResults({
       </div>
       {listings.length < total && (
         <div ref={sentinelRef} className="flex justify-center py-8">
-          {loading && <span className="text-[var(--gray-muted)]">Loading more…</span>}
+          {loading && <span className="text-[var(--muted-foreground)]">Loading more…</span>}
         </div>
+      )}
+        </>
       )}
     </div>
   )

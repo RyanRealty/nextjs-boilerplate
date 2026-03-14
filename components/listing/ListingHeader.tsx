@@ -1,20 +1,26 @@
 import Link from 'next/link'
 import type { ListingDetailListing } from '@/app/actions/listing-detail'
 import type { ListingDetailCommunity } from '@/app/actions/listing-detail'
-import Badge from '@/components/ui/Badge'
+import { Badge } from '@/components/ui/badge'
 
 function formatPrice(n: number | null | undefined): string {
   if (n == null) return ''
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
-function statusVariant(s: string | null | undefined): 'new' | 'pending' | 'sold' | 'trending' {
-  if (!s) return 'trending'
+function formatDataLastChecked(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(d)
+}
+
+function statusVariant(s: string | null | undefined): 'default' | 'secondary' | 'outline' | 'destructive' {
+  if (!s) return 'secondary'
   const lower = s.toLowerCase()
-  if (lower.includes('active')) return 'new'
-  if (lower.includes('pending')) return 'pending'
-  if (lower.includes('closed') || lower.includes('sold')) return 'sold'
-  return 'trending'
+  if (lower.includes('active')) return 'default'
+  if (lower.includes('pending')) return 'secondary'
+  if (lower.includes('closed') || lower.includes('sold')) return 'outline'
+  return 'secondary'
 }
 
 type Props = {
@@ -30,7 +36,7 @@ type Props = {
 export default function ListingHeader({ listing, address, city, state, postalCode, community, mlsNumber }: Props) {
   const status = listing.standard_status ?? listing.mls_status ?? 'Active'
   const variant = statusVariant(status)
-  const isSold = variant === 'sold'
+  const isSold = variant === 'outline'
   const price = isSold ? (listing.close_price ?? listing.list_price) : listing.list_price
   const hasPriceDrop =
     listing.original_list_price != null &&
@@ -50,41 +56,44 @@ export default function ListingHeader({ listing, address, city, state, postalCod
     <header className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={variant}>{status}</Badge>
-        {dom != null && dom > 0 && (
-          <span className="text-sm text-[var(--gray-secondary)]">Days on Market: {dom}</span>
-        )}
       </div>
-      <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--brand-navy)]" style={{ color: 'var(--brand-navy)' }}>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-primary" style={{ color: 'var(--primary)' }}>
         {address || 'Property'}
       </h1>
-      {cityStateZip && <p className="text-[var(--gray-secondary)]">{cityStateZip}</p>}
+      {cityStateZip && <p className="text-[var(--muted-foreground)]">{cityStateZip}</p>}
       {community && (
         <p>
           <Link
             href={`/communities/${encodeURIComponent(community.slug)}`}
-            className="text-[var(--accent)] hover:underline font-medium"
+            className="text-accent-foreground hover:underline font-medium"
           >
             {community.name}
           </Link>
         </p>
       )}
       <div className="flex flex-wrap items-baseline gap-2">
-        <span className={`text-3xl sm:text-4xl font-bold ${isSold ? 'text-[var(--brand-navy)]' : 'text-[var(--accent)]'}`}>
+        <span className={`text-3xl sm:text-4xl font-bold ${isSold ? 'text-primary' : 'text-accent-foreground'}`}>
           {formatPrice(price)}
         </span>
         {hasPriceDrop && (
           <>
-            <span className="text-xl text-[var(--gray-muted)] line-through">{formatPrice(listing.original_list_price)}</span>
-            <Badge variant="price-drop">Price Reduced · {formatPrice(savings)}</Badge>
+            <span className="text-xl text-[var(--muted-foreground)] line-through">{formatPrice(listing.original_list_price)}</span>
+            <Badge variant="destructive">Price Reduced · {formatPrice(savings)}</Badge>
           </>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--gray-secondary)] border-t border-b border-[var(--gray-border)] py-2">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)] border-t border-b border-[var(--border)] py-2">
         <span>{listing.beds_total ?? '—'} Beds</span>
         <span aria-hidden>|</span>
         <span>{baths} Baths</span>
         <span aria-hidden>|</span>
         <span>{sqft != null ? `${sqft} Sq Ft` : '—'}</span>
+        {(dom != null && dom >= 0) && (
+          <>
+            <span aria-hidden>|</span>
+            <span>{dom === 0 ? 'New listing' : `${dom} Days on market`}</span>
+          </>
+        )}
         {lotAcres != null && lotAcres > 0 && (
           <>
             <span aria-hidden>|</span>
@@ -98,8 +107,13 @@ export default function ListingHeader({ listing, address, city, state, postalCod
           </>
         )}
       </div>
+      {listing.updated_at && (
+        <p className="text-xs text-[var(--muted-foreground)]" title={new Date(listing.updated_at).toLocaleString()}>
+          Data last checked: {formatDataLastChecked(listing.updated_at)}
+        </p>
+      )}
       {mlsNumber && (
-        <p className="text-xs text-[var(--gray-muted)]">MLS# {mlsNumber}</p>
+        <p className="text-xs text-[var(--muted-foreground)]">MLS# {mlsNumber}</p>
       )}
     </header>
   )

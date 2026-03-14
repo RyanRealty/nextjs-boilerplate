@@ -67,21 +67,21 @@ export default function MortgageCalculator({
     }, [homePrice, downPaymentPct, interestRate, loanTermYears, propertyTaxYear, insuranceYear])
 
   return (
-    <div className="mt-8 space-y-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <div className="mt-8 space-y-8 rounded-xl border border-border bg-white p-6 shadow-sm">
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Home price</span>
+          <span className="text-sm font-medium text-muted-foreground">Home price</span>
           <input
             type="number"
             value={homePrice}
             onChange={(e) => setHomePrice(Number(e.target.value) || 0)}
             min={50000}
             step={10000}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Down payment (%)</span>
+          <span className="text-sm font-medium text-muted-foreground">Down payment (%)</span>
           <input
             type="number"
             value={downPaymentPct}
@@ -89,11 +89,11 @@ export default function MortgageCalculator({
             min={0}
             max={100}
             step={1}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Interest rate (%)</span>
+          <span className="text-sm font-medium text-muted-foreground">Interest rate (%)</span>
           <input
             type="number"
             value={interestRate}
@@ -101,15 +101,15 @@ export default function MortgageCalculator({
             min={0}
             max={20}
             step={0.125}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Loan term (years)</span>
+          <span className="text-sm font-medium text-muted-foreground">Loan term (years)</span>
           <select
             value={loanTermYears}
             onChange={(e) => setLoanTermYears(Number(e.target.value))}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           >
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -118,41 +118,41 @@ export default function MortgageCalculator({
           </select>
         </label>
         <label className="block sm:col-span-2">
-          <span className="text-sm font-medium text-zinc-700">Property tax (yearly, optional)</span>
+          <span className="text-sm font-medium text-muted-foreground">Property tax (yearly, optional)</span>
           <input
             type="number"
             value={propertyTaxYear}
             onChange={(e) => setPropertyTaxYear(Number(e.target.value) || 0)}
             min={0}
             step={500}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
         </label>
         <label className="block sm:col-span-2">
-          <span className="text-sm font-medium text-zinc-700">Home insurance (yearly, optional)</span>
+          <span className="text-sm font-medium text-muted-foreground">Home insurance (yearly, optional)</span>
           <input
             type="number"
             value={insuranceYear}
             onChange={(e) => setInsuranceYear(Number(e.target.value) || 0)}
             min={0}
             step={100}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-foreground"
           />
         </label>
       </div>
 
-      <div className="border-t border-zinc-200 pt-6">
-        <p className="text-sm text-zinc-500">
+      <div className="border-t border-border pt-6">
+        <p className="text-sm text-muted-foreground">
           Down payment: {formatCurrency(downPayment)} · Loan amount: {formatCurrency(loanAmount)}
           {pmi > 0 && (
-            <span className="ml-2 text-amber-600">· PMI (est.): {formatCurrency(pmi)}/mo</span>
+            <span className="ml-2 text-yellow-500">· PMI (est.): {formatCurrency(pmi)}/mo</span>
           )}
         </p>
-        <p className="mt-4 text-3xl font-bold text-zinc-900">
+        <p className="mt-4 text-3xl font-bold text-foreground">
           {formatCurrency(monthlyTotal)}
-          <span className="text-lg font-normal text-zinc-500">/month</span>
+          <span className="text-lg font-normal text-muted-foreground">/month</span>
         </p>
-        <div className="mt-2 flex flex-wrap gap-4 text-sm text-zinc-600">
+        <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span>Principal & interest: {formatCurrency(monthlyPrincipalInterest)}</span>
           <span>Tax: {formatCurrency(monthlyTax)}</span>
           <span>Insurance: {formatCurrency(monthlyInsurance)}</span>

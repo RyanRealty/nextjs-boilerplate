@@ -25,6 +25,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
   ]
   if (isSuperuser) {
     main.push(navItem('/admin/users', 'Users', '👤'))
+    main.push(navItem('/admin/expired-listings', 'Expired listings', '🏚'))
     main.push(navItem('/admin/audit-log', 'Audit log', '📋'))
     main.push(navItem('/admin/optimization', 'Optimization', '📈'))
   }
@@ -32,7 +33,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
   if (canFullAdmin) {
     main.push(
       navItem('/admin/geo', 'Communities & geo', '📍'),
-      navItem('/admin/resort-communities', 'Resort communities', '🏘'),
+      navItem('/admin/resort-communities', 'Resort & master plan', '🏘'),
       navItem('/admin/site-pages', 'Site pages', '📄'),
       navItem('/admin/banners', 'Banners', '🖼'),
       navItem('/admin/query-builder', 'Query builder', '🔍'),
@@ -44,7 +45,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
 
   return (
     <aside
-      className="flex w-56 shrink-0 flex-col border-r border-zinc-200 bg-white"
+      className="flex w-56 shrink-0 flex-col border-r border-border bg-white"
       aria-label="Admin navigation"
     >
       <nav className="flex flex-1 flex-col gap-0.5 p-3">
@@ -57,8 +58,8 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
               href={href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-zinc-100 text-zinc-900'
-                  : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               <span className="text-base opacity-80" aria-hidden>{icon}</span>

@@ -22,20 +22,75 @@ export type CityDetail = {
   communityCount: number
 }
 
-/** Primary cities to feature (Section 18). */
+/** Primary Central Oregon cities to feature at top of /cities (exact display order). */
 export const PRIMARY_CITIES = [
   'Bend',
   'Redmond',
+  'Lapine',
   'Sisters',
-  'Sunriver',
-  'La Pine',
+  'Sun River',
+  'Tumalo',
+  'Crooked River Ranch',
   'Prineville',
   'Madras',
-  'Crooked River Ranch',
-  'Terrebonne',
-  'Powell Butte',
-  'Tumalo',
 ]
+
+/** Map primary display name → possible DB/listings name for matching. */
+export const PRIMARY_CITY_NAME_ALIASES: Record<string, string[]> = {
+  Lapine: ['Lapine', 'La Pine'],
+  'Sun River': ['Sun River', 'Sunriver'],
+}
+
+/** Returns true if city name matches a primary city (by name or alias). */
+export function isPrimaryCityName(name: string): boolean {
+  const lower = name.trim().toLowerCase()
+  for (const p of PRIMARY_CITIES) {
+    if (p.toLowerCase() === lower) return true
+    const aliases = PRIMARY_CITY_NAME_ALIASES[p]
+    if (aliases?.some((a) => a.toLowerCase() === lower)) return true
+  }
+  return false
+}
+
+/** Primary sort order rank (0 = first). -1 if not primary. */
+export function getPrimaryCityRank(name: string): number {
+  const lower = name.trim().toLowerCase()
+  for (let i = 0; i < PRIMARY_CITIES.length; i++) {
+    const p = PRIMARY_CITIES[i]!
+    if (p.toLowerCase() === lower) return i
+    const aliases = PRIMARY_CITY_NAME_ALIASES[p]
+    if (aliases?.some((a) => a.toLowerCase() === lower)) return i
+  }
+  return -1
+}
+
+/** Sort cities: primary first (PRIMARY_CITIES order), then others by activeCount desc, then name. */
+export function sortCitiesWithPrimaryFirst(cities: CityForIndex[]): CityForIndex[] {
+  const primary: CityForIndex[] = []
+  const byRank = new Map<string, CityForIndex>()
+  for (const c of cities) {
+    const r = getPrimaryCityRank(c.name)
+    if (r >= 0) byRank.set(String(r), c)
+  }
+  for (let i = 0; i < PRIMARY_CITIES.length; i++) {
+    const c = byRank.get(String(i))
+    if (c) primary.push(c)
+  }
+  const others = cities.filter((c) => getPrimaryCityRank(c.name) < 0)
+  others.sort((a, b) => b.activeCount - a.activeCount || a.name.localeCompare(b.name))
+  return [...primary, ...others]
+}
+
+/**
+ * For home page only: show only primary Central Oregon cities (Bend, Redmond, Sisters, etc.).
+ * Use this for "Explore by city" and "Browse by city" so we don't show every city from the feed.
+ */
+export function filterToPrimaryCitiesOnly(cities: CityForIndex[]): CityForIndex[] {
+  return sortCitiesWithPrimaryFirst(cities).filter((c) => isPrimaryCityName(c.name))
+}
+
+/** Order for Explore by City slider: these appear first, then the rest by count. */
+export const SLIDER_CITY_ORDER = ['Bend', 'Redmond', 'Sisters', 'La Pine', 'Sunriver', 'Tumalo']
 
 /** Quick facts for known cities (population, elevation, county, etc.). */
 export type CityQuickFacts = {

@@ -4,7 +4,7 @@ import { generateICS } from '@/lib/ics'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'
 
 function getSupabase() {
   if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
   const listingRow = listing as { listing_key?: string; ListingKey?: string } | null
   const key = listingRow?.listing_key ?? listingRow?.ListingKey ?? listingKey
-  const listingUrl = `${siteUrl.replace(/\/$/, '')}/listings/${encodeURIComponent(key)}`
+  const listingUrl = `${siteUrl.replace(/\/$/, '')}/listing/${encodeURIComponent(key)}`
   const address = await getAddress(supabase, listingKey)
 
   const startTime = (oh.start_time ?? '09:00:00').toString().slice(0, 8)

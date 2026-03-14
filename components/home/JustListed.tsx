@@ -1,12 +1,13 @@
 'use client'
 
+import { useRef, useEffect } from 'react'
 import Link from 'next/link'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
+import type { EngagementCounts } from '@/app/actions/engagement'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
-import Badge from '@/components/ui/Badge'
-
-const TILE_MIN_HEIGHT_PX = 340
+import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
+import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
 type Props = {
   listings: HomeTileRow[]
@@ -17,6 +18,7 @@ type Props = {
   downPaymentPercent: number
   interestRate: number
   loanTermYears: number
+  engagementCounts?: Record<string, EngagementCounts>
 }
 
 export default function JustListed({
@@ -29,25 +31,28 @@ export default function JustListed({
   interestRate,
   loanTermYears,
 }: Props) {
+  const sectionRef = useRef<HTMLElement>(null)
+
   if (listings.length === 0) return null
 
   return (
-    <section className="bg-[var(--brand-cream)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="just-listed-heading">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between gap-4">
-          <h2 id="just-listed-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
-            Just Listed
-          </h2>
-          <Link
-            href="/search?sort=newest"
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
-          >
-            View All
-          </Link>
-        </div>
-        <div
-          className="mt-6 flex gap-4 overflow-x-auto pb-2"
-          style={{ scrollbarWidth: 'thin' }}
+    <section
+      ref={sectionRef}
+      className="w-full bg-muted px-4 py-12 sm:px-6 sm:py-16"
+      aria-labelledby="just-listed-heading"
+    >
+      <div className="w-full">
+        <TilesSlider
+          title="Just Listed"
+          titleId="just-listed-heading"
+          headerRight={
+            <Link
+              href="/homes-for-sale?sort=newest"
+              className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
+            >
+              View All
+            </Link>
+          }
         >
           {listings.map((listing) => {
             const key = listing.ListingKey ?? listing.ListNumber ?? ''
@@ -58,14 +63,7 @@ export default function JustListed({
               loanTermYears
             )
             return (
-              <div
-                key={key}
-                className="relative min-w-[280px] shrink-0 md:min-w-[300px]"
-                style={{ minHeight: TILE_MIN_HEIGHT_PX }}
-              >
-                <div className="absolute left-3 top-3 z-10">
-                  <Badge variant="new">New</Badge>
-                </div>
+              <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                 <HomeTileCard
                   listing={listing}
                   listingKey={String(key)}
@@ -75,10 +73,10 @@ export default function JustListed({
                   signedIn={signedIn}
                   userEmail={userEmail}
                 />
-              </div>
+              </TilesSliderItem>
             )
           })}
-        </div>
+        </TilesSlider>
       </div>
     </section>
   )

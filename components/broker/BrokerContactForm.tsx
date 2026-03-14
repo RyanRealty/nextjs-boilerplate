@@ -59,7 +59,7 @@ export default function BrokerContactForm({
   }
 
   return (
-    <section id="contact" className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-contact-heading">
+    <section id="contact" className="bg-primary px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-contact-heading">
       <div className="mx-auto max-w-2xl">
         <h2 id="broker-contact-heading" className="text-2xl font-bold tracking-tight text-white">
           Get in Touch with {brokerFirstName}
@@ -73,7 +73,7 @@ export default function BrokerContactForm({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="Your name"
             />
           </div>
@@ -85,7 +85,7 @@ export default function BrokerContactForm({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="you@example.com"
             />
           </div>
@@ -96,7 +96,7 @@ export default function BrokerContactForm({
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="(541) 555-0123"
             />
           </div>
@@ -106,11 +106,11 @@ export default function BrokerContactForm({
               id="contact-help"
               value={help}
               onChange={(e) => setHelp(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             >
               <option value="">Select…</option>
               {HELP_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-[var(--brand-navy)] text-white">
+                <option key={o.value} value={o.value} className="bg-primary text-white">
                   {o.label}
                 </option>
               ))}
@@ -123,24 +123,24 @@ export default function BrokerContactForm({
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className="mt-1 w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder={DEFAULT_MESSAGE}
             />
           </div>
           {status === 'success' && (
-            <p className="rounded-lg bg-[var(--success)]/20 px-4 py-3 text-sm text-white">
+            <p className="rounded-lg bg-[#22C55E]/20 px-4 py-3 text-sm text-white">
               Message sent! {brokerFirstName} will be in touch shortly.
             </p>
           )}
           {status === 'error' && (
-            <p className="rounded-lg bg-[var(--urgent)]/20 px-4 py-3 text-sm text-white">
+            <p className="rounded-lg bg-[var(--destructive)]/20 px-4 py-3 text-sm text-white">
               Something went wrong. Please try again or email directly.
             </p>
           )}
           <button
             type="submit"
             disabled={status === 'sending'}
-            className="w-full rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)] disabled:opacity-70"
+            className="w-full rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90 disabled:opacity-70"
           >
             {status === 'sending' ? 'Sending…' : 'Send message'}
           </button>

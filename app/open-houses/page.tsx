@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { getOpenHousesWithListings } from '@/app/actions/open-houses'
 import OpenHousesClient from '@/components/open-houses/OpenHousesClient'
 import type { OpenHouseWithListing } from '@/app/actions/open-houses'
+import ContentPageHero from '@/components/layout/ContentPageHero'
+import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 
 export const metadata: Metadata = {
   title: 'Open Houses in Bend, Oregon — This Weekend & Upcoming | Ryan Realty',
@@ -22,7 +24,7 @@ function buildJsonLd(openHouses: OpenHouseWithListing[]): string {
       '@type': 'Place',
       address: oh.unparsed_address || [oh.street_number, oh.street_name, oh.city, oh.state, oh.postal_code].filter(Boolean).join(', '),
     },
-    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'}/listings/${encodeURIComponent(oh.listing_key)}`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(oh.listing_key)}`,
   }))
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -58,9 +60,18 @@ export default async function OpenHousesPage({ searchParams }: { searchParams: P
   const jsonLd = buildJsonLd(openHouses)
 
   return (
-    <>
+    <main className="min-h-screen bg-[var(--background)]">
+      <ContentPageHero
+        title="Open Houses in Central Oregon"
+        subtitle="This weekend and upcoming. Browse by list, map, or calendar—add showings to your calendar or RSVP from the listing."
+        imageUrl={CONTENT_HERO_IMAGES.openHouses}
+        ctas={[
+          { label: 'View All Listings', href: '/listings', primary: true },
+          { label: 'Search on Map', href: '/homes-for-sale', primary: false },
+        ]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <OpenHousesClient initialOpenHouses={openHouses} initialFilters={filters} />
-    </>
+    </main>
   )
 }

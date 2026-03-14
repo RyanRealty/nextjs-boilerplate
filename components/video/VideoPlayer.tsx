@@ -56,7 +56,7 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
             aria-label="Play video"
           >
             <div
-              className="rounded-full bg-red-600 p-6 text-white shadow-lg"
+              className="rounded-full bg-destructive p-6 text-white shadow-md"
               style={{ clipPath: 'polygon(0 0, 0 100%, 100% 50%)' }}
             />
           </button>
@@ -72,7 +72,7 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
         ) : (
           <img
             src={posterUrl ?? `https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
-            alt=""
+            alt="Video thumbnail"
             className="h-full w-full object-cover"
           />
         )}

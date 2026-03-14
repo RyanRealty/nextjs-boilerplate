@@ -39,7 +39,7 @@ export default function WelcomeBanner() {
   return (
     <div
       role="status"
-      className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900"
+      className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-500"
     >
       <p className="text-sm font-medium">
         Welcome to your account! Here you can manage your{' '}
@@ -51,7 +51,7 @@ export default function WelcomeBanner() {
       <button
         type="button"
         onClick={handleDismiss}
-        className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100"
+        className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-green-500 hover:bg-green-500/15"
         aria-label="Dismiss welcome message"
       >
         Dismiss

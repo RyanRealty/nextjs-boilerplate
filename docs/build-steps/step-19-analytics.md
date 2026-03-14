@@ -1,6 +1,6 @@
 # Build Step 19: Analytics (GA4, GTM, Meta Pixel)
 
-Read docs/MASTER_PLAN.md, specifically Section 30 (Tracking, Analytics & Cookie Policy) completely — all subsections 30.1 through 30.8.
+Scope: Tracking, analytics, cookie policy, GA4/GTM/Meta Pixel, data layer events.
 
 ## TASK 1: GTM Setup
 Update src/app/layout.tsx:

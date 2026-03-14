@@ -4,7 +4,7 @@
 
 import { inngest } from '@/lib/inngest'
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET ?? process.env.INNGEST_SIGNING_KEY
 
 export const regenerateSitemap = inngest.createFunction(

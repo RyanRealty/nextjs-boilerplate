@@ -94,6 +94,7 @@ export async function getSearchMapListings(filters: SearchFilters): Promise<MapL
   const statusFilter =
     filters.status === 'Sold' ? 'closed'
     : filters.status === 'Pending' ? 'pending'
+    : filters.status === 'Active' ? 'active'
     : 'active_and_pending'
   return getListingsForMap({
     city: filters.city,

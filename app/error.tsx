@@ -1,5 +1,7 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
+import Link from 'next/link'
 import { useEffect } from 'react'
 
 export default function RootError({
@@ -11,23 +13,24 @@ export default function RootError({
 }) {
   useEffect(() => {
     console.error(error)
+    Sentry.captureException(error)
   }, [error])
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16 text-center">
-      <h1 className="text-xl font-semibold text-zinc-900">Something went wrong</h1>
-      <p className="mt-2 text-zinc-600">We couldn’t load this page. Please try again.</p>
+      <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
+      <p className="mt-2 text-muted-foreground">We couldn’t load this page. Please try again.</p>
       <div className="mt-6 flex justify-center gap-3">
         <button
           type="button"
           onClick={reset}
-          className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+          className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm hover:bg-muted"
         >
           Try again
         </button>
-        <a href="/" className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+        <Link href="/" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
           Go Home
-        </a>
+        </Link>
       </div>
     </main>
   )

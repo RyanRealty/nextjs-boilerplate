@@ -8,10 +8,11 @@ import {
   getBrokerGalleryImages,
 } from '@/app/actions/agents'
 import { getSession } from '@/app/actions/auth'
+import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { getSavedListingKeys } from '@/app/actions/saved-listings'
 import { getLikedListingKeys } from '@/app/actions/likes'
 import { getBuyingPreferences } from '@/app/actions/buying-preferences'
-import { trackPageView } from '@/lib/followupboss'
+import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
 import BrokerHero from '@/components/broker/BrokerHero'
 import BrokerBio from '@/components/broker/BrokerBio'
@@ -23,8 +24,9 @@ import BrokerGallery from '@/components/broker/BrokerGallery'
 import BrokerContactForm from '@/components/broker/BrokerContactForm'
 import BrokerShare from '@/components/broker/BrokerShare'
 import BrokerPageTracker from '@/components/broker/BrokerPageTracker'
+import { fetchPlacePhoto } from '@/lib/photo-api'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -53,12 +55,12 @@ export default async function AgentDetailPage({ params }: Props) {
   const broker = await getAgentBySlug(slug)
   if (!broker) notFound()
 
-  const session = await getSession()
+  const [session, fubPersonId] = await Promise.all([getSession(), getFubPersonIdFromCookie()])
   const pageUrl = `${siteUrl}/agents/${slug}`
   const pageTitle = `${broker.display_name} — Real Estate Agent | Ryan Realty`
-  if (session?.user?.email) {
-    trackPageView({ user: session.user, pageUrl, pageTitle }).catch(() => {})
-  }
+  trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
+
+  const hasLicenseId = Boolean(broker.license_number?.trim())
 
   const [
     listings,
@@ -69,8 +71,12 @@ export default async function AgentDetailPage({ params }: Props) {
     likedKeys,
     prefs,
   ] = await Promise.all([
-    getAgentActiveListings(broker.license_number, 24),
-    getAgentSoldListings(broker.license_number, 12),
+    hasLicenseId
+      ? getAgentActiveListings(broker.license_number!, 24, broker.email)
+      : Promise.resolve([]),
+    hasLicenseId
+      ? getAgentSoldListings(broker.license_number!, 12, broker.email)
+      : Promise.resolve([]),
     getAgentReviews(broker.id, 100),
     getBrokerGalleryImages(broker.id),
     session?.user ? getSavedListingKeys() : Promise.resolve([]),
@@ -83,7 +89,8 @@ export default async function AgentDetailPage({ params }: Props) {
     interestRate: DEFAULT_DISPLAY_RATE,
     loanTermYears: DEFAULT_DISPLAY_TERM_YEARS,
   }
-
+  const brokerHeroFallback =
+    !broker.photo_url ? (await fetchPlacePhoto('professional real estate agent Central Oregon'))?.url : null
   const firstName = broker.display_name.split(' ')[0] ?? broker.display_name
 
   return (
@@ -120,19 +127,23 @@ export default async function AgentDetailPage({ params }: Props) {
         reviewCount={broker.reviewCount}
       />
 
-      <BrokerHero broker={broker} />
+      <BrokerHero broker={broker} fallbackImageUrl={brokerHeroFallback} />
       <BrokerBio broker={broker} />
-      <BrokerStats broker={broker} />
-      <BrokerListings
-        broker={broker}
-        listings={listings}
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-        displayPrefs={displayPrefs}
-      />
-      <BrokerSoldHistory brokerFirstName={firstName} soldListings={soldListings} />
+      {hasLicenseId && (
+        <>
+          <BrokerStats broker={broker} />
+          <BrokerListings
+            broker={broker}
+            listings={listings}
+            savedKeys={session?.user ? savedKeys : []}
+            likedKeys={session?.user ? likedKeys : []}
+            signedIn={!!session?.user}
+            userEmail={session?.user?.email ?? null}
+            displayPrefs={displayPrefs}
+          />
+          <BrokerSoldHistory brokerFirstName={firstName} soldListings={soldListings} />
+        </>
+      )}
       <BrokerReviews
         brokerFirstName={firstName}
         avgRating={broker.avgRating}

@@ -14,19 +14,19 @@ export default function CityCommunities({ cityName, communities }: Props) {
     <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="city-communities-heading">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between gap-4">
-          <h2 id="city-communities-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+          <h2 id="city-communities-heading" className="text-2xl font-bold tracking-tight text-primary">
             Communities in {cityName}
           </h2>
           <Link
             href="/communities"
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
+            className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
           >
             View All Communities
           </Link>
         </div>
-        <p className="mt-1 text-[var(--text-secondary)]">{communities.length} communities</p>
+        <p className="mt-1 text-[var(--muted-foreground)]">{communities.length} communities</p>
         {communities.length === 0 ? (
-          <p className="mt-4 text-[var(--text-secondary)]">
+          <p className="mt-4 text-[var(--muted-foreground)]">
             No community data for {cityName} yet. Check back soon.
           </p>
         ) : (

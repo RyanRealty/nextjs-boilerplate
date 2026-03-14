@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const contactEmail = process.env.NEXT_PUBLIC_SITE_OWNER_EMAIL ?? 'privacy@ryanrealty.com'
 
 export const metadata: Metadata = {
@@ -17,16 +17,16 @@ export const metadata: Metadata = {
 }
 
 const SECTION_CLASS = 'mt-8'
-const H2_CLASS = 'text-lg font-semibold text-[var(--brand-navy)]'
-const P_CLASS = 'mt-2 text-sm text-[var(--gray-muted)]'
-const UL_CLASS = 'mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--gray-muted)]'
+const H2_CLASS = 'text-lg font-semibold text-primary'
+const P_CLASS = 'mt-2 text-sm text-[var(--muted-foreground)]'
+const UL_CLASS = 'mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--muted-foreground)]'
 
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">Privacy & cookies</h1>
-      <p className="mt-2 text-sm text-[var(--gray-muted)]">Last updated: March 2026</p>
-      <p className="mt-4 text-[var(--brand-navy)]">
+      <h1 className="text-2xl font-bold tracking-tight text-primary">Privacy & cookies</h1>
+      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Last updated: March 2026</p>
+      <p className="mt-4 text-primary">
         How we collect, use, and protect your information when you use our website.
       </p>
 
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
       <section className={SECTION_CLASS}>
         <h2 className={H2_CLASS}>How to exercise your rights</h2>
         <p className={P_CLASS}>
-          Email us at <a href={`mailto:${contactEmail}`} className="text-[var(--accent)] underline hover:no-underline">{contactEmail}</a>. We will respond within 45 days. You may also sign out and manage cookies via our banner or your browser.
+          Email us at <a href={`mailto:${contactEmail}`} className="text-accent-foreground underline hover:no-underline">{contactEmail}</a>. We will respond within 45 days. You may also sign out and manage cookies via our banner or your browser.
         </p>
       </section>
 
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
       <section className={SECTION_CLASS}>
         <h2 className={H2_CLASS}>Contact</h2>
         <p className={P_CLASS}>
-          Questions? <a href={`mailto:${contactEmail}`} className="text-[var(--accent)] underline hover:no-underline">{contactEmail}</a>.
+          Questions? <a href={`mailto:${contactEmail}`} className="text-accent-foreground underline hover:no-underline">{contactEmail}</a>.
         </p>
       </section>
     </main>

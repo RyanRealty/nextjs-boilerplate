@@ -1,6 +1,6 @@
 # Build Step 22: PWA, Accessibility & Performance Optimization
 
-Read docs/MASTER_PLAN.md, specifically Section 43 (Mobile, Responsive & PWA), Section 47 (Accessibility), Section 44 (Performance), Section 48 (UX Standards).
+Scope: Mobile, responsive layout, PWA, accessibility, performance, UX standards.
 
 ## PART A: PROGRESSIVE WEB APP
 

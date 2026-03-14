@@ -15,7 +15,7 @@ function getSupabase() {
   return createClient(url, serviceKey)
 }
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 /**
  * POST (from Inngest): query user_activities for property_view in last 5 min, group by user_id, send one FUB event per user.
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase.auth.admin.getUserById(userId)
     const email = user?.user?.email ?? ''
     if (!email) continue
-    const listingUrls = listingKeys.map((k) => `${siteUrl}/listings/${encodeURIComponent(k)}`)
+    const listingUrls = listingKeys.map((k) => `${siteUrl}/listing/${encodeURIComponent(k)}`)
     await pushToFub('Property Viewed', { email }, { listingUrls })
   }
   return Response.json({ flushed: byUser.size })

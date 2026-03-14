@@ -6,8 +6,9 @@ import { getCachedCMA, computeCMA } from '@/lib/cma'
 import { CMAPdfDocument } from '@/lib/pdf/cma-pdf'
 import { createClient } from '@supabase/supabase-js'
 import { sendEvent } from '@/lib/followupboss'
+import { checkRateLimit } from '@/lib/rate-limit'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -17,6 +18,9 @@ function getServiceSupabase() {
 }
 
 export async function POST(request: Request) {
+  const rl = await checkRateLimit(request, 'strict')
+  if (rl.limited) return rl.response
+
   const session = await getSession()
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
   const doc = React.createElement(CMAPdfDocument, { data: pdfData })
   type DocElement = Parameters<typeof renderToBuffer>[0]
   const buffer = await renderToBuffer(doc as DocElement)
-  const source = siteUrl.replace(/^https?:\/\//, '').toLowerCase() || 'ryanrealty.com'
+  const source = siteUrl.replace(/^https?:\/\//, '').toLowerCase() || 'ryan-realty.com'
   await sendEvent({
     type: 'Property Inquiry',
     person: { emails: [{ value: session.user.email }] },

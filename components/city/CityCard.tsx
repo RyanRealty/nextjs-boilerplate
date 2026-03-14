@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import Card from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 
 export type CityCardProps = {
   slug: string
@@ -30,18 +30,18 @@ export default function CityCard({
 
   return (
     <Link href={href} className="group block">
-      <Card className="overflow-hidden border-[var(--gray-border)] shadow-sm transition hover:shadow-md">
+      <Card className="overflow-hidden border-[var(--border)] shadow-sm transition hover:shadow-md">
         <div className="relative aspect-[21/9] w-full overflow-hidden">
           {heroImageUrl ? (
             <Image
               src={heroImageUrl}
-              alt=""
+              alt={`${name}, Oregon — real estate overview`}
               fill
               className="object-cover transition group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[var(--brand-navy)] to-zinc-800" />
+            <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary / 0.8)]" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -53,7 +53,7 @@ export default function CityCard({
         </div>
         {description && (
           <div className="p-4">
-            <p className="line-clamp-2 text-sm text-[var(--text-secondary)]">{description}</p>
+            <p className="line-clamp-2 text-sm text-[var(--muted-foreground)]">{description}</p>
           </div>
         )}
       </Card>

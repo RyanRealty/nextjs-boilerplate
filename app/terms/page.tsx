@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">Terms of Service</h1>
-      <p className="mt-2 text-sm text-[var(--gray-muted)]">Last updated: March 2026</p>
+      <h1 className="text-2xl font-bold tracking-tight text-primary">Terms of Service</h1>
+      <p className="mt-2 text-sm text-[var(--muted-foreground)]">Last updated: March 2026</p>
 
-      <section className="mt-8 space-y-4 text-sm text-[var(--brand-navy)]">
+      <section className="mt-8 space-y-4 text-sm text-primary">
         <div>
           <h2 className="text-lg font-semibold">Acceptance of terms</h2>
           <p className="mt-2">
@@ -105,7 +105,7 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold">Contact</h2>
           <p className="mt-2">
             Questions? Contact us at{' '}
-            <Link href="/contact" className="text-[var(--accent)] underline hover:no-underline">
+            <Link href="/contact" className="text-accent-foreground underline hover:no-underline">
               our contact page
             </Link>
             .

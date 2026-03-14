@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
+import type { EngagementCounts } from '@/app/actions/engagement'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
-import Badge from '@/components/ui/Badge'
-
-const TILE_MIN_HEIGHT_PX = 340
+import { Badge } from '@/components/ui/badge'
+import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
+import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
 type ListingWithDrop = HomeTileRow & { originalPrice?: number; savings?: number }
 
@@ -19,6 +20,7 @@ type Props = {
   downPaymentPercent: number
   interestRate: number
   loanTermYears: number
+  engagementCounts?: Record<string, EngagementCounts>
 }
 
 function formatPrice(n: number): string {
@@ -34,26 +36,24 @@ export default function PriceDrops({
   downPaymentPercent,
   interestRate,
   loanTermYears,
+  engagementCounts,
 }: Props) {
   if (listings.length === 0) return null
 
   return (
-    <section className="bg-[var(--brand-cream)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="price-drops-heading">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between gap-4">
-          <h2 id="price-drops-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
-            Price Reductions
-          </h2>
-          <Link
-            href="/search?priceDrops=true"
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
-          >
-            View All
-          </Link>
-        </div>
-        <div
-          className="mt-6 flex gap-4 overflow-x-auto pb-2"
-          style={{ scrollbarWidth: 'thin' }}
+    <section className="w-full bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="price-drops-heading">
+      <div className="w-full">
+        <TilesSlider
+          title="Price Reductions"
+          titleId="price-drops-heading"
+          headerRight={
+            <Link
+              href="/homes-for-sale?priceDrops=true"
+              className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
+            >
+              View All
+            </Link>
+          }
         >
           {listings.map((listing: ListingWithDrop) => {
             const key = listing.ListingKey ?? listing.ListNumber ?? ''
@@ -67,18 +67,14 @@ export default function PriceDrops({
               listing.originalPrice != null &&
               listing.ListPrice != null &&
               listing.originalPrice > 0
-                ? Math.round((listing.savings ?? 0) / listing.originalPrice * 100)
+                ? Math.round(((listing.savings ?? 0) / listing.originalPrice) * 100)
                 : null
             return (
-              <div
-                key={key}
-                className="relative min-w-[280px] shrink-0 md:min-w-[300px]"
-                style={{ minHeight: TILE_MIN_HEIGHT_PX }}
-              >
-                <div className="absolute left-3 top-3 z-10">
-                  <Badge variant="price-drop">Price Drop</Badge>
-                </div>
-                <div className="relative">
+              <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
+                <div className="relative h-full">
+                  <div className="absolute left-3 top-3 z-10">
+                    <Badge variant="destructive">Price Drop</Badge>
+                  </div>
                   <HomeTileCard
                     listing={listing}
                     listingKey={String(key)}
@@ -87,22 +83,27 @@ export default function PriceDrops({
                     liked={signedIn && likedKeys.includes(String(key))}
                     signedIn={signedIn}
                     userEmail={userEmail}
+                    likeCount={engagementCounts?.[String(key)]?.like_count}
+                    saveCount={engagementCounts?.[String(key)]?.save_count}
+                    shareCount={engagementCounts?.[String(key)]?.share_count}
                   />
-                  {listing.originalPrice != null && listing.ListPrice != null && listing.originalPrice > listing.ListPrice && (
-                    <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/70 px-2 py-1.5 text-sm text-white">
-                      <span className="line-through">{formatPrice(listing.originalPrice)}</span>
-                      {' → '}
-                      <span className="font-semibold">{formatPrice(listing.ListPrice)}</span>
-                      {pct != null && pct > 0 && (
-                        <span className="ml-1 text-emerald-300">−{pct}%</span>
-                      )}
-                    </div>
-                  )}
+                  {listing.originalPrice != null &&
+                    listing.ListPrice != null &&
+                    listing.originalPrice > listing.ListPrice && (
+                      <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/70 px-2 py-1.5 text-sm text-white">
+                        <span className="line-through">{formatPrice(listing.originalPrice)}</span>
+                        {' → '}
+                        <span className="font-semibold">{formatPrice(listing.ListPrice)}</span>
+                        {pct != null && pct > 0 && (
+                          <span className="ml-1 text-green-500">−{pct}%</span>
+                        )}
+                      </div>
+                    )}
                 </div>
-              </div>
+              </TilesSliderItem>
             )
           })}
-        </div>
+        </TilesSlider>
       </div>
     </section>
   )

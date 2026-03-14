@@ -39,10 +39,12 @@ export type BrokerRow = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  intro_video_url?: string | null
+  saved_headshot_urls?: string[] | null
 }
 
 const BROKER_SELECT =
-  'id, slug, display_name, title, license_number, bio, photo_url, email, phone, google_review_url, zillow_review_url, sort_order, is_active, created_at, updated_at, tagline, specialties, designations, years_experience, social_instagram, social_facebook, social_linkedin, social_youtube, social_tiktok'
+  'id, slug, display_name, title, license_number, bio, photo_url, email, phone, google_review_url, zillow_review_url, sort_order, is_active, created_at, updated_at, tagline, specialties, designations, years_experience, social_instagram, social_facebook, social_linkedin, social_youtube, social_tiktok, intro_video_url, saved_headshot_urls'
 
 export async function getActiveBrokers(): Promise<BrokerRow[]> {
   const supabase = await createServerClient()
@@ -109,6 +111,8 @@ export type BrokerUpdateInput = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  intro_video_url?: string | null
+  saved_headshot_urls?: string[] | null
 }
 
 /** Update broker (admin only; uses service role). */
@@ -135,6 +139,8 @@ export async function updateBroker(id: string, input: BrokerUpdateInput): Promis
   if (input.social_linkedin !== undefined) payload.social_linkedin = input.social_linkedin
   if (input.social_youtube !== undefined) payload.social_youtube = input.social_youtube
   if (input.social_tiktok !== undefined) payload.social_tiktok = input.social_tiktok
+  if (input.intro_video_url !== undefined) payload.intro_video_url = input.intro_video_url
+  if (input.saved_headshot_urls !== undefined) payload.saved_headshot_urls = input.saved_headshot_urls
   const { error } = await supabase.from('brokers').update(payload).eq('id', id.trim())
   if (error) return { ok: false, error: error.message }
   const session = await getSession()
@@ -167,6 +173,7 @@ export type BrokerCreateInput = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  intro_video_url?: string | null
 }
 
 /** Create broker (admin only; uses service role). Required: slug, display_name, title, license_number. */
@@ -201,6 +208,7 @@ export async function createBroker(input: BrokerCreateInput): Promise<{ ok: true
       social_linkedin: input.social_linkedin?.trim() || null,
       social_youtube: input.social_youtube?.trim() || null,
       social_tiktok: input.social_tiktok?.trim() || null,
+      intro_video_url: input.intro_video_url?.trim() || null,
     })
     .select('id')
     .single()

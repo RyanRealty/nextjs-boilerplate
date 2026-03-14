@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import EqualHousing from '@/components/legal/EqualHousing'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const HUD_URL = 'https://www.hud.gov/program_offices/fair_housing_equal_opp'
 const HUD_PHONE = '1-800-669-9777'
 
@@ -17,10 +17,10 @@ export default function FairHousingPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <div className="flex flex-col items-center text-center">
-        <EqualHousing size="large" className="text-[var(--brand-navy)]" />
+        <EqualHousing size="large" className="text-primary" />
       </div>
 
-      <section className="mt-10 space-y-6 text-sm text-[var(--brand-navy)]">
+      <section className="mt-10 space-y-6 text-sm text-primary">
         <div>
           <h2 className="text-lg font-semibold">Equal Housing Opportunity</h2>
           <p className="mt-2">
@@ -49,12 +49,12 @@ export default function FairHousingPage() {
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             <li>
-              <a href={HUD_URL} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline hover:no-underline">
+              <a href={HUD_URL} target="_blank" rel="noopener noreferrer" className="text-accent-foreground underline hover:no-underline">
                 HUD Fair Housing
               </a>
             </li>
             <li>
-              <a href={`tel:${HUD_PHONE.replace(/\D/g, '')}`} className="text-[var(--accent)] underline hover:no-underline">
+              <a href={`tel:${HUD_PHONE.replace(/\D/g, '')}`} className="text-accent-foreground underline hover:no-underline">
                 {HUD_PHONE}
               </a>
             </li>
@@ -70,7 +70,7 @@ export default function FairHousingPage() {
       </section>
 
       <p className="mt-10 text-center">
-        <Link href="/" className="text-[var(--accent)] underline hover:no-underline">Back to home</Link>
+        <Link href="/" className="text-accent-foreground underline hover:no-underline">Back to home</Link>
       </p>
     </main>
   )

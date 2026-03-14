@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSearchSuggestions } from '@/app/actions/listings'
 import type { SearchSuggestionsResult } from '@/app/actions/listings'
-import { cityEntityKey } from '@/lib/slug'
+import { cityPagePath } from '@/lib/slug'
+import { communityPagePath } from '@/lib/community-slug'
 import VoiceSearchButton from '@/components/VoiceSearchButton'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Search01Icon } from '@hugeicons/core-free-icons'
 
 const DEBOUNCE_MS = 220
 const MIN_QUERY_LENGTH = 2
@@ -73,12 +76,12 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
     i -= suggestions.addresses.length
     if (i < suggestions.cities.length) {
       const c = suggestions.cities[i]
-      return `/search/${cityEntityKey(c.city)}`
+      return cityPagePath(c.city)
     }
     i -= suggestions.cities.length
     if (i < suggestions.subdivisions.length) {
       const s = suggestions.subdivisions[i]
-      return `/search/${cityEntityKey(s.city)}/${encodeURIComponent(s.subdivisionName)}`
+      return communityPagePath(s.city, s.subdivisionName)
     }
     return null
   }
@@ -131,10 +134,8 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
       <label htmlFor="hero-search-input" className="sr-only">
         Enter an address, neighborhood, city, or zip code
       </label>
-      <div className="flex items-center gap-3 rounded-xl border-2 border-white/30 bg-white/95 px-4 py-3 shadow-xl backdrop-blur-sm">
-        <svg className="h-6 w-6 shrink-0 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+      <div className="flex items-center gap-3 rounded-lg border-2 border-white/30 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-sm">
+        <HugeiconsIcon icon={Search01Icon} className="h-6 w-6 shrink-0 text-muted-foreground" aria-hidden />
         <input
           id="hero-search-input"
           ref={inputRef}
@@ -147,7 +148,7 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim().length >= MIN_QUERY_LENGTH && setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 bg-transparent text-zinc-900 placeholder:text-zinc-500 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
         <VoiceSearchButton
           onTranscript={(text) => {
@@ -163,14 +164,14 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(50vh,320px)] overflow-auto rounded-xl border border-zinc-200 bg-white py-2 shadow-xl"
+          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(50vh,320px)] overflow-auto rounded-lg border border-border bg-white py-2 shadow-lg"
         >
           {query.trim().length < MIN_QUERY_LENGTH ? (
-            <p className="px-4 py-2 text-sm text-zinc-500">Type at least {MIN_QUERY_LENGTH} characters…</p>
+            <p className="px-4 py-2 text-sm text-muted-foreground">Type at least {MIN_QUERY_LENGTH} characters…</p>
           ) : loading ? (
-            <p className="px-4 py-2 text-sm text-zinc-500">Searching…</p>
+            <p className="px-4 py-2 text-sm text-muted-foreground">Searching…</p>
           ) : suggestions && totalItems === 0 ? (
-            <p className="px-4 py-2 text-sm text-zinc-500">No results</p>
+            <p className="px-4 py-2 text-sm text-muted-foreground">No results</p>
           ) : suggestions && totalItems > 0 ? (
             <>
               {suggestions.addresses.map((a, i) => {
@@ -181,7 +182,7 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
                     role="option"
                     aria-selected={highlight === idx}
                     href={a.href}
-                    className={`block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-100 ${highlight === idx ? 'bg-zinc-100' : ''}`}
+                    className={`block px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
                     onClick={() => { setOpen(false); setQuery('') }}
                   >
                     {a.label}
@@ -190,33 +191,33 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
               })}
               {suggestions.cities.map((c, i) => {
                 const idx = itemIndex++
-                const href = `/search/${cityEntityKey(c.city)}`
+                const href = cityPagePath(c.city)
                 return (
                   <Link
                     key={`city-${i}`}
                     role="option"
                     aria-selected={highlight === idx}
                     href={href}
-                    className={`block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-100 ${highlight === idx ? 'bg-zinc-100' : ''}`}
+                    className={`block px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
                     onClick={() => { setOpen(false); setQuery('') }}
                   >
-                    {c.city} {c.count > 0 && <span className="text-zinc-400">({c.count})</span>}
+                    {c.city} {c.count > 0 && <span className="text-muted-foreground">({c.count})</span>}
                   </Link>
                 )
               })}
               {suggestions.subdivisions.map((s, i) => {
                 const idx = itemIndex++
-                const href = `/search/${cityEntityKey(s.city)}/${encodeURIComponent(s.subdivisionName)}`
+                const href = communityPagePath(s.city, s.subdivisionName)
                 return (
                   <Link
                     key={`sub-${i}`}
                     role="option"
                     aria-selected={highlight === idx}
                     href={href}
-                    className={`block px-4 py-2.5 text-sm text-zinc-700 hover:bg-zinc-100 ${highlight === idx ? 'bg-zinc-100' : ''}`}
+                    className={`block px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
                     onClick={() => { setOpen(false); setQuery('') }}
                   >
-                    {s.subdivisionName} <span className="text-zinc-400">({s.city})</span>
+                    {s.subdivisionName} <span className="text-muted-foreground">({s.city})</span>
                   </Link>
                 )
               })}

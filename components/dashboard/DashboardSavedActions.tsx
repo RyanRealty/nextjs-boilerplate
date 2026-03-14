@@ -27,19 +27,19 @@ export default function DashboardSavedActions({ listingKey }: Props) {
     <div className="mt-2 flex items-center gap-2">
       {confirmRemove ? (
         <>
-          <span className="text-sm text-zinc-500">Remove from saved?</span>
+          <span className="text-sm text-muted-foreground">Remove from saved?</span>
           <button
             type="button"
             onClick={handleRemove}
             disabled={pending}
-            className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
+            className="text-sm font-medium text-destructive hover:underline disabled:opacity-50"
           >
             {pending ? 'Removing…' : 'Yes, remove'}
           </button>
           <button
             type="button"
             onClick={() => setConfirmRemove(false)}
-            className="text-sm font-medium text-zinc-500 hover:text-zinc-700"
+            className="text-sm font-medium text-muted-foreground hover:text-muted-foreground"
           >
             Cancel
           </button>
@@ -48,7 +48,7 @@ export default function DashboardSavedActions({ listingKey }: Props) {
         <button
           type="button"
           onClick={handleRemove}
-          className="text-sm font-medium text-zinc-500 hover:text-red-600"
+          className="text-sm font-medium text-muted-foreground hover:text-destructive"
         >
           Remove
         </button>

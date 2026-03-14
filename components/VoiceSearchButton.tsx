@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Mic01Icon } from '@hugeicons/core-free-icons'
 
 type Props = {
   onTranscript?: (text: string) => void
@@ -23,7 +25,7 @@ export default function VoiceSearchButton({ onTranscript, className }: Props) {
       if (onTranscript) {
         onTranscript(t)
       } else {
-        router.push(`/search/bend?keywords=${encodeURIComponent(t)}`)
+        router.push(`/homes-for-sale/bend?keywords=${encodeURIComponent(t)}`)
       }
     },
     [onTranscript, router]
@@ -61,19 +63,16 @@ export default function VoiceSearchButton({ onTranscript, className }: Props) {
         type="button"
         onClick={startListening}
         disabled={listening}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 disabled:opacity-70"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-muted-foreground hover:bg-muted disabled:opacity-70"
         aria-label={listening ? 'Listening…' : 'Search by voice'}
       >
         {listening ? (
-          <span className="h-4 w-4 animate-pulse rounded-full bg-rose-500" />
+          <span className="h-4 w-4 animate-pulse rounded-full bg-destructive/100" />
         ) : (
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v0m0 0v7m0-7a7 7 0 017-7" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-          </svg>
+          <HugeiconsIcon icon={Mic01Icon} className="h-5 w-5" />
         )}
       </button>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   )
 }

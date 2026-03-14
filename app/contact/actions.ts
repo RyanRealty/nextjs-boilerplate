@@ -3,7 +3,7 @@
 import { sendEvent } from '@/lib/followupboss'
 import { sendContactNotification } from '@/lib/resend'
 
-const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryanrealty.com').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
+const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryan-realty.com').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
 
 export type ContactFormState = { error?: string; success?: boolean }
 

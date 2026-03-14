@@ -31,7 +31,11 @@ export type EventName =
   | 'like_listing'
   | 'share_listing'
   | 'compare_listing'
-  | 'view_comparison'
+  | 'compare_add'
+  | 'compare_remove'
+  | 'compare_share'
+  | 'compare_pdf_download'
+  | 'share'
   | 'view_photo_gallery'
   | 'play_video'
   | 'view_similar_listings'
@@ -50,6 +54,7 @@ export type EventName =
   | 'map_interaction'
   | 'share_collection'
   | 'ai_chat_started'
+  | 'ai_chat_message'
   | 'return_visit'
   | 'exit_intent_shown'
   | 'homepage_view'
@@ -74,10 +79,25 @@ function pushDataLayer(obj: Record<string, unknown>) {
 }
 
 /**
+ * Fire a Google Ads conversion (when send_to env is set). Only call from client after consent.
+ */
+function fireGoogleAdsConversion(sendTo: string | undefined) {
+  if (typeof window === 'undefined' || !sendTo?.trim() || !window.gtag) return
+  window.gtag('event', 'conversion', { send_to: sendTo.trim() })
+}
+
+const GOOGLE_ADS_CONVERSION_LEAD = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD?.trim()
+const GOOGLE_ADS_CONVERSION_SIGNUP = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_SIGNUP?.trim()
+
+/**
  * Push a typed event to window.dataLayer for GTM/GA4.
+ * Also fires Google Ads conversion when event is generate_lead and NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LEAD is set.
  */
 export function trackEvent(eventName: EventName, params: Record<string, unknown> = {}) {
   pushDataLayer({ event: eventName, ...params })
+  if (eventName === 'generate_lead' && GOOGLE_ADS_CONVERSION_LEAD) {
+    fireGoogleAdsConversion(GOOGLE_ADS_CONVERSION_LEAD)
+  }
 }
 
 /**
@@ -226,4 +246,5 @@ export function trackSignUp() {
     method: 'Google',
   })
   trackFbq('CompleteRegistration', { content_name: 'Account created' })
+  if (GOOGLE_ADS_CONVERSION_SIGNUP) fireGoogleAdsConversion(GOOGLE_ADS_CONVERSION_SIGNUP)
 }

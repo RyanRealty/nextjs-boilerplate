@@ -22,18 +22,18 @@ export default async function CommunityContext({
   return (
     <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-context-heading">
       <div className="mx-auto max-w-7xl">
-        <h2 id="community-context-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+        <h2 id="community-context-heading" className="text-2xl font-bold tracking-tight text-primary">
           About the Area
         </h2>
-        <p className="mt-2 text-[var(--text-secondary)]">
+        <p className="mt-2 text-[var(--muted-foreground)]">
           Located in{' '}
-          <Link href={`/search?city=${encodeURIComponent(city)}`} className="font-medium text-[var(--accent)] hover:underline">
+          <Link href={`/homes-for-sale?city=${encodeURIComponent(city)}`} className="font-medium text-accent-foreground hover:underline">
             {city}
           </Link>
         </p>
         {nearby.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-[var(--brand-navy)]">Nearby communities</h3>
+            <h3 className="text-lg font-semibold text-primary">Nearby communities</h3>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {nearby.map((c) => (
                 <CommunityCard
@@ -52,10 +52,10 @@ export default async function CommunityContext({
           </div>
         )}
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-[var(--brand-navy)]">
+          <h3 className="text-lg font-semibold text-primary">
             Schools near {communityName}
           </h3>
-          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
             School district and zoning information will be available here. Check back for updates.
           </p>
         </div>

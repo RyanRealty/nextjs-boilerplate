@@ -67,7 +67,7 @@ So: if your latest work isn’t committed and pushed, Vercel will keep serving t
    The root layout and homepage are set to `dynamic = 'force-dynamic'`, so they render on every request using live Supabase data. If you still see old or empty content, **redeploy** after the change (Deployments → ⋮ → Redeploy).
 
 2. **Wrong or missing `NEXT_PUBLIC_SITE_URL`**  
-   In Vercel → Settings → Environment Variables, set `NEXT_PUBLIC_SITE_URL` to your live URL with no trailing slash, e.g. `https://ryanrealty-ryanrealtys-projects.vercel.app` or `https://ryanrealty.com`. Redeploy after changing env vars.
+   In Vercel → Settings → Environment Variables, set `NEXT_PUBLIC_SITE_URL` to your live URL with no trailing slash, e.g. `https://ryanrealty-ryanrealtys-projects.vercel.app` or `https://ryan-realty.com`. Redeploy after changing env vars.
 
 3. **You’re signed in locally**  
    On localhost you may be signed in (header shows “Account”); on production you’re usually not (header shows “Sign in”). That’s expected.

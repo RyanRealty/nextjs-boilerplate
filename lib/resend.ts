@@ -21,6 +21,8 @@ export type SendEmailOptions = {
   from?: string
   replyTo?: string
   react?: ReactElement
+  /** Attachments (e.g. PDF). Content as Buffer. */
+  attachments?: { filename: string; content: Buffer }[]
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<{ id?: string; error?: string }> {
@@ -42,6 +44,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ id?: strin
       text: options.text,
       replyTo: options.replyTo,
       react: options.react,
+      ...(options.attachments?.length ? { attachments: options.attachments } : {}),
     })
     if (error) {
       const g = globalThis as unknown as { captureException?: (e: unknown) => void }

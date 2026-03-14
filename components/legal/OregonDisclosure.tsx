@@ -17,7 +17,7 @@ export default function OregonDisclosure({
   className = '',
 }: OregonDisclosureProps) {
   return (
-    <div className={`text-xs text-[var(--gray-muted)] ${className}`}>
+    <div className={`text-xs text-[var(--muted-foreground)] ${className}`}>
       <p>
         {brokerageName} is licensed in the State of Oregon.
         {licenseNumber?.trim() && (

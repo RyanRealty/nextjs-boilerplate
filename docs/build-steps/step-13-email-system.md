@@ -1,6 +1,6 @@
 # Build Step 13: Email System (Resend + Templates)
 
-Read docs/MASTER_PLAN.md, specifically Section 29 (Notification Architecture) completely, Section 49 (Email Deliverability), Section 39 (Broker Tools), and Section 28 (FUB Integration).
+Scope: Notification architecture, email deliverability, broker tools, FUB integration.
 
 Build the complete email system:
 

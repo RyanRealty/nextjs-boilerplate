@@ -38,7 +38,7 @@ async function main() {
     checks.push({ name: 'Supabase: reachable', pass: false, detail: String(e) })
   }
 
-  const publicPages = ['/', '/search', '/communities', '/cities', '/agents', '/blog', '/about', '/contact', '/privacy', '/terms']
+  const publicPages = ['/', '/homes-for-sale', '/communities', '/cities', '/agents', '/blog', '/about', '/contact', '/privacy', '/terms']
   for (const path of publicPages) {
     try {
       const res = await fetch(`${SITE_URL}${path}`, { redirect: 'manual' })

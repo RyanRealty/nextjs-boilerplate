@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const BRAND_TONE =
   'Ryan Realty is a luxury Central Oregon real estate brand. Tone: professional, warm, trustworthy, and inviting. Avoid jargon; use clear, elegant language. Emphasize lifestyle, community, and the Central Oregon region (Bend, Redmond, Sisters, Sunriver, etc.).'
@@ -31,6 +32,9 @@ export interface GenerateTextBody {
 }
 
 export async function POST(request: Request) {
+  const rl = await checkRateLimit(request, 'strict')
+  if (rl.limited) return rl.response
+
   try {
     const body = (await request.json()) as GenerateTextBody
     const { context = '', tone = 'professional', action = 'generate', prompt = '', existingText = '' } = body

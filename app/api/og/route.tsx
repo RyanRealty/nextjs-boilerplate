@@ -3,13 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 function getSupabase() {
   if (!url?.trim() || !anonKey?.trim()) return null
   return createClient(url, anonKey)
 }
 
+// Edge required for ImageResponse latency; disables static generation for this route.
 export const runtime = 'edge'
 
 export async function GET(request: Request) {
@@ -132,7 +133,7 @@ export async function GET(request: Request) {
           (
             <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f0eeec', padding: 48 }}>
               {b.photo_url && (
-                <img src={b.photo_url} alt="" width={160} height={160} style={{ borderRadius: '50%', objectFit: 'cover', marginBottom: 24 }} />
+                <img src={b.photo_url} alt={b.display_name || 'Agent photo'} width={160} height={160} style={{ borderRadius: '50%', objectFit: 'cover', marginBottom: 24 }} />
               )}
               <span style={{ color: '#102742', fontSize: 42, fontWeight: 700 }}>{b.display_name}</span>
               {b.title && <span style={{ color: '#6b7280', fontSize: 22, marginTop: 8 }}>{b.title}</span>}

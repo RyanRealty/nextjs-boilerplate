@@ -22,7 +22,7 @@ export default function CommunityCTA({ communityName, slug }: Props) {
   }
 
   return (
-    <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-cta-heading">
+    <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-cta-heading">
       <div className="mx-auto max-w-3xl text-center">
         <h2 id="community-cta-heading" className="text-2xl font-bold tracking-tight text-white">
           Interested in {communityName}?
@@ -31,7 +31,7 @@ export default function CommunityCTA({ communityName, slug }: Props) {
           <Link
             href="/account/saved-communities"
             onClick={handleGetNotified}
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
             Get Notified of New Listings
           </Link>
@@ -49,15 +49,15 @@ export default function CommunityCTA({ communityName, slug }: Props) {
       </div>
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-[var(--brand-navy)]">Contact an expert</h3>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">
+          <div className="max-w-md rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="text-lg font-bold text-primary">Contact an expert</h3>
+            <p className="mt-2 text-sm text-[var(--muted-foreground)]">
               We&apos;ll connect you with a local agent who knows {communityName}. Contact form coming soon.
             </p>
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="mt-4 w-full rounded-lg bg-[var(--brand-navy)] px-4 py-2 font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+              className="mt-4 w-full rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-accent/90"
             >
               Close
             </button>

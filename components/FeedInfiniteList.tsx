@@ -57,7 +57,7 @@ export default function FeedInfiniteList({
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       {listings.length === 0 ? (
-        <p className="py-12 text-center text-zinc-500">No listings right now. Check back later.</p>
+        <p className="py-12 text-center text-muted-foreground">No listings right now. Check back later.</p>
       ) : (
         <>
           {listings.map((listing) => {
@@ -77,7 +77,7 @@ export default function FeedInfiniteList({
           })}
           <div ref={sentinelRef} className="h-4" aria-hidden />
           {loading && (
-            <p className="py-4 text-center text-sm text-zinc-500">Loading more…</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">Loading more…</p>
           )}
         </>
       )}

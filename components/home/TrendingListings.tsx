@@ -1,12 +1,13 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import Link from 'next/link'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
+import type { EngagementCounts } from '@/app/actions/engagement'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
-import Badge from '@/components/ui/Badge'
-
-const TILE_MIN_HEIGHT_PX = 340
+import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
+import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
 type Props = {
   listings: HomeTileRow[]
@@ -17,6 +18,7 @@ type Props = {
   downPaymentPercent: number
   interestRate: number
   loanTermYears: number
+  engagementCounts?: Record<string, EngagementCounts>
 }
 
 export default function TrendingListings({
@@ -28,6 +30,7 @@ export default function TrendingListings({
   downPaymentPercent,
   interestRate,
   loanTermYears,
+  engagementCounts,
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const sentRef = useRef(false)
@@ -49,53 +52,50 @@ export default function TrendingListings({
   return (
     <section
       ref={sectionRef}
-      className="bg-white px-4 py-12 sm:px-6 sm:py-16"
+      className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16"
       aria-labelledby="trending-listings-heading"
     >
-      <div className="mx-auto max-w-7xl">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl" aria-hidden>🔥</span>
-          <h2 id="trending-listings-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
-            Trending Now
-          </h2>
-        </div>
-        <p className="mt-1 text-[var(--text-secondary)]">Most viewed homes this week</p>
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-          <div
-            className="flex gap-4 overflow-x-auto pb-2 md:contents"
-            style={{ scrollbarWidth: 'thin' }}
-          >
-            {listings.map((listing) => {
-              const key = listing.ListingKey ?? listing.ListNumber ?? ''
-              const monthly = estimatedMonthlyPayment(
-                listing.ListPrice ?? 0,
-                downPaymentPercent,
-                interestRate,
-                loanTermYears
-              )
-              return (
-                <div
-                  key={key}
-                  className="relative min-w-[280px] shrink-0 md:min-w-0"
-                  style={{ minHeight: TILE_MIN_HEIGHT_PX }}
-                >
-                  <div className="absolute left-3 top-3 z-10">
-                    <Badge variant="hot">Hot</Badge>
-                  </div>
-                  <HomeTileCard
-                    listing={listing}
-                    listingKey={String(key)}
-                    monthlyPayment={formatMonthlyPayment(monthly)}
-                    saved={signedIn && savedKeys.includes(String(key))}
-                    liked={signedIn && likedKeys.includes(String(key))}
-                    signedIn={signedIn}
-                    userEmail={userEmail}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      <div className="mx-auto w-full max-w-7xl">
+        <TilesSlider
+          title="🔥 Trending Now"
+          subtitle="Most viewed homes this week"
+          titleId="trending-listings-heading"
+          headerRight={
+            <Link
+              href="/homes-for-sale?sort=popular"
+              className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
+            >
+              Browse trending →
+            </Link>
+          }
+        >
+          {listings.map((listing) => {
+            const key = listing.ListingKey ?? listing.ListNumber ?? ''
+            const monthly = estimatedMonthlyPayment(
+              listing.ListPrice ?? 0,
+              downPaymentPercent,
+              interestRate,
+              loanTermYears
+            )
+            return (
+              <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
+                <HomeTileCard
+                  listing={listing}
+                  listingKey={String(key)}
+                  monthlyPayment={formatMonthlyPayment(monthly)}
+                  saved={signedIn && savedKeys.includes(String(key))}
+                  liked={signedIn && likedKeys.includes(String(key))}
+                  signedIn={signedIn}
+                  userEmail={userEmail}
+                  hotBadge
+                  likeCount={engagementCounts?.[String(key)]?.like_count}
+                  saveCount={engagementCounts?.[String(key)]?.save_count}
+                  shareCount={engagementCounts?.[String(key)]?.share_count}
+                />
+              </TilesSliderItem>
+            )
+          })}
+        </TilesSlider>
       </div>
     </section>
   )

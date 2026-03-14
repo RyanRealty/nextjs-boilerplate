@@ -16,10 +16,10 @@ export default async function AdminSetupPage() {
   if (complete) redirect('/admin')
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-100 px-4">
-      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <h1 className="text-center text-xl font-semibold text-zinc-900">Admin setup</h1>
-        <p className="mt-2 text-center text-sm text-zinc-600">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-muted px-4">
+      <div className="w-full max-w-md rounded-lg border border-border bg-white p-8 shadow-sm">
+        <h1 className="text-center text-xl font-semibold text-foreground">Admin setup</h1>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
           Complete the steps below to finish setting up your admin portal.
         </p>
         <AdminSetupClient />

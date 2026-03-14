@@ -2,14 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
-
-const PROPERTY_TYPES = [
-  { value: '', label: 'All types' },
-  { value: 'Residential', label: 'Residential' },
-  { value: 'Commercial', label: 'Commercial' },
-  { value: 'Land', label: 'Land' },
-  { value: 'Rental', label: 'Rental' },
-]
+import { PROPERTY_TYPES } from '@/lib/property-type'
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest first' },
@@ -88,10 +81,10 @@ export default function ListingFilters({
   return (
     <form
       onSubmit={applyFilters}
-      className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
+      className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-white p-4 shadow-sm"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Min price</span>
+        <span className="text-xs font-medium text-muted-foreground">Min price</span>
         <input
           type="number"
           name="minPrice"
@@ -99,11 +92,11 @@ export default function ListingFilters({
           min={0}
           step={25000}
           defaultValue={initMinPrice}
-          className="w-28 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Max price</span>
+        <span className="text-xs font-medium text-muted-foreground">Max price</span>
         <input
           type="number"
           name="maxPrice"
@@ -111,15 +104,15 @@ export default function ListingFilters({
           min={0}
           step={25000}
           defaultValue={initMaxPrice}
-          className="w-28 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Beds (min)</span>
+        <span className="text-xs font-medium text-muted-foreground">Beds (min)</span>
         <select
           name="beds"
           defaultValue={initBeds ?? ''}
-          className="w-20 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="w-20 rounded-lg border border-border px-3 py-2 text-sm"
         >
           <option value="">Any</option>
           {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -128,11 +121,11 @@ export default function ListingFilters({
         </select>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Baths (min)</span>
+        <span className="text-xs font-medium text-muted-foreground">Baths (min)</span>
         <select
           name="baths"
           defaultValue={initBaths ?? ''}
-          className="w-20 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="w-20 rounded-lg border border-border px-3 py-2 text-sm"
         >
           <option value="">Any</option>
           {[1, 2, 3, 4, 5].map((n) => (
@@ -141,7 +134,7 @@ export default function ListingFilters({
         </select>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Min sq ft</span>
+        <span className="text-xs font-medium text-muted-foreground">Min sq ft</span>
         <input
           type="number"
           name="minSqFt"
@@ -149,15 +142,15 @@ export default function ListingFilters({
           min={0}
           step={100}
           defaultValue={initMinSqFt}
-          className="w-24 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="w-24 rounded-lg border border-border px-3 py-2 text-sm"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Property type</span>
+        <span className="text-xs font-medium text-muted-foreground">Property type</span>
         <select
           name="propertyType"
           defaultValue={initPropertyType ?? 'Residential'}
-          className="min-w-[120px] rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="min-w-[120px] rounded-lg border border-border px-3 py-2 text-sm"
         >
           {PROPERTY_TYPES.map(({ value, label }) => (
             <option key={value || 'all'} value={value}>{label}</option>
@@ -165,11 +158,11 @@ export default function ListingFilters({
         </select>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-zinc-500">Sort by</span>
+        <span className="text-xs font-medium text-muted-foreground">Sort by</span>
         <select
           name="sort"
           defaultValue={initSort ?? 'newest'}
-          className="min-w-[140px] rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          className="min-w-[140px] rounded-lg border border-border px-3 py-2 text-sm"
         >
           {SORT_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
@@ -181,14 +174,14 @@ export default function ListingFilters({
           type="checkbox"
           name="includeClosed"
           defaultChecked={initIncludeClosed === '1'}
-          className="h-4 w-4 rounded border-zinc-300"
+          className="h-4 w-4 rounded border-border"
         />
-        <span className="text-sm text-zinc-600">Include closed listings</span>
+        <span className="text-sm text-muted-foreground">Include closed listings</span>
       </label>
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-70"
+        className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-white hover:bg-muted-foreground disabled:opacity-70"
       >
         {isPending ? 'Applying…' : 'Apply'}
       </button>

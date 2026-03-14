@@ -28,8 +28,8 @@ const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const CLOSED_OR = 'StandardStatus.ilike.%Closed%'
 
-/** Featured: top 6 by engagement view_count, then by ModificationTimestamp. Active only. */
-export async function getFeaturedListings(): Promise<HomeTileRow[]> {
+/** Featured: top 6 by engagement view_count (optional city filter), then by ModificationTimestamp. Active only. */
+export async function getFeaturedListings(city?: string): Promise<HomeTileRow[]> {
   try {
     const sb = supabase()
     const { data: em } = await sb
@@ -38,57 +38,86 @@ export async function getFeaturedListings(): Promise<HomeTileRow[]> {
       .order('view_count', { ascending: false })
       .limit(20)
     const keys = (em ?? []).map((r: { listing_key?: string }) => (r?.listing_key ?? '').trim()).filter(Boolean)
+    let rows: HomeTileRow[]
     if (keys.length === 0) {
-      const { data: fallback } = await sb
-        .from('listings')
-        .select('ListingKey')
-        .or(ACTIVE_OR)
-        .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
-        .limit(6)
+      let query = sb.from('listings').select('ListingKey').or(ACTIVE_OR).order('ModificationTimestamp', { ascending: false, nullsFirst: false }).limit(12)
+      if (city?.trim()) query = query.ilike('City', city.trim())
+      const { data: fallback } = await query
       const fallbackKeys = (fallback ?? []).map((r: { ListingKey?: string }) => (r?.ListingKey ?? '').trim()).filter(Boolean)
-      const rows = await getHomeTileRowsByKeys(fallbackKeys)
-      return rows.filter((r) => /active|for sale|coming soon/i.test(String(r.StandardStatus ?? ''))).slice(0, 6)
+      rows = await getHomeTileRowsByKeys(fallbackKeys)
+    } else {
+      rows = await getHomeTileRowsByKeys(keys)
     }
-    const rows = await getHomeTileRowsByKeys(keys)
-    return rows.filter((r) => /active|for sale|coming soon/i.test(String(r.StandardStatus ?? ''))).slice(0, 6)
+    const active = rows.filter((r) => /active|for sale|coming soon/i.test(String(r.StandardStatus ?? '')))
+    const filtered = city?.trim() ? active.filter((r) => (r.City ?? '').toString().trim().toLowerCase() === city.trim().toLowerCase()) : active
+    if (filtered.length >= 6) return filtered.slice(0, 6)
+    const fill = await getListingsForHomeTiles({ city: city?.trim() ?? 'Bend', limit: 6 - filtered.length })
+    const haveKeys = new Set(filtered.map((r) => (r.ListingKey ?? r.ListNumber ?? '').toString().trim()).filter(Boolean))
+    const extra = fill.filter((r) => !haveKeys.has((r.ListingKey ?? r.ListNumber ?? '').toString().trim()))
+    return [...filtered, ...extra].slice(0, 6)
   } catch {
     return []
   }
 }
 
-/** Just listed: 8 newest Active by ModificationTimestamp. */
-export async function getJustListed(): Promise<HomeTileRow[]> {
-  try {
-    const rows = await getListingsForHomeTiles({ city: 'Bend', limit: 8 })
-    return rows.slice(0, 8)
-  } catch {
-    return []
-  }
-}
-
-/** Recently sold: 4 newest Closed with close price/date. */
-export async function getRecentlySold(): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
+/** Just listed: 8 newest Active by OnMarketDate (or ModificationTimestamp fallback) for the given city. */
+export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[]> {
+  const cityName = city.trim() || 'Bend'
   try {
     const sb = supabase()
-    const { data } = await sb
+    const query = sb
+      .from('listings')
+      .select(HOME_TILE_SELECT)
+      .or(ACTIVE_OR)
+      .ilike('City', cityName)
+      .order('OnMarketDate', { ascending: false, nullsFirst: false })
+      .limit(32)
+    const { data } = await query
+    const rows = (data ?? []) as HomeTileRow[]
+    const active = rows.filter((r) => /active|for sale|coming soon|pending/i.test(String(r.StandardStatus ?? '')))
+    // If OnMarketDate is missing or unreliable, fall back to existing helper.
+    if (active.length === 0) {
+      const fallback = await getListingsForHomeTiles({ city: cityName, limit: 8 })
+      return fallback.slice(0, 8)
+    }
+    return active.slice(0, 8)
+  } catch {
+    try {
+      const fallback = await getListingsForHomeTiles({ city: cityName, limit: 8 })
+      return fallback.slice(0, 8)
+    } catch {
+      return []
+    }
+  }
+}
+
+/** Recently sold: 4 newest Closed with close price/date, optional city filter. */
+export async function getRecentlySold(city?: string): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
+  try {
+    const sb = supabase()
+    let query = sb
       .from('listings')
       .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
       .or(CLOSED_OR)
       .not('CloseDate', 'is', null)
       .order('CloseDate', { ascending: false, nullsFirst: false })
       .limit(8)
+    if (city?.trim()) query = query.ilike('City', city.trim())
+    const { data } = await query
     const rows = (data ?? []) as (HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]
     return rows.slice(0, 4)
   } catch {
     try {
       const sb = supabase()
-      const { data } = await sb
+      let query = sb
         .from('listings')
         .select(`${HOME_TILE_SELECT}, close_price, close_date`)
         .or(CLOSED_OR)
         .not('close_date', 'is', null)
         .order('close_date', { ascending: false, nullsFirst: false })
         .limit(8)
+      if (city?.trim()) query = query.ilike('City', city.trim())
+      const { data } = await query
       const rows = (data ?? []) as (HomeTileRow & { close_price?: number | null; close_date?: string | null })[]
       return rows.slice(0, 4).map((r) => ({
         ...r,
@@ -101,16 +130,18 @@ export async function getRecentlySold(): Promise<(HomeTileRow & { ClosePrice?: n
   }
 }
 
-/** Price drops: 6 listings where original price > current price (from listings table). */
-export async function getPriceDrops(): Promise<(HomeTileRow & { originalPrice?: number; savings?: number })[]> {
+/** Price drops: 6 listings where original price > current price (from listings table), optional city filter. */
+export async function getPriceDrops(city?: string): Promise<(HomeTileRow & { originalPrice?: number; savings?: number })[]> {
   try {
     const sb = supabase()
-    const { data } = await sb
+    let query = sb
       .from('listings')
       .select(`${HOME_TILE_SELECT}, OriginalListPrice`)
       .or(ACTIVE_OR)
       .not('ListPrice', 'is', null)
       .limit(300)
+    if (city?.trim()) query = query.ilike('City', city.trim())
+    const { data } = await query
     const rows = (data ?? []) as (HomeTileRow & { OriginalListPrice?: number | null })[]
     const withDrop = rows.filter(
       (r) => r.OriginalListPrice != null && r.ListPrice != null && r.OriginalListPrice > r.ListPrice
@@ -123,12 +154,14 @@ export async function getPriceDrops(): Promise<(HomeTileRow & { originalPrice?: 
   } catch {
     try {
       const sb = supabase()
-      const { data } = await sb
+      let query = sb
         .from('listings')
         .select(`${HOME_TILE_SELECT}, original_list_price`)
         .or(ACTIVE_OR)
         .not('list_price', 'is', null)
         .limit(300)
+      if (city?.trim()) query = query.ilike('City', city.trim())
+      const { data } = await query
       const rows = (data ?? []) as (HomeTileRow & { original_list_price?: number | null })[]
       const withDrop = rows.filter(
         (r) =>
@@ -162,15 +195,27 @@ export async function getMarketSnapshot(): Promise<CityMarketStats & { avgDom?: 
   return { ...stats, avgDom: null }
 }
 
-/** Trending: 4 listings by trending (listing_views) for Bend. */
-export async function getTrendingListings(): Promise<HomeTileRow[]> {
-  const keys = await getTrendingListingKeys('Bend', 4)
-  if (keys.length === 0) {
-    const fallback = await getListingsForHomeTiles({ city: 'Bend', limit: 4 })
-    return fallback
-  }
-  const rows = await getHomeTileRowsByKeys(keys)
-  return rows.filter((r) => /active|pending|for sale|coming soon/i.test(String(r.StandardStatus ?? ''))).slice(0, 4)
+const TRENDING_MIN_COUNT = 5
+
+/** Trending: listings by view count (listing_views) for the given city; if fewer than 5, fill with newest listings. */
+export async function getTrendingListings(city: string = 'Bend'): Promise<HomeTileRow[]> {
+  const cityName = city.trim() || 'Bend'
+  const keys = await getTrendingListingKeys(cityName, 12)
+  const rows = keys.length > 0
+    ? (await getHomeTileRowsByKeys(keys)).filter((r) =>
+        /active|pending|for sale|coming soon/i.test(String(r.StandardStatus ?? ''))
+      )
+    : []
+  if (rows.length >= TRENDING_MIN_COUNT) return rows.slice(0, TRENDING_MIN_COUNT)
+  const haveKeys = new Set(rows.map((r) => (r.ListNumber ?? r.ListingKey ?? '').toString().trim()).filter(Boolean))
+  const fillCount = TRENDING_MIN_COUNT - rows.length
+  const newest = await getListingsForHomeTiles({ city: cityName, limit: fillCount + 8 })
+  const extra = newest.filter((r) => {
+    const k = (r.ListNumber ?? r.ListingKey ?? '').toString().trim()
+    return k && !haveKeys.has(k)
+  })
+  const combined = [...rows, ...extra.slice(0, fillCount)]
+  return combined.slice(0, TRENDING_MIN_COUNT)
 }
 
 /** Blog posts for homepage teaser. Returns empty until blog CMS exists. */
@@ -191,7 +236,7 @@ export async function getBlogPostsForHome(): Promise<Array<{
 export async function subscribeNewsletter(email: string): Promise<{ ok: boolean; error?: string }> {
   const e = email?.trim().toLowerCase()
   if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return { ok: false, error: 'Invalid email' }
-  const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryanrealty.com').replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryan-realty.com').replace(/^https?:\/\//, '').replace(/\/$/, '')
   const result = await sendEvent({
     type: 'Registration',
     person: { emails: [{ value: e }] },

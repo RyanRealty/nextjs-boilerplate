@@ -1,6 +1,6 @@
 # Build Step 17: Open Houses, Home Comparison & Video Feed
 
-Read docs/MASTER_PLAN.md, specifically Section 38 (Open Houses), Section 37 (Home Comparison Tool), Section 25 (Video & Media Strategy).
+Scope: Open houses, home comparison tool, video & media strategy.
 
 ## PART A: OPEN HOUSES
 

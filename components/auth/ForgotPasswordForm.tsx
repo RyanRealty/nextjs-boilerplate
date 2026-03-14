@@ -28,7 +28,7 @@ export default function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <p className="mt-6 text-center text-sm text-zinc-600">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Check your email for a reset link. If you don&apos;t see it, check spam.
       </p>
     )
@@ -37,7 +37,7 @@ export default function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
       <div>
-        <label htmlFor="forgot-email" className="block text-sm font-medium text-zinc-700">
+        <label htmlFor="forgot-email" className="block text-sm font-medium text-muted-foreground">
           Email
         </label>
         <input
@@ -46,14 +46,14 @@ export default function ForgotPasswordForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+          className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-[var(--brand-navy)] py-2.5 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+        className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
       >
         {loading ? 'Sending…' : 'Send reset link'}
       </button>

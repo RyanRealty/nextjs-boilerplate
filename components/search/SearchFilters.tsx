@@ -4,7 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { trackEvent } from '@/lib/tracking'
 import { getSearchSuggestions } from '@/app/actions/listings'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 const PRICE_PRESETS = [
   { label: 'Any', min: undefined, max: undefined },
@@ -96,7 +96,7 @@ export default function SearchFilters({ initialFilters }: Props) {
         else params.set(k, v)
       })
       params.delete('page')
-      router.push(`${pathname ?? '/search'}?${params.toString()}`, { scroll: false })
+      router.push(`${pathname ?? '/homes-for-sale'}?${params.toString()}`, { scroll: false })
     },
     [router, pathname, searchParams]
   )
@@ -110,7 +110,7 @@ export default function SearchFilters({ initialFilters }: Props) {
   )
 
   const clearAll = useCallback(() => {
-    router.push('/search', { scroll: false })
+    router.push('/homes-for-sale', { scroll: false })
     setLocationQuery('')
     setMoreOpen(false)
   }, [router])
@@ -171,15 +171,15 @@ export default function SearchFilters({ initialFilters }: Props) {
             onChange={(e) => setLocationQuery(e.target.value)}
             onFocus={() => setLocationOpen(true)}
             onBlur={() => setTimeout(() => setLocationOpen(false), 200)}
-            className="w-full rounded-lg border border-[var(--gray-border)] px-3 py-2 text-[var(--brand-navy)] placeholder:text-[var(--gray-muted)] focus:border-[var(--accent)] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-primary placeholder:text-[var(--muted-foreground)] focus:border-accent focus:outline-none"
           />
           {locationOpen && (suggestions.cities.length > 0 || suggestions.subdivisions.length > 0) && (
-            <div className="absolute top-full left-0 right-0 z-30 mt-1 rounded-lg border border-[var(--gray-border)] bg-white shadow-lg max-h-64 overflow-auto">
+            <div className="absolute top-full left-0 right-0 z-30 mt-1 rounded-lg border border-[var(--border)] bg-white shadow-md max-h-64 overflow-auto">
               {suggestions.cities.slice(0, 5).map((c) => (
                 <button
                   key={c.city}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-[var(--brand-navy)] hover:bg-[var(--gray-bg)]"
+                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-[var(--muted)]"
                   onMouseDown={() => handleLocationSelect('city', c.city)}
                 >
                   {c.city} {c.count > 0 && `(${c.count})`}
@@ -189,7 +189,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                 <button
                   key={`${s.city}-${s.subdivisionName}`}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-[var(--brand-navy)] hover:bg-[var(--gray-bg)]"
+                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-[var(--muted)]"
                   onMouseDown={() => handleLocationSelect('subdivision', s.city, s.subdivisionName)}
                 >
                   {s.subdivisionName}, {s.city}
@@ -214,7 +214,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                   setFilter('maxPrice', preset.max)
                   handleSearchTrack()
                 }}
-                className={`rounded-full px-3 py-1 text-sm ${active ? 'bg-[var(--accent)] text-[var(--brand-navy)]' : 'bg-[var(--gray-bg)] text-[var(--gray-secondary)] hover:bg-[var(--gray-border)]'}`}
+                className={`rounded-full px-3 py-1 text-sm ${active ? 'bg-accent text-primary' : 'bg-[var(--muted)] text-[var(--muted-foreground)] hover:bg-[var(--border)]'}`}
               >
                 {preset.label}
               </button>
@@ -224,7 +224,7 @@ export default function SearchFilters({ initialFilters }: Props) {
 
         {/* Beds */}
         <div className="flex items-center gap-1">
-          <span className="text-sm text-[var(--gray-secondary)]">Beds:</span>
+          <span className="text-sm text-[var(--muted-foreground)]">Beds:</span>
           {BEDS_OPTIONS.map((n) => {
             const val = n == null ? '' : String(n)
             const active = (initialFilters.beds ?? '') === val
@@ -233,7 +233,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                 key={val || 'any'}
                 type="button"
                 onClick={() => { setFilter('beds', val); handleSearchTrack() }}
-                className={`rounded px-2 py-1 text-sm ${active ? 'bg-[var(--brand-navy)] text-white' : 'bg-[var(--gray-bg)] text-[var(--gray-secondary)]'}`}
+                className={`rounded px-2 py-1 text-sm ${active ? 'bg-primary text-white' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
               >
                 {n == null ? 'Any' : `${n}+`}
               </button>
@@ -243,7 +243,7 @@ export default function SearchFilters({ initialFilters }: Props) {
 
         {/* Baths */}
         <div className="flex items-center gap-1">
-          <span className="text-sm text-[var(--gray-secondary)]">Baths:</span>
+          <span className="text-sm text-[var(--muted-foreground)]">Baths:</span>
           {BATHS_OPTIONS.map((n) => {
             const val = n == null ? '' : String(n)
             const active = (initialFilters.baths ?? '') === val
@@ -252,7 +252,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                 key={val || 'any'}
                 type="button"
                 onClick={() => { setFilter('baths', val); handleSearchTrack() }}
-                className={`rounded px-2 py-1 text-sm ${active ? 'bg-[var(--brand-navy)] text-white' : 'bg-[var(--gray-bg)] text-[var(--gray-secondary)]'}`}
+                className={`rounded px-2 py-1 text-sm ${active ? 'bg-primary text-white' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
               >
                 {n == null ? 'Any' : `${n}+`}
               </button>
@@ -269,7 +269,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                 key={s}
                 type="button"
                 onClick={() => { setFilter('status', s); handleSearchTrack() }}
-                className={`rounded px-3 py-1 text-sm ${active ? 'bg-[var(--brand-navy)] text-white' : 'bg-[var(--gray-bg)] text-[var(--gray-secondary)]'}`}
+                className={`rounded px-3 py-1 text-sm ${active ? 'bg-primary text-white' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
               >
                 {s}
               </button>
@@ -278,13 +278,13 @@ export default function SearchFilters({ initialFilters }: Props) {
         </div>
 
         {/* View mode */}
-        <div className="flex rounded-lg border border-[var(--gray-border)] overflow-hidden">
+        <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
           {(['split', 'list', 'map'] as const).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => { setFilter('view', v); setView(v); }}
-              className={`px-3 py-1.5 text-sm capitalize ${view === v ? 'bg-[var(--accent)] text-[var(--brand-navy)]' : 'bg-white text-[var(--gray-secondary)]'}`}
+              className={`px-3 py-1.5 text-sm capitalize ${view === v ? 'bg-accent text-primary' : 'bg-white text-[var(--muted-foreground)]'}`}
             >
               {v}
             </button>
@@ -303,50 +303,50 @@ export default function SearchFilters({ initialFilters }: Props) {
           {moreOpen && (
             <>
               <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMoreOpen(false)} />
-              <div className="absolute right-0 top-full z-20 mt-1 w-80 rounded-xl border border-[var(--gray-border)] bg-white p-4 shadow-xl">
+              <div className="absolute right-0 top-full z-20 mt-1 w-80 rounded-lg border border-[var(--border)] bg-white p-4 shadow-lg">
                 <div className="space-y-3 text-sm">
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Min Sq Ft</span>
+                    <span className="text-primary">Min Sq Ft</span>
                     <input
                       type="number"
-                      className="w-24 rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="w-24 rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.minSqFt ?? ''}
                       onChange={(e) => setFilter('minSqFt', e.target.value || undefined)}
                     />
                   </label>
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Max Sq Ft</span>
+                    <span className="text-primary">Max Sq Ft</span>
                     <input
                       type="number"
-                      className="w-24 rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="w-24 rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.maxSqFt ?? ''}
                       onChange={(e) => setFilter('maxSqFt', e.target.value || undefined)}
                     />
                   </label>
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Lot (acres) min</span>
+                    <span className="text-primary">Lot (acres) min</span>
                     <input
                       type="number"
                       step={0.1}
-                      className="w-24 rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="w-24 rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.lotAcresMin ?? ''}
                       onChange={(e) => setFilter('lotAcresMin', e.target.value || undefined)}
                     />
                   </label>
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Year built</span>
+                    <span className="text-primary">Year built</span>
                     <div className="flex gap-1">
                       <input
                         type="number"
                         placeholder="Min"
-                        className="w-16 rounded border border-[var(--gray-border)] px-2 py-1"
+                        className="w-16 rounded border border-[var(--border)] px-2 py-1"
                         value={initialFilters.yearBuiltMin ?? ''}
                         onChange={(e) => setFilter('yearBuiltMin', e.target.value || undefined)}
                       />
                       <input
                         type="number"
                         placeholder="Max"
-                        className="w-16 rounded border border-[var(--gray-border)] px-2 py-1"
+                        className="w-16 rounded border border-[var(--border)] px-2 py-1"
                         value={initialFilters.yearBuiltMax ?? ''}
                         onChange={(e) => setFilter('yearBuiltMax', e.target.value || undefined)}
                       />
@@ -358,7 +358,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                       checked={initialFilters.hasPool === '1'}
                       onChange={(e) => setFilter('hasPool', e.target.checked ? '1' : undefined)}
                     />
-                    <span className="text-[var(--brand-navy)]">Pool</span>
+                    <span className="text-primary">Pool</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -366,7 +366,7 @@ export default function SearchFilters({ initialFilters }: Props) {
                       checked={initialFilters.hasView === '1'}
                       onChange={(e) => setFilter('hasView', e.target.checked ? '1' : undefined)}
                     />
-                    <span className="text-[var(--brand-navy)]">View</span>
+                    <span className="text-primary">View</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -374,12 +374,12 @@ export default function SearchFilters({ initialFilters }: Props) {
                       checked={initialFilters.hasWaterfront === '1'}
                       onChange={(e) => setFilter('hasWaterfront', e.target.checked ? '1' : undefined)}
                     />
-                    <span className="text-[var(--brand-navy)]">Waterfront</span>
+                    <span className="text-primary">Waterfront</span>
                   </label>
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Garage</span>
+                    <span className="text-primary">Garage</span>
                     <select
-                      className="rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.garageMin ?? ''}
                       onChange={(e) => setFilter('garageMin', e.target.value || undefined)}
                     >
@@ -390,9 +390,9 @@ export default function SearchFilters({ initialFilters }: Props) {
                     </select>
                   </label>
                   <label className="flex justify-between items-center">
-                    <span className="text-[var(--brand-navy)]">Days on market</span>
+                    <span className="text-primary">Days on market</span>
                     <select
-                      className="rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.daysOnMarket ?? ''}
                       onChange={(e) => setFilter('daysOnMarket', e.target.value || undefined)}
                     >
@@ -403,11 +403,11 @@ export default function SearchFilters({ initialFilters }: Props) {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="text-[var(--brand-navy)]">Keywords</span>
+                    <span className="text-primary">Keywords</span>
                     <input
                       type="text"
                       placeholder="Search in description"
-                      className="mt-1 w-full rounded border border-[var(--gray-border)] px-2 py-1"
+                      className="mt-1 w-full rounded border border-[var(--border)] px-2 py-1"
                       value={initialFilters.keywords ?? ''}
                       onChange={(e) => setFilter('keywords', e.target.value || undefined)}
                     />
@@ -426,27 +426,27 @@ export default function SearchFilters({ initialFilters }: Props) {
       {/* Min/Max price inputs when not using preset */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <label className="flex items-center gap-1">
-          <span className="text-[var(--gray-secondary)]">Min $</span>
+          <span className="text-[var(--muted-foreground)]">Min $</span>
           <input
             type="number"
-            className="w-24 rounded border border-[var(--gray-border)] px-2 py-1"
+            className="w-24 rounded border border-[var(--border)] px-2 py-1"
             value={initialFilters.minPrice ?? ''}
             onChange={(e) => setFilter('minPrice', e.target.value || undefined)}
           />
         </label>
         <label className="flex items-center gap-1">
-          <span className="text-[var(--gray-secondary)]">Max $</span>
+          <span className="text-[var(--muted-foreground)]">Max $</span>
           <input
             type="number"
-            className="w-24 rounded border border-[var(--gray-border)] px-2 py-1"
+            className="w-24 rounded border border-[var(--border)] px-2 py-1"
             value={initialFilters.maxPrice ?? ''}
             onChange={(e) => setFilter('maxPrice', e.target.value || undefined)}
           />
         </label>
         <label className="flex items-center gap-1">
-          <span className="text-[var(--gray-secondary)]">Sort</span>
+          <span className="text-[var(--muted-foreground)]">Sort</span>
           <select
-            className="rounded border border-[var(--gray-border)] px-2 py-1 text-[var(--brand-navy)]"
+            className="rounded border border-[var(--border)] px-2 py-1 text-primary"
             value={initialFilters.sort ?? 'newest'}
             onChange={(e) => setFilter('sort', e.target.value)}
           >

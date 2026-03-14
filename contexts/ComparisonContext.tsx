@@ -1,11 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useCallback, useState, useEffect, useRef } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+
+const STORAGE_KEY = 'ryan-realty-compare'
+const MAX_ITEMS = 4
 
 type ComparisonContextValue = {
+  /** Listing keys currently selected for comparison (max 4). */
   comparisonItems: string[]
-  /** Returns true if added, false if already in list or at max (4). */
-  addToComparison: (listingKey: string) => boolean
+  addToComparison: (listingKey: string) => void
   removeFromComparison: (listingKey: string) => void
   clearComparison: () => void
   isInComparison: (listingKey: string) => boolean
@@ -13,78 +16,83 @@ type ComparisonContextValue = {
 
 const ComparisonContext = createContext<ComparisonContextValue | null>(null)
 
-const STORAGE_KEY = 'ryan-realty-compare'
-const MAX_ITEMS = 4
+export function ComparisonProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<string[]>([])
 
-export function ComparisonProvider({ children }: { children: React.ReactNode }) {
-  const itemsRef = useRef<string[]>([])
-  const [items, setItems] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return []
+  // Hydrate from localStorage on mount (SSR-safe)
+  useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return []
-      const parsed = JSON.parse(raw) as unknown
-      return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string').slice(0, MAX_ITEMS) : []
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          setItems(parsed.filter((v): v is string => typeof v === 'string').slice(0, MAX_ITEMS))
+        }
+      }
     } catch {
-      return []
+      // Ignore — localStorage may not be available
     }
-  })
+  }, [])
+
+  // Persist to localStorage on change (skip initial empty state before hydration)
+  const [hydrated, setHydrated] = useState(false)
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
 
   useEffect(() => {
-    itemsRef.current = items
-  }, [items])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (!hydrated) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
     } catch {
-      // ignore
+      // Ignore quota errors
     }
-  }, [items])
+  }, [items, hydrated])
 
-  const addToComparison = useCallback((listingKey: string): boolean => {
-    const key = String(listingKey).trim()
-    if (!key) return false
-    const current = itemsRef.current
-    if (current.includes(key)) return false
-    if (current.length >= MAX_ITEMS) return false
-    setItems((prev) => [...prev, key])
-    return true
+  const addToComparison = useCallback((key: string) => {
+    setItems((prev) => {
+      if (prev.includes(key) || prev.length >= MAX_ITEMS) return prev
+      return [...prev, key]
+    })
   }, [])
 
-  const removeFromComparison = useCallback((listingKey: string) => {
-    setItems((prev) => prev.filter((k) => k !== String(listingKey).trim()))
+  const removeFromComparison = useCallback((key: string) => {
+    setItems((prev) => prev.filter((k) => k !== key))
   }, [])
 
-  const clearComparison = useCallback(() => setItems([]), [])
+  const clearComparison = useCallback(() => {
+    setItems([])
+  }, [])
 
   const isInComparison = useCallback(
-    (listingKey: string) => items.includes(String(listingKey).trim()),
-    [items]
+    (key: string) => items.includes(key),
+    [items],
   )
 
-  const value: ComparisonContextValue = {
-    comparisonItems: items,
-    addToComparison,
-    removeFromComparison,
-    clearComparison,
-    isInComparison,
-  }
+  return (
+    <ComparisonContext value={{
+      comparisonItems: items,
+      addToComparison,
+      removeFromComparison,
+      clearComparison,
+      isInComparison,
+    }}>
+      {children}
+    </ComparisonContext>
+  )
+}
 
-  return <ComparisonContext.Provider value={value}>{children}</ComparisonContext.Provider>
+const FALLBACK: ComparisonContextValue = {
+  comparisonItems: [],
+  addToComparison: () => {},
+  removeFromComparison: () => {},
+  clearComparison: () => {},
+  isInComparison: () => false,
 }
 
 export function useComparison(): ComparisonContextValue {
   const ctx = useContext(ComparisonContext)
-  if (!ctx) {
-    return {
-      comparisonItems: [],
-      addToComparison: () => false,
-      removeFromComparison: () => {},
-      clearComparison: () => {},
-      isInComparison: () => false,
-    }
-  }
+  // During SSR the provider may not be mounted yet — return safe defaults instead of crashing.
+  if (!ctx) return FALLBACK
   return ctx
 }

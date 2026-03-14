@@ -75,19 +75,19 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-3xl font-bold text-[var(--brand-navy)]">Open Houses</h1>
-      <p className="mt-2 text-[var(--gray-secondary)]">
+      <h2 className="sr-only">Browse open houses</h2>
+      <p className="text-[var(--muted-foreground)]">
         This weekend and upcoming in Central Oregon. Add to calendar or RSVP from the listing page.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
-        <div className="flex rounded-lg border border-[var(--gray-border)] bg-white p-2">
+        <div className="flex rounded-lg border border-[var(--border)] bg-white p-2">
           {(['list', 'map', 'calendar'] as const).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setViewMode(mode)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize ${viewMode === mode ? 'bg-[var(--brand-navy)] text-white' : 'text-[var(--gray-secondary)] hover:bg-[var(--gray-bg)]'}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize ${viewMode === mode ? 'bg-primary text-white' : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'}`}
             >
               {mode}
             </button>
@@ -98,39 +98,39 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
             type="date"
             value={initialFilters?.dateFrom ?? ''}
             onChange={(e) => updateFilters({ dateFrom: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <input
             type="date"
             value={initialFilters?.dateTo ?? ''}
             onChange={(e) => updateFilters({ dateTo: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <input
             type="text"
             placeholder="City"
             value={initialFilters?.city ?? ''}
             onChange={(e) => updateFilters({ city: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <input
             type="number"
             placeholder="Min price"
             value={initialFilters?.minPrice ?? ''}
             onChange={(e) => updateFilters({ minPrice: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <input
             type="number"
             placeholder="Max price"
             value={initialFilters?.maxPrice ?? ''}
             onChange={(e) => updateFilters({ maxPrice: e.target.value || undefined })}
-            className="w-28 rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="w-28 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           />
           <select
             value={initialFilters?.beds ?? ''}
             onChange={(e) => updateFilters({ beds: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             <option value="">Beds</option>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -140,7 +140,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
           <select
             value={initialFilters?.baths ?? ''}
             onChange={(e) => updateFilters({ baths: e.target.value || undefined })}
-            className="rounded-lg border border-[var(--gray-border)] px-3 py-2 text-sm"
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
           >
             <option value="">Baths</option>
             {[1, 2, 3, 4].map((n) => (
@@ -151,7 +151,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
       </div>
 
       {initialOpenHouses.length === 0 && (
-        <p className="mt-8 text-[var(--gray-muted)]">No open houses match your filters. Try a different date range.</p>
+        <p className="mt-8 text-[var(--muted-foreground)]">No open houses match your filters. Try a different date range.</p>
       )}
 
       {viewMode === 'map' && initialOpenHouses.length > 0 && (
@@ -172,25 +172,25 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
           {initialOpenHouses.map((oh) => (
             <li key={oh.id}>
               <Link
-                href={`/listings/${encodeURIComponent(oh.listing_key)}`}
-                className="block overflow-hidden rounded-xl border border-[var(--gray-border)] bg-white shadow-sm transition hover:shadow-md"
+                href={`/listing/${encodeURIComponent(oh.listing_key)}`}
+                className="block overflow-hidden rounded-lg border border-[var(--border)] bg-white shadow-sm transition hover:shadow-md"
               >
-                <div className="relative aspect-[4/3] bg-[var(--gray-bg)]">
+                <div className="relative aspect-[4/3] bg-[var(--muted)]">
                   {oh.photo_url ? (
-                    <Image src={oh.photo_url} alt="" fill className="object-cover" sizes="(max-width:640px) 100vw, 320px" />
+                    <Image src={oh.photo_url} alt={`${address(oh)} — open house`} fill className="object-cover" sizes="(max-width:640px) 100vw, 320px" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-[var(--gray-muted)]">No photo</div>
+                    <div className="flex h-full items-center justify-center text-[var(--muted-foreground)]">No photo</div>
                   )}
-                  <span className="absolute left-2 top-2 rounded-md bg-rose-600 px-2 py-1 text-xs font-semibold text-white">
-                    {formatDate(oh.event_date)} · {formatTime(oh.start_time)} – {formatTime(oh.end_time)}
+                  <span className="absolute left-2 top-2 rounded-md bg-[var(--destructive)] px-2 py-1 text-xs font-semibold text-white">
+                    <span aria-hidden>📅</span> {formatDate(oh.event_date)} · {formatTime(oh.start_time)} – {formatTime(oh.end_time)}
                   </span>
                 </div>
                 <div className="p-4">
-                  <p className="text-xl font-bold text-[var(--brand-navy)]">
+                  <p className="text-xl font-bold text-primary">
                     ${(oh.list_price ?? 0).toLocaleString()}
                   </p>
-                  <p className="mt-1 text-sm text-[var(--gray-secondary)]">{address(oh)}</p>
-                  <p className="mt-2 text-sm text-[var(--gray-muted)]">
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">{address(oh)}</p>
+                  <p className="mt-2 text-sm text-[var(--muted-foreground)]">
                     {oh.beds_total ?? '—'} bed · {oh.baths_full ?? '—'} bath
                     {oh.living_area != null && ` · ${Number(oh.living_area).toLocaleString()} sq ft`}
                   </p>
@@ -203,17 +203,17 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
 
       {viewMode === 'calendar' && initialOpenHouses.length > 0 && (
         <div className="mt-8 overflow-x-auto">
-          <div className="min-w-[600px] rounded-xl border border-[var(--gray-border)] bg-white p-4">
-            <p className="mb-4 font-semibold text-[var(--brand-navy)]">Upcoming by date</p>
+          <div className="min-w-[600px] rounded-lg border border-[var(--border)] bg-white p-4">
+            <p className="mb-4 font-semibold text-primary">Upcoming by date</p>
             <ul className="space-y-2">
               {initialOpenHouses.map((oh) => (
                 <li key={oh.id}>
                   <Link
-                    href={`/listings/${encodeURIComponent(oh.listing_key)}`}
-                    className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--gray-border)] p-3 hover:bg-[var(--gray-bg)]"
+                    href={`/listing/${encodeURIComponent(oh.listing_key)}`}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--border)] p-3 hover:bg-[var(--muted)]"
                   >
-                    <span className="font-medium text-[var(--brand-navy)]">{formatDate(oh.event_date)}</span>
-                    <span className="text-[var(--gray-secondary)]">
+                    <span className="font-medium text-primary">{formatDate(oh.event_date)}</span>
+                    <span className="text-[var(--muted-foreground)]">
                       {formatTime(oh.start_time)} – {formatTime(oh.end_time)}
                     </span>
                     <span className="text-sm">{address(oh)}</span>

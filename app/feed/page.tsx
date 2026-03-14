@@ -6,7 +6,7 @@ import { getLikedListingKeys } from '../actions/likes'
 import FeedInfiniteList from '@/components/FeedInfiniteList'
 import Breadcrumb from '@/components/Breadcrumb'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const metadata: Metadata = {
   title: 'Feed',
@@ -40,8 +40,8 @@ export default async function FeedPage() {
           { label: 'Feed' },
         ]}
       />
-      <h1 className="mt-4 text-2xl font-semibold text-zinc-900">Latest listings</h1>
-      <p className="mt-1 text-sm text-zinc-600">Scroll for more. Newest first.</p>
+      <h1 className="mt-4 text-2xl font-semibold text-foreground">Latest listings</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Scroll for more. Newest first.</p>
       <div className="mt-6">
         <FeedInfiniteList
           initialListings={initialListings}

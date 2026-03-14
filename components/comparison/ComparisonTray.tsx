@@ -2,63 +2,84 @@
 
 import Link from 'next/link'
 import { useComparison } from '@/contexts/ComparisonContext'
-import { useState, useEffect } from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowLeftRightIcon } from '@hugeicons/core-free-icons'
 
-const MAX_DISPLAY = 4
-
+/** Fixed bottom tray that shows when the user has added listings to compare. */
 export default function ComparisonTray() {
   const { comparisonItems, removeFromComparison, clearComparison } = useComparison()
-  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  if (comparisonItems.length === 0) return null
 
-  if (!mounted || comparisonItems.length === 0) return null
-
-  const compareUrl = `/compare?ids=${comparisonItems.slice(0, MAX_DISPLAY).map(encodeURIComponent).join(',')}`
+  const compareUrl = `/compare?ids=${comparisonItems.join(',')}`
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-4 border-t border-[var(--gray-border)] bg-white px-4 py-3 shadow-lg safe-area-pb"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-[var(--border)] bg-primary text-white shadow-md safe-area-pb transition-transform duration-300"
       role="region"
-      aria-label="Comparison tray"
+      aria-label="Property comparison tray"
     >
-      <div className="flex flex-1 items-center gap-2 overflow-x-auto">
-        {comparisonItems.slice(0, MAX_DISPLAY).map((listingKey, i) => (
-          <div key={listingKey} className="relative flex-shrink-0">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-[var(--gray-border)] bg-[var(--gray-bg)] text-sm font-semibold text-[var(--brand-navy)]">
-              {i + 1}
-            </div>
-            <button
-              type="button"
-              onClick={() => removeFromComparison(listingKey)}
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--brand-navy)] text-white hover:bg-[var(--brand-primary-hover)]"
-              aria-label={`Remove from comparison`}
-            >
-              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        {/* Slots */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium whitespace-nowrap">
+            Compare ({comparisonItems.length}/4)
+          </span>
+          <div className="hidden sm:flex items-center gap-1.5">
+            {Array.from({ length: 4 }).map((_, i) => {
+              const hasItem = i < comparisonItems.length
+              return (
+                <span
+                  key={i}
+                  className={[
+                    'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors',
+                    hasItem
+                      ? 'border-accent bg-accent/20 text-accent-foreground'
+                      : 'border-white/20 bg-white/5 text-white/30',
+                  ].join(' ')}
+                >
+                  {hasItem ? (
+                    <button
+                      type="button"
+                      onClick={() => removeFromComparison(comparisonItems[i])}
+                      className="flex h-full w-full items-center justify-center"
+                      aria-label={`Remove listing ${i + 1} from comparison`}
+                    >
+                      {i + 1}
+                    </button>
+                  ) : (
+                    i + 1
+                  )}
+                </span>
+              )
+            })}
           </div>
-        ))}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={clearComparison}
+            className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10 transition-colors"
+          >
+            Clear
+          </button>
+          <Link
+            href={compareUrl}
+            className={[
+              'inline-flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
+              comparisonItems.length >= 2
+                ? 'bg-accent text-primary hover:bg-accent/90'
+                : 'bg-white/20 text-white/50 pointer-events-none',
+            ].join(' ')}
+            aria-disabled={comparisonItems.length < 2}
+          >
+            <HugeiconsIcon icon={ArrowLeftRightIcon} className="h-4 w-4" />
+            Compare Now
+          </Link>
+        </div>
       </div>
-      <span className="flex-shrink-0 text-sm font-medium text-[var(--gray-secondary)]">
-        {comparisonItems.length} home{comparisonItems.length !== 1 ? 's' : ''}
-      </span>
-      <Link
-        href={compareUrl}
-        className="flex-shrink-0 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
-      >
-        Compare Now
-      </Link>
-      <button
-        type="button"
-        onClick={clearComparison}
-        className="flex-shrink-0 text-sm text-[var(--gray-muted)] underline hover:text-[var(--gray-secondary)]"
-      >
-        Clear
-      </button>
     </div>
   )
 }

@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getListingDetailData, getSimilarListingsForDetailPage } from '@/app/actions/listing-detail'
+import { getBrokerageSettings } from '@/app/actions/brokerage'
+import { getCanonicalSiteUrl, listingShareSummary, listingShareText, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '@/lib/share-metadata'
 import { isListingSaved } from '@/app/actions/saved-listings'
+import { isListingLiked } from '@/app/actions/likes'
 import ListingDetailHero from '@/components/listing/ListingDetailHero'
 import ListingHeader from '@/components/listing/ListingHeader'
 import ListingActions from '@/components/listing/ListingActions'
@@ -16,6 +19,7 @@ import AgentCard from '@/components/listing/AgentCard'
 import ListingMap from '@/components/listing/ListingMap'
 import SimilarListings from '@/components/listing/SimilarListings'
 import ListingVideos from '@/components/listing/ListingVideos'
+import ListingSummary from '@/components/listing/ListingSummary'
 
 type PageProps = { params: Promise<{ listingKey: string }> }
 
@@ -43,25 +47,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baths = listing.baths_full ?? listing.baths_total_integer ?? 0
   const sqft = listing.living_area != null ? Math.round(Number(listing.living_area)) : null
   const title = `${beds}bd ${baths}ba ${sqft != null ? `${sqft}sqft` : ''} | ${address || 'Property'} | Ryan Realty`
-  const description = (listing.public_remarks ?? '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 160)
-  const canonical = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'}/listings/${encodeURIComponent(listingKey)}`
-  const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'}/api/og?type=listing&id=${encodeURIComponent(listingKey)}`
+  const description = listingShareSummary({
+    price: listing.list_price,
+    beds: listing.beds_total,
+    baths: listing.baths_full ?? listing.baths_total_integer,
+    sqft: listing.living_area,
+    address: address || undefined,
+    city: address ? undefined : (property?.city ?? undefined),
+  })
+  const base = getCanonicalSiteUrl()
+  const canonical = `${base}/listing/${encodeURIComponent(listingKey)}`
+  const ogImage = `${base}/api/og?type=listing&id=${encodeURIComponent(listingKey)}`
 
   return {
     title,
-    description: description || title,
+    description,
     alternates: { canonical },
     openGraph: {
       title,
-      description: description || title,
+      description,
       url: canonical,
       siteName: 'Ryan Realty',
-      images: [{ url: ogImage, width: 1200, height: 630, alt: address || title }],
+      type: 'website',
+      images: [{ url: ogImage, width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT, alt: address || title }],
     },
-    twitter: { card: 'summary_large_image', title, description: description || title },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
   }
 }
 
@@ -71,8 +86,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
   if (!data) notFound()
 
   const { listing, property, photos, agents, priceHistory, engagement, openHouses, community, videos, virtualTours } = data
-  const [saved, similarListings] = await Promise.all([
+  const [saved, liked, similarListings, brokerage] = await Promise.all([
     isListingSaved(listingKey),
+    isListingLiked(listingKey),
     getSimilarListingsForDetailPage(
       listing.listing_key,
       community?.name ?? listing.subdivision_name ?? null,
@@ -80,9 +96,21 @@ export default async function ListingDetailPage({ params }: PageProps) {
       listing.list_price ?? null,
       listing.beds_total ?? null
     ),
+    getBrokerageSettings(),
   ])
   const address = buildFullAddress(data)
   const listingAgent = agents[0] ?? null
+  const listOfficeName = listingAgent?.office_name?.trim() ?? ''
+  const brokerageName = brokerage?.name?.trim() ?? ''
+  const isOurBroker =
+    listOfficeName.length > 0 &&
+    brokerageName.length > 0 &&
+    listOfficeName.toLowerCase() === brokerageName.toLowerCase()
+
+  // Hero uses only a direct-play video (mp4/webm/etc.). Virtual tours are never used as hero — they open in a new tab.
+  const directVideoExt = /\.(mp4|webm|ogg|mov)(\?|$)/i
+  const heroVideoUrl =
+    videos.length > 0 && videos[0]?.Uri && directVideoExt.test(videos[0].Uri) ? videos[0].Uri : null
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -109,7 +137,6 @@ export default async function ListingDetailPage({ params }: PageProps) {
         '@type': 'RealEstateAgent',
         name: listingAgent.agent_name ?? undefined,
         email: listingAgent.agent_email ?? undefined,
-        telephone: listingAgent.agent_phone ?? undefined,
       },
     }),
   }
@@ -129,11 +156,12 @@ export default async function ListingDetailPage({ params }: PageProps) {
         beds={listing.beds_total ?? undefined}
         baths={listing.baths_full ?? listing.baths_total_integer ?? undefined}
       />
-      <div className="bg-[var(--brand-cream)] min-h-screen">
+      <div className="bg-muted min-h-screen">
         <ListingDetailHero
           photos={photos}
           virtualTourUrl={listing.virtual_tour_url ?? undefined}
           listingKey={listing.listing_key}
+          heroVideoUrl={heroVideoUrl}
         />
         <OpenHouseBanner openHouses={openHouses} listingKey={listing.listing_key} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -151,15 +179,34 @@ export default async function ListingDetailPage({ params }: PageProps) {
             address={address}
             price={listing.list_price ?? undefined}
             isSaved={saved}
+            isLiked={liked}
             mlsNumber={listing.listing_id ?? listing.listing_key}
             city={property?.city}
             beds={listing.beds_total ?? undefined}
             baths={listing.baths_full ?? listing.baths_total_integer ?? undefined}
+            shareUrl={`${getCanonicalSiteUrl()}/listing/${encodeURIComponent(listing.listing_key)}`}
+            shareTitle={[address, listing.list_price != null ? `$${Number(listing.list_price).toLocaleString()}` : ''].filter(Boolean).join(' | ')}
+            shareText={listingShareText({
+              price: listing.list_price,
+              beds: listing.beds_total,
+              baths: listing.baths_full ?? listing.baths_total_integer,
+              sqft: listing.living_area,
+              address: address || undefined,
+              city: property?.city ?? undefined,
+              publicRemarks: listing.public_remarks ?? undefined,
+            })}
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
+              <ListingSummary
+                lastSyncedAt={listing.updated_at ?? null}
+                daysOnMarket={listing.days_on_market ?? listing.cumulative_days_on_market ?? null}
+                viewCount={engagement?.view_count ?? 0}
+                saveCount={engagement?.save_count ?? 0}
+                likeCount={engagement?.like_count ?? 0}
+              />
               <ListingDescription
                 publicRemarks={listing.public_remarks ?? undefined}
                 directions={listing.directions ?? undefined}
@@ -179,6 +226,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 agent={listingAgent}
                 address={address}
                 listingKey={listing.listing_key}
+                showContactInfo={isOurBroker}
               />
               <ListingMap
                 latitude={property?.latitude ?? undefined}

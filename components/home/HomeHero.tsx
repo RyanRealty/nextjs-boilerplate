@@ -1,14 +1,13 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { getSearchSuggestions, type SearchSuggestionsResult } from '@/app/actions/listings'
 import { trackEvent } from '@/lib/tracking'
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1920&q=80'
+// No stock photography — fallback is empty; hero renders a navy gradient when no brokerage image is set.
+const DEFAULT_HERO_IMAGE = ''
 
 type MarketSnapshot = {
   count: number
@@ -18,9 +17,15 @@ type MarketSnapshot = {
 
 type Props = {
   marketSnapshot: MarketSnapshot
+  /** When set, hero background is a looping video (autoplay, muted). */
+  heroVideoUrl?: string | null
+  /** Background image when no video, or poster/fallback. */
+  heroImageUrl?: string | null
 }
 
-export default function HomeHero({ marketSnapshot }: Props) {
+export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }: Props) {
+  const backgroundImage = heroImageUrl?.trim() || DEFAULT_HERO_IMAGE
+  const useVideo = Boolean(heroVideoUrl?.trim())
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null)
@@ -72,11 +77,11 @@ export default function HomeHero({ marketSnapshot }: Props) {
     let i = index
     if (i < suggestions.addresses.length) return suggestions.addresses[i]?.href ?? null
     i -= suggestions.addresses.length
-    if (i < suggestions.cities.length) return `/search?city=${encodeURIComponent(suggestions.cities[i]!.city)}`
+    if (i < suggestions.cities.length) return `/homes-for-sale?city=${encodeURIComponent(suggestions.cities[i]!.city)}`
     i -= suggestions.cities.length
     if (i < suggestions.subdivisions.length) {
       const s = suggestions.subdivisions[i]!
-      return `/search?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`
+      return `/homes-for-sale?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`
     }
     return null
   }
@@ -91,7 +96,7 @@ export default function HomeHero({ marketSnapshot }: Props) {
     }
     if (query.trim()) {
       trackEvent('hero_search', { query: query.trim(), cta_location: 'hero_search' })
-      router.push(`/search?keywords=${encodeURIComponent(query.trim())}`)
+      router.push(`/homes-for-sale?keywords=${encodeURIComponent(query.trim())}`)
     }
     setOpen(false)
   }
@@ -112,27 +117,43 @@ export default function HomeHero({ marketSnapshot }: Props) {
   }
 
   return (
-    <section ref={sectionRef} className="relative min-h-[520px] sm:min-h-[600px] flex items-center justify-center overflow-hidden" aria-label="Hero">
+    <section ref={sectionRef} className="relative min-h-[60vh] flex items-center justify-center overflow-hidden w-full" aria-label="Hero">
       <div className="absolute inset-0">
-        <Image
-          src={HERO_IMAGE}
-          alt=""
-          fill
-          className="object-cover animate-hero-ken-burns"
-          sizes="100vw"
-          priority
-        />
+        {useVideo ? (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="h-full w-full object-cover bg-primary"
+            aria-hidden
+          >
+            <source src={heroVideoUrl!} type="video/mp4" />
+          </video>
+        ) : backgroundImage ? (
+          <Image
+            src={backgroundImage}
+            alt="Central Oregon landscape"
+            fill
+            className="object-cover animate-hero-ken-burns"
+            sizes="100vw"
+            priority
+          />
+        ) : (
+          <div className="absolute inset-0 bg-primary" aria-hidden />
+        )}
       </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand-navy)]/80 via-[var(--brand-navy)]/50 to-[var(--brand-navy)]/40" aria-hidden />
-      <div className="relative z-10 w-full max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-t from-primary/50 via-primary/25 to-transparent" aria-hidden />
+      <div className="relative z-10 w-full max-w-3xl px-4 pt-24 pb-16 sm:pt-28 sm:pb-20 text-center">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-md">
           Find Your Home in Central Oregon
         </h1>
-        <p className="mt-4 text-lg sm:text-xl text-[var(--brand-cream)] font-light">
-          The most comprehensive real estate platform for Bend, Redmond, Sisters, and Sunriver
+        <p className="mt-4 text-lg sm:text-xl text-muted font-light">
+          Search homes for sale across Central Oregon
         </p>
         <form onSubmit={handleSubmit} className="relative mt-8" ref={panelRef}>
-          <div className="flex rounded-xl border-2 border-white/30 bg-white shadow-xl overflow-hidden">
+          <div className="flex rounded-lg overflow-hidden shadow-lg bg-white">
             <input
               ref={inputRef}
               type="search"
@@ -143,24 +164,24 @@ export default function HomeHero({ marketSnapshot }: Props) {
               onFocus={() => query.trim().length >= 2 && setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 200)}
               onKeyDown={handleKeyDown}
-              className="flex-1 min-w-0 px-4 py-4 text-[var(--brand-navy)] placeholder:text-[var(--gray-muted)] focus:outline-none"
+              className="flex-1 min-w-0 px-4 py-4 text-primary placeholder:text-[var(--muted-foreground)] focus:outline-none border-0"
             />
             <button
               type="submit"
-              className="px-6 py-4 bg-[var(--accent)] text-[var(--brand-navy)] font-semibold hover:bg-[var(--accent-hover)] transition-colors"
+              className="px-6 py-4 bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
             >
               Search
             </button>
           </div>
           {open && suggestions && totalItems > 0 && (
-            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-[var(--gray-border)] bg-white shadow-xl max-h-64 overflow-auto z-20">
+            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-white shadow-lg max-h-64 overflow-auto z-20">
               {suggestions.addresses.slice(0, 5).map((a, i) => (
                 <button
                   key={a.href + i}
                   type="button"
                   role="option"
                   aria-selected={highlight === i}
-                  className={`block w-full text-left px-4 py-3 text-[var(--brand-navy)] hover:bg-[var(--gray-bg)] ${highlight === i ? 'bg-[var(--gray-bg)]' : ''}`}
+                  className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === i ? 'bg-[var(--muted)]' : ''}`}
                   onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(a.href); setOpen(false); }}
                 >
                   {a.label}
@@ -174,8 +195,8 @@ export default function HomeHero({ marketSnapshot }: Props) {
                     type="button"
                     role="option"
                     aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-[var(--brand-navy)] hover:bg-[var(--gray-bg)] ${highlight === idx ? 'bg-[var(--gray-bg)]' : ''}`}
-                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/search?city=${encodeURIComponent(c.city)}`); setOpen(false); }}
+                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === idx ? 'bg-[var(--muted)]' : ''}`}
+                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(c.city)}`); setOpen(false); }}
                   >
                     {c.city} {c.count > 0 ? `(${c.count})` : ''}
                   </button>
@@ -189,8 +210,8 @@ export default function HomeHero({ marketSnapshot }: Props) {
                     type="button"
                     role="option"
                     aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-[var(--brand-navy)] hover:bg-[var(--gray-bg)] ${highlight === idx ? 'bg-[var(--gray-bg)]' : ''}`}
-                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/search?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`); setOpen(false); }}
+                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-[var(--muted)] ${highlight === idx ? 'bg-[var(--muted)]' : ''}`}
+                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`); setOpen(false); }}
                   >
                     {s.subdivisionName}, {s.city}
                   </button>
@@ -199,34 +220,6 @@ export default function HomeHero({ marketSnapshot }: Props) {
             </div>
           )}
         </form>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          {['Bend', 'Redmond', 'Sisters', 'Sunriver'].map((city) => (
-            <Link
-              key={city}
-              href={`/search?city=${encodeURIComponent(city)}`}
-              className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors"
-            >
-              {city}
-            </Link>
-          ))}
-          <Link href="/search?maxPrice=500000" className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors">
-            Under $500K
-          </Link>
-          <Link href="/search?minPrice=1000000" className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors">
-            Luxury
-          </Link>
-          <Link href="/search?keywords=new+construction" className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors">
-            New Construction
-          </Link>
-          <Link href="/search?hasWaterfront=1" className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-colors">
-            Waterfront
-          </Link>
-        </div>
-        <div className="mt-8 rounded-lg bg-black/30 px-4 py-3 text-[var(--brand-cream)] text-sm">
-          {marketSnapshot.count.toLocaleString()} Active Listings
-          {marketSnapshot.medianPrice != null && ` | Median Price $${marketSnapshot.medianPrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
-          {marketSnapshot.avgDom != null && marketSnapshot.avgDom > 0 && ` | Avg ${Math.round(marketSnapshot.avgDom)} Days on Market`}
-        </div>
       </div>
     </section>
   )

@@ -31,31 +31,31 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[var(--gray-bg)]">
+    <div className="min-h-screen bg-[var(--muted)]">
       {/* Top bar - mobile: hamburger + title; desktop: welcome + avatar + bell */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-white px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setSidebarOpen((o) => !o)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted lg:hidden"
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
           >
             {sidebarOpen ? '×' : '☰'}
           </button>
-          <h1 className="text-lg font-semibold text-zinc-900 lg:text-xl">
+          <h1 className="text-lg font-semibold text-foreground lg:text-xl">
             Welcome back, {user.firstName}
           </h1>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard/notifications"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted"
             aria-label="Notifications"
           >
             <span aria-hidden>🔔</span>
           </Link>
-          <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100">
+          <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
             {user.avatarUrl ? (
               <Image
                 src={user.avatarUrl}
@@ -65,7 +65,7 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
                 className="object-cover"
               />
             ) : (
-              <span className="text-sm font-medium text-zinc-600">
+              <span className="text-sm font-medium text-muted-foreground">
                 {user.firstName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -76,7 +76,7 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
       <div className="flex">
         {/* Sidebar - collapsible on mobile */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-64 border-r border-zinc-200 bg-white pt-16 transition-transform lg:static lg:z-0 lg:pt-0 ${
+          className={`fixed inset-y-0 left-0 z-30 w-64 border-r border-border bg-white pt-16 transition-transform lg:static lg:z-0 lg:pt-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
           aria-label="Dashboard navigation"
@@ -92,8 +92,8 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-[var(--brand-navy)] text-white'
-                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                      ? 'bg-primary text-white'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   <span className="text-base opacity-80" aria-hidden>{icon}</span>
@@ -102,11 +102,11 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
               )
             })}
           </nav>
-          <div className="mt-auto border-t border-zinc-200 p-3">
+          <div className="mt-auto border-t border-border p-3">
             <form action={signOut}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 Sign out
               </button>

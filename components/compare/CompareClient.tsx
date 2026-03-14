@@ -1,143 +1,242 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
+import { useState } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useComparison } from '@/contexts/ComparisonContext'
 import { trackEvent } from '@/lib/tracking'
-import type { CompareListingRow } from '@/app/compare/page'
-import ListingMapGoogle from '@/components/ListingMapGoogle'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { LinkSquare01Icon, Cancel01Icon, Download01Icon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
-
-const ROWS: { key: keyof CompareListingRow; label: string; format: (v: unknown) => string }[] = [
-  { key: 'list_price', label: 'Price', format: (v) => (v != null && Number(v) > 0 ? `$${Number(v).toLocaleString()}` : '—') },
-  { key: 'beds_total', label: 'Beds', format: (v) => (v != null ? String(v) : '—') },
-  { key: 'baths_full', label: 'Baths', format: (v) => (v != null ? String(v) : '—') },
-  { key: 'living_area', label: 'Sq ft', format: (v) => (v != null && Number(v) > 0 ? Number(v).toLocaleString() : '—') },
-  { key: 'lot_size_sqft', label: 'Lot size', format: (v) => (v != null && Number(v) > 0 ? `${Number(v).toLocaleString()} sq ft` : '—') },
-  { key: 'year_built', label: 'Year built', format: (v) => (v != null ? String(v) : '—') },
-  { key: 'association_fee', label: 'HOA', format: (v) => (v != null && Number(v) > 0 ? `$${Number(v).toLocaleString()}` : '—') },
-  { key: 'tax_amount', label: 'Property taxes', format: (v) => (v != null && Number(v) > 0 ? `$${Number(v).toLocaleString()}` : '—') },
-  { key: 'days_on_market', label: 'DOM', format: (v) => (v != null ? String(v) : '—') },
-  { key: 'subdivision_name', label: 'Community', format: (v) => (v ? String(v) : '—') },
-  { key: 'garage_spaces', label: 'Garage', format: (v) => (v != null ? String(v) : '—') },
-  { key: 'standard_status', label: 'Status', format: (v) => (v ? String(v) : '—') },
-]
-
-function bestIndex(listings: CompareListingRow[], key: keyof CompareListingRow): number | null {
-  if (key === 'list_price' || key === 'association_fee' || key === 'tax_amount' || key === 'days_on_market') {
-    const nums = listings.map((l) => (l[key] != null ? Number(l[key]) : NaN))
-    const valid = nums.filter((n) => !Number.isNaN(n))
-    if (valid.length === 0) return null
-    if (key === 'days_on_market') return nums.indexOf(Math.min(...valid))
-    return nums.indexOf(Math.min(...valid))
-  }
-  if (key === 'living_area' || key === 'lot_size_sqft' || key === 'year_built' || key === 'beds_total' || key === 'baths_full' || key === 'garage_spaces') {
-    const nums = listings.map((l) => (l[key] != null ? Number(l[key]) : NaN))
-    const valid = nums.filter((n) => !Number.isNaN(n))
-    if (valid.length === 0) return null
-    return nums.indexOf(Math.max(...valid))
-  }
-  return null
+export type CompareListingData = {
+  listingKey: string
+  address: string
+  city: string | null
+  state: string | null
+  postalCode: string | null
+  subdivision: string | null
+  price: number | null
+  beds: number | null
+  baths: number | null
+  sqft: number | null
+  lotSizeAcres: number | null
+  yearBuilt: number | null
+  garageSpaces: number | null
+  hoa: number | null
+  taxes: number | null
+  dom: number | null
+  status: string | null
+  propertyType: string | null
+  photoUrl: string | null
+  latitude: number | null
+  longitude: number | null
 }
 
-type Props = { listings: CompareListingRow[] }
+function fmt(n: number | null | undefined): string {
+  if (n == null) return '—'
+  return n.toLocaleString()
+}
 
-export default function CompareClient({ listings }: Props) {
-  const router = useRouter()
+function fmtPrice(n: number | null | undefined): string {
+  if (n == null) return '—'
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+}
 
-  useEffect(() => {
-    trackEvent('view_comparison', {
-      listing_ids: listings.map((l) => l.listing_key),
-      count: listings.length,
-    })
-  }, [listings])
+type RowDef = { label: string; key: keyof CompareListingData; format?: (v: unknown) => string; best?: 'low' | 'high' }
 
-  const mapListings = listings
-    .filter((l) => l.latitude != null && l.longitude != null)
-    .map((l, i) => ({
-      ListingKey: l.listing_key,
-      ListPrice: l.list_price,
-      Latitude: l.latitude!,
-      Longitude: l.longitude!,
-      StreetNumber: null,
-      StreetName: null,
-      City: null,
-      State: null,
-      PostalCode: null,
-      BedroomsTotal: l.beds_total,
-      BathroomsTotal: l.baths_full,
-    }))
+const rows: RowDef[] = [
+  { label: 'Price', key: 'price', format: (v) => fmtPrice(v as number), best: 'low' },
+  { label: 'Beds', key: 'beds', format: (v) => fmt(v as number), best: 'high' },
+  { label: 'Baths', key: 'baths', format: (v) => fmt(v as number), best: 'high' },
+  { label: 'Sq Ft', key: 'sqft', format: (v) => fmt(v as number), best: 'high' },
+  { label: 'Price/Sq Ft', key: 'price', format: () => '', best: 'low' }, // computed below
+  { label: 'Lot (acres)', key: 'lotSizeAcres', format: (v) => (v != null ? (v as number).toFixed(2) : '—'), best: 'high' },
+  { label: 'Year Built', key: 'yearBuilt', format: (v) => (v != null ? String(v) : '—'), best: 'high' },
+  { label: 'Garage', key: 'garageSpaces', format: (v) => fmt(v as number) },
+  { label: 'HOA/mo', key: 'hoa', format: (v) => fmtPrice(v as number), best: 'low' },
+  { label: 'Taxes/yr', key: 'taxes', format: (v) => fmtPrice(v as number), best: 'low' },
+  { label: 'Days on Market', key: 'dom', format: (v) => fmt(v as number), best: 'low' },
+  { label: 'Status', key: 'status', format: (v) => (v as string) ?? '—' },
+  { label: 'Type', key: 'propertyType', format: (v) => (v as string) ?? '—' },
+  { label: 'Community', key: 'subdivision', format: (v) => (v as string) ?? '—' },
+]
+
+function bestIndex(listings: CompareListingData[], key: keyof CompareListingData, direction: 'low' | 'high'): number | null {
+  let bestIdx: number | null = null
+  let bestVal: number | null = null
+  listings.forEach((l, i) => {
+    const v = l[key]
+    if (typeof v !== 'number' || v == null) return
+    if (bestVal == null || (direction === 'low' ? v < bestVal : v > bestVal)) {
+      bestVal = v
+      bestIdx = i
+    }
+  })
+  return bestIdx
+}
+
+export default function CompareClient({ listings }: { listings: CompareListingData[] }) {
+  const { removeFromComparison, clearComparison } = useComparison()
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   const handleShare = () => {
-    const ids = listings.map((l) => l.listing_key).join(',')
-    const url = `${siteUrl}/compare?ids=${encodeURIComponent(ids)}`
-    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url)
-    trackEvent('share_listing', { share_method: 'comparison', listing_ids: listings.map((l) => l.listing_key) })
+    const url = typeof window !== 'undefined' ? window.location.href : ''
+    navigator.clipboard?.writeText(url)
+    trackEvent('compare_share', { count: listings.length })
   }
 
   const handleDownloadPdf = async () => {
-    const res = await fetch('/api/pdf/comparison', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ listingIds: listings.map((l) => l.listing_key) }),
-    })
-    if (!res.ok) return
-    const blob = await res.blob()
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = 'comparison.pdf'
-    a.click()
-    URL.revokeObjectURL(a.href)
+    setPdfLoading(true)
+    trackEvent('compare_pdf_download', { count: listings.length })
+    try {
+      const res = await fetch('/api/pdf/comparison', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingIds: listings.map((l) => l.listingKey) }),
+      })
+      if (!res.ok) throw new Error('PDF generation failed')
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'property-comparison.pdf'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } catch {
+      // Silent fail — user can retry
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
+  const handleRemove = (key: string) => {
+    removeFromComparison(key)
+  }
+
+  if (listings.length === 0) {
+    return (
+      <div className="py-20 text-center">
+        <h1 className="text-2xl font-bold text-primary mb-4">No Listings to Compare</h1>
+        <p className="text-[var(--muted-foreground)] mb-6">Add listings from the search page to compare them side by side.</p>
+        <Link href="/homes-for-sale" className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90 transition-colors">
+          Browse Homes
+        </Link>
+      </div>
+    )
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-3xl font-bold text-[var(--brand-navy)]">Compare Homes</h1>
+    <div className="pb-24">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Compare Properties</h1>
+          <p className="text-[var(--muted-foreground)] mt-1">{listings.length} {listings.length === 1 ? 'property' : 'properties'} selected</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-primary hover:bg-[var(--muted)] transition-colors"
+          >
+            <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
+            Copy Link
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-60"
+          >
+            <HugeiconsIcon icon={Download01Icon} className="h-4 w-4" />
+            {pdfLoading ? 'Generating…' : 'Download PDF'}
+          </button>
+        </div>
+      </div>
 
-      <div className="mt-6 grid gap-4" style={{ gridTemplateColumns: `repeat(${listings.length}, minmax(0, 1fr))` }}>
-        {listings.map((listing) => (
-          <div key={listing.listing_key} className="flex flex-col">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[var(--gray-bg)]">
-              {listing.photo_url ? (
-                <Image src={listing.photo_url} alt="" fill className="object-cover" sizes="300px" />
-              ) : (
-                <div className="flex h-full items-center justify-center text-[var(--gray-muted)]">No photo</div>
-              )}
-            </div>
-            <p className="mt-2 font-semibold text-[var(--brand-navy)]">
-              ${(listing.list_price ?? 0).toLocaleString()}
-            </p>
-            <p className="text-sm text-[var(--gray-secondary)]">{listing.unparsed_address ?? listing.listing_key}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Link
-                href={`/listings/${encodeURIComponent(listing.listing_key)}`}
-                className="text-sm font-medium text-[var(--accent)] underline"
-              >
-                View
+      {/* Photo row */}
+      <div className="grid gap-4 mb-6" style={{ gridTemplateColumns: `repeat(${listings.length}, minmax(0, 1fr))` }}>
+        {listings.map((l) => (
+          <div key={l.listingKey} className="relative rounded-lg overflow-hidden bg-[var(--muted)] aspect-[4/3]">
+            {l.photoUrl ? (
+              <Image src={l.photoUrl} alt={l.address} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-[var(--muted-foreground)] text-sm">No Photo</div>
+            )}
+            <button
+              type="button"
+              onClick={() => handleRemove(l.listingKey)}
+              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              aria-label={`Remove ${l.address} from comparison`}
+            >
+              <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+            </button>
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+              <Link href={`/listing/${encodeURIComponent(l.listingKey)}`} className="text-white text-sm font-semibold hover:underline line-clamp-2">
+                {l.address}
               </Link>
+              <p className="text-white/90 text-lg font-bold mt-0.5">{fmtPrice(l.price)}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+      {/* Comparison table */}
+      <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-[var(--muted)]">
+              <th className="sticky left-0 bg-[var(--muted)] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Feature</th>
+              {listings.map((l) => (
+                <th key={l.listingKey} className="px-4 py-3 text-left text-xs font-semibold text-primary min-w-[140px]">
+                  {l.address.split(',')[0]}
+                </th>
+              ))}
+            </tr>
+          </thead>
           <tbody>
-            {ROWS.map(({ key, label, format }) => {
-              const best = bestIndex(listings, key)
+            {rows.map((row, ri) => {
+              const best = row.best ? bestIndex(listings, row.key, row.best) : null
+              const isPricePerSqft = row.label === 'Price/Sq Ft'
+
               return (
-                <tr key={key} className="border-b border-[var(--gray-border)]">
-                  <th className="py-3 pr-4 font-medium text-[var(--gray-secondary)]">{label}</th>
-                  {listings.map((listing, i) => (
-                    <td
-                      key={listing.listing_key}
-                      className={`py-3 ${best === i ? 'bg-[var(--success)]/10' : ''}`}
-                    >
-                      {format(listing[key])}
-                    </td>
-                  ))}
+                <tr key={row.label} className={ri % 2 === 0 ? 'bg-white' : 'bg-[var(--muted)]/50'}>
+                  <td className="sticky left-0 bg-inherit px-4 py-2.5 font-medium text-[var(--muted-foreground)] whitespace-nowrap">{row.label}</td>
+                  {listings.map((l, i) => {
+                    let value: string
+                    let isBest = false
+
+                    if (isPricePerSqft) {
+                      const ppsf = l.price && l.sqft ? Math.round(l.price / l.sqft) : null
+                      value = ppsf != null ? `$${ppsf.toLocaleString()}` : '—'
+                      // Compute best for price/sqft separately
+                      const ppsfValues = listings.map((ll) => (ll.price && ll.sqft ? ll.price / ll.sqft : null))
+                      const validPpsf = ppsfValues.filter((v): v is number => v != null)
+                      if (validPpsf.length > 1 && ppsf != null) {
+                        const minPpsf = Math.min(...validPpsf)
+                        isBest = ppsf === minPpsf
+                      }
+                    } else {
+                      value = row.format ? row.format(l[row.key]) : String(l[row.key] ?? '—')
+                      isBest = best === i && listings.filter((ll) => ll[row.key] != null).length > 1
+                    }
+
+                    return (
+                      <td
+                        key={l.listingKey}
+                        className={[
+                          'px-4 py-2.5 text-primary',
+                          isBest ? 'font-semibold text-green-500' : '',
+                        ].join(' ')}
+                      >
+                        <span className="flex items-center gap-1">
+                          {value}
+                          {isBest && (
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                          )}
+                        </span>
+                      </td>
+                    )
+                  })}
                 </tr>
               )
             })}
@@ -145,28 +244,27 @@ export default function CompareClient({ listings }: Props) {
         </table>
       </div>
 
-      {mapListings.length > 0 && (
+      {/* Map */}
+      {listings.some((l) => l.latitude && l.longitude) && (
         <div className="mt-8">
-          <ListingMapGoogle listings={mapListings} fitBounds />
+          <h2 className="text-lg font-semibold text-primary mb-3">Locations</h2>
+          <div className="rounded-lg overflow-hidden border border-[var(--border)] h-[300px] sm:h-[400px]">
+            {/* Google Static Map with pins */}
+            {process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? (
+              <iframe
+                title="Comparison map"
+                className="w-full h-full border-0"
+                loading="lazy"
+                src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&q=${listings.filter((l) => l.latitude && l.longitude).map((l) => `${l.latitude},${l.longitude}`).join('|')}&zoom=11`}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-[var(--muted)] text-[var(--muted-foreground)] text-sm">
+                Map unavailable — configure Google Maps API key
+              </div>
+            )}
+          </div>
         </div>
       )}
-
-      <div className="mt-8 flex flex-wrap gap-4">
-        <button
-          type="button"
-          onClick={handleShare}
-          className="rounded-lg bg-[var(--gray-bg)] px-4 py-2 text-sm font-medium text-[var(--brand-navy)] hover:bg-[var(--gray-border)]"
-        >
-          Share This Comparison
-        </button>
-        <button
-          type="button"
-          onClick={handleDownloadPdf}
-          className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
-        >
-          Download as PDF
-        </button>
-      </div>
     </div>
   )
 }

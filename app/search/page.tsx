@@ -1,9 +1,14 @@
 import type { Metadata } from 'next'
 import { getSearchListings, getSearchMapListings } from '@/app/actions/search'
+import { getCityBoundary } from '@/app/actions/cities'
 import { getGeocodedListings } from '@/app/actions/geocode'
+import { getSession } from '@/app/actions/auth'
+import { getSavedListingKeys } from '@/app/actions/saved-listings'
+import { getLikedListingKeys } from '@/app/actions/likes'
 import SearchFilters from '@/components/search/SearchFilters'
 import SearchResults from '@/components/search/SearchResults'
-import ListingMapGoogle from '@/components/ListingMapGoogle'
+import SearchSplitView from '@/components/search/SearchSplitView'
+import SearchMapClustered from '@/components/SearchMapClustered'
 import TrackSearchView from '@/components/tracking/TrackSearchView'
 
 const PAGE_SIZE = 24
@@ -83,8 +88,8 @@ export async function generateMetadata({
     filters.city || filters.subdivision
       ? `Search homes for sale in ${filters.subdivision ?? ''} ${filters.city ?? 'Central Oregon'}. Filter by price, beds, baths, and more.`
       : 'Search homes for sale in Central Oregon. Filter by city, price, beds, baths, and more.'
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
-  const canonical = new URL('/search', siteUrl)
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+  const canonical = new URL('/homes-for-sale', siteUrl)
   Object.entries(sp).forEach(([k, v]) => {
     if (v != null && v !== '') canonical.searchParams.set(k, String(v))
   })
@@ -107,11 +112,21 @@ export default async function SearchPage({
   const sp = await searchParams
   const filters = parseFilters(sp)
   const view = (sp.view === 'list' || sp.view === 'map' ? sp.view : 'split') as 'split' | 'list' | 'map'
+
+  const defaultCity = 'Bend'
+  const effectiveFilters = {
+    ...filters,
+    city: filters.city || (view !== 'list' ? defaultCity : undefined),
+    subdivision: filters.subdivision,
+  }
+
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
 
-  const [{ listings, totalCount }, mapListings] = await Promise.all([
-    getSearchListings(filters, page),
-    view !== 'list' ? getSearchMapListings(filters) : Promise.resolve([]),
+  const [{ listings, totalCount }, mapListings, session, boundaryGeojson] = await Promise.all([
+    getSearchListings(effectiveFilters, page),
+    view !== 'list' ? getSearchMapListings(effectiveFilters) : Promise.resolve([]),
+    view !== 'list' ? getSession() : Promise.resolve(null),
+    view !== 'list' && !filters.city ? getCityBoundary(defaultCity) : Promise.resolve(null),
   ])
 
   const listingsWithCoords =
@@ -120,8 +135,20 @@ export default async function SearchPage({
   const mapListingsWithCoords =
     mapListings.length > 0 ? await getGeocodedListings(mapListings) : mapListings
 
+  const [savedKeys, likedKeys] =
+    session?.user
+      ? await Promise.all([getSavedListingKeys(), getLikedListingKeys()])
+      : [[], [] as string[]]
+
+  const placeQuery =
+    filters.city && filters.subdivision
+      ? `${filters.subdivision} ${filters.city} Oregon`
+      : filters.city
+        ? `${filters.city} Oregon`
+        : 'Bend Oregon'
+
   const initialFiltersFromUrl = {
-    city: sp.city ?? '',
+    city: sp.city ?? (view !== 'list' ? defaultCity : ''),
     subdivision: sp.subdivision ?? '',
     minPrice: sp.minPrice ?? '',
     maxPrice: sp.maxPrice ?? '',
@@ -146,44 +173,51 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--brand-cream)]">
+    <div className="min-h-screen w-full bg-muted">
       <TrackSearchView
         city={filters.city ?? undefined}
         subdivision={filters.subdivision ?? undefined}
         resultsCount={totalCount}
       />
-      <div className="sticky top-0 z-20 bg-white border-b border-[var(--gray-border)] shadow-sm">
+      <div className="sticky top-0 z-20 w-full border-b border-border bg-white shadow-sm">
         <SearchFilters initialFilters={initialFiltersFromUrl} />
       </div>
-      <div className="max-w-[1920px] mx-auto">
+      <div className="w-full">
         {view === 'map' && (
-          <div className="h-[calc(100vh-120px)] min-h-[400px]">
-            <ListingMapGoogle
+          <div className="h-[calc(100vh-120px)] min-h-[400px] w-full">
+            <SearchMapClustered
               listings={mapListingsWithCoords}
-              centerOnBend={!filters.city && !filters.subdivision}
-              fitBounds={mapListingsWithCoords.length > 0}
+              savedListingKeys={savedKeys}
+              likedListingKeys={likedKeys}
+              placeQuery={placeQuery}
+              className="h-full w-full"
             />
           </div>
         )}
         {(view === 'split' || view === 'list') && (
-          <div className={view === 'split' ? 'grid grid-cols-1 lg:grid-cols-[1fr_420px]' : ''}>
-            <div className={view === 'split' ? 'min-h-[60vh] overflow-auto' : ''}>
+          <div className="w-full">
+            {view === 'split' ? (
+              <SearchSplitView
+                initialListings={listings}
+                totalCount={totalCount}
+                initialPage={page}
+                filters={initialFiltersFromUrl}
+                hasActiveFilters={!!(filters.minPrice != null || filters.maxPrice != null || filters.city || filters.subdivision || filters.beds != null || filters.baths != null || filters.status !== 'Active' || filters.minSqFt != null || filters.maxSqFt != null || filters.lotAcresMin != null || filters.lotAcresMax != null || filters.yearBuiltMin != null || filters.yearBuiltMax != null || filters.propertyType || filters.hasPool || filters.hasView || filters.hasWaterfront || filters.garageMin != null || filters.daysOnMarket || filters.keywords)}
+                mapListings={listingsWithCoords.length > 0 ? listingsWithCoords : mapListingsWithCoords}
+                savedListingKeys={savedKeys}
+                likedListingKeys={likedKeys}
+                placeQuery={placeQuery}
+                boundaryGeojson={boundaryGeojson ?? undefined}
+              />
+            ) : (
               <SearchResults
                 initialListings={listings}
                 totalCount={totalCount}
                 initialPage={page}
                 filters={initialFiltersFromUrl}
-                view={view}
+                view="list"
+                hasActiveFilters={!!(filters.minPrice != null || filters.maxPrice != null || filters.city || filters.subdivision || filters.beds != null || filters.baths != null || filters.status !== 'Active' || filters.minSqFt != null || filters.maxSqFt != null || filters.lotAcresMin != null || filters.lotAcresMax != null || filters.yearBuiltMin != null || filters.yearBuiltMax != null || filters.propertyType || filters.hasPool || filters.hasView || filters.hasWaterfront || filters.garageMin != null || filters.daysOnMarket || filters.keywords)}
               />
-            </div>
-            {view === 'split' && (
-              <div className="hidden lg:block sticky top-[120px] h-[calc(100vh-120px)] min-h-[400px] border-l border-[var(--gray-border)]">
-                <ListingMapGoogle
-                  listings={listingsWithCoords.length > 0 ? listingsWithCoords : mapListingsWithCoords}
-                  centerOnBend={!filters.city && mapListingsWithCoords.length === 0}
-                  fitBounds={listingsWithCoords.length > 0}
-                />
-              </div>
             )}
           </div>
         )}

@@ -10,7 +10,7 @@ export interface FubPerson {
   firstName?: string
   lastName?: string
   phone?: string
-  /** FUB custom fields (see docs/fub-setup.md). */
+  /** FUB custom fields (see docs/FUB_CUSTOM_FIELDS.md). */
   customFields?: Record<string, string | number | boolean | null>
 }
 

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { setDefaultHomeCity } from '@/app/actions/profile'
 import { HOME_CITY_COOKIE } from '@/lib/home-city'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60 // 1 year
 
@@ -53,19 +55,17 @@ export default function HomeCitySelector({ currentCity, cities, signedIn }: Prop
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={updating}
-        className="flex items-center gap-2 rounded-lg bg-white/95 px-3 py-2 text-left text-sm font-medium text-zinc-900 shadow-md backdrop-blur-sm transition hover:bg-white disabled:opacity-70"
+        className="flex items-center gap-2 rounded-lg bg-white/95 px-3 py-2 text-left text-sm font-medium text-foreground shadow-md backdrop-blur-sm transition hover:bg-white disabled:opacity-70"
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label="Change default city"
       >
         <span className="capitalize">{displayCity}</span>
-        <svg className="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <HugeiconsIcon icon={ArrowDown01Icon} className="h-4 w-4 text-muted-foreground" aria-hidden />
       </button>
       {open && (
         <div
-          className="absolute bottom-full right-0 z-10 mb-2 max-h-64 w-52 overflow-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg"
+          className="absolute bottom-full right-0 z-10 mb-2 max-h-64 w-52 overflow-auto rounded-lg border border-border bg-white py-1 shadow-md"
           role="listbox"
         >
           {cityList.slice(0, 30).map(({ City }) => (
@@ -75,8 +75,8 @@ export default function HomeCitySelector({ currentCity, cities, signedIn }: Prop
               role="option"
               aria-selected={City === displayCity}
               onClick={() => handleSelect(City)}
-              className={`w-full px-4 py-2 text-left text-sm capitalize hover:bg-zinc-100 ${
-                City === displayCity ? 'bg-zinc-100 font-medium' : ''
+              className={`w-full px-4 py-2 text-left text-sm capitalize hover:bg-muted ${
+                City === displayCity ? 'bg-muted font-medium' : ''
               }`}
             >
               {City}

@@ -47,9 +47,24 @@ export type OpenHousesFilters = {
   baths?: number
 }
 
+/**
+ * Default range for "this weekend": includes today when it's Sat or Sun, else the upcoming Sat–Sun.
+ * Important: on Sunday (day === 0), the Mon–Fri formula (6 - day) would yield next Saturday, so
+ * dateFrom would be next week and today's (Sunday) open houses would be excluded. We explicitly
+ * handle Sunday (and Saturday) so same-day and same-weekend open houses are always included.
+ */
 function getThisWeekend(): { dateFrom: string; dateTo: string } {
   const now = new Date()
-  const day = now.getDay()
+  const day = now.getDay() // 0 = Sunday, 6 = Saturday
+  const today = now.toISOString().slice(0, 10)
+  if (day === 0) {
+    return { dateFrom: today, dateTo: today }
+  }
+  if (day === 6) {
+    const sun = new Date(now)
+    sun.setDate(now.getDate() + 1)
+    return { dateFrom: today, dateTo: sun.toISOString().slice(0, 10) }
+  }
   const sat = new Date(now)
   sat.setDate(now.getDate() + (6 - day))
   const sun = new Date(sat)
@@ -67,6 +82,7 @@ export async function getOpenHousesWithListings(filters: OpenHousesFilters = {})
   const dateFrom = filters.dateFrom ?? defaultRange.dateFrom
   const dateTo = filters.dateTo ?? defaultRange.dateTo
 
+  // dateFrom/dateTo define the "weekend" range; .gte('event_date', today) ensures we never show past events
   const { data: rows, error } = await supabase
     .from('open_houses')
     .select('id, open_house_key, listing_key, event_date, start_time, end_time, host_agent_name, remarks, rsvp_count')

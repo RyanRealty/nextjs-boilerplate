@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 
 type ViewMode = 'banner' | 'map'
 
@@ -16,12 +18,12 @@ export default function HomeHeroMapToggle({ heroContent, mapContent }: Props) {
   return (
     <>
       <div className="flex items-center justify-center gap-2 py-2">
-        <span className="text-sm font-medium text-zinc-500">View:</span>
+        <span className="text-sm font-medium text-muted-foreground">View:</span>
         <button
           type="button"
           onClick={() => setViewMode('banner')}
           className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            viewMode === 'banner' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+            viewMode === 'banner' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-border'
           }`}
         >
           Banner
@@ -30,7 +32,7 @@ export default function HomeHeroMapToggle({ heroContent, mapContent }: Props) {
           type="button"
           onClick={() => setViewMode('map')}
           className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            viewMode === 'map' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+            viewMode === 'map' ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-border'
           }`}
         >
           Map
@@ -48,21 +50,14 @@ export default function HomeHeroMapToggle({ heroContent, mapContent }: Props) {
           <button
             type="button"
             onClick={() => setMapCollapsed((c) => !c)}
-            className="flex w-full items-center justify-between rounded-t-xl border border-b-0 border-zinc-200 bg-zinc-50 px-4 py-3 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+            className="flex w-full items-center justify-between rounded-t-xl border border-b-0 border-border bg-muted px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-muted"
             aria-expanded={!mapCollapsed}
           >
             <span>{mapCollapsed ? 'Show map' : 'Hide map'}</span>
-            <svg
-              className={`h-5 w-5 text-zinc-500 transition-transform ${mapCollapsed ? '' : 'rotate-180'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <HugeiconsIcon icon={ArrowDown01Icon} className={`h-5 w-5 text-muted-foreground transition-transform ${mapCollapsed ? '' : 'rotate-180'}`} />
           </button>
           {!mapCollapsed && (
-            <div className="rounded-b-xl border border-zinc-200 overflow-hidden shadow-sm">
+            <div className="rounded-b-xl border border-border overflow-hidden shadow-sm">
               {mapContent}
             </div>
           )}

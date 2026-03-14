@@ -22,7 +22,7 @@ export default function RemoveSavedCommunityButton({ entityKey }: Props) {
       type="button"
       onClick={handleRemove}
       disabled={pending}
-      className="text-sm font-medium text-zinc-500 hover:text-red-600 disabled:opacity-50"
+      className="text-sm font-medium text-muted-foreground hover:text-destructive disabled:opacity-50"
     >
       {pending ? 'Removing…' : 'Remove'}
     </button>

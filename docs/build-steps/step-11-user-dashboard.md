@@ -1,6 +1,6 @@
 # Build Step 11: User Dashboard
 
-Read docs/MASTER_PLAN.md, specifically Section 23 (User Accounts, Dashboards & Preferences) completely, Section 42 (Notification Preference Management), Section 1 (Design System), Section 30 (Tracking).
+Scope: User accounts, dashboards, saved homes/searches, notification preferences, design system, tracking.
 
 Build the complete user dashboard at /dashboard:
 

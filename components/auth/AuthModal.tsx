@@ -82,26 +82,26 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" aria-hidden onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-xl border border-border bg-white p-6 shadow-lg">
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-lg font-bold text-[var(--brand-navy)]">Ryan Realty</span>
+          <span className="text-lg font-bold text-primary">Ryan Realty</span>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700"
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-muted-foreground"
             aria-label="Close"
           >
             ×
           </button>
         </div>
-        <div className="flex gap-2 border-b border-zinc-200">
+        <div className="flex gap-2 border-b border-border">
           <button
             type="button"
             onClick={() => { setTab('signin'); setError(null) }}
             className={`border-b-2 px-3 py-2 text-sm font-medium ${
               tab === 'signin'
-                ? 'border-[var(--brand-navy)] text-zinc-900'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             Sign in
@@ -111,8 +111,8 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
             onClick={() => { setTab('signup'); setError(null) }}
             className={`border-b-2 px-3 py-2 text-sm font-medium ${
               tab === 'signup'
-                ? 'border-[var(--brand-navy)] text-zinc-900'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             Create account
@@ -123,11 +123,11 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
             type="button"
             onClick={handleGoogle}
             disabled={!!loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
           >
             {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
           </button>
-          <div className="my-4 border-t border-zinc-200" />
+          <div className="my-4 border-t border-border" />
           {tab === 'signin' ? (
             <form onSubmit={handleEmailSignIn} className="space-y-3">
               <input
@@ -135,20 +135,20 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <button
                 type="submit"
                 disabled={!!loading}
-                className="w-full rounded-lg bg-[var(--brand-navy)] py-2.5 text-sm font-medium text-white disabled:opacity-50"
+                className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white disabled:opacity-50"
               >
                 {loading === 'email' ? 'Signing in…' : 'Sign in'}
               </button>
@@ -160,27 +160,27 @@ export default function AuthModal({ open, onClose, onSuccess, next = '/dashboard
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
               <input
                 type="password"
                 placeholder="Password (min 6)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                className="block w-full rounded-lg border border-border px-3 py-2 text-sm"
               />
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <button
                 type="submit"
                 disabled={!!loading}
-                className="w-full rounded-lg bg-[var(--brand-navy)] py-2.5 text-sm font-medium text-white disabled:opacity-50"
+                className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white disabled:opacity-50"
               >
                 {loading === 'email' ? 'Creating account…' : 'Create account'}
               </button>

@@ -1,6 +1,6 @@
 # Build Step 12: Admin Backend
 
-Read docs/MASTER_PLAN.md, specifically Section 31 (Admin Backend & Content Management) completely including Admin Access & URL, Default Superuser, Universal AI Writing Assistant, Roles & Permissions, Permissions Matrix, and User Management. Also read Section 7.11 (Sync Status Dashboard).
+Scope: Admin backend, content management, admin access & URL, default superuser, AI writing assistant, roles & permissions, user management, sync status dashboard.
 
 Build the complete admin backend at /admin:
 

@@ -55,9 +55,9 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
 
   return (
     <div className="mt-6 space-y-6">
-      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+      <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-white p-4">
         <div className="min-w-[200px]">
-          <label htmlFor="user-email" className="block text-xs font-medium text-zinc-500">
+          <label htmlFor="user-email" className="block text-xs font-medium text-muted-foreground">
             Email (Google account)
           </label>
           <input
@@ -66,18 +66,18 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="user@example.com"
-            className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
           />
         </div>
         <div>
-          <label htmlFor="user-role" className="block text-xs font-medium text-zinc-500">
+          <label htmlFor="user-role" className="block text-xs font-medium text-muted-foreground">
             Role
           </label>
           <select
             id="user-role"
             value={role}
             onChange={(e) => setRole(e.target.value as AdminRoleType)}
-            className="mt-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            className="mt-1 rounded-lg border border-border px-3 py-2 text-sm"
           >
             <option value="report_viewer">Report viewer (reports only)</option>
             <option value="broker">Broker (profile + reviews)</option>
@@ -86,14 +86,14 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
         </div>
         {role === 'broker' && (
           <div className="min-w-[180px]">
-            <label htmlFor="user-broker" className="block text-xs font-medium text-zinc-500">
+            <label htmlFor="user-broker" className="block text-xs font-medium text-muted-foreground">
               Broker profile
             </label>
             <select
               id="user-broker"
               value={brokerId}
               onChange={(e) => setBrokerId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
             >
               <option value="">— Select —</option>
               {brokers.map((b) => (
@@ -107,39 +107,39 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary disabled:opacity-50"
         >
           {loading ? 'Adding…' : 'Add user'}
         </button>
       </form>
       {message && (
-        <p className={message.type === 'ok' ? 'text-sm text-emerald-600' : 'text-sm text-red-600'}>
+        <p className={message.type === 'ok' ? 'text-sm text-green-500' : 'text-sm text-destructive'}>
           {message.text}
         </p>
       )}
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-        <table className="min-w-full divide-y divide-zinc-200">
+      <div className="overflow-hidden rounded-lg border border-border bg-white">
+        <table className="min-w-full divide-y divide-border">
           <thead>
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-500">Email</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-500">Role</th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-zinc-500">Broker</th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-zinc-500">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Email</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Role</th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-muted-foreground">Broker</th>
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-muted-foreground">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200">
+          <tbody className="divide-y divide-border">
             {initialRoles.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-sm text-zinc-500">
+                <td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">
                   No users yet. Add an email and role above.
                 </td>
               </tr>
             ) : (
               initialRoles.map((r) => (
                 <tr key={r.id}>
-                  <td className="px-4 py-3 text-sm text-zinc-900">{r.email}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-600">{r.role}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-600">
+                  <td className="px-4 py-3 text-sm text-foreground">{r.email}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{r.role}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {r.broker_id ? brokers.find((b) => b.id === r.broker_id)?.display_name ?? '—' : '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -148,7 +148,7 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
                         type="button"
                         onClick={() => handleRemove(r.email)}
                         disabled={loading}
-                        className="text-sm text-red-600 hover:underline disabled:opacity-50"
+                        className="text-sm text-destructive hover:underline disabled:opacity-50"
                       >
                         Remove
                       </button>

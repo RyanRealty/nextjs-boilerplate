@@ -17,27 +17,27 @@ export default function ListingDescription({ publicRemarks, directions }: Props)
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold text-[var(--brand-navy)]">About This Home</h2>
+      <h2 className="text-xl font-semibold text-primary">About This Home</h2>
       {text ? (
-        <div className="text-[var(--brand-navy)] whitespace-pre-line">
+        <div className="text-primary whitespace-pre-line">
           {expanded ? text : (truncated ?? text)}
           {showReadMore && !expanded && (
             <button
               type="button"
               onClick={() => setExpanded(true)}
-              className="ml-1 text-[var(--accent)] font-medium hover:underline"
+              className="ml-1 text-accent-foreground font-medium hover:underline"
             >
               Read More
             </button>
           )}
         </div>
       ) : (
-        <p className="text-[var(--gray-muted)]">No description available.</p>
+        <p className="text-[var(--muted-foreground)]">No description available.</p>
       )}
       {directions?.trim() && (
         <div>
-          <h3 className="text-sm font-semibold text-[var(--brand-navy)] mb-1">Directions</h3>
-          <p className="text-[var(--brand-navy)] whitespace-pre-line text-sm">{directions.trim()}</p>
+          <h3 className="text-sm font-semibold text-primary mb-1">Directions</h3>
+          <p className="text-primary whitespace-pre-line text-sm">{directions.trim()}</p>
         </div>
       )}
     </section>

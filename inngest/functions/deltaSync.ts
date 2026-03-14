@@ -49,6 +49,7 @@ export const deltaSync = inngest.createFunction(
     const windowEnd = new Date()
     windowEnd.setSeconds(windowEnd.getSeconds() - BUFFER_SECONDS)
     const windowEndStr = windowEnd.toISOString()
+    // When there was no previous delta run (e.g. right after the original full sync), use 24h ago as window start so the first ingest still fetches recent changes.
     const windowStartStr = lastSync ?? new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
     const filter = `ModificationTimestamp gt ${windowStartStr} and ModificationTimestamp lt ${windowEndStr} and (StandardStatus eq 'Active' or StandardStatus eq 'Pending' or StandardStatus eq 'ActiveUnderContract')`

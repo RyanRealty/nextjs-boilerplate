@@ -17,7 +17,7 @@ export default function BrokerHeroCtaButtons({ firstName, slug, phone, email }: 
         <a
           href={`tel:${phone.replace(/\D/g, '')}`}
           onClick={() => trackEvent('call_initiated', { broker_slug: slug })}
-          className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
+          className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-primary hover:bg-accent/90"
         >
           Call {firstName}
         </a>
@@ -26,14 +26,15 @@ export default function BrokerHeroCtaButtons({ firstName, slug, phone, email }: 
         <a
           href={`mailto:${email}`}
           onClick={() => trackEvent('email_agent', { broker_slug: slug })}
-          className="inline-flex items-center justify-center rounded-lg border-2 border-[var(--brand-navy)] px-4 py-2.5 text-sm font-semibold text-[var(--brand-navy)] hover:bg-[var(--brand-navy)] hover:text-white"
+          className="inline-flex items-center justify-center rounded-lg border-2 border-primary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-white"
         >
           Email {firstName}
         </a>
       )}
       <Link
         href="#contact"
-        className="inline-flex items-center justify-center rounded-lg bg-[var(--brand-navy)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--brand-primary-hover)]"
+        className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent/90"
+        onClick={() => trackEvent('click_cta', { context: 'broker_schedule_consultation', broker_slug: slug })}
       >
         Schedule Consultation
       </Link>

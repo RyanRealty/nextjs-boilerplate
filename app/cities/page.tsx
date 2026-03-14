@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { getCitiesForIndex } from '@/app/actions/cities'
-import { PRIMARY_CITIES } from '@/lib/cities'
-import CityCard from '@/components/city/CityCard'
+import { getSession } from '@/app/actions/auth'
+import { getSavedCitySlugs } from '@/app/actions/saved-cities'
+import { sortCitiesWithPrimaryFirst } from '@/lib/cities'
+import CityTilesGrid from '@/components/city/CityTilesGrid'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const dynamic = 'force-dynamic'
 
@@ -22,10 +24,10 @@ export const metadata: Metadata = {
 }
 
 export default async function CitiesPage() {
-  const allCities = await getCitiesForIndex()
-  const primarySet = new Set(PRIMARY_CITIES.map((c) => c.toLowerCase()))
-  const primary = allCities.filter((c) => primarySet.has(c.name.toLowerCase()))
-  const others = allCities.filter((c) => !primarySet.has(c.name.toLowerCase()))
+  const [allCities, session] = await Promise.all([getCitiesForIndex(), getSession()])
+  const savedSlugs = session?.user ? await getSavedCitySlugs() : []
+  const sortedCities = sortCitiesWithPrimaryFirst(allCities)
+  const signedIn = !!session?.user
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
@@ -43,12 +45,12 @@ export default async function CitiesPage() {
         }}
       />
 
-      <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16">
+      <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-7xl text-center">
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Central Oregon Cities
           </h1>
-          <p className="mt-3 text-lg text-[var(--brand-cream)]">
+          <p className="mt-3 text-lg text-muted">
             Find homes in Bend, Redmond, Sisters, Sunriver, and surrounding areas.
           </p>
         </div>
@@ -58,39 +60,7 @@ export default async function CitiesPage() {
         <h2 id="cities-heading" className="sr-only">
           Cities
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2">
-          {(primary.length > 0 ? primary : allCities).map((city) => (
-            <CityCard
-              key={city.slug}
-              slug={city.slug}
-              name={city.name}
-              activeCount={city.activeCount}
-              medianPrice={city.medianPrice}
-              communityCount={city.communityCount}
-              heroImageUrl={city.heroImageUrl}
-              description={city.description}
-            />
-          ))}
-        </div>
-        {primary.length > 0 && others.length > 0 && (
-          <div className="mt-12">
-            <h3 className="text-xl font-bold text-[var(--brand-navy)]">More cities</h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {others.map((city) => (
-                <CityCard
-                  key={city.slug}
-                  slug={city.slug}
-                  name={city.name}
-                  activeCount={city.activeCount}
-                  medianPrice={city.medianPrice}
-                  communityCount={city.communityCount}
-                  heroImageUrl={city.heroImageUrl}
-                  description={city.description}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <CityTilesGrid cities={sortedCities} savedSlugs={savedSlugs} signedIn={signedIn} />
       </section>
     </main>
   )

@@ -79,122 +79,122 @@ export default function AdminBrokerCreateForm({ className = '' }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`space-y-6 rounded-xl border border-zinc-200 bg-white p-6 ${className}`}>
+    <form onSubmit={handleSubmit} className={`space-y-6 rounded-lg border border-border bg-white p-6 ${className}`}>
       {message && (
-        <p className={`text-sm ${message.type === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>
+        <p className={`text-sm ${message.type === 'ok' ? 'text-green-500' : 'text-destructive'}`}>
           {message.text}
         </p>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Display name <span className="text-red-500">*</span></span>
+          <span className="text-sm font-medium text-muted-foreground">Display name <span className="text-destructive">*</span></span>
           <input
             type="text"
             required
             value={form.display_name}
             onChange={(e) => setForm((f) => ({ ...f, display_name: e.target.value }))}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Slug (URL) <span className="text-red-500">*</span></span>
+          <span className="text-sm font-medium text-muted-foreground">Slug (URL) <span className="text-destructive">*</span></span>
           <input
             type="text"
             value={form.slug || slugFromName()}
             onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
             placeholder="e.g. jane-doe"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
-          <p className="mt-0.5 text-xs text-zinc-500">Profile URL: /team/[slug]</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Profile URL: /team/[slug]</p>
         </label>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Title <span className="text-red-500">*</span></span>
+          <span className="text-sm font-medium text-muted-foreground">Title <span className="text-destructive">*</span></span>
           <input
             type="text"
             required
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="e.g. Principal Broker, Broker"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Oregon license number <span className="text-red-500">*</span></span>
+          <span className="text-sm font-medium text-muted-foreground">Oregon license number <span className="text-destructive">*</span></span>
           <input
             type="text"
             required
             value={form.license_number}
             onChange={(e) => setForm((f) => ({ ...f, license_number: e.target.value }))}
             placeholder="e.g. 201206613"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
       </div>
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Bio</span>
+        <span className="text-sm font-medium text-muted-foreground">Bio</span>
         <textarea
           value={form.bio}
           onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
           rows={3}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Photo URL</span>
+          <span className="text-sm font-medium text-muted-foreground">Photo URL</span>
           <input
             type="url"
             value={form.photo_url}
             onChange={(e) => setForm((f) => ({ ...f, photo_url: e.target.value }))}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Email</span>
+          <span className="text-sm font-medium text-muted-foreground">Email</span>
           <input
             type="email"
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm"
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
           />
         </label>
       </div>
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Phone</span>
+        <span className="text-sm font-medium text-muted-foreground">Phone</span>
         <input
           type="tel"
           value={form.phone}
           onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-          className="mt-1 block w-full max-w-xs rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 shadow-sm"
+          className="mt-1 block w-full max-w-xs rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
         />
       </label>
-      <div className="flex flex-wrap items-center gap-6 border-t border-zinc-200 pt-4">
+      <div className="flex flex-wrap items-center gap-6 border-t border-border pt-4">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={form.is_active}
             onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
-            className="h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+            className="h-4 w-4 rounded border-border text-green-500 focus:ring-accent"
           />
-          <span className="text-sm font-medium text-zinc-700">Active (visible on team page)</span>
+          <span className="text-sm font-medium text-muted-foreground">Active (visible on team page)</span>
         </label>
         <label className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-700">Sort order</span>
+          <span className="text-sm font-medium text-muted-foreground">Sort order</span>
           <input
             type="number"
             min={0}
             value={form.sort_order}
             onChange={(e) => setForm((f) => ({ ...f, sort_order: Number(e.target.value) || 0 }))}
-            className="w-20 rounded-lg border border-zinc-300 px-2 py-1.5 text-zinc-900"
+            className="w-20 rounded-lg border border-border px-2 py-1.5 text-foreground"
           />
         </label>
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+        className="rounded-lg bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500/85 disabled:opacity-50"
       >
         {loading ? 'Adding…' : 'Add broker'}
       </button>

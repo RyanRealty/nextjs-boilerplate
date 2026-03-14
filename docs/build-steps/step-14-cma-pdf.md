@@ -1,6 +1,6 @@
 # Build Step 14: CMA Engine & PDF Generation
 
-Read docs/MASTER_PLAN.md, specifically Section 10 (CMA Engine), Section 28.3 (CMA as Lead Magnet), Section 41 (Print & PDF Export), Section 1 (Design System).
+Scope: CMA engine, CMA as lead magnet, print & PDF export (listing, CMA, report, comparison), design system.
 
 Build the complete CMA and PDF system:
 

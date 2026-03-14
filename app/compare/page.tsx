@@ -1,90 +1,111 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
-import CompareClient from '@/components/compare/CompareClient'
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-function getSupabase() {
-  if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
-  return createClient(url, anonKey)
-}
+import CompareClient, { type CompareListingData } from '@/components/compare/CompareClient'
 
 export const metadata: Metadata = {
-  title: 'Compare Homes | Ryan Realty',
-  robots: 'noindex, follow',
+  title: 'Compare Properties',
+  description: 'Compare up to 4 Central Oregon homes side by side — price, size, features, and more.',
 }
 
-export type CompareListingRow = {
-  listing_key: string
-  list_price: number | null
-  beds_total: number | null
-  baths_full: number | null
-  living_area: number | null
-  lot_size_sqft: number | null
-  year_built: number | null
-  association_fee: number | null
-  tax_amount: number | null
-  days_on_market: number | null
-  subdivision_name: string | null
-  garage_spaces: number | null
-  standard_status: string | null
-  unparsed_address: string | null
-  photo_url: string | null
-  latitude: number | null
-  longitude: number | null
+export const dynamic = 'force-dynamic'
+
+function daysOnMarket(d: string | null | undefined): number | null {
+  if (!d) return null
+  const date = new Date(d)
+  if (Number.isNaN(date.getTime())) return null
+  const days = Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000))
+  return days >= 0 ? days : null
 }
 
-export default async function ComparePage({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
-  const { ids } = await searchParams
-  const idList = (ids ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 4)
-  if (idList.length < 2) redirect('/search')
+export default async function ComparePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const params = await searchParams
+  const idsRaw = typeof params.ids === 'string' ? params.ids : ''
+  const ids = idsRaw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4)
 
-  const supabase = getSupabase()
-  const { data: listRows } = await supabase
-    .from('listings')
-    .select('listing_key, list_price, beds_total, baths_full, living_area, lot_size_sqft, year_built, association_fee, tax_amount, days_on_market, subdivision_name, garage_spaces, standard_status, property_id')
-    .in('listing_key', idList)
+  if (ids.length === 0) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <CompareClient listings={[]} />
+      </main>
+    )
+  }
 
-  const listingKeys = (listRows ?? []).map((r) => (r as { listing_key: string }).listing_key)
-  const validIds = idList.filter((k) => listingKeys.includes(k))
-  if (validIds.length < 2) redirect('/search')
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  let listings: CompareListingData[] = []
 
-  const propIds = [...new Set((listRows ?? []).map((r) => (r as { property_id?: string }).property_id).filter(Boolean))]
-  const { data: propRows } = await supabase.from('properties').select('id, unparsed_address, latitude, longitude').in('id', propIds)
-  const { data: photoRows } = await supabase.from('listing_photos').select('listing_key, photo_url').eq('is_hero', true).in('listing_key', validIds)
+  if (url?.trim() && key?.trim()) {
+    const supabase = createClient(url, key)
+    const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, PropertyType, OnMarketDate, LotSizeAcres, YearBuilt, GarageSpaces, AssociationFee, TaxAnnualAmount'
 
-  const propById = new Map((propRows ?? []).map((p) => [(p as { id: string }).id, p]))
-  const photoByKey = new Map((photoRows ?? []).map((r) => [(r as { listing_key: string }).listing_key, (r as { photo_url: string }).photo_url]))
+    // Fetch listings by both ListNumber and ListingKey (match whichever column hits)
+    const [byNumber, byKey] = await Promise.all([
+      supabase.from('listings').select(select).in('ListNumber', ids),
+      supabase.from('listings').select(select).in('ListingKey', ids),
+    ])
 
-  const listings: CompareListingRow[] = (listRows ?? []).map((row) => {
-    const r = row as Record<string, unknown>
-    const prop = propById.get(r.property_id as string) as { unparsed_address?: string; latitude?: number; longitude?: number } | undefined
-    return {
-      listing_key: r.listing_key as string,
-      list_price: r.list_price != null ? Number(r.list_price) : null,
-      beds_total: r.beds_total != null ? Number(r.beds_total) : null,
-      baths_full: r.baths_full != null ? Number(r.baths_full) : null,
-      living_area: r.living_area != null ? Number(r.living_area) : null,
-      lot_size_sqft: r.lot_size_sqft != null ? Number(r.lot_size_sqft) : null,
-      year_built: r.year_built != null ? Number(r.year_built) : null,
-      association_fee: r.association_fee != null ? Number(r.association_fee) : null,
-      tax_amount: r.tax_amount != null ? Number(r.tax_amount) : null,
-      days_on_market: r.days_on_market != null ? Number(r.days_on_market) : null,
-      subdivision_name: (r.subdivision_name as string) ?? null,
-      garage_spaces: r.garage_spaces != null ? Number(r.garage_spaces) : null,
-      standard_status: (r.standard_status as string) ?? null,
-      unparsed_address: prop?.unparsed_address ?? null,
-      photo_url: photoByKey.get(r.listing_key as string) ?? null,
-      latitude: prop?.latitude ?? null,
-      longitude: prop?.longitude ?? null,
+    const allRows = [...(byNumber.data ?? []), ...(byKey.data ?? [])]
+    // Dedupe by ListingKey
+    const seen = new Set<string>()
+    const deduped = allRows.filter((r) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const k = String((r as any).ListingKey ?? (r as any).ListNumber ?? '')
+      if (seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
+
+    // Also fetch hero photos
+    const listingKeys = deduped.map((r) => String((r as Record<string, unknown>).ListingKey ?? ''))
+    const { data: photos } = await supabase
+      .from('listing_photos')
+      .select('listing_key, photo_url')
+      .in('listing_key', listingKeys)
+      .eq('is_hero', true)
+
+    const photoMap = new Map<string, string>()
+    for (const p of (photos ?? []) as { listing_key: string; photo_url: string }[]) {
+      if (p.photo_url) photoMap.set(p.listing_key, p.photo_url)
     }
-  })
 
-  return <CompareClient listings={listings} />
+    listings = deduped.map((r) => {
+      const row = r as Record<string, unknown>
+      const listingKey = String(row.ListingKey ?? row.ListNumber ?? '')
+      const streetParts = [row.StreetNumber, row.StreetName].filter(Boolean).join(' ').trim()
+      const addressParts = [streetParts, row.City, row.State, row.PostalCode].filter(Boolean)
+      return {
+        listingKey,
+        address: addressParts.join(', '),
+        city: (row.City as string) ?? null,
+        state: (row.State as string) ?? null,
+        postalCode: (row.PostalCode as string) ?? null,
+        subdivision: (row.SubdivisionName as string) ?? null,
+        price: (row.ListPrice as number) ?? null,
+        beds: (row.BedroomsTotal as number) ?? null,
+        baths: (row.BathroomsTotal as number) ?? null,
+        sqft: (row.TotalLivingAreaSqFt as number) ?? null,
+        lotSizeAcres: (row.LotSizeAcres as number) ?? null,
+        yearBuilt: (row.YearBuilt as number) ?? null,
+        garageSpaces: (row.GarageSpaces as number) ?? null,
+        hoa: (row.AssociationFee as number) ?? null,
+        taxes: (row.TaxAnnualAmount as number) ?? null,
+        dom: daysOnMarket(row.OnMarketDate as string),
+        status: (row.StandardStatus as string) ?? null,
+        propertyType: (row.PropertyType as string) ?? null,
+        photoUrl: photoMap.get(listingKey) ?? (row.PhotoURL as string) ?? null,
+        latitude: (row.Latitude as number) ?? null,
+        longitude: (row.Longitude as number) ?? null,
+      }
+    })
+  }
+
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <CompareClient listings={listings} />
+    </main>
+  )
 }

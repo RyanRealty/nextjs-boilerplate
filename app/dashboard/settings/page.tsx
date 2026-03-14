@@ -23,8 +23,8 @@ export default async function DashboardSettingsPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Settings & Preferences</h1>
-      <p className="mt-1 text-zinc-600">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings & Preferences</h1>
+      <p className="mt-1 text-muted-foreground">
         Update your profile and buying preferences. Use Save to apply changes.
       </p>
       <DashboardSettingsForm

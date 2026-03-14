@@ -48,21 +48,21 @@ export default function LoginForm({ next }: Props) {
         type="button"
         onClick={handleGoogle}
         disabled={!!loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
       >
         {loading === 'google' ? 'Redirecting…' : 'Continue with Google'}
       </button>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-zinc-200" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-zinc-500">or</span>
+          <span className="bg-white px-2 text-muted-foreground">or</span>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="login-email" className="block text-sm font-medium text-zinc-700">
+          <label htmlFor="login-email" className="block text-sm font-medium text-muted-foreground">
             Email
           </label>
           <input
@@ -71,11 +71,11 @@ export default function LoginForm({ next }: Props) {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+            className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
           />
         </div>
         <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-zinc-700">
+          <label htmlFor="login-password" className="block text-sm font-medium text-muted-foreground">
             Password
           </label>
           <input
@@ -84,19 +84,19 @@ export default function LoginForm({ next }: Props) {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
+            className="mt-1 block w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground"
           />
           <p className="mt-1 text-right">
-            <Link href="/forgot-password" className="text-sm text-zinc-500 hover:text-zinc-700">
+            <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-muted-foreground">
               Forgot password?
             </Link>
           </p>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
         <button
           type="submit"
           disabled={!!loading}
-          className="w-full rounded-lg bg-[var(--brand-navy)] py-2.5 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] disabled:opacity-50"
+          className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
         >
           {loading === 'email' ? 'Signing in…' : 'Sign in'}
         </button>

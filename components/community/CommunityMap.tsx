@@ -1,9 +1,17 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useJsApiLoader, GoogleMap, Marker, Polygon, InfoWindow } from '@react-google-maps/api'
 import { useRouter } from 'next/navigation'
 import type { ListingRow } from '@/app/actions/communities'
+import {
+  MAP_DEFAULT_CENTER,
+  MAP_COLOR_LISTING,
+  getListingMarkerIcon,
+  getCityPinIcon,
+  MAP_LABEL_LISTING,
+  MAP_LABEL_CITY,
+} from '@/lib/map-constants'
 
 type GeoJSONPolygon = {
   type: 'Polygon'
@@ -18,9 +26,10 @@ type Props = {
   boundaryGeojson: unknown
   listings: ListingRow[]
   communityName: string
+  /** Optional query to find and show this place on the map (e.g. "Pronghorn Resort Bend Oregon"). Uses Google Places. */
+  placeSearchQuery?: string | null
 }
 
-const BEND_CENTER = { lat: 44.0582, lng: -121.3153 }
 const DEFAULT_ZOOM = 12
 
 function formatPrice(n: number | null | undefined): string {
@@ -66,14 +75,17 @@ export default function CommunityMap({
   boundaryGeojson,
   listings,
   communityName,
+  placeSearchQuery,
 }: Props) {
   const router = useRouter()
   const [infoListing, setInfoListing] = useState<ListingRow | null>(null)
+  const [placePosition, setPlacePosition] = useState<{ lat: number; lng: number } | null>(null)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-community',
+    id: 'google-map-script',
     googleMapsApiKey: apiKey,
+    libraries: ['places'],
   })
 
   const validListings = useMemo(
@@ -92,7 +104,8 @@ export default function CommunityMap({
   const bounds = useMemo(() => getBounds(validListings), [validListings])
 
   const center = useMemo(() => {
-    if (validListings.length === 0) return BEND_CENTER
+    if (placePosition) return placePosition
+    if (validListings.length === 0) return MAP_DEFAULT_CENTER
     if (bounds) {
       return {
         lat: (bounds.minLat + bounds.maxLat) / 2,
@@ -100,33 +113,59 @@ export default function CommunityMap({
       }
     }
     return { lat: Number(validListings[0].Latitude), lng: Number(validListings[0].Longitude) }
-  }, [validListings, bounds])
+  }, [validListings, bounds, placePosition])
 
-  if (loadError) return <div className="h-[400px] rounded-xl bg-[var(--gray-bg)] flex items-center justify-center text-[var(--text-secondary)]">Map failed to load.</div>
-  if (!isLoaded) return <div className="h-[400px] rounded-xl bg-[var(--gray-bg)] animate-pulse" />
+  const onMapLoad = useCallback(
+    (map: google.maps.Map) => {
+      if (!placeSearchQuery?.trim() || !window.google?.maps?.places) return
+      const service = new window.google.maps.places.PlacesService(map)
+      service.textSearch({ query: placeSearchQuery.trim() }, (results, status) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !results?.[0]) return
+        const place = results[0]
+        if (place.geometry?.location) {
+          setPlacePosition({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() })
+          if (place.geometry.viewport) map.fitBounds(place.geometry.viewport, 40)
+        }
+      })
+    },
+    [placeSearchQuery]
+  )
+
+  if (loadError) return <div className="h-[400px] rounded-lg bg-[var(--muted)] flex items-center justify-center text-[var(--muted-foreground)]">Map failed to load.</div>
+  if (!isLoaded) return <div className="h-[400px] rounded-lg bg-[var(--muted)] animate-pulse" />
 
   return (
-    <section className="bg-[var(--brand-cream)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-map-heading">
+    <section className="bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="community-map-heading">
       <div className="mx-auto max-w-7xl">
-        <h2 id="community-map-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+        <h2 id="community-map-heading" className="text-2xl font-bold tracking-tight text-primary">
           {communityName} Map
         </h2>
-        <div className="mt-4 h-[400px] w-full overflow-hidden rounded-xl">
+        <div className="mt-4 h-[400px] w-full overflow-hidden rounded-lg">
           <GoogleMap
             mapContainerStyle={{ width: '100%', height: '100%' }}
             center={center}
             zoom={DEFAULT_ZOOM}
             options={{ mapTypeControl: true, streetViewControl: false }}
+            onLoad={onMapLoad}
           >
+            {placePosition && (
+              <Marker
+                position={placePosition}
+                title={communityName}
+                label={{ text: communityName.slice(0, 15), ...MAP_LABEL_CITY }}
+                icon={getCityPinIcon()}
+                zIndex={100}
+              />
+            )}
             {paths.flat().length > 0 &&
               paths.map((path, i) => (
                 <Polygon
                   key={i}
                   paths={path}
                   options={{
-                    fillColor: 'var(--brand-navy)',
+                    fillColor: 'var(--primary)',
                     fillOpacity: 0.2,
-                    strokeColor: 'var(--brand-navy)',
+                    strokeColor: 'var(--primary)',
                     strokeWeight: 2,
                   }}
                 />
@@ -143,9 +182,9 @@ export default function CommunityMap({
                   onClick={() => setInfoListing(listing)}
                   label={{
                     text: formatPrice(listing.ListPrice) ? formatPrice(listing.ListPrice).replace(/\$|,/g, '').slice(0, 6) : '',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
+                    ...MAP_LABEL_LISTING,
                   }}
+                  icon={getListingMarkerIcon()}
                 />
               )
             })}
@@ -158,10 +197,10 @@ export default function CommunityMap({
                 onCloseClick={() => setInfoListing(null)}
               >
                 <div className="min-w-[180px] p-1">
-                  <p className="font-semibold text-[var(--brand-navy)]">
+                  <p className="font-semibold text-primary">
                     {[infoListing.StreetNumber, infoListing.StreetName].filter(Boolean).join(' ')}
                   </p>
-                  <p className="text-sm text-[var(--text-secondary)]">
+                  <p className="text-sm text-[var(--muted-foreground)]">
                     {formatPrice(infoListing.ListPrice)} · {infoListing.BedroomsTotal} bed · {infoListing.BathroomsTotal} bath
                   </p>
                   <button
@@ -170,7 +209,7 @@ export default function CommunityMap({
                       const k = infoListing.ListingKey ?? infoListing.ListNumber
                       if (k) router.push(`/listing/${k}`)
                     }}
-                    className="mt-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+                    className="mt-2 text-sm font-semibold text-accent-foreground hover:underline"
                   >
                     View listing
                   </button>

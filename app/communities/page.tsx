@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
 import { getCommunitiesForIndex } from '@/app/actions/communities'
+import { getSavedCommunityKeys } from '@/app/actions/saved-communities'
+import {
+  getLikedCommunityKeys,
+  getCommunityEngagementBatch,
+  type CommunityEngagementCounts,
+} from '@/app/actions/community-engagement'
+import { getSession } from '@/app/actions/auth'
 import { RESORT_DISPLAY_NAMES } from '@/lib/communities'
 import CommunityCard from '@/components/community/CommunityCard'
 import CommunitiesFilter from '@/components/community/CommunitiesFilter'
 
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +31,16 @@ export const metadata: Metadata = {
 
 export default async function CommunitiesPage() {
   const allCommunities = await getCommunitiesForIndex()
+  const entityKeys = allCommunities.map((c) => c.entityKey)
+  const [session, savedKeys, likedKeys, engagementMap] = await Promise.all([
+    getSession(),
+    getSavedCommunityKeys(),
+    getLikedCommunityKeys(),
+    entityKeys.length > 0
+      ? getCommunityEngagementBatch(entityKeys)
+      : Promise.resolve({} as Record<string, CommunityEngagementCounts>),
+  ])
+  const signedIn = !!session?.user
 
   const resortSlugs = new Set(
     RESORT_DISPLAY_NAMES.flatMap((name) => {
@@ -51,12 +68,12 @@ export default async function CommunitiesPage() {
         }}
       />
 
-      <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16">
+      <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-7xl text-center">
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Communities in Central Oregon
           </h1>
-          <p className="mt-3 text-lg text-[var(--brand-cream)]">
+          <p className="mt-3 text-lg text-muted">
             Explore neighborhoods and find your next home.
           </p>
         </div>
@@ -70,7 +87,7 @@ export default async function CommunitiesPage() {
           <div className="mx-auto max-w-7xl">
             <h2
               id="resort-communities-heading"
-              className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]"
+              className="text-2xl font-bold tracking-tight text-primary"
             >
               Resort & Master-Planned Communities
             </h2>
@@ -87,6 +104,10 @@ export default async function CommunitiesPage() {
                   isResort
                   description={c.description ?? undefined}
                   size="large"
+                  signedIn={signedIn}
+                  saved={savedKeys.includes(c.entityKey)}
+                  liked={likedKeys.includes(c.entityKey)}
+                  engagement={engagementMap[c.entityKey] ?? null}
                 />
               ))}
             </div>
@@ -95,17 +116,23 @@ export default async function CommunitiesPage() {
       )}
 
       <section
-        className="bg-[var(--brand-cream)] px-4 py-12 sm:px-6 sm:py-16"
+        className="bg-muted px-4 py-12 sm:px-6 sm:py-16"
         aria-labelledby="all-communities-heading"
       >
         <div className="mx-auto max-w-7xl">
           <h2
             id="all-communities-heading"
-            className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]"
+            className="text-2xl font-bold tracking-tight text-primary"
           >
             All Communities
           </h2>
-          <CommunitiesFilter communities={allCommunities} />
+          <CommunitiesFilter
+            communities={allCommunities}
+            signedIn={signedIn}
+            savedKeys={savedKeys}
+            likedKeys={likedKeys}
+            engagementMap={engagementMap}
+          />
         </div>
       </section>
     </main>

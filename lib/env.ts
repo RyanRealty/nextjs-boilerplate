@@ -26,7 +26,7 @@ const optional = [
   'NEXT_PUBLIC_VAPID_PUBLIC_KEY',
   'VAPID_PRIVATE_KEY',
   'RESEND_API_KEY',
-  'FOLLOW_UP_BOSS_API_KEY',
+  'FOLLOWUPBOSS_API_KEY',
 ] as const
 
 function getEnv(name: string): string | undefined {

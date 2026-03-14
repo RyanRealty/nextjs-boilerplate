@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ListingDetailOpenHouse } from '@/app/actions/listing-detail'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/tracking'
 
 function formatTime(t: string | null): string {
@@ -74,7 +74,7 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
       body: JSON.stringify({ openHouseId: oh.id, listingId: listingKey }),
     })
     if (res.status === 401) {
-      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/listings/${listingKey}`)
+      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/listing/${listingKey}`)
       window.location.href = `/account?signin=1&returnUrl=${returnUrl}`
       return
     }
@@ -82,7 +82,7 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
   }
 
   return (
-    <div className="bg-[var(--accent)] text-[var(--brand-navy)] px-4 py-4 sm:px-6">
+    <div className="bg-accent text-primary px-4 py-4 sm:px-6">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <p className="font-semibold">
           Open House: {dateStr}
@@ -92,7 +92,7 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
           <Button variant="secondary" size="sm" onClick={handleAddToCalendar}>
             Add to Calendar
           </Button>
-          <Button variant="primary" size="sm" onClick={handleRsvp}>
+          <Button variant="default" size="sm" onClick={handleRsvp}>
             RSVP
           </Button>
         </div>

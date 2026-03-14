@@ -1,6 +1,6 @@
 # Build Step 23: Testing, First-Run Wizard & Launch Checklist
 
-Read docs/MASTER_PLAN.md, specifically Section 31 (Default Superuser / First-Run Setup), Section 51 (Build Order — Phase 8 & 9).
+Scope: Default superuser, first-run setup, testing, seed data, CI/CD, launch checklist.
 
 ## TASK 1: First-Run Setup Wizard (if not already built in Step 12)
 Verify src/app/(admin)/setup/page.tsx exists and works:

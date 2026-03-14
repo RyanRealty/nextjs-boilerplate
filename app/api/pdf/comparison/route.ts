@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import React from 'react'
 import { renderToBuffer } from '@react-pdf/renderer'
-import { ComparisonPdfDocument } from '@/lib/pdf/comparison-pdf'
+import { ComparisonPdfDocument, type ComparisonListing } from '@/lib/pdf/comparison-pdf'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -12,52 +13,76 @@ function getServiceSupabase() {
 }
 
 export async function POST(request: Request) {
+  const rl = await checkRateLimit(request, 'strict')
+  if (rl.limited) return rl.response
+
   let body: { listingIds?: string[] }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
-  const ids = Array.isArray(body.listingIds) ? body.listingIds.filter((x): x is string => typeof x === 'string').slice(0, 4) : []
+
+  const ids = (body.listingIds ?? []).map((s) => String(s).trim()).filter(Boolean).slice(0, 4)
   if (ids.length === 0) {
-    return NextResponse.json({ error: 'Missing listingIds array' }, { status: 400 })
+    return NextResponse.json({ error: 'Missing listingIds' }, { status: 400 })
   }
 
   const supabase = getServiceSupabase()
-  const { data: rows } = await supabase
-    .from('listings')
-    .select('listing_key, list_price, beds_total, baths_full, living_area')
-    .in('listing_key', ids)
-  const listings = rows ?? []
-  const propIds = [...new Set(listings.map((r) => (r as { property_id?: string }).property_id).filter(Boolean))]
-  const { data: props } = propIds.length > 0
-    ? await supabase.from('properties').select('id, unparsed_address').in('id', propIds)
-    : { data: [] }
-  const propMap = new Map((props ?? []).map((p) => [(p as { id: string }).id, (p as { unparsed_address: string }).unparsed_address]))
-  const { data: photos } = await supabase.from('listing_photos').select('listing_key, photo_url').eq('is_hero', true).in('listing_key', ids)
-  const photoMap = new Map((photos ?? []).map((r) => [(r as { listing_key: string }).listing_key, (r as { photo_url: string }).photo_url]))
+  const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, StreetNumber, StreetName, City, State, PostalCode, PhotoURL'
 
-  const pdfListings = listings.map((l) => {
-    const r = l as Record<string, unknown>
-    const addr = propMap.get(r.property_id as string) ?? String(r.unparsed_address ?? '')
+  const [byNumber, byKey] = await Promise.all([
+    supabase.from('listings').select(select).in('ListNumber', ids),
+    supabase.from('listings').select(select).in('ListingKey', ids),
+  ])
+
+  const allRows = [...(byNumber.data ?? []), ...(byKey.data ?? [])]
+  const seen = new Set<string>()
+  const deduped = allRows.filter((r) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const k = String((r as any).ListingKey ?? (r as any).ListNumber ?? '')
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+
+  // Fetch hero photos
+  const listingKeys = deduped.map((r) => String((r as Record<string, unknown>).ListingKey ?? ''))
+  const { data: photos } = await supabase
+    .from('listing_photos')
+    .select('listing_key, photo_url')
+    .in('listing_key', listingKeys)
+    .eq('is_hero', true)
+
+  const photoMap = new Map<string, string>()
+  for (const p of (photos ?? []) as { listing_key: string; photo_url: string }[]) {
+    if (p.photo_url) photoMap.set(p.listing_key, p.photo_url)
+  }
+
+  const listings: ComparisonListing[] = deduped.map((r) => {
+    const row = r as Record<string, unknown>
+    const lk = String(row.ListingKey ?? '')
+    const streetParts = [row.StreetNumber, row.StreetName].filter(Boolean).join(' ').trim()
+    const addressParts = [streetParts, row.City, row.State, row.PostalCode].filter(Boolean)
     return {
-      address: addr,
-      price: Number(r.list_price ?? 0),
-      beds: r.beds_total != null ? Number(r.beds_total) : null,
-      baths: r.baths_full != null ? Number(r.baths_full) : null,
-      sqft: r.living_area != null ? Number(r.living_area) : null,
-      photoUrl: photoMap.get(r.listing_key as string) ?? null,
+      address: addressParts.join(', '),
+      price: (row.ListPrice as number) ?? 0,
+      beds: (row.BedroomsTotal as number) ?? null,
+      baths: (row.BathroomsTotal as number) ?? null,
+      sqft: (row.TotalLivingAreaSqFt as number) ?? null,
+      photoUrl: photoMap.get(lk) ?? (row.PhotoURL as string) ?? null,
     }
   })
 
-  const doc = React.createElement(ComparisonPdfDocument, { data: { listings: pdfListings } })
+  const doc = React.createElement(ComparisonPdfDocument, { data: { listings } })
   type DocElement = Parameters<typeof renderToBuffer>[0]
-  const buffer = await renderToBuffer(doc as DocElement)
-  return new NextResponse(new Uint8Array(buffer), {
+  const pdfBuffer = await renderToBuffer(doc as DocElement)
+
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="comparison.pdf"',
+      'Content-Disposition': 'attachment; filename="property-comparison.pdf"',
     },
   })
 }

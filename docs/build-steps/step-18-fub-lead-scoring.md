@@ -1,6 +1,6 @@
 # Build Step 18: FUB Lead Scoring & Behavioral Intelligence
 
-Read docs/MASTER_PLAN.md, specifically Section 28 (Lead Generation, Scoring, CRM & Behavioral Intelligence) completely — all subsections 28.1 through 28.7.
+Scope: Lead generation, lead scoring, CRM & behavioral intelligence, FUB workflows.
 
 Build the complete lead intelligence system:
 
@@ -33,7 +33,7 @@ Create src/app/api/fub/batch-views/route.ts:
 - Groups views by user, sends one event per user with all listing URLs
 
 ## TASK 2: FUB Custom Fields
-Create a setup script or documentation at docs/fub-setup.md listing all 16 custom fields to create in FUB:
+Create a setup script or documentation at docs/FUB_CUSTOM_FIELDS.md listing all 16 custom fields to create in FUB:
 - buyer_budget_min, buyer_budget_max (number)
 - preferred_communities (text)
 - preferred_beds, preferred_baths (number)

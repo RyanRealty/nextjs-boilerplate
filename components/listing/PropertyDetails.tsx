@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import type { ListingDetailListing, ListingDetailCommunity } from '@/app/actions/listing-detail'
-import Card, { CardContent } from '@/components/ui/Card'
+import { Card, CardContent } from '@/components/ui/card'
+import PropertyTypeBadge from '@/components/ui/PropertyTypeBadge'
 
 function parseList(value: string | null | undefined): string[] {
   if (!value?.trim()) return []
@@ -36,23 +37,27 @@ export default function PropertyDetails({ listing, community }: Props) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-xl font-semibold text-[var(--brand-navy)]">Property Details</h2>
+      <h2 className="text-xl font-semibold text-primary">Property Details</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('property')}
               aria-expanded={openSections.property}
             >
               <span>Property Details</span>
-              <span className="text-[var(--gray-muted)]">{openSections.property ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.property ? '▼' : '▶'}</span>
             </button>
             {openSections.property && (
-              <ul className="mt-3 space-y-2 text-sm text-[var(--brand-navy)]">
+              <ul className="mt-3 space-y-2 text-sm text-primary">
                 {(listing.property_type || listing.property_sub_type) && (
-                  <li>Property Type: {[listing.property_type, listing.property_sub_type].filter(Boolean).join(' · ')}</li>
+                  <li className="flex items-center gap-2">
+                    <span>Property Type:</span>
+                    <PropertyTypeBadge value={listing.property_type} />
+                    {listing.property_sub_type && <span className="text-primary">· {listing.property_sub_type}</span>}
+                  </li>
                 )}
                 {listing.year_built != null && <li>Year Built: {listing.year_built}</li>}
                 {listing.architectural_style && <li>Architectural Style: {listing.architectural_style}</li>}
@@ -70,22 +75,22 @@ export default function PropertyDetails({ listing, community }: Props) {
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('interior')}
               aria-expanded={openSections.interior}
             >
               <span>Interior Features</span>
-              <span className="text-[var(--gray-muted)]">{openSections.interior ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.interior ? '▼' : '▶'}</span>
             </button>
             {openSections.interior && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {interiorTags.length > 0
                   ? interiorTags.map((t) => (
-                      <span key={t} className="rounded-full bg-[var(--gray-bg)] px-3 py-1 text-sm text-[var(--brand-navy)]">
+                      <span key={t} className="rounded-full bg-[var(--muted)] px-3 py-1 text-sm text-primary">
                         {t}
                       </span>
                     ))
-                  : <span className="text-sm text-[var(--gray-muted)]">—</span>}
+                  : <span className="text-sm text-[var(--muted-foreground)]">—</span>}
               </div>
             )}
           </CardContent>
@@ -95,22 +100,22 @@ export default function PropertyDetails({ listing, community }: Props) {
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('exterior')}
               aria-expanded={openSections.exterior}
             >
               <span>Exterior Features</span>
-              <span className="text-[var(--gray-muted)]">{openSections.exterior ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.exterior ? '▼' : '▶'}</span>
             </button>
             {openSections.exterior && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {exteriorTags.length > 0
                   ? exteriorTags.map((t) => (
-                      <span key={t} className="rounded-full bg-[var(--gray-bg)] px-3 py-1 text-sm text-[var(--brand-navy)]">
+                      <span key={t} className="rounded-full bg-[var(--muted)] px-3 py-1 text-sm text-primary">
                         {t}
                       </span>
                     ))
-                  : <span className="text-sm text-[var(--gray-muted)]">—</span>}
+                  : <span className="text-sm text-[var(--muted-foreground)]">—</span>}
               </div>
             )}
           </CardContent>
@@ -120,15 +125,15 @@ export default function PropertyDetails({ listing, community }: Props) {
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('heating')}
               aria-expanded={openSections.heating}
             >
               <span>Heating & Cooling</span>
-              <span className="text-[var(--gray-muted)]">{openSections.heating ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.heating ? '▼' : '▶'}</span>
             </button>
             {openSections.heating && (
-              <p className="mt-3 text-sm text-[var(--brand-navy)]">
+              <p className="mt-3 text-sm text-primary">
                 {[listing.heating, listing.cooling].filter(Boolean).join(' · ') || '—'}
               </p>
             )}
@@ -139,15 +144,15 @@ export default function PropertyDetails({ listing, community }: Props) {
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('kitchen')}
               aria-expanded={openSections.kitchen}
             >
               <span>Kitchen & Appliances</span>
-              <span className="text-[var(--gray-muted)]">{openSections.kitchen ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.kitchen ? '▼' : '▶'}</span>
             </button>
             {openSections.kitchen && (
-              <p className="mt-3 text-sm text-[var(--brand-navy)]">{listing.kitchen_appliances?.trim() || '—'}</p>
+              <p className="mt-3 text-sm text-primary">{listing.kitchen_appliances?.trim() || '—'}</p>
             )}
           </CardContent>
         </Card>
@@ -156,15 +161,15 @@ export default function PropertyDetails({ listing, community }: Props) {
           <CardContent className="p-4">
             <button
               type="button"
-              className="flex w-full items-center justify-between text-left font-medium text-[var(--brand-navy)]"
+              className="flex w-full items-center justify-between text-left font-medium text-primary"
               onClick={() => toggle('community')}
               aria-expanded={openSections.community}
             >
               <span>Community Features</span>
-              <span className="text-[var(--gray-muted)]">{openSections.community ? '▼' : '▶'}</span>
+              <span className="text-[var(--muted-foreground)]">{openSections.community ? '▼' : '▶'}</span>
             </button>
             {openSections.community && (
-              <ul className="mt-3 space-y-1 text-sm text-[var(--brand-navy)]">
+              <ul className="mt-3 space-y-1 text-sm text-primary">
                 {listing.pool_features && <li>Pool: {listing.pool_features}</li>}
                 {listing.waterfront_yn && <li>Waterfront</li>}
                 {listing.view && <li>View: {listing.view}</li>}

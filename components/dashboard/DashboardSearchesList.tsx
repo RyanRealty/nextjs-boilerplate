@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { cityEntityKey } from '@/lib/slug'
+import { homesForSalePath } from '@/lib/slug'
 import { deleteSavedSearch } from '@/app/actions/saved-searches'
 import type { SavedSearchRow } from '@/app/actions/saved-searches'
 
@@ -25,8 +25,8 @@ function buildSearchUrl(filters: Record<string, unknown>): string {
   if (filters.includeClosed === true) params.set('includeClosed', '1')
   const q = params.toString()
   if (city && subdivision)
-    return `/search/${cityEntityKey(city)}/${encodeURIComponent(subdivision)}${q ? `?${q}` : ''}`
-  if (city) return `/search/${cityEntityKey(city)}${q ? `?${q}` : ''}`
+    return `${homesForSalePath(city, subdivision)}${q ? `?${q}` : ''}`
+  if (city) return `${homesForSalePath(city)}${q ? `?${q}` : ''}`
   return `/listings${q ? `?${q}` : ''}`
 }
 
@@ -66,41 +66,41 @@ export default function DashboardSearchesList({ searches, className = '' }: Prop
       {searches.map((s) => (
         <li
           key={s.id}
-          className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
+          className="rounded-lg border border-border bg-white p-4 shadow-sm"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="font-semibold text-zinc-900">{s.name || 'Saved search'}</h3>
-              <p className="mt-0.5 text-sm text-zinc-500">{filterSummary(s.filters)}</p>
+              <h3 className="font-semibold text-foreground">{s.name || 'Saved search'}</h3>
+              <p className="mt-0.5 text-sm text-muted-foreground">{filterSummary(s.filters)}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={buildSearchUrl(s.filters)}
-                className="rounded-lg bg-[var(--brand-navy)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+                className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-accent/90"
               >
                 View results
               </Link>
               <Link
                 href={buildSearchUrl(s.filters)}
-                className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
                 Edit filters
               </Link>
               {confirmId === s.id ? (
                 <>
-                  <span className="text-sm text-zinc-500">Delete?</span>
+                  <span className="text-sm text-muted-foreground">Delete?</span>
                   <button
                     type="button"
                     onClick={() => handleDelete(s.id)}
                     disabled={!!deletingId}
-                    className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
+                    className="text-sm font-medium text-destructive hover:underline disabled:opacity-50"
                   >
                     {deletingId === s.id ? 'Deleting…' : 'Yes, delete'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmId(null)}
-                    className="text-sm font-medium text-zinc-500 hover:text-zinc-700"
+                    className="text-sm font-medium text-muted-foreground hover:text-muted-foreground"
                   >
                     Cancel
                   </button>
@@ -109,7 +109,7 @@ export default function DashboardSearchesList({ searches, className = '' }: Prop
                 <button
                   type="button"
                   onClick={() => handleDelete(s.id)}
-                  className="text-sm font-medium text-zinc-500 hover:text-red-600"
+                  className="text-sm font-medium text-muted-foreground hover:text-destructive"
                 >
                   Delete
                 </button>

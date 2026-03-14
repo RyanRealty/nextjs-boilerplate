@@ -17,8 +17,8 @@ export default function GlobalError({ error }: { error: Error }) {
             margin: "0 auto",
             padding: "2rem 1rem",
             textAlign: "center",
-            color: "var(--text-primary, #18181b)",
-            backgroundColor: "var(--brand-cream, #f0eeec)",
+            color: "#18181b",
+            backgroundColor: "#f0eeec",
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
@@ -30,7 +30,7 @@ export default function GlobalError({ error }: { error: Error }) {
             style={{
               fontSize: "1.25rem",
               fontWeight: 600,
-              color: "var(--brand-navy, #102742)",
+              color: "#102742",
             }}
           >
             Something went wrong
@@ -38,11 +38,12 @@ export default function GlobalError({ error }: { error: Error }) {
           <p
             style={{
               marginTop: "0.5rem",
-              color: "var(--text-secondary, #52525b)",
+              color: "#52525b",
             }}
           >
             We’ve been notified and are looking into it. Please try again.
           </p>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             style={{
@@ -51,10 +52,10 @@ export default function GlobalError({ error }: { error: Error }) {
               padding: "0.5rem 1rem",
               fontSize: "0.875rem",
               fontWeight: 500,
-              color: "var(--brand-navy, #102742)",
+              color: "#102742",
               backgroundColor: "white",
-              border: "1px solid var(--border, #e4e4e7)",
-              borderRadius: "var(--radius-md, 0.75rem)",
+              border: "1px solid #e4e4e7",
+              borderRadius: "0.75rem",
               textDecoration: "none",
             }}
           >

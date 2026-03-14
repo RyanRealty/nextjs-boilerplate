@@ -23,23 +23,23 @@ export default function BrokerStats({ broker }: Props) {
           Performance at a glance
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-[var(--gray-bg)] p-6 text-center">
-            <p className="text-2xl font-bold text-[var(--brand-navy)]">{broker.soldCount24Mo}</p>
-            <p className="text-sm text-[var(--text-secondary)]">Total Transactions (24 mo)</p>
+          <div className="rounded-lg bg-[var(--muted)] p-6 text-center">
+            <p className="text-2xl font-bold text-primary">{broker.soldCount24Mo}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">Total Transactions (24 mo)</p>
           </div>
-          <div className="rounded-xl bg-[var(--gray-bg)] p-6 text-center">
-            <p className="text-2xl font-bold text-[var(--brand-navy)]">{formatVolume(broker.soldVolume24Mo)}</p>
-            <p className="text-sm text-[var(--text-secondary)]">Total Volume (24 mo)</p>
+          <div className="rounded-lg bg-[var(--muted)] p-6 text-center">
+            <p className="text-2xl font-bold text-primary">{formatVolume(broker.soldVolume24Mo)}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">Total Volume (24 mo)</p>
           </div>
-          <div className="rounded-xl bg-[var(--gray-bg)] p-6 text-center">
-            <p className="text-2xl font-bold text-[var(--brand-navy)]">{formatPrice(broker.avgSalePrice)}</p>
-            <p className="text-sm text-[var(--text-secondary)]">Average Sale Price</p>
+          <div className="rounded-lg bg-[var(--muted)] p-6 text-center">
+            <p className="text-2xl font-bold text-primary">{formatPrice(broker.avgSalePrice)}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">Average Sale Price</p>
           </div>
-          <div className="rounded-xl bg-[var(--gray-bg)] p-6 text-center">
-            <p className="text-2xl font-bold text-[var(--brand-navy)]">
+          <div className="rounded-lg bg-[var(--muted)] p-6 text-center">
+            <p className="text-2xl font-bold text-primary">
               {broker.avgDom != null && broker.avgDom > 0 ? Math.round(broker.avgDom) : '—'}
             </p>
-            <p className="text-sm text-[var(--text-secondary)]">Avg Days on Market</p>
+            <p className="text-sm text-[var(--muted-foreground)]">Avg Days on Market</p>
           </div>
         </div>
       </div>

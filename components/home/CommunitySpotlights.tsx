@@ -4,8 +4,8 @@ import { useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { HotCommunity } from '@/app/actions/listings'
-import { cityEntityKey } from '@/lib/slug'
-import Card from '@/components/ui/Card'
+import { communityPagePath } from '@/lib/community-slug'
+import { Card } from '@/components/ui/card'
 import { trackEvent } from '@/lib/tracking'
 
 type Props = {
@@ -41,7 +41,7 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
   if (communities.length === 0) return null
 
   const hrefFor = (c: HotCommunity) =>
-    `/search/${cityEntityKey(city)}/${encodeURIComponent(c.subdivisionName)}`
+    communityPagePath(city, c.subdivisionName)
 
   return (
     <section
@@ -51,13 +51,13 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
     >
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between gap-4">
-          <h2 id="community-spotlights-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+          <h2 id="community-spotlights-heading" className="text-2xl font-bold tracking-tight text-primary">
             Explore Communities
           </h2>
           <Link
-            href="/search"
+            href="/homes-for-sale"
             onClick={() => trackEvent('click_cta', { cta_location: 'community_view_all' })}
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
+            className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
           >
             View All
           </Link>
@@ -70,27 +70,27 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
               onClick={() => trackEvent('click_cta', { cta_location: 'community_card', community: c.subdivisionName })}
               className="group"
             >
-              <Card className="overflow-hidden border-[var(--gray-border)] shadow-sm transition hover:shadow-md">
+              <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md">
                 <div className="relative aspect-[16/10] w-full overflow-hidden">
                   {bannerUrls[i] ? (
                     <Image
                       src={bannerUrls[i]!}
-                      alt=""
+                      alt={`${c.subdivisionName} community in ${city}`}
                       fill
                       className="object-cover transition group-hover:scale-[1.02]"
                       sizes="(max-width: 768px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-[var(--brand-navy)] to-zinc-800" />
+                    <div className="h-full w-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary / 0.8)]" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-[var(--brand-navy)]">{c.subdivisionName}</h3>
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                  <h3 className="font-bold text-primary">{c.subdivisionName}</h3>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
                     {(c.forSale ?? 0) + (c.pending ?? 0)} homes for sale
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-[var(--text-primary)]">
+                  <p className="mt-0.5 text-sm font-medium text-[var(--foreground)]">
                     Median {formatPrice(c.medianListPrice)}
                   </p>
                 </div>

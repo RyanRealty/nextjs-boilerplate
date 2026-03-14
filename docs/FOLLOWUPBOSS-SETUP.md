@@ -40,7 +40,7 @@ If these are not set, the app still works; it just won’t send the system heade
 
 ### 3. Lead source in Follow Up Boss
 
-- **Source** sent with each event is your site domain (from `NEXT_PUBLIC_SITE_URL`), e.g. `ryanrealty.com` (no `www`, no `https://`).
+- **Source** sent with each event is your site domain (from `NEXT_PUBLIC_SITE_URL`), e.g. `ryan-realty.com` (no `www`, no `https://`).
 - In Follow Up Boss, ensure you have a **lead source** that matches that domain (or create one) so these sign-ins are attributed to “Website” or “Ryan Realty Website” as you prefer.
 
 ## What happens when someone signs in with Google

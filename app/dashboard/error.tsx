@@ -16,19 +16,19 @@ export default function DashboardError({
 
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-xl font-semibold text-zinc-900">Something went wrong</h1>
-      <p className="max-w-md text-sm text-zinc-600">{error.message}</p>
+      <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
+      <p className="max-w-md text-sm text-muted-foreground">{error.message}</p>
       <div className="flex gap-3">
         <button
           type="button"
           onClick={reset}
-          className="rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
         >
           Try again
         </button>
         <Link
           href="/dashboard"
-          className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
         >
           Back to dashboard
         </Link>

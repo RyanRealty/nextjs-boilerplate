@@ -18,7 +18,7 @@ export default function CityCTA({ cityName, slug }: Props) {
   }
 
   return (
-    <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="city-cta-heading">
+    <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="city-cta-heading">
       <div className="mx-auto max-w-3xl text-center">
         <h2 id="city-cta-heading" className="text-2xl font-bold tracking-tight text-white">
           Looking for a Home in {cityName}?
@@ -27,7 +27,7 @@ export default function CityCTA({ cityName, slug }: Props) {
           <Link
             href="/account/saved-searches"
             onClick={handleGetNotified}
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
             Get Notified of New Listings
           </Link>

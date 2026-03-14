@@ -1,6 +1,6 @@
 # Build Step 20: SEO — Sitemaps, Structured Data, OG Images
 
-Read docs/MASTER_PLAN.md, specifically Section 44 (Performance, Speed & SEO) — the SEO Strategy subsection, Section 45 (Structured Data), Section 27 (Sharing — OG previews).
+Scope: SEO strategy, sitemaps, structured data, OG/Twitter previews, meta tags.
 
 ## TASK 1: Dynamic Sitemap
 Create src/app/sitemap.ts:

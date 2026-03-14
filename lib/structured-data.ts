@@ -2,7 +2,7 @@
  * JSON-LD structured data generators for SEO. Step 20.
  */
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com').replace(/\/$/, '')
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export type ListingForSchema = {
   listing_key: string
@@ -33,7 +33,7 @@ export function generateListingSchema(
     '@context': 'https://schema.org',
     '@type': listing.living_area != null && listing.living_area > 0 ? 'SingleFamilyResidence' : 'Residence',
     name: address.unparsed_address ?? street ?? 'Property',
-    url: `${SITE_URL}/listings/${encodeURIComponent(listing.listing_key)}`,
+    url: `${SITE_URL}/listing/${encodeURIComponent(listing.listing_key)}`,
     ...(listing.list_price != null && listing.list_price > 0 && {
       offers: { '@type': 'Offer', price: listing.list_price, priceCurrency: 'USD' },
     }),

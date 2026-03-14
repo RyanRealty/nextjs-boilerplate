@@ -1,10 +1,15 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import type { AgentForIndex } from '@/app/actions/agents'
-import Card from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
+import CardActionBar from '@/components/ui/CardActionBar'
 
 type Props = {
   agent: AgentForIndex
+  /** Base path for profile link (e.g. 'agents' or 'team'). Default 'agents'. */
+  basePath?: 'agents' | 'team'
 }
 
 function formatVolume(n: number): string {
@@ -14,7 +19,7 @@ function formatVolume(n: number): string {
 }
 
 function StarRating({ rating, count }: { rating: number | null; count: number }) {
-  if (count === 0) return <span className="text-sm text-[var(--text-muted)]">No reviews yet</span>
+  if (count === 0) return <span className="text-sm text-[var(--muted-foreground)]">No reviews yet</span>
   const r = rating ?? 0
   const full = Math.floor(r)
   const half = r - full >= 0.5 ? 1 : 0
@@ -22,51 +27,60 @@ function StarRating({ rating, count }: { rating: number | null; count: number })
   return (
     <span className="inline-flex items-center gap-1">
       {[...Array(full)].map((_, i) => (
-        <span key={`f-${i}`} className="text-[var(--accent)]" aria-hidden>★</span>
+        <span key={`f-${i}`} className="text-accent-foreground" aria-hidden>★</span>
       ))}
-      {half ? <span className="text-[var(--accent)]" aria-hidden>★</span> : null}
+      {half ? <span className="text-accent-foreground" aria-hidden>★</span> : null}
       {[...Array(empty)].map((_, i) => (
-        <span key={`e-${i}`} className="text-[var(--gray-border)]" aria-hidden>★</span>
+        <span key={`e-${i}`} className="text-[var(--border)]" aria-hidden>★</span>
       ))}
-      <span className="ml-1 text-sm text-[var(--text-secondary)]">
+      <span className="ml-1 text-sm text-[var(--muted-foreground)]">
         {r.toFixed(1)} ({count})
       </span>
     </span>
   )
 }
 
-export default function BrokerCard({ agent }: Props) {
+export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
   const firstName = agent.display_name.split(' ')[0] ?? agent.display_name
   const specialties = (agent.specialties ?? []).filter((s): s is string => Boolean(s?.trim()))
+  const profileHref = basePath === 'team' ? `/team/${agent.slug}` : `/agents/${agent.slug}`
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${profileHref}` : profileHref
 
   return (
-    <Link href={`/agents/${agent.slug}`}>
-      <Card className="overflow-hidden transition hover:shadow-lg">
+    <Card className="relative overflow-hidden transition hover:shadow-md">
+      <Link href={profileHref} className="block">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 p-4 sm:p-6">
-          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-[var(--gray-bg)]">
+          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-[var(--muted)]">
             {agent.photo_url ? (
               <Image
                 src={agent.photo_url}
-                alt=""
+                alt={`${agent.display_name || 'Agent'} — real estate agent`}
                 fill
                 className="object-cover"
                 sizes="96px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--text-muted)]">
+              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-[var(--muted-foreground)]">
                 {agent.display_name.charAt(0)}
               </div>
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-bold text-lg text-[var(--brand-navy)]">{agent.display_name}</h2>
+            <h2 className="font-bold text-lg text-primary">{agent.display_name}</h2>
             {agent.title && (
-              <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{agent.title}</p>
+              <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">{agent.title}</p>
             )}
             <div className="mt-2">
               <StarRating rating={agent.avgRating} count={agent.reviewCount} />
             </div>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
+            {agent.bio && (
+              <p className="mt-2 line-clamp-2 text-sm text-[var(--muted-foreground)]">{agent.bio}</p>
+            )}
+            {agent.license_number && (
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">License #{agent.license_number}</p>
+            )}
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted-foreground)]">
               <span>{agent.activeCount} Active Listings</span>
               <span>{agent.soldCount24Mo} Sold (24mo)</span>
               <span>{formatVolume(agent.soldVolume24Mo)} Volume</span>
@@ -76,7 +90,7 @@ export default function BrokerCard({ agent }: Props) {
                 {specialties.slice(0, 3).map((s) => (
                   <span
                     key={s}
-                    className="rounded-full bg-[var(--gray-bg)] px-2 py-0.5 text-xs text-[var(--text-secondary)]"
+                    className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-xs text-[var(--muted-foreground)]"
                   >
                     {s}
                   </span>
@@ -84,22 +98,45 @@ export default function BrokerCard({ agent }: Props) {
               </div>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]">
+              <span className="inline-flex items-center justify-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary hover:bg-accent/90">
                 View Profile
               </span>
               {agent.phone && (
                 <a
                   href={`tel:${agent.phone.replace(/\D/g, '')}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="text-sm font-medium text-[var(--brand-navy)] hover:underline"
+                  className="text-sm font-medium text-primary hover:underline"
                 >
                   {agent.phone}
+                </a>
+              )}
+              {agent.email && (
+                <a
+                  href={`mailto:${agent.email}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  {agent.email}
                 </a>
               )}
             </div>
           </div>
         </div>
-      </Card>
-    </Link>
+      </Link>
+      <div className="flex flex-wrap items-center justify-end border-t border-border bg-muted px-2 py-1.5">
+        <CardActionBar
+          position="below"
+          variant="onLight"
+          onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+          share={{
+            url: shareUrl,
+            title: `${agent.display_name} – Ryan Realty`,
+            text: agent.bio ? agent.bio.slice(0, 100) : undefined,
+            ariaLabel: `Share ${agent.display_name}`,
+          }}
+          signedIn={true}
+        />
+      </div>
+    </Card>
   )
 }

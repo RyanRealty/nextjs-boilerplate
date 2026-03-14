@@ -38,24 +38,24 @@ export default async function DashboardCollectionsPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">My Collections</h1>
-      <p className="mt-1 text-zinc-600">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">My Collections</h1>
+      <p className="mt-1 text-muted-foreground">
         All your saved homes in one place. Share a collection or organize into named groups (coming soon).
       </p>
 
       {listings.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-zinc-200 bg-zinc-50 p-8 text-center">
-          <p className="text-zinc-600">You don&apos;t have any saved homes yet.</p>
+        <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
+          <p className="text-muted-foreground">You don&apos;t have any saved homes yet.</p>
           <Link
-            href="/search"
-            className="mt-4 inline-block rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+            href="/homes-for-sale"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
           >
             Browse search
           </Link>
         </div>
       ) : (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-zinc-900">All Saved ({listings.length})</h2>
+          <h2 className="text-lg font-semibold text-foreground">All Saved ({listings.length})</h2>
           <div className="mt-3 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => {
               const key = (listing.ListNumber ?? listing.ListingKey ?? '').toString().trim()

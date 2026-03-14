@@ -1,6 +1,6 @@
 # Build Step 15: Market Reporting Engine
 
-Read docs/MASTER_PLAN.md, specifically Section 32 (Reporting Engine) completely — all subsections 32.1 through 32.8, Section 33 (Market Stats Pre-Computation).
+Scope: Reporting engine, market stats pre-computation, charts, city/period reports, broker performance.
 
 Build the complete reporting system:
 
@@ -43,8 +43,8 @@ Create src/app/(public)/reports/page.tsx as a SERVER component:
 - Area selector: dropdown or tabs for cities and major communities
 - Default view: Bend market overview
 
-Create src/app/(public)/reports/[geoType]/[geoName]/page.tsx:
-- Dynamic route: /reports/city/bend, /reports/community/tetherow, etc
+Create the dynamic report page (e.g. `app/reports/[slug]/[geoName]/page.tsx`):
+- Dynamic route: `/reports/city/bend`, `/reports/community/tetherow`, etc. (slug = report type; geoName = area)
 - SEO metadata: title "[GeoName] Real Estate Market Report | Ryan Realty"
 - Fetch reporting_cache for the selected area and time period
 

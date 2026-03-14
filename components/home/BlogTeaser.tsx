@@ -24,15 +24,15 @@ export default function BlogTeaser({ posts }: Props) {
   if (posts.length === 0) return null
 
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="blog-teaser-heading">
-      <div className="mx-auto max-w-7xl">
+    <section className="w-full bg-white px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="blog-teaser-heading">
+      <div className="w-full">
         <div className="flex items-center justify-between gap-4">
-          <h2 id="blog-teaser-heading" className="text-2xl font-bold tracking-tight text-[var(--brand-navy)]">
+          <h2 id="blog-teaser-heading" className="text-2xl font-bold tracking-tight text-primary">
             Latest Insights
           </h2>
           <Link
             href="/blog"
-            className="text-sm font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)]"
+            className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
           >
             Read More
           </Link>
@@ -42,12 +42,12 @@ export default function BlogTeaser({ posts }: Props) {
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}
-              className="group overflow-hidden rounded-xl border border-[var(--gray-border)] bg-white shadow-sm transition hover:shadow-md"
+              className="group overflow-hidden rounded-lg border border-border bg-white shadow-sm transition hover:shadow-md"
             >
-              <div className="relative aspect-video w-full overflow-hidden bg-[var(--gray-bg)]">
+              <div className="relative aspect-video w-full overflow-hidden bg-[var(--muted)]">
                 <Image
                   src={post.imageUrl ?? PLACEHOLDER_IMAGE}
-                  alt=""
+                  alt={post.title || 'Blog post image'}
                   fill
                   className="object-cover transition group-hover:scale-[1.02]"
                   sizes="(max-width: 640px) 100vw, 33vw"
@@ -55,13 +55,13 @@ export default function BlogTeaser({ posts }: Props) {
               </div>
               <div className="p-4">
                 {post.category && (
-                  <span className="text-xs font-medium uppercase tracking-wide text-[var(--accent)]">
+                  <span className="text-xs font-medium uppercase tracking-wide text-accent-foreground">
                     {post.category}
                   </span>
                 )}
-                <h3 className="mt-1 line-clamp-2 font-semibold text-[var(--brand-navy)]">{post.title}</h3>
-                <p className="mt-1 line-clamp-2 text-sm text-[var(--text-secondary)]">{post.excerpt}</p>
-                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                <h3 className="mt-1 line-clamp-2 font-semibold text-primary">{post.title}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">{post.excerpt}</p>
+                <p className="mt-2 text-xs text-[var(--muted-foreground)]">
                   {new Date(post.publishedAt).toLocaleDateString('en-US')}
                   {post.readTimeMinutes != null && post.readTimeMinutes > 0 && ` · ${post.readTimeMinutes} min read`}
                 </p>

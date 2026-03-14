@@ -38,11 +38,11 @@ export default function ExportMyDataButton({ className }: Props) {
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+        className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
       >
         {loading ? 'Preparing…' : 'Export my data (JSON)'}
       </button>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
     </div>
   )
 }

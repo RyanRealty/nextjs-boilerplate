@@ -69,7 +69,7 @@ export function ListingPdfDocument({ data }: { data: ListingPdfData }) {
         {data.daysOnMarket != null ? <Text>DOM: {data.daysOnMarket}</Text> : null}
         {data.mlsNumber ? <Text>MLS# {data.mlsNumber}</Text> : null}
         <View style={styles.footer} fixed>
-          <Text>Generated from ryanrealty.com · Equal Housing Opportunity</Text>
+          <Text>Generated from ryan-realty.com · Equal Housing Opportunity</Text>
         </View>
       </Page>
       <Page size="A4" style={styles.page}>

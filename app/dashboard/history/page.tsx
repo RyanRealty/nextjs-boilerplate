@@ -40,17 +40,17 @@ export default async function DashboardHistoryPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Viewing History</h1>
-      <p className="mt-1 text-zinc-600">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Viewing History</h1>
+      <p className="mt-1 text-muted-foreground">
         Listings you&apos;ve recently viewed. Limited to the last 100.
       </p>
 
       {views.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-zinc-200 bg-zinc-50 p-8 text-center">
-          <p className="text-zinc-600">No viewing history yet.</p>
+        <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
+          <p className="text-muted-foreground">No viewing history yet.</p>
           <Link
             href="/listings"
-            className="mt-4 inline-block rounded-lg bg-[var(--brand-navy)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent/90"
           >
             Browse listings
           </Link>
@@ -87,26 +87,26 @@ export default async function DashboardHistoryPage() {
               )
             })}
           </div>
-          <p className="mt-2 text-sm text-zinc-500">Listings matching your browsing patterns</p>
+          <p className="mt-2 text-sm text-muted-foreground">Listings matching your browsing patterns</p>
 
           <section className="mt-8">
-            <h2 className="text-lg font-semibold text-zinc-900">Recent views</h2>
+            <h2 className="text-lg font-semibold text-foreground">Recent views</h2>
             <ul className="mt-3 space-y-3">
               {views.map((v) => {
                 const listing = listingMap.get(v.entity_id)
                 if (!listing) return null
                 const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString().trim()
                 return (
-                  <li key={v.id} className="flex items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-3">
-                    <Link href={`/listing/${key}`} className="font-medium text-zinc-900 hover:underline">
+                  <li key={v.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-white p-3">
+                    <Link href={`/listing/${key}`} className="font-medium text-foreground hover:underline">
                       {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ').trim() || listing.City || key}
                     </Link>
-                    <span className="text-sm text-zinc-500">
+                    <span className="text-sm text-muted-foreground">
                       {new Date(v.created_at).toLocaleDateString()}
                     </span>
                     <Link
                       href={`/listing/${key}`}
-                      className="text-sm font-medium text-[var(--accent)] hover:underline"
+                      className="text-sm font-medium text-accent-foreground hover:underline"
                     >
                       View again
                     </Link>

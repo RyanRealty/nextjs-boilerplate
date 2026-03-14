@@ -31,7 +31,7 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
 
   if (state.success) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-800">
+      <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-6 text-green-500">
         <p className="font-medium">Thanks for reaching out.</p>
         <p className="mt-1 text-sm">We&apos;ll get back to you soon.</p>
       </div>
@@ -41,7 +41,7 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="contact-name" className="block text-sm font-medium text-zinc-700">
+        <label htmlFor="contact-name" className="block text-sm font-medium text-muted-foreground">
           Name
         </label>
         <input
@@ -49,12 +49,12 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
           name="name"
           type="text"
           autoComplete="name"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
       <div>
-        <label htmlFor="contact-email" className="block text-sm font-medium text-zinc-700">
-          Email <span className="text-red-600">*</span>
+        <label htmlFor="contact-email" className="block text-sm font-medium text-muted-foreground">
+          Email <span className="text-destructive">*</span>
         </label>
         <input
           id="contact-email"
@@ -62,11 +62,11 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
           type="email"
           required
           autoComplete="email"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
       <div>
-        <label htmlFor="contact-phone" className="block text-sm font-medium text-zinc-700">
+        <label htmlFor="contact-phone" className="block text-sm font-medium text-muted-foreground">
           Phone
         </label>
         <input
@@ -74,18 +74,18 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
           name="phone"
           type="tel"
           autoComplete="tel"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
       <div>
-        <label htmlFor="contact-inquiry" className="block text-sm font-medium text-zinc-700">
+        <label htmlFor="contact-inquiry" className="block text-sm font-medium text-muted-foreground">
           How can we help?
         </label>
         <select
           id="contact-inquiry"
           name="inquiryType"
           defaultValue={defaultInquiryType ?? 'General Inquiry'}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           {INQUIRY_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -95,21 +95,21 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
         </select>
       </div>
       <div>
-        <label htmlFor="contact-message" className="block text-sm font-medium text-zinc-700">
+        <label htmlFor="contact-message" className="block text-sm font-medium text-muted-foreground">
           Message
         </label>
         <textarea
           id="contact-message"
           name="message"
           rows={4}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="mt-1 block w-full rounded-lg border border-border px-3 py-2 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-[var(--brand-navy)] px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-70"
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-70"
       >
         {loading ? 'Sending…' : 'Send message'}
       </button>

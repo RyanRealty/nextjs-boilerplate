@@ -32,7 +32,7 @@ export const processNotifications = inngest.createFunction(
 
     if (!pending?.length) return { processed: 0 }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://ryanrealty.com'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://ryan-realty.com'
 
     for (const row of pending) {
       const payload = (row.payload as Record<string, unknown>) ?? {}

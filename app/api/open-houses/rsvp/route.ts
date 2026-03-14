@@ -1,15 +1,10 @@
 import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { pushToFub } from '@/lib/fub'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-function getSupabase() {
-  if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
-  return createClient(url, anonKey)
-}
 
 function getServiceSupabase() {
   if (!url?.trim() || !serviceKey?.trim()) throw new Error('Supabase service role not configured')
@@ -24,7 +19,7 @@ type RsvpBody = { openHouseId: string; listingId: string }
  * Requires auth. Creates open_house_rsvps, increments rsvp_count, queues reminders, pushes to FUB.
  */
 export async function POST(request: NextRequest) {
-  const supabase = getSupabase()
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -46,7 +41,7 @@ export async function POST(request: NextRequest) {
 
   const { data: oh, error: ohError } = await service
     .from('open_houses')
-    .select('id, listing_key, event_date, start_time, end_time')
+    .select('id, listing_key, event_date, start_time, end_time, rsvp_count')
     .eq('id', openHouseId)
     .eq('listing_key', listingId)
     .gte('event_date', new Date().toISOString().slice(0, 10))
@@ -76,7 +71,7 @@ export async function POST(request: NextRequest) {
   const in24h = new Date(eventDateTime.getTime() - 24 * 60 * 60 * 1000)
   const in1h = new Date(eventDateTime.getTime() - 60 * 60 * 1000)
   const now = new Date()
-  const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'}/listings/${encodeURIComponent(listingId)}`
+  const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(listingId)}`
   if (in24h > now) {
     await service.from('notification_queue').insert({
       user_id: user.id,
@@ -101,7 +96,7 @@ export async function POST(request: NextRequest) {
   const [firstName, ...rest] = name.split(/\s+/)
   const lastName = rest.join(' ') || undefined
   await pushToFub('Open House RSVP', { email, firstName: firstName || undefined, lastName }, {
-    listingUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.com'}/listings/${encodeURIComponent(listingId)}`,
+    listingUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(listingId)}`,
     eventDate,
     tags: ['open-house-rsvp'],
   })

@@ -21,8 +21,8 @@ function formatPrice(n: number | null | undefined): string {
 
 export default function MarketCTA({ stats }: Props) {
   return (
-    <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="market-cta-heading">
-      <div className="mx-auto max-w-7xl text-center">
+    <section className="w-full bg-primary px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="market-cta-heading">
+      <div className="w-full text-center">
         <h2 id="market-cta-heading" className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
           Central Oregon Market at a Glance
         </h2>
@@ -52,7 +52,7 @@ export default function MarketCTA({ stats }: Props) {
           <Link
             href="/reports"
             onClick={() => trackEvent('click_cta', { cta_location: 'market_report_cta' })}
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
             View Full Market Report
           </Link>

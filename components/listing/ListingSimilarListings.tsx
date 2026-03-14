@@ -5,7 +5,10 @@ import ListingTile from '../ListingTile'
 import type { ListingTileListing } from '../ListingTile'
 
 type Props = {
+  /** When no subdivision or N/A, pass e.g. "Nearby Homes"; otherwise used as "Other homes for sale in {subdivisionName}". */
   subdivisionName: string
+  /** Override section title (e.g. "Nearby Homes" when listing has no subdivision). When set, subdivisionName is not used in the heading. */
+  sectionTitle?: string | null
   listings: SimilarListingRow[]
   signedIn?: boolean
   userEmail?: string | null
@@ -13,13 +16,15 @@ type Props = {
   likedKeys?: string[]
 }
 
-export default function ListingSimilarListings({ subdivisionName, listings, signedIn = false, userEmail, savedKeys = [], likedKeys = [] }: Props) {
+export default function ListingSimilarListings({ subdivisionName, sectionTitle, listings, signedIn = false, userEmail, savedKeys = [], likedKeys = [] }: Props) {
   if (listings.length === 0) return null
 
+  const heading = sectionTitle?.trim() || `Other homes for sale in ${subdivisionName}`
+
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-semibold">
-        Other homes for sale in {subdivisionName}
+        {heading}
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {listings.map((row, idx) => {

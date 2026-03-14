@@ -3,7 +3,7 @@
  * Step 19. Used by admin dashboard and AI analytics agent.
  */
 
-const PROPERTY_ID = process.env.GA4_PROPERTY_ID?.trim()
+const PROPERTY_ID = process.env.GOOGLE_GA4_PROPERTY_ID?.trim()
 
 export type GA4DateRange = { startDate: string; endDate: string }
 
@@ -15,7 +15,7 @@ export async function runGA4Report(
   metrics: string[],
   dateRange: GA4DateRange
 ): Promise<{ rows?: Record<string, string>[]; error?: string }> {
-  if (!PROPERTY_ID) return { error: 'GA4_PROPERTY_ID not set' }
+  if (!PROPERTY_ID) return { error: 'GOOGLE_GA4_PROPERTY_ID not set' }
   // Stub: real implementation would use @google-analytics/data and service account.
   return { rows: [] }
 }
@@ -24,6 +24,6 @@ export async function runGA4Report(
  * Run GA4 realtime report (active users now).
  */
 export async function runGA4RealtimeReport(): Promise<{ activeUsers?: number; error?: string }> {
-  if (!PROPERTY_ID) return { error: 'GA4_PROPERTY_ID not set' }
+  if (!PROPERTY_ID) return { error: 'GOOGLE_GA4_PROPERTY_ID not set' }
   return { activeUsers: 0 }
 }

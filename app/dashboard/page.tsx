@@ -42,40 +42,40 @@ export default async function DashboardOverviewPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Dashboard</h1>
-      <p className="mt-1 text-zinc-600">Your personalized feed and quick stats.</p>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+      <p className="mt-1 text-muted-foreground">Your personalized feed and quick stats.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-zinc-500">Saved Homes</p>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">{savedCount}</p>
+        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Saved Homes</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">{savedCount}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-zinc-500">Saved Searches</p>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">{searchCount}</p>
+        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">Saved Searches</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">{searchCount}</p>
         </div>
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <p className="text-sm font-medium text-zinc-500">New Matches This Week</p>
-          <p className="mt-1 text-2xl font-semibold text-zinc-900">{newMatchesCount}</p>
+        <div className="rounded-lg border border-border bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">New Matches This Week</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">{newMatchesCount}</p>
         </div>
       </div>
 
       <div className="mt-8 space-y-8">
         {savedCount === 0 && searchCount === 0 ? (
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-8 text-center">
-            <p className="text-zinc-600">
+          <div className="rounded-lg border border-border bg-muted p-8 text-center">
+            <p className="text-muted-foreground">
               Save some homes or create a search to see personalized updates here.
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-3">
               <Link
                 href="/listings"
-                className="rounded-lg bg-[var(--brand-navy)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)]"
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-accent/90"
               >
                 Browse listings
               </Link>
               <Link
-                href="/search"
-                className="rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                href="/homes-for-sale"
+                className="rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
               >
                 Create a search
               </Link>
@@ -84,8 +84,8 @@ export default async function DashboardOverviewPage() {
         ) : (
           listings.length > 0 && (
             <section>
-              <h2 className="text-lg font-semibold text-zinc-900">Saved Homes</h2>
-              <p className="mt-0.5 text-sm text-zinc-500">Your saved listings</p>
+              <h2 className="text-lg font-semibold text-foreground">Saved Homes</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">Your saved listings</p>
               <div className="mt-3 flex gap-4 overflow-x-auto pb-2">
                 {listings.map((listing) => {
                   const key = (listing.ListNumber ?? listing.ListingKey ?? '').toString().trim()
@@ -100,7 +100,7 @@ export default async function DashboardOverviewPage() {
                         )
                       : null
                   return (
-                    <div key={key} className="w-72 shrink-0">
+                    <div key={key} className="shrink-0 w-[85vw] min-w-[260px] max-w-[320px] sm:w-[50vw] sm:min-w-[280px] sm:max-w-[360px] lg:w-[33.333vw] lg:min-w-[300px] lg:max-w-[420px]">
                       <ListingTile
                         listing={listing}
                         listingKey={key}
@@ -117,7 +117,7 @@ export default async function DashboardOverviewPage() {
               </div>
               <Link
                 href="/dashboard/saved"
-                className="mt-2 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
+                className="mt-2 inline-block text-sm font-medium text-accent-foreground hover:underline"
               >
                 View all saved homes →
               </Link>

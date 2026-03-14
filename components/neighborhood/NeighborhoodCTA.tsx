@@ -19,7 +19,7 @@ export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }
   }
 
   return (
-    <section className="bg-[var(--brand-navy)] px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="neighborhood-cta-heading">
+    <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="neighborhood-cta-heading">
       <div className="mx-auto max-w-3xl text-center">
         <h2 id="neighborhood-cta-heading" className="text-2xl font-bold tracking-tight text-white">
           Looking for a Home in {neighborhoodName}?
@@ -28,7 +28,7 @@ export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }
           <Link
             href="/account/saved-searches"
             onClick={handleGetNotified}
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-[var(--brand-navy)] hover:bg-[var(--accent-hover)]"
+            className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-primary hover:bg-accent/90"
           >
             Get Notified of New Listings
           </Link>
@@ -44,7 +44,7 @@ export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }
           Save your search to get alerts when new homes in {neighborhoodName} or {cityName} hit the market.
         </p>
         <p className="mt-2">
-          <Link href={`/cities/${citySlug}`} className="text-sm text-[var(--accent)] hover:underline">
+          <Link href={`/cities/${citySlug}`} className="text-sm text-accent-foreground hover:underline">
             View all {cityName} neighborhoods
           </Link>
         </p>
