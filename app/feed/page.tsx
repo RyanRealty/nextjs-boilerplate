@@ -5,8 +5,10 @@ import { getSavedListingKeys } from '../actions/saved-listings'
 import { getLikedListingKeys } from '../actions/likes'
 import FeedInfiniteList from '@/components/FeedInfiniteList'
 import Breadcrumb from '@/components/Breadcrumb'
+import ShareButton from '@/components/ShareButton'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'Feed',
@@ -18,6 +20,13 @@ export const metadata: Metadata = {
     url: `${siteUrl}/feed`,
     type: 'website',
     siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Feed | Ryan Realty',
+    description: 'Browse the latest Central Oregon homes for sale.',
+    images: [defaultOgImage],
   },
 }
 
@@ -40,7 +49,16 @@ export default async function FeedPage() {
           { label: 'Feed' },
         ]}
       />
-      <h1 className="mt-4 text-2xl font-semibold text-foreground">Latest listings</h1>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-foreground">Latest listings</h1>
+        <ShareButton
+          url={`${siteUrl}/feed`}
+          title="Latest listings in Central Oregon"
+          text="Browse the newest listings across Bend, Redmond, Sisters, Sunriver and nearby areas."
+          trackContext="feed_page"
+          variant="compact"
+        />
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">Scroll for more. Newest first.</p>
       <div className="mt-6">
         <FeedInfiniteList

@@ -13,6 +13,7 @@ import VisitTracker from "../components/VisitTracker";
 import AuthCodeRedirect from "../components/AuthCodeRedirect";
 import AuthErrorRedirect from "../components/AuthErrorRedirect";
 import FubIdentityBridge from "../components/FubIdentityBridge";
+import AgentAttributionBridge from "../components/AgentAttributionBridge";
 import GoogleAnalytics from "../components/GoogleAnalytics";
 import MetaPixel from "../components/MetaPixel";
 import SignUpTracker from "../components/tracking/SignUpTracker";
@@ -23,6 +24,7 @@ import InstallPrompt from "../components/pwa/InstallPrompt";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import ComparisonTray from "@/components/comparison/ComparisonTray";
 import LazyChatWidget from "@/components/chat/LazyChatWidget";
+import ExitIntentPopup from "@/components/ExitIntentPopup";
 import { getCanonicalSiteUrl } from "@/lib/share-metadata";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
@@ -118,6 +120,7 @@ export default async function RootLayout({
         <VisitTracker userId={session?.user?.id ?? null} userEmail={session?.user?.email ?? null} />
         <Suspense fallback={null}>
           <FubIdentityBridge />
+          <AgentAttributionBridge />
           <AuthCodeRedirect />
           <AuthErrorRedirect />
           <SignUpTracker />
@@ -125,6 +128,7 @@ export default async function RootLayout({
         </Suspense>
         <ComparisonTray />
         <LazyChatWidget />
+        <ExitIntentPopup />
         </ComparisonProvider>
         </body>
     </html>

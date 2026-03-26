@@ -51,6 +51,7 @@ export default async function ReportGeoPage({ params }: PageProps) {
   startOfMonth.setDate(1)
   const periodStart = startOfMonth.toISOString().slice(0, 10)
   const periodEnd = new Date().toISOString().slice(0, 10)
+  const exportBase = `/api/reports/export?city=${encodeURIComponent(decodedName)}&periodStart=${encodeURIComponent(periodStart)}&periodEnd=${encodeURIComponent(periodEnd)}`
 
   const { data: row } = await supabase
     .from('reporting_cache')
@@ -135,6 +136,12 @@ export default async function ReportGeoPage({ params }: PageProps) {
           <TrackedReportListingsLink className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted">
             View Listings
           </TrackedReportListingsLink>
+          <Link
+            href={`${exportBase}&format=xlsx`}
+            className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted"
+          >
+            Download as Excel
+          </Link>
           <TrackedReportExploreLink className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted">
             Explore more data
           </TrackedReportExploreLink>

@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 type AdminHeaderProps = {
   user: { email: string; avatarUrl: string | null; fullName: string | null }
@@ -15,7 +17,11 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
         >
           Admin
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-1 items-center justify-end gap-3">
+          <form action="/admin/search" method="get" className="hidden items-center gap-2 md:flex">
+            <Input name="q" type="search" placeholder="Search listings, brokers, users" className="w-72" />
+            <Button type="submit" variant="outline">Search</Button>
+          </form>
           <span className="hidden text-sm text-muted-foreground sm:inline" title={user.email}>
             {user.fullName || user.email}
           </span>

@@ -83,7 +83,7 @@ export default function AdminEmailCompose({ className = '' }: Props) {
         disabled={loading}
         className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-accent/90 disabled:opacity-50"
       >
-        {loading ? 'Sendingâ€¦' : 'Send now'}
+        {loading ? 'Sending...' : 'Send now'}
       </Button>
     </form>
   )

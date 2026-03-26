@@ -7,6 +7,9 @@ import { getBannerSearchQuery } from '../../lib/banner-prompts'
 import { getResortEntityKeys } from './subdivision-flags'
 import { getBrowseCities } from './listings'
 import { getSubdivisionsInCity } from './listings'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
+import { logAdminAction } from '@/app/actions/log-admin-action'
 
 const BUCKET = 'banners'
 
@@ -15,6 +18,22 @@ export type BannerEntity =
   | { entityType: 'subdivision'; entityKey: string; displayName: string; city: string; isResort?: boolean }
 
 export { getBannerSearchQuery }
+
+async function logBannerAudit(actionType: string, details: Record<string, unknown>) {
+  const session = await getSession()
+  const adminEmail = session?.user?.email ?? ''
+  if (!adminEmail) return
+  const role = adminEmail ? (await getAdminRoleForEmail(adminEmail))?.role ?? null : null
+  if (!role) return
+  await logAdminAction({
+    adminEmail,
+    role,
+    actionType,
+    resourceType: 'banner',
+    resourceId: `${details.entityType ?? 'unknown'}:${details.entityKey ?? 'unknown'}`,
+    details,
+  })
+}
 
 /**
  * Get public URL for a city or subdivision banner, or null if none exists.
@@ -193,7 +212,15 @@ export async function setPlaceBannerFromPhoto(
   attribution: string
 ): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
   const url = await downloadAndStoreBanner(entityType, entityKey, photoUrl, attribution)
-  if (url) return { ok: true, url }
+  if (url) {
+    await logBannerAudit('update', {
+      entityType,
+      entityKey,
+      source: 'manual_photo_pick',
+      attribution,
+    })
+    return { ok: true, url }
+  }
   return { ok: false, error: 'Failed to save image.' }
 }
 
@@ -209,7 +236,15 @@ export async function refreshPlaceBanner(
   const photo = await fetchPlacePhoto(searchQuery, { page })
   if (!photo?.url) return { ok: false, error: 'No photo found. Set UNSPLASH_ACCESS_KEY in .env.local.' }
   const url = await downloadAndStoreBanner(entityType, entityKey, photo.url, photo.attribution)
-  if (url) return { ok: true, url }
+  if (url) {
+    await logBannerAudit('update', {
+      entityType,
+      entityKey,
+      source: 'refresh',
+      searchQuery,
+    })
+    return { ok: true, url }
+  }
   return { ok: false, error: 'Failed to save image.' }
 }
 
@@ -269,7 +304,16 @@ export async function generateAndStoreBanner(entity: BannerEntity): Promise<{ ok
       ? getBannerSearchQuery('city', entity.displayName)
       : getBannerSearchQuery('subdivision', entity.displayName, entity.city, entity.isResort)
   const { url } = await getOrCreatePlaceBanner(entity.entityType, entity.entityKey, searchQuery)
-  if (url) return { ok: true, url }
+  if (url) {
+    await logBannerAudit('create', {
+      entityType: entity.entityType,
+      entityKey: entity.entityKey,
+      searchQuery,
+      displayName: entity.displayName,
+      city: entity.entityType === 'subdivision' ? entity.city : null,
+    })
+    return { ok: true, url }
+  }
   return { ok: false, error: 'No photo found. Set UNSPLASH_ACCESS_KEY in .env.local.' }
 }
 
@@ -322,5 +366,10 @@ export async function generateAllMissingBanners(): Promise<{
     await new Promise((r) => setTimeout(r, 1500))
   }
 
+  await logBannerAudit('bulk_generate', {
+    generated,
+    failed,
+    errorsCount: errors.length,
+  })
   return { generated, failed, errors }
 }

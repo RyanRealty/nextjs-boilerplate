@@ -42,6 +42,12 @@ function buildShareUrl(platform: string, params: { url: string; title: string; t
       return `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`
     case 'linkedin':
       return `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+    case 'whatsapp':
+      return `https://wa.me/?text=${encodedText}%20${encodedUrl}`
+    case 'sms':
+      return `sms:?&body=${encodedText}%20${encodedUrl}`
+    case 'instagram':
+      return 'https://www.instagram.com/'
     case 'email':
       return `mailto:?subject=${encodedTitle}&body=${encodedText}%0A%0A${encodedUrl}`
     default:
@@ -144,6 +150,22 @@ export default function ShareButton({
             <Button
               type="button"
               role="menuitem"
+              onClick={() => handlePlatformShare('whatsapp')}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+            >
+              <span className="text-muted-foreground">💬</span> WhatsApp
+            </Button>
+            <Button
+              type="button"
+              role="menuitem"
+              onClick={() => handlePlatformShare('sms')}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+            >
+              <span className="text-muted-foreground">📱</span> SMS
+            </Button>
+            <Button
+              type="button"
+              role="menuitem"
               onClick={() => handlePlatformShare('email')}
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
@@ -172,6 +194,14 @@ export default function ShareButton({
               className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
             >
               <span className="text-muted-foreground">in</span> LinkedIn
+            </Button>
+            <Button
+              type="button"
+              role="menuitem"
+              onClick={() => handlePlatformShare('instagram')}
+              className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-muted"
+            >
+              <span className="text-muted-foreground">📷</span> Instagram
             </Button>
             {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
               <Button

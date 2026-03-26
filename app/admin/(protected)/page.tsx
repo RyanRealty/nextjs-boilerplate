@@ -11,6 +11,8 @@ import DashboardSyncPanel from '@/components/admin/DashboardSyncPanel'
 import DashboardLeadPanel from '@/components/admin/DashboardLeadPanel'
 import DashboardGA4Panel from '@/components/admin/DashboardGA4Panel'
 import DashboardNotificationsPanel from '@/components/admin/DashboardNotificationsPanel'
+import DashboardSitePerformancePanel from '@/components/admin/DashboardSitePerformancePanel'
+import DashboardRevenuePanel from '@/components/admin/DashboardRevenuePanel'
 import { Button } from "@/components/ui/button"
 
 export const dynamic = 'force-dynamic'
@@ -81,16 +83,11 @@ export default async function AdminDashboardPage() {
         </DashboardPanel>
 
         <DashboardPanel id="siteperf" title="Site performance and technical health" defaultOpen={false}>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Core Web Vitals (Search Console API), page index status, sitemap health, uptime, error log, and CDN metrics.</p>
-            <p className="text-xs text-muted-foreground">Requires Search Console API and optional uptime monitoring integration.</p>
-          </div>
+          <DashboardSitePerformancePanel />
         </DashboardPanel>
 
         <DashboardPanel id="financial" title="Financial and business metrics (Super Admin only)" defaultOpen={false}>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Manually maintained: platform costs, listings under management, lead-to-close pipeline. Not auto-populated from integrations.</p>
-          </div>
+          <DashboardRevenuePanel />
         </DashboardPanel>
       </div>
 

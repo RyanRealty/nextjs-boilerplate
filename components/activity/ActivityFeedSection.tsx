@@ -157,7 +157,3 @@ export default function ActivityFeedSection({
     </section>
   )
 }
-</think>
-
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-StrReplace

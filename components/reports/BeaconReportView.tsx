@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Cancel01Icon } from '@hugeicons/core-free-icons'
-import type { BeaconReportData } from '@/app/actions/beacon-report'
+import type { BeaconReportData } from '@/app/actions/beacon-report-types'
 
 const RANGE_OPTIONS = [
   { value: '7', label: 'Last 7 days' },
