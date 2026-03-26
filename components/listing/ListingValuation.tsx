@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import AuthModal from '@/components/auth/AuthModal'
 import { trackEvent } from '@/lib/tracking'
+import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 import { Button } from "@/components/ui/button"
 
 type ValuationData = {
@@ -89,7 +90,7 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
         Based on {valuation.compCount} comparable sale{valuation.compCount !== 1 ? 's' : ''} nearby.
       </p>
       <Link
-        href="/listings"
+        href={listingsBrowsePath()}
         className="mt-2 inline-block text-sm text-accent-foreground hover:underline"
       >
         How we calculate value
@@ -113,7 +114,7 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         onSuccess={() => handleDownload()}
-        next={typeof window !== 'undefined' ? window.location.pathname : '/listing/' + listingKey}
+        next={typeof window !== 'undefined' ? window.location.pathname : listingDetailPath(listingKey)}
       />
     </section>
   )

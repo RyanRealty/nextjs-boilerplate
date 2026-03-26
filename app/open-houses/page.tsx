@@ -4,6 +4,7 @@ import OpenHousesClient from '@/components/open-houses/OpenHousesClient'
 import type { OpenHouseWithListing } from '@/app/actions/open-houses'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
+import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'Open Houses in Bend, Oregon — This Weekend & Upcoming | Ryan Realty',
@@ -24,7 +25,12 @@ function buildJsonLd(openHouses: OpenHouseWithListing[]): string {
       '@type': 'Place',
       address: oh.unparsed_address || [oh.street_number, oh.street_name, oh.city, oh.state, oh.postal_code].filter(Boolean).join(', '),
     },
-    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(oh.listing_key)}`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}${listingDetailPath(
+      oh.listing_key,
+      { streetNumber: oh.street_number, streetName: oh.street_name, city: oh.city, state: oh.state, postalCode: oh.postal_code },
+      { city: oh.city, subdivision: oh.subdivision_name },
+      { mlsNumber: oh.list_number }
+    )}`,
   }))
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -66,7 +72,7 @@ export default async function OpenHousesPage({ searchParams }: { searchParams: P
         subtitle="This weekend and upcoming. Browse by list, map, or calendar—add showings to your calendar or RSVP from the listing."
         imageUrl={CONTENT_HERO_IMAGES.openHouses}
         ctas={[
-          { label: 'View All Listings', href: '/listings', primary: true },
+          { label: 'View All Listings', href: listingsBrowsePath(), primary: true },
           { label: 'Search on Map', href: '/homes-for-sale', primary: false },
         ]}
       />

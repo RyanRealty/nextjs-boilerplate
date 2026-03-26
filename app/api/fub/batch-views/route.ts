@@ -1,5 +1,5 @@
 /**
- * Flush batched property views to FUB. Called by Inngest every 5 minutes.
+ * Flush batched property views to FUB.
  * Step 18.
  */
 

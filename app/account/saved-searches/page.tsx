@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/app/actions/auth'
 import { getSavedSearches } from '@/app/actions/saved-searches'
 import SavedSearchesList from './SavedSearchesList'
+import { listingsBrowsePath } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'My saved searches',
@@ -24,7 +25,7 @@ export default async function SavedSearchesPage() {
       </p>
       <div className="mt-4">
         <Link
-          href="/listings"
+          href={listingsBrowsePath()}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Create & save a search
@@ -37,7 +38,7 @@ export default async function SavedSearchesPage() {
         <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
           <p className="text-muted-foreground">You haven’t saved any searches yet.</p>
           <Link
-            href="/listings"
+            href={listingsBrowsePath()}
             className="mt-4 inline-block rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted"
           >
             Go to search

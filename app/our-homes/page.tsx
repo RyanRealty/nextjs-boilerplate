@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getListingsWithAdvanced } from '@/app/actions/listings'
 import { ArrowRightHugeIcon } from '@/components/icons/HugeIcons'
+import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -41,7 +42,7 @@ export default async function OurHomesPage() {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link
-              href="/listings"
+              href={listingsBrowsePath()}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3.5 text-base font-semibold text-primary shadow-md hover:bg-accent/90"
             >
               View all listings
@@ -70,7 +71,7 @@ export default async function OurHomesPage() {
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-4">
                 <Link
-                  href="/listings"
+                  href={listingsBrowsePath()}
                   className="rounded-lg bg-primary px-5 py-2.5 font-semibold text-primary-foreground hover:bg-accent/90"
                 >
                   Browse all listings
@@ -90,7 +91,7 @@ export default async function OurHomesPage() {
             </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {listings.slice(0, 12).map((listing) => {
-                const href = `/listing/${listing.ListingKey}`
+                const href = listingDetailPath(listing.ListingKey ?? '', { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode })
                 const price =
                   listing.ListPrice != null
                     ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(listing.ListPrice)
@@ -135,7 +136,7 @@ export default async function OurHomesPage() {
             {listings.length > 12 && (
               <div className="mt-10 text-center">
                 <Link
-                  href="/listings"
+                  href={listingsBrowsePath()}
                   className="rounded-lg border-2 border-primary px-6 py-3 font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
                 >
                   View all {listings.length} listings

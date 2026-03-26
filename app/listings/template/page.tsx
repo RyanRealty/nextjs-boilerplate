@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getMostRecentListingKey } from '../../../lib/spark'
 import { getMostRecentListingKeyFromSupabase } from '../../actions/listings'
+import { listingDetailPath } from '@/lib/slug'
 
 export default async function ListingsTemplatePage() {
   // Use Spark when API key is set; otherwise use Supabase so the site works without the key (e.g. review with existing data).
@@ -13,5 +14,5 @@ export default async function ListingsTemplatePage() {
       </main>
     )
   }
-  redirect(`/listing/${key}`)
+  redirect(listingDetailPath(key))
 }

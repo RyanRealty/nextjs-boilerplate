@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 
 import { MAP_DEFAULT_CENTER, getListingMarkerIcon, MAP_LABEL_LISTING, MAP_COLOR_LISTING_PIN } from '@/lib/map-constants'
+import { listingDetailPath } from '@/lib/slug'
 import { Button } from "@/components/ui/button"
 
 type GeoJSONPolygon = { type: 'Polygon'; coordinates: number[][][] | number[][] }
@@ -286,7 +287,7 @@ export default function SearchMapClustered({
     markersRef.current = []
 
     const newMarkers: google.maps.Marker[] = validListings.map((l, i) => {
-      const listingKey = (l.ListingKey ?? l.ListNumber ?? `point-${i}`).toString()
+      const listingKey = (l.ListNumber ?? l.ListingKey ?? `point-${i}`).toString()
       const price = Number(l.ListPrice ?? 0)
       const label = priceLabel(price)
       const isSaved = savedSet.has(listingKey)
@@ -467,7 +468,12 @@ export default function SearchMapClustered({
               <Button
                 type="button"
                 className="mt-1.5 block text-sm font-medium text-primary hover:underline"
-                onClick={() => router.push(`/listing/${encodeURIComponent(openKey)}`)}
+                onClick={() => router.push(listingDetailPath(
+                  openKey,
+                  { streetNumber: openListing.StreetNumber, streetName: openListing.StreetName, city: openListing.City, state: openListing.State, postalCode: openListing.PostalCode },
+                  undefined,
+                  { mlsNumber: openListing.ListNumber != null ? String(openListing.ListNumber) : null }
+                ))}
               >
                 View listing â†’
               </Button>

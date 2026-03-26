@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
 import { getListingsByKeys } from '@/app/actions/listings'
 import { getAdminSyncCounts } from '@/app/actions/listings'
+import { getAdminListingEditableData } from '@/app/actions/admin-listing-detail'
+import { listingDetailPath } from '@/lib/slug'
+import AdminListingEditor from './AdminListingEditor'
 
 export const metadata: Metadata = {
   title: 'Listing',
@@ -19,16 +24,24 @@ function formatPrice(n: number | null | undefined): string {
 }
 
 export default async function AdminListingDetailPage({ params }: Props) {
+  const session = await getSession()
+  const adminRole = await getAdminRoleForEmail(session?.user?.email ?? null)
+  if (adminRole?.role !== 'superuser') {
+    redirect('/admin/access-denied')
+  }
+
   const { listingKey } = await params
   const key = decodeURIComponent(listingKey)
   if (!key) notFound()
 
-  const [listings, counts] = await Promise.all([
+  const [listings, counts, editableData] = await Promise.all([
     getListingsByKeys([key]),
     getAdminSyncCounts(),
+    getAdminListingEditableData(key),
   ])
   const listing = listings[0]
   if (!listing) notFound()
+  if (!editableData) notFound()
 
   const address = [
     listing.StreetNumber,
@@ -70,7 +83,11 @@ export default async function AdminListingDetailPage({ params }: Props) {
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
-          href={`/listing/${key}`}
+          href={listingDetailPath(
+            key,
+            { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
+            { city: listing.City, subdivision: listing.SubdivisionName }
+          )}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-accent/90"
@@ -80,6 +97,10 @@ export default async function AdminListingDetailPage({ params }: Props) {
         <Link href="/admin/sync" className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted">
           Sync status
         </Link>
+      </div>
+
+      <div className="mt-8">
+        <AdminListingEditor initialData={editableData} />
       </div>
     </main>
   )

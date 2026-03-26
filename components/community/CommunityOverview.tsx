@@ -68,6 +68,15 @@ export default function CommunityOverview({
   const yearRange = years.length > 0 ? { min: Math.min(...years), max: Math.max(...years) } : null
   const hasHoa = listings.some((l) => (l as { AssociationYN?: boolean }).AssociationYN === true)
   const waterfront = listings.some((l) => (l as { WaterfrontYN?: boolean }).WaterfrontYN === true)
+  const hoaFees = listings
+    .map((l) => (l as { AssociationFee?: number | null; AssociationYN?: boolean }).AssociationYN === true && (l as { AssociationFee?: number | null }).AssociationFee != null && Number((l as { AssociationFee?: number | null }).AssociationFee) > 0
+      ? Number((l as { AssociationFee?: number | null }).AssociationFee)
+      : null)
+    .filter((n): n is number => n != null)
+  const hoaFeeMin = hoaFees.length > 0 ? Math.min(...hoaFees) : null
+  const hoaFeeMax = hoaFees.length > 0 ? Math.max(...hoaFees) : null
+  const hoaFreq = listings.find((l) => (l as { AssociationFeeFrequency?: string | null }).AssociationFeeFrequency) as { AssociationFeeFrequency?: string | null } | undefined
+  const hoaFreqLabel = (hoaFreq?.AssociationFeeFrequency ?? 'month') as string
 
   const quickFacts: QuickFact[] = []
   if (propertyTypes.length > 0) quickFacts.push({ label: 'Property types', value: propertyTypes.slice(0, 5).join(', ') })
@@ -91,6 +100,12 @@ export default function CommunityOverview({
       value: yearRange.min === yearRange.max ? String(yearRange.min) : `${yearRange.min} – ${yearRange.max}`,
     })
   quickFacts.push({ label: 'HOA', value: hasHoa ? 'Yes' : 'No' })
+  if (hasHoa && hoaFeeMin != null && hoaFeeMax != null) {
+    quickFacts.push({
+      label: 'HOA dues',
+      value: hoaFeeMin === hoaFeeMax ? `${formatPrice(hoaFeeMin)}/${hoaFreqLabel}` : `${formatPrice(hoaFeeMin)} – ${formatPrice(hoaFeeMax)}/${hoaFreqLabel}`,
+    })
+  }
   quickFacts.push({ label: 'Waterfront', value: waterfront ? 'Yes' : 'No' })
   if (isResort) quickFacts.push({ label: 'Type', value: 'Resort & master plan community' })
 
@@ -109,6 +124,17 @@ export default function CommunityOverview({
       )}
       {resortStaticContent.golf_recreation && (
         <Section title="Golf & recreation">{renderParagraphs([resortStaticContent.golf_recreation])}</Section>
+      )}
+      {isResort && hasHoa && (hoaFeeMin != null || hoaFeeMax != null) && (
+        <Section title="HOA & fees">
+          <p className="mt-0 text-muted-foreground">
+            {hoaFeeMin != null && hoaFeeMax != null
+              ? `Current listings show HOA dues ranging from ${formatPrice(hoaFeeMin)} to ${formatPrice(hoaFeeMax)} per ${hoaFreqLabel}. Contact a Ryan Realty agent for community-specific fees and what they cover.`
+              : hoaFeeMin != null
+                ? `Some current listings show HOA dues of ${formatPrice(hoaFeeMin)} per ${hoaFreqLabel}. Contact a Ryan Realty agent for details.`
+                : `Some listings include HOA dues. Contact a Ryan Realty agent for current HOA information.`}
+          </p>
+        </Section>
       )}
       {resortStaticContent.real_estate && (
         <Section title={`Real estate in ${communityName}`}>{renderParagraphs([resortStaticContent.real_estate])}</Section>

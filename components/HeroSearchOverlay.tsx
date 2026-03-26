@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSearchSuggestions } from '@/app/actions/listings'
 import type { SearchSuggestionsResult } from '@/app/actions/listings'
-import { cityPagePath } from '@/lib/slug'
+import { cityPagePath, listingsBrowsePath } from '@/lib/slug'
 import { communityPagePath } from '@/lib/community-slug'
 import VoiceSearchButton from '@/components/VoiceSearchButton'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -72,8 +72,10 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
       : suggestions.addresses.length +
         suggestions.cities.length +
         suggestions.subdivisions.length +
+        suggestions.neighborhoods.length +
         suggestions.zips.length +
-        suggestions.brokers.length
+        suggestions.brokers.length +
+        suggestions.reports.length
 
   const getItemHref = (index: number): string | null => {
     if (!suggestions) return null
@@ -90,9 +92,13 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
       return communityPagePath(s.city, s.subdivisionName)
     }
     i -= suggestions.subdivisions.length
+    if (i < suggestions.neighborhoods.length) return suggestions.neighborhoods[i].href
+    i -= suggestions.neighborhoods.length
     if (i < suggestions.zips.length) return suggestions.zips[i].href
     i -= suggestions.zips.length
     if (i < suggestions.brokers.length) return suggestions.brokers[i].href
+    i -= suggestions.brokers.length
+    if (i < suggestions.reports.length) return suggestions.reports[i].href
     return null
   }
 
@@ -163,7 +169,7 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
         <VoiceSearchButton
           onTranscript={(text) => {
             setQuery(text)
-            router.push(`/listings?keywords=${encodeURIComponent(text)}`)
+            router.push(`${listingsBrowsePath()}?keywords=${encodeURIComponent(text)}`)
           }}
         />
       </div>
@@ -231,6 +237,21 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
                   </Link>
                 )
               })}
+              {suggestions.neighborhoods.map((n, i) => {
+                const idx = itemIndex++
+                return (
+                  <Link
+                    key={`n-${i}`}
+                    role="option"
+                    aria-selected={highlight === idx}
+                    href={n.href}
+                    className={`block px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
+                    onClick={() => { setOpen(false); setQuery('') }}
+                  >
+                    {n.neighborhoodName} <span className="text-muted-foreground">({n.cityName})</span>
+                  </Link>
+                )
+              })}
               {suggestions.zips.map((z, i) => {
                 const idx = itemIndex++
                 return (
@@ -260,6 +281,21 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
                     onClick={() => { setOpen(false); setQuery('') }}
                   >
                     {b.label}
+                  </Link>
+                )
+              })}
+              {suggestions.reports.map((r, i) => {
+                const idx = itemIndex++
+                return (
+                  <Link
+                    key={`report-${i}`}
+                    role="option"
+                    aria-selected={highlight === idx}
+                    href={r.href}
+                    className={`block px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
+                    onClick={() => { setOpen(false); setQuery('') }}
+                  >
+                    {r.label}
                   </Link>
                 )
               })}

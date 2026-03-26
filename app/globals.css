@@ -219,6 +219,31 @@
   to { transform: translateX(var(--review-slide-offset, -50%)); }
 }
 
+/* Activity feed celebration overlays (Robin Hood–style) */
+@keyframes activity-sparkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes activity-price-coin-fall {
+  0% { transform: translateY(-100%) rotate(0deg); opacity: 0; }
+  15% { opacity: 0.9; }
+  85% { opacity: 0.6; }
+  100% { transform: translateY(100%) rotate(180deg); opacity: 0; }
+}
+
+.activity-sparkle {
+  animation: activity-sparkle 1.8s ease-in-out infinite;
+}
+
+.activity-price-coin {
+  top: -1rem;
+  animation: activity-price-coin-fall linear forwards;
+  color: var(--warning);
+  font-weight: 700;
+  text-shadow: 0 0 6px var(--background);
+}
+
 .animate-hero-ken-burns { animation: hero-ken-burns 20s ease-in-out alternate infinite; }
 .animate-hero-shine { animation: hero-shine 8s ease-out forwards; }
 .animate-fade-up { animation: fade-up 400ms ease-out both; }
@@ -246,7 +271,9 @@
   .animate-scroll-bounce,
   .animate-tile-new,
   .animate-listing-slide-fade,
-  .animate-review-slide {
+  .animate-review-slide,
+  .activity-sparkle,
+  .activity-price-coin {
     animation: none;
     opacity: 1;
     transform: none;

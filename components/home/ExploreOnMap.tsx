@@ -5,6 +5,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { MapListingRow } from '@/app/actions/listings'
 import { Button } from "@/components/ui/button"
+import { listingsBrowsePath } from '@/lib/slug'
 
 const HomeMap = dynamic(() => import('./HomeMap'), {
   ssr: false,
@@ -71,7 +72,7 @@ export default function ExploreOnMap({ mapListings = [] }: Props) {
                         : 'No listings with location data yet. Use the full map to search.'}
                     </p>
                     <Link
-                      href="/listings?view=map"
+                      href={`${listingsBrowsePath()}?view=map`}
                       className="inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-accent-foreground hover:bg-accent/90"
                     >
                       Full map & filters →
@@ -85,7 +86,7 @@ export default function ExploreOnMap({ mapListings = [] }: Props) {
                     environment to show the map.
                   </p>
                   <Link
-                    href="/listings?view=map"
+                    href={`${listingsBrowsePath()}?view=map`}
                     className="mt-4 inline-flex items-center justify-center bg-accent px-5 py-2.5 font-semibold text-accent-foreground"
                   >
                     Browse listings →

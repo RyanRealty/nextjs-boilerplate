@@ -7,6 +7,7 @@ import { CMAPdfDocument } from '@/lib/pdf/cma-pdf'
 import { createClient } from '@supabase/supabase-js'
 import { sendEvent } from '@/lib/followupboss'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { listingDetailPath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
     .maybeSingle()
 
   const listingRow = listing as { beds_total?: number; baths_full?: number; living_area?: number; lot_size_acres?: number; year_built?: number } | null
+  const listingHref = listingDetailPath(listingKey)
   const pdfData = {
     cma,
     address: (prop as { unparsed_address?: string } | null)?.unparsed_address ?? '',
@@ -90,11 +92,11 @@ export async function POST(request: Request) {
     type: 'Property Inquiry',
     person: { emails: [{ value: session.user.email }] },
     source,
-    sourceUrl: `${siteUrl}/listing/${listingKey}`,
+    sourceUrl: `${siteUrl}${listingHref}`,
     message: 'Downloaded CMA / Value Report (high intent)',
     property: {
       street: pdfData.address,
-      url: `${siteUrl}/listing/${listingKey}`,
+      url: `${siteUrl}${listingHref}`,
     },
   })
 

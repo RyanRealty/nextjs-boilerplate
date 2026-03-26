@@ -7,6 +7,7 @@ import type { HotCommunity } from '@/app/actions/listings'
 import { communityPagePath } from '@/lib/community-slug'
 import { Card } from '@/components/ui/card'
 import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 type Props = {
   city: string
@@ -56,7 +57,13 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
           </h2>
           <Link
             href="/homes-for-sale"
-            onClick={() => trackEvent('click_cta', { cta_location: 'community_view_all' })}
+            onClick={() =>
+              trackCtaClick({
+                label: 'View All Communities',
+                destination: '/homes-for-sale',
+                context: 'home_community_spotlights',
+              })
+            }
             className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
           >
             View All
@@ -67,7 +74,13 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
             <Link
               key={c.subdivisionName}
               href={hrefFor(c)}
-              onClick={() => trackEvent('click_cta', { cta_location: 'community_card', community: c.subdivisionName })}
+              onClick={() =>
+                trackCtaClick({
+                  label: c.subdivisionName,
+                  destination: hrefFor(c),
+                  context: 'home_community_card',
+                })
+              }
               className="group"
             >
               <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md">
@@ -83,7 +96,7 @@ export default function CommunitySpotlights({ city, communities, bannerUrls }: P
                   ) : (
                     <div className="h-full w-full bg-gradient-to-br from-primary to-primary/30" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-primary">{c.subdivisionName}</h3>

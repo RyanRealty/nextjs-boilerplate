@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AdminRoleRow, AdminRoleType } from '@/app/actions/admin-roles'
+import type { AdminPlatformUserRow, AdminRoleRow, AdminRoleType } from '@/app/actions/admin-roles'
 import type { BrokerRow } from '@/app/actions/brokers'
 import { upsertAdminRole, removeAdminRole } from '@/app/actions/admin-roles'
 import { Input } from "@/components/ui/input"
@@ -13,15 +13,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 type Props = {
   initialRoles?: AdminRoleRow[]
   brokers?: BrokerRow[]
+  users?: AdminPlatformUserRow[]
 }
 
-export default function AdminUsersList({ initialRoles = [], brokers = [] }: Props) {
+export default function AdminUsersList({ initialRoles = [], brokers = [], users = [] }: Props) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<AdminRoleType>('report_viewer')
   const [brokerId, setBrokerId] = useState<string>('')
+  const [userSearch, setUserSearch] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+
+  const filteredUsers = users.filter((user) => {
+    const query = userSearch.trim().toLowerCase()
+    if (!query) return true
+    const haystack = [
+      user.email ?? '',
+      user.display_name ?? '',
+      user.first_name ?? '',
+      user.last_name ?? '',
+      user.phone ?? '',
+    ]
+      .join(' ')
+      .toLowerCase()
+    return haystack.includes(query)
+  })
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -160,6 +177,57 @@ export default function AdminUsersList({ initialRoles = [], brokers = [] }: Prop
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-base font-semibold text-foreground">Registered users</h3>
+          <Input
+            type="search"
+            value={userSearch}
+            onChange={(event) => setUserSearch(event.target.value)}
+            placeholder="Search by name, email, or phone"
+            className="w-full sm:w-80"
+          />
+        </div>
+        <div className="overflow-hidden rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Name</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Email</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Saved</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Searches</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Activity</TableHead>
+                <TableHead className="text-xs font-medium uppercase text-muted-foreground">Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">
+                    No matching users.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="text-sm text-foreground">
+                      {user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' ') || '—'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{user.email ?? '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{user.saved_listings_count}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{user.saved_searches_count}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{user.activities_count}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   )

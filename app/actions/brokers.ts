@@ -39,12 +39,18 @@ export type BrokerRow = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  social_x?: string | null
+  mls_id?: string | null
+  zillow_id?: string | null
+  realtor_id?: string | null
+  yelp_id?: string | null
+  google_business_id?: string | null
   intro_video_url?: string | null
   saved_headshot_urls?: string[] | null
 }
 
 const BROKER_SELECT =
-  'id, slug, display_name, title, license_number, bio, photo_url, email, phone, google_review_url, zillow_review_url, sort_order, is_active, created_at, updated_at, tagline, specialties, designations, years_experience, social_instagram, social_facebook, social_linkedin, social_youtube, social_tiktok, intro_video_url, saved_headshot_urls'
+  'id, slug, display_name, title, license_number, bio, photo_url, email, phone, google_review_url, zillow_review_url, sort_order, is_active, created_at, updated_at, tagline, specialties, designations, years_experience, social_instagram, social_facebook, social_linkedin, social_youtube, social_tiktok, social_x, mls_id, zillow_id, realtor_id, yelp_id, google_business_id, intro_video_url, saved_headshot_urls'
 
 export async function getActiveBrokers(): Promise<BrokerRow[]> {
   const supabase = await createServerClient()
@@ -111,6 +117,12 @@ export type BrokerUpdateInput = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  social_x?: string | null
+  mls_id?: string | null
+  zillow_id?: string | null
+  realtor_id?: string | null
+  yelp_id?: string | null
+  google_business_id?: string | null
   intro_video_url?: string | null
   saved_headshot_urls?: string[] | null
 }
@@ -139,6 +151,12 @@ export async function updateBroker(id: string, input: BrokerUpdateInput): Promis
   if (input.social_linkedin !== undefined) payload.social_linkedin = input.social_linkedin
   if (input.social_youtube !== undefined) payload.social_youtube = input.social_youtube
   if (input.social_tiktok !== undefined) payload.social_tiktok = input.social_tiktok
+  if (input.social_x !== undefined) payload.social_x = input.social_x
+  if (input.mls_id !== undefined) payload.mls_id = input.mls_id
+  if (input.zillow_id !== undefined) payload.zillow_id = input.zillow_id
+  if (input.realtor_id !== undefined) payload.realtor_id = input.realtor_id
+  if (input.yelp_id !== undefined) payload.yelp_id = input.yelp_id
+  if (input.google_business_id !== undefined) payload.google_business_id = input.google_business_id
   if (input.intro_video_url !== undefined) payload.intro_video_url = input.intro_video_url
   if (input.saved_headshot_urls !== undefined) payload.saved_headshot_urls = input.saved_headshot_urls
   const { error } = await supabase.from('brokers').update(payload).eq('id', id.trim())
@@ -173,6 +191,12 @@ export type BrokerCreateInput = {
   social_linkedin?: string | null
   social_youtube?: string | null
   social_tiktok?: string | null
+  social_x?: string | null
+  mls_id?: string | null
+  zillow_id?: string | null
+  realtor_id?: string | null
+  yelp_id?: string | null
+  google_business_id?: string | null
   intro_video_url?: string | null
 }
 
@@ -208,6 +232,12 @@ export async function createBroker(input: BrokerCreateInput): Promise<{ ok: true
       social_linkedin: input.social_linkedin?.trim() || null,
       social_youtube: input.social_youtube?.trim() || null,
       social_tiktok: input.social_tiktok?.trim() || null,
+      social_x: input.social_x?.trim() || null,
+      mls_id: input.mls_id?.trim() || null,
+      zillow_id: input.zillow_id?.trim() || null,
+      realtor_id: input.realtor_id?.trim() || null,
+      yelp_id: input.yelp_id?.trim() || null,
+      google_business_id: input.google_business_id?.trim() || null,
       intro_video_url: input.intro_video_url?.trim() || null,
     })
     .select('id')

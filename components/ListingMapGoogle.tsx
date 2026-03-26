@@ -13,6 +13,7 @@ import {
   MAP_LABEL_CITY,
 } from '@/lib/map-constants'
 import { Button } from "@/components/ui/button"
+import { listingDetailPath } from '@/lib/slug'
 
 const BEND_CENTER = { ...MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM_CITY } as const
 
@@ -244,7 +245,7 @@ export default function ListingMapGoogle({
           />
         ))}
         {validListings.map((l, i) => {
-          const id = (l.ListingKey ?? l.ListNumber ?? `point-${i}`).toString()
+          const id = (l.ListNumber ?? l.ListingKey ?? `point-${i}`).toString()
           const lat = Number(l.Latitude)
           const lng = Number(l.Longitude)
           const price = Number(l.ListPrice ?? 0)
@@ -280,7 +281,12 @@ export default function ListingMapGoogle({
                     <Button
                       type="button"
                       className="mt-1.5 block text-sm font-medium text-primary hover:underline"
-                      onClick={() => router.push(`/listing/${id}`)}
+                      onClick={() => router.push(listingDetailPath(
+                        id,
+                        { streetNumber: l.StreetNumber, streetName: l.StreetName, city: l.City, state: l.State, postalCode: l.PostalCode },
+                        undefined,
+                        { mlsNumber: l.ListNumber != null ? String(l.ListNumber) : null }
+                      ))}
                     >
                       View listing →
                     </Button>

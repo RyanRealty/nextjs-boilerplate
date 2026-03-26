@@ -32,7 +32,6 @@ export default function FullSync() {
   const [elapsedMs, setElapsedMs] = useState(0)
   const [insertOnlyMode, setInsertOnlyMode] = useState(false)
 
-  const [listingsFetched, setListingsFetched] = useState(0)
   const [listingsUpserted, setListingsUpserted] = useState(0)
   const [listingsPagesTotal, setListingsPagesTotal] = useState<number | null>(null)
   const [listingsPagesDone, setListingsPagesDone] = useState(0)
@@ -58,7 +57,6 @@ export default function FullSync() {
     setPhase('listings')
     setStartTime(fullSyncStartedAt)
     setElapsedMs(0)
-    setListingsFetched(0)
     setListingsUpserted(0)
     setListingsPagesTotal(null)
     setListingsPagesDone(0)
@@ -90,7 +88,6 @@ export default function FullSync() {
       if (totalPages != null) setListingsPagesTotal(totalPages)
 
       totalListingsUpserted += res.totalUpserted ?? 0
-      setListingsFetched((n) => n + (res.totalFetched ?? 0))
       setListingsUpserted(totalListingsUpserted)
       setListingsPagesDone((n) => n + (res.pagesProcessed ?? 0))
 
@@ -107,7 +104,7 @@ export default function FullSync() {
     }
 
     if (totalPages != null) await updateSyncCursorAfterListingsComplete(totalPages)
-    setMessage('Listings complete. Syncing listing historyâ€¦')
+    setMessage('Listings complete. Backfilling terminal listing history...')
     setPhase('history')
 
     let offset = 0
@@ -125,7 +122,7 @@ export default function FullSync() {
       const res: SyncHistoryResult = await syncListingHistory({
         limit: HISTORY_BATCH_LIMIT,
         offset,
-        activeAndPendingOnly: true,
+        activeAndPendingOnly: false,
       })
 
       if (res.totalListings != null) totalList = res.totalListings
@@ -174,7 +171,7 @@ export default function FullSync() {
     <div className="rounded-lg border-2 border-success/30 bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Full sync (listings + history)</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        One button: syncs all listings from Spark, then syncs listing history for every listing. Start it before bed and everything will be synced by morning.
+        One button: syncs all listings from Spark, then backfills history for terminal listings so finalized listings stop re-syncing.
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">

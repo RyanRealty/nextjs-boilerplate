@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { incrementListingSaveCount, decrementListingSaveCount } from '@/app/actions/engagement'
 
 export async function getSavedListingKeys(): Promise<string[]> {
   const supabase = await createClient()
@@ -37,6 +38,7 @@ export async function saveListing(listingKey: string): Promise<{ error: string |
     listing_key: listingKey.trim(),
   })
   if (error) return { error: error.message }
+  await incrementListingSaveCount(listingKey.trim())
   return { error: null }
 }
 
@@ -50,6 +52,7 @@ export async function unsaveListing(listingKey: string): Promise<{ error: string
     .eq('user_id', user.id)
     .eq('listing_key', listingKey.trim())
   if (error) return { error: error.message }
+  await decrementListingSaveCount(listingKey.trim())
   return { error: null }
 }
 

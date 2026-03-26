@@ -179,7 +179,6 @@ Listing key can be:
 
 ## 7. Documentation reference
 
-- **Listing page implementation vs. instructions:** `docs/LISTING_PAGE_AUDIT.md`
 - **URLs and future migration:** `docs/URL_ARCHITECTURE.md`
 - **All docs index:** `docs/DOCUMENTATION_INDEX.md`
 

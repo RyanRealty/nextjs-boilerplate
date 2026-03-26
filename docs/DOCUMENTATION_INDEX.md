@@ -9,10 +9,8 @@ Use this index to find the right doc for setup, operations, and development. **C
 | Document | Purpose |
 |----------|--------|
 | **FEATURES.md** | **Start here.** List of all current features: public site, listing page, search, auth, account, sync, integrations, admin, env and deployment. |
-| **LISTING_PAGE_AUDIT.md** | Listing page vs. competitive instructions: section order, implementation status (Phase 2/3), gaps resolved and remaining. |
 | **URL_ARCHITECTURE.md** | Current URLs (search, listing), target future hierarchy (`/real-estate/...`), redirect and migration plan. |
 | **ADVANCED_SEARCH.md** | Advanced filters, RPC, backend (search_listings_advanced). |
-| **ADVANCED_SEARCH_MAP_SPEC.md** | Map+list layout, clustering, filter bar, map behavior. |
 
 ---
 
@@ -85,7 +83,6 @@ Use this index to find the right doc for setup, operations, and development. **C
 | Document | Purpose |
 |----------|--------|
 | **ADMIN_DASHBOARD.md** | Admin dashboard: panels, sync health, leads, GA4/notifications placeholders, what’s not implemented. |
-| **REQUIREMENTS_CHECKLIST.md** | Requirements checklist. |
 | **CONTENT_ENGINE_TRIGGER_MAP.md** | Content engine trigger map. |
 | **CONTENT_BRIEF_TEMPLATES.md** | Content brief templates. |
 
@@ -104,8 +101,6 @@ Use this index to find the right doc for setup, operations, and development. **C
 
 | Document | Purpose |
 |----------|--------|
-| **CARD_STANDARDS.md** | Card and tile layout, action bar, badges, sliders. |
-| **BADGE_AND_EMOJI_GUIDE.md** | Badge colors, semantics, emoji use for tiles. |
 | **VIDEO_DATA_FLOW.md** | How listing video gets from Spark to the listing page. |
 | **VIDEO_TROUBLESHOOTING.md** | Why hero or listing videos might not work; what to do. |
 
@@ -117,13 +112,12 @@ Use this index to find the right doc for setup, operations, and development. **C
 |----------|--------|
 | **COPY_FROM_CURRENT_SITE.md** | One-time: copy and brokers from ryan-realty.com. |
 | **PERFORMANCE_AUDIT.md** | Point-in-time speed/code audit. |
-| **CODEBASE_AUDIT_REPORT.md** | Point-in-time codebase audit (redundancy, dead code). |
 
 ---
 
 ## For a professional website and app
 
 - **Handoff / onboarding:** Start with **FEATURES.md** and **DOCUMENTATION_INDEX.md** (this file). Use **WHAT_I_NEED_TO_COMPLETE.md** and **.env.example** for env setup; **VERCEL_DEPLOY.md** and **SUPABASE_AUTH_URLS.md** for go-live.
-- **Listing experience:** **LISTING_PAGE_AUDIT.md** and **FEATURES.md** (§ 1.3) describe the listing page in detail.
+- **Listing experience:** **FEATURES.md** (§ 1.3) describes the listing page in detail.
 - **Data pipeline:** **SYNC.md**, **SPARK_***, **SUPABASE_SCHEMA.md**.
 - **CRM and leads:** **FOLLOWUPBOSS-SETUP.md**, **AUTH_AND_CRM.md**; listing inquiries in **FEATURES.md** (§ 1.3, 4.1).

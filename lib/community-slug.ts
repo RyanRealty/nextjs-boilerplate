@@ -1,13 +1,13 @@
-import { slugify, subdivisionEntityKey } from './slug'
+import { homesForSalePath, subdivisionEntityKey } from './slug'
 
 /** Convert entity_key (e.g. "bend:sunriver") to URL slug "bend-sunriver". */
 export function entityKeyToSlug(entityKey: string): string {
   return entityKey.replace(':', '-')
 }
 
-/** SEO-friendly community page path (e.g. "Bend", "Sunriver" -> "/communities/bend-sunriver"). Use for all community/subdivision links. */
+/** Canonical community/subdivision listings path (e.g. "Bend", "Sunriver" -> "/homes-for-sale/bend/sunriver"). */
 export function communityPagePath(city: string, subdivision: string): string {
-  return `/communities/${entityKeyToSlug(subdivisionEntityKey(city, subdivision))}`
+  return homesForSalePath(city, subdivision)
 }
 
 /** Parse URL slug "bend-sunriver" to { city, subdivision }. Uses known cities to split. */

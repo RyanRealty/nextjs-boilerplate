@@ -34,14 +34,14 @@ export default async function AdminBrokerReportsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(brokers ?? []).map((b) => {
-              const bRow = b as { id: string; slug: string; display_name: string }
+            {(brokers ?? []).map((b: { id: string; slug: string; display_name: string }) => {
+              const bRow = b
               const entry = byBroker.get(bRow.id)
               const yearly = entry?.yearly as { total_volume?: number; transaction_count?: number; avg_sale_price?: number } | undefined
               return (
                 <TableRow key={bRow.id} className="border-b border-border">
                   <TableCell className="px-4 py-2">
-                    <Link href={`/admin/brokers/${bRow.id}`} className="text-primary hover:underline">
+                    <Link href={`/admin/brokers/edit?id=${encodeURIComponent(bRow.id)}`} className="text-primary hover:underline">
                       {bRow.display_name}
                     </Link>
                   </TableCell>

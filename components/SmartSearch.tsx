@@ -68,8 +68,10 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
       : suggestions.addresses.length +
         suggestions.cities.length +
         suggestions.subdivisions.length +
+        suggestions.neighborhoods.length +
         suggestions.zips.length +
-        suggestions.brokers.length
+        suggestions.brokers.length +
+        suggestions.reports.length
 
   const getItemHref = (index: number): string | null => {
     if (!suggestions) return null
@@ -86,9 +88,13 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
       return communityPagePath(s.city, s.subdivisionName)
     }
     i -= suggestions.subdivisions.length
+    if (i < suggestions.neighborhoods.length) return suggestions.neighborhoods[i].href
+    i -= suggestions.neighborhoods.length
     if (i < suggestions.zips.length) return suggestions.zips[i].href
     i -= suggestions.zips.length
     if (i < suggestions.brokers.length) return suggestions.brokers[i].href
+    i -= suggestions.brokers.length
+    if (i < suggestions.reports.length) return suggestions.reports[i].href
     return null
   }
 
@@ -245,7 +251,7 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
               {suggestions.subdivisions.length > 0 && (
                 <div className="mb-1">
                   <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Neighborhoods &amp; communities
+                    Communities
                   </p>
                   {suggestions.subdivisions.map((s, i) => {
                     const idx = itemIndex++
@@ -267,6 +273,34 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
                         {s.subdivisionName}
                         <span className="ml-1 text-muted-foreground">({s.city})</span>
                         {s.count > 0 && <span className="ml-1 text-muted-foreground">· {s.count}</span>}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.neighborhoods.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Neighborhoods
+                  </p>
+                  {suggestions.neighborhoods.map((n, i) => {
+                    const idx = itemIndex++
+                    return (
+                      <Link
+                        key={`n-${i}-${n.citySlug}-${n.neighborhoodSlug}`}
+                        id={`smart-search-item-${idx}`}
+                        role="option"
+                        aria-selected={highlight === idx}
+                        href={n.href}
+                        className={linkClass(highlight === idx)}
+                        onClick={() => {
+                          setOpen(false)
+                          setQuery('')
+                          onClose?.()
+                        }}
+                      >
+                        {n.neighborhoodName}
+                        <span className="ml-1 text-muted-foreground">({n.cityName})</span>
                       </Link>
                     )
                   })}
@@ -302,7 +336,7 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
                 </div>
               )}
               {suggestions.brokers.length > 0 && (
-                <div>
+                <div className="mb-1">
                   <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Agents &amp; brokers
                   </p>
@@ -323,6 +357,33 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
                         }}
                       >
                         {b.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.reports.length > 0 && (
+                <div>
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Market reports
+                  </p>
+                  {suggestions.reports.map((r, i) => {
+                    const idx = itemIndex++
+                    return (
+                      <Link
+                        key={`report-${i}-${r.label}`}
+                        id={`smart-search-item-${idx}`}
+                        role="option"
+                        aria-selected={highlight === idx}
+                        href={r.href}
+                        className={linkClass(highlight === idx)}
+                        onClick={() => {
+                          setOpen(false)
+                          setQuery('')
+                          onClose?.()
+                        }}
+                      >
+                        {r.label}
                       </Link>
                     )
                   })}

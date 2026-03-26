@@ -16,16 +16,18 @@ import {
 } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { listingsBrowsePath, valuationPath } from '@/lib/slug'
 
 /** Main nav: Home, Home Valuation, Buyers dropdown, Sellers dropdown, About dropdown, then Reports/Map */
 const NAV_HOME = { href: '/', label: 'Home' } as const
-const NAV_HOME_VALUATION = { href: '/home-valuation', label: 'Home Valuation' } as const
+const NAV_HOME_VALUATION = { href: valuationPath(), label: 'Home Valuation' } as const
 
 const BUYERS_MENU = {
   label: 'Buyers',
   links: [
     { href: '/buy', label: 'Buy With Us' },
-    { href: '/listings', label: 'Featured Listings' },
+    { href: listingsBrowsePath(), label: 'Featured Listings' },
     { href: '/homes-for-sale', label: 'Home Search' },
     { href: '/area-guides', label: 'Area Guides' },
   ],
@@ -36,7 +38,7 @@ const SELLERS_MENU = {
   links: [
     { href: '/sell', label: 'Sell With Us' },
     { href: '/sell/plan', label: 'Our Plan' },
-    { href: '/home-valuation', label: 'Home Valuation' },
+    { href: valuationPath(), label: 'Home Valuation' },
     { href: '/our-homes', label: 'Our Homes' },
   ],
 } as const
@@ -209,7 +211,7 @@ export default function Header({
                       href={href}
                       role="menuitem"
                       className="block px-4 py-2 text-sm text-muted hover:bg-card/10 hover:text-primary-foreground"
-                      onClick={() => setDesktopDropdown(null)}
+                      onClick={() => setTimeout(() => setDesktopDropdown(null), 0)}
                     >
                       {label}
                     </Link>
@@ -284,12 +286,13 @@ export default function Header({
                       href={href}
                       role="menuitem"
                       className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
-                      onClick={() => setAccountOpen(false)}
+                      onClick={() => setTimeout(() => setAccountOpen(false), 0)}
                     >
                       {label}
                     </Link>
                   ))}
-                  <form action={signOut} className="border-t border-border">
+                  <Separator />
+                  <form action={signOut}>
                     <Button type="submit" role="menuitem" className="w-full px-4 py-2 text-left text-sm font-medium text-foreground hover:bg-muted">
                       Sign out
                     </Button>
@@ -300,14 +303,14 @@ export default function Header({
           ) : (
             <Link
               href="/login"
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring"
             >
               Log in
             </Link>
           )}
           <Button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-card/10 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-card/10 lg:hidden"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((o) => !o)}
@@ -322,9 +325,11 @@ export default function Header({
       </div>
 
       {searchOpen && (
-        <div
-          className="border-t border-primary-foreground/20 bg-primary px-4 py-3"
-          role="search"
+        <>
+          <Separator className="border-primary-foreground/20" />
+          <div
+            className="bg-primary px-4 py-3"
+            role="search"
           aria-label="Site search"
         >
           <form onSubmit={handleSearchSubmit} className="mx-auto flex max-w-xl gap-2">
@@ -351,7 +356,8 @@ export default function Header({
               Cancel
             </Button>
           </form>
-        </div>
+          </div>
+        </>
       )}
 
       {mobileOpen && (
@@ -379,7 +385,7 @@ export default function Header({
                 className={`rounded-lg px-4 py-3 text-lg font-medium ${
                   isActive(NAV_HOME.href) ? 'bg-card/15 text-primary-foreground' : 'text-muted hover:bg-card/10'
                 }`}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => setTimeout(() => setMobileOpen(false), 0)}
               >
                 {NAV_HOME.label}
               </Link>
@@ -388,7 +394,7 @@ export default function Header({
                 className={`rounded-lg px-4 py-3 text-lg font-medium ${
                   isActive(NAV_HOME_VALUATION.href) ? 'bg-card/15 text-primary-foreground' : 'text-muted hover:bg-card/10'
                 }`}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => setTimeout(() => setMobileOpen(false), 0)}
               >
                 {NAV_HOME_VALUATION.label}
               </Link>
@@ -412,7 +418,7 @@ export default function Header({
                           className={`rounded-lg px-3 py-2.5 text-base ${
                             isActive(href) ? 'font-semibold text-primary-foreground' : 'text-muted/90'
                           }`}
-                          onClick={() => setMobileOpen(false)}
+                          onClick={() => setTimeout(() => setMobileOpen(false), 0)}
                         >
                           {label}
                         </Link>
@@ -429,7 +435,7 @@ export default function Header({
                     isActive(item.href) ? 'bg-card/15 text-primary-foreground' : 'text-muted hover:bg-card/10'
                   }`}
                   aria-label={item.label}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => setTimeout(() => setMobileOpen(false), 0)}
                 >
                   {'iconOnly' in item && item.iconOnly ? (
                     <HugeiconsIcon icon={MapsIcon} className="h-6 w-6 shrink-0" aria-hidden />
@@ -439,7 +445,8 @@ export default function Header({
                 </Link>
               ))}
             </nav>
-            <div className="mt-8 border-t border-primary-foreground/20 pt-6">
+            <div className="mt-8 pt-6">
+              <Separator className="mb-6 border-primary-foreground/20" />
               {user ? (
                 <>
                   <p className="px-4 text-xs font-medium uppercase tracking-wider text-muted/60">Account</p>
@@ -448,7 +455,7 @@ export default function Header({
                       key={href}
                       href={href}
                       className="block rounded-lg px-4 py-3 text-lg font-medium text-muted hover:bg-card/10"
-                      onClick={() => setMobileOpen(false)}
+                      onClick={() => setTimeout(() => setMobileOpen(false), 0)}
                     >
                       {label}
                     </Link>
@@ -466,7 +473,7 @@ export default function Header({
                 <Link
                   href="/login"
                   className="inline-block rounded-lg bg-accent px-6 py-3 text-lg font-semibold text-primary"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => setTimeout(() => setMobileOpen(false), 0)}
                 >
                   Log in
                 </Link>

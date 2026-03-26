@@ -7,6 +7,8 @@ export type NeighborhoodHeroProps = {
   heroImageUrl: string | null
   activeCount: number
   medianPrice: number | null
+  /** Average days on market for active listings (shown when available). */
+  avgDom?: number | null
   /** Optional: Share (and future Save) actions rendered in hero top-right (overlay). */
   actions?: React.ReactNode
 }
@@ -26,6 +28,7 @@ export default function NeighborhoodHero({
   heroImageUrl,
   activeCount,
   medianPrice,
+  avgDom,
   actions,
 }: NeighborhoodHeroProps) {
   const src = heroImageUrl ?? PLACEHOLDER_HERO
@@ -60,7 +63,10 @@ export default function NeighborhoodHero({
           <p className="mt-1 text-lg text-muted font-sans">{cityName}, Oregon</p>
           <div className="mt-4 flex flex-wrap gap-4 rounded-lg bg-foreground/30 px-4 py-3 text-sm text-primary-foreground font-sans">
             <span>{activeCount} Homes for Sale</span>
-            <span>Median {formatPrice(medianPrice)}</span>
+            {medianPrice != null && <span>Median {formatPrice(medianPrice)}</span>}
+            {avgDom != null && avgDom > 0 && (
+              <span>Avg {Math.round(avgDom)} Days on Market</span>
+            )}
           </div>
         </div>
       </div>

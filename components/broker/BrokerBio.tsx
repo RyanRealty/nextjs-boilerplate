@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import type { AgentDetail } from '@/app/actions/agents'
 import { Button } from "@/components/ui/button"
 
@@ -10,6 +9,7 @@ type Props = {
 }
 
 const BIO_TRUNCATE_LEN = 400
+const OREGON_REA_LOOKUP_URL = 'https://www.oregon.gov/rea/licensing/pages/current-licensees.aspx'
 
 export default function BrokerBio({ broker }: Props) {
   const firstName = broker.display_name.split(' ')[0] ?? broker.display_name
@@ -69,9 +69,17 @@ export default function BrokerBio({ broker }: Props) {
           </p>
         )}
         {broker.license_number?.trim() && (
-          <p className="mt-6 text-sm text-muted-foreground">
-            Oregon Real Estate License # {broker.license_number.trim()}
-          </p>
+          <div className="mt-6 space-y-1 text-sm text-muted-foreground">
+            <p>Oregon Real Estate License # {broker.license_number.trim()}</p>
+            <a
+              href={OREGON_REA_LOOKUP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex text-primary hover:underline"
+            >
+              Verify on Oregon REA
+            </a>
+          </div>
         )}
       </div>
     </section>

@@ -14,6 +14,7 @@ export type OpenHouseWithListing = {
   id: string
   open_house_key: string
   listing_key: string
+  list_number: string | null
   event_date: string
   start_time: string | null
   end_time: string | null
@@ -99,7 +100,7 @@ export async function getOpenHousesWithListings(filters: OpenHousesFilters = {})
 
   const { data: listingRows } = await supabase
     .from('listings')
-    .select('listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, property_id')
+    .select('listing_key, list_number, list_price, beds_total, baths_full, living_area, subdivision_name, property_id')
     .in('listing_key', listingKeys)
 
   const propIds = (listingRows ?? [])
@@ -138,7 +139,7 @@ export async function getOpenHousesWithListings(filters: OpenHousesFilters = {})
       remarks: string | null
       rsvp_count: number
     }
-    const listRec = listingsByKey.get(row.listing_key) as { property_id?: string; list_price?: number; beds_total?: number; baths_full?: number; living_area?: number; subdivision_name?: string } | undefined
+    const listRec = listingsByKey.get(row.listing_key) as { property_id?: string; list_number?: string | null; list_price?: number; beds_total?: number; baths_full?: number; living_area?: number; subdivision_name?: string } | undefined
     const propData = listRec?.property_id ? propsById.get(listRec.property_id) : null
     const prop = propData as { city?: string; state?: string; postal_code?: string; street_number?: string; street_name?: string; unparsed_address?: string; latitude?: number; longitude?: number } | null
     const address = prop?.unparsed_address ?? [prop?.street_number, prop?.street_name].filter(Boolean).join(' ')
@@ -159,6 +160,7 @@ export async function getOpenHousesWithListings(filters: OpenHousesFilters = {})
       id: row.id,
       open_house_key: row.open_house_key,
       listing_key: row.listing_key,
+      list_number: listRec?.list_number ?? null,
       event_date: row.event_date,
       start_time: row.start_time,
       end_time: row.end_time,

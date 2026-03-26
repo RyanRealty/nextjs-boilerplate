@@ -1,10 +1,20 @@
-import { homesForSalePath } from '../../../lib/slug'
+import { homesForSalePath, listingDetailPath } from '../../../lib/slug'
 
 /**
  * Structured data for city/subdivision search pages: WebPage, BreadcrumbList, Place, ItemList.
  * Helps search engines and LLMs understand the page and listings.
  */
-type ListingRow = { ListingKey?: string | null; ListNumber?: string | null; [key: string]: unknown }
+type ListingRow = {
+  ListingKey?: string | null
+  ListNumber?: string | null
+  StreetNumber?: string | null
+  StreetName?: string | null
+  City?: string | null
+  State?: string | null
+  PostalCode?: string | null
+  SubdivisionName?: string | null
+  [key: string]: unknown
+}
 
 type Props = {
   displayName: string
@@ -85,8 +95,26 @@ export default function SearchPageJsonLd({
   const listingUrls = listings
     .slice(0, 20)
     .map((l) => {
-      const key = l.ListingKey ?? l.ListNumber
-      return key && siteUrl ? `${siteUrl}/listing/${encodeURIComponent(String(key))}` : null
+      const key = l.ListNumber ?? l.ListingKey
+      if (!key || !siteUrl) return null
+      const href = listingDetailPath(
+        String(key),
+        {
+          streetNumber: l.StreetNumber ?? null,
+          streetName: l.StreetName ?? null,
+          city: l.City ?? city ?? null,
+          state: l.State ?? null,
+          postalCode: l.PostalCode ?? null,
+        },
+        {
+          city: l.City ?? city ?? null,
+          subdivision: l.SubdivisionName ?? subdivision ?? null,
+        },
+        {
+          mlsNumber: l.ListNumber ?? null,
+        }
+      )
+      return `${siteUrl}${href}`
     })
     .filter(Boolean) as string[]
 

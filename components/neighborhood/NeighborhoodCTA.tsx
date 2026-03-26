@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 type Props = {
   neighborhoodName: string
@@ -12,11 +12,19 @@ type Props = {
 
 export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }: Props) {
   function handleGetNotified() {
-    trackEvent('click_cta', { cta: 'get_notified', context: 'neighborhood', neighborhood_name: neighborhoodName, city_name: cityName })
+    trackCtaClick({
+      label: 'Get Notified of New Listings',
+      destination: '/account/saved-searches',
+      context: `neighborhood_cta:${citySlug}`,
+    })
   }
 
   function handleTalkExpert() {
-    trackEvent('click_cta', { cta: 'talk_expert', context: 'neighborhood', neighborhood_name: neighborhoodName, city_name: cityName })
+    trackCtaClick({
+      label: 'Talk to a Local Expert',
+      destination: '/about',
+      context: `neighborhood_cta:${citySlug}`,
+    })
   }
 
   return (
@@ -48,7 +56,17 @@ export default function NeighborhoodCTA({ neighborhoodName, cityName, citySlug }
           Save your search to get alerts when new homes in {neighborhoodName} or {cityName} hit the market.
         </p>
         <p className="mt-2">
-          <Link href={`/cities/${citySlug}`} className="text-sm text-accent-foreground hover:underline">
+          <Link
+            href={`/cities/${citySlug}`}
+            className="text-sm text-accent-foreground hover:underline"
+            onClick={() =>
+              trackCtaClick({
+                label: `View all ${cityName} neighborhoods`,
+                destination: `/cities/${citySlug}`,
+                context: `neighborhood_cta:${citySlug}`,
+              })
+            }
+          >
             View all {cityName} neighborhoods
           </Link>
         </p>

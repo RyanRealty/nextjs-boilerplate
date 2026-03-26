@@ -7,6 +7,7 @@ import type { HomeTileRow } from '@/app/actions/listings'
 import type { EngagementCounts } from '@/app/actions/engagement'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
 import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
@@ -66,7 +67,13 @@ export default function FeaturedListings({
           headerRight={
             <Link
               href="/homes-for-sale"
-              onClick={() => trackEvent('click_cta', { cta_location: 'featured_view_all' })}
+              onClick={() =>
+                trackCtaClick({
+                  label: 'View all featured homes',
+                  destination: '/homes-for-sale',
+                  context: 'home_featured_listings',
+                })
+              }
               className="text-sm font-semibold text-accent-foreground hover:text-accent-foreground"
             >
               View all featured homes →

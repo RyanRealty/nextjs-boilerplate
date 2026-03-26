@@ -43,7 +43,7 @@ export default function CityCard({
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary to-[var(--primary / 0.8)]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h2 className="text-2xl font-bold text-primary-foreground drop-shadow-md">{name}</h2>
             <p className="mt-1 text-sm text-primary-foreground/90">

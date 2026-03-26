@@ -7,6 +7,7 @@ import type { SimilarListingForDetail } from '@/app/actions/listing-detail'
 import { Card, CardContent } from '@/components/ui/card'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import { trackEvent } from '@/lib/tracking'
+import { listingDetailPath } from '@/lib/slug'
 
 function formatPrice(n: number | null | undefined): string {
   if (n == null) return '—'
@@ -35,7 +36,7 @@ export default function SimilarListings({ listingKey, listings }: Props) {
     >
       {listings.map((item) => (
         <TilesSliderItem key={item.listing_key}>
-          <Link href={`/listing/${encodeURIComponent(item.listing_key)}`} className="block h-full">
+          <Link href={listingDetailPath(item.listing_key, { city: item.city, state: item.state, postalCode: item.postal_code })} className="block h-full">
             <Card className="overflow-hidden h-full">
               <div className="relative aspect-[4/3] bg-border">
                 {item.photo_url ? (

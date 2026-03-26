@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { MapListingRow } from '@/app/actions/listings'
 import type { ListingMapListing } from '@/components/ListingMapGoogle'
+import { listingDetailPath } from '@/lib/slug'
 
 const ListingMapGoogle = dynamic(
   () => import('@/components/ListingMapGoogle').then((m) => m.default),
@@ -85,13 +86,18 @@ export default function HomeMap({ listings }: Props) {
             </li>
           ) : (
             listingsInView.map((l, i) => {
-              const id = (l.ListingKey ?? l.ListNumber ?? `item-${i}`).toString()
+              const id = (l.ListNumber ?? l.ListingKey ?? `item-${i}`).toString()
               const price = Number(l.ListPrice ?? 0)
               const photoUrl = (l as { PhotoURL?: string | null }).PhotoURL
               return (
                 <li key={id}>
                   <Link
-                    href={`/listing/${id}`}
+                    href={listingDetailPath(
+                      id,
+                      { streetNumber: l.StreetNumber, streetName: l.StreetName, city: l.City, state: l.State, postalCode: l.PostalCode },
+                      undefined,
+                      { mlsNumber: l.ListNumber != null ? String(l.ListNumber) : null }
+                    )}
                     className="mb-2 flex gap-3 border border-border bg-card p-2 text-left shadow-sm transition hover:border-accent hover:shadow"
                   >
                     {photoUrl?.trim() ? (

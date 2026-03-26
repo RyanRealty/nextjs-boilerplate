@@ -13,6 +13,7 @@ import {
   DEFAULT_DISPLAY_DOWN_PCT,
   DEFAULT_DISPLAY_TERM_YEARS,
 } from '@/lib/mortgage'
+import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'Viewing History',
@@ -49,7 +50,7 @@ export default async function DashboardHistoryPage() {
         <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
           <p className="text-muted-foreground">No viewing history yet.</p>
           <Link
-            href="/listings"
+            href={listingsBrowsePath()}
             className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-accent/90"
           >
             Browse listings
@@ -98,14 +99,21 @@ export default async function DashboardHistoryPage() {
                 const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString().trim()
                 return (
                   <li key={v.id} className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-3">
-                    <Link href={`/listing/${key}`} className="font-medium text-foreground hover:underline">
+                    <Link
+                      href={listingDetailPath(
+                        key,
+                        { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
+                        { city: listing.City, subdivision: listing.SubdivisionName }
+                      )}
+                      className="font-medium text-foreground hover:underline"
+                    >
                       {[listing.StreetNumber, listing.StreetName].filter(Boolean).join(' ').trim() || listing.City || key}
                     </Link>
                     <span className="text-sm text-muted-foreground">
                       {new Date(v.created_at).toLocaleDateString()}
                     </span>
                     <Link
-                      href={`/listing/${key}`}
+                      href={listingDetailPath(key, { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode })}
                       className="text-sm font-medium text-accent-foreground hover:underline"
                     >
                       View again

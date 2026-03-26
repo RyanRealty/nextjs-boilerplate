@@ -1,14 +1,19 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import ActivityFeedCard from '@/components/activity/ActivityFeedCard'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { getActivityFeedWithFallbackMulti } from '@/app/actions/activity-feed'
-import type { ActivityFeedItem } from '@/app/actions/activity-feed'
+import { getEngagementCountsBatch } from '@/app/actions/engagement'
+import type { ActivityFeedItem } from '@/app/actions/activity-feed-shared'
+
+const SCROLL_THRESHOLD = 4
 
 export type ActivityFeedCity = { city: string; count?: number }
 
@@ -27,6 +32,12 @@ export type ActivityFeedSectionProps = {
   /** Max items to fetch when cities change. */
   limit?: number
   className?: string
+  /** When true, show save/like on cards and allow toggles. */
+  signedIn?: boolean
+  /** User's saved listing keys (for activity cards). */
+  savedKeys?: string[]
+  /** User's liked listing keys (for activity cards). */
+  likedKeys?: string[]
 }
 
 /** Union of default cities and allCities for the selector list, default first then rest alphabetically. */
@@ -48,13 +59,59 @@ export default function ActivityFeedSection({
   viewAllLabel = 'View all',
   limit = 12,
   className,
+  signedIn = false,
+  savedKeys = [],
+  likedKeys = [],
 }: ActivityFeedSectionProps) {
   const [selectedCities, setSelectedCities] = useState<string[]>(() => defaultCities)
   const [items, setItems] = useState<ActivityFeedItem[]>(initialItems)
+  const [engagementMap, setEngagementMap] = useState<Awaited<ReturnType<typeof getEngagementCountsBatch>>>({})
   const [loading, setLoading] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
 
   const options = useMemo(() => cityOptions(defaultCities, allCities), [defaultCities, allCities])
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const maxScroll = el.scrollWidth - el.clientWidth
+    setCanScrollLeft(el.scrollLeft > SCROLL_THRESHOLD)
+    setCanScrollRight(maxScroll > SCROLL_THRESHOLD && el.scrollLeft < maxScroll - SCROLL_THRESHOLD)
+  }, [])
+
+  const scrollTrack = useCallback((direction: 'left' | 'right') => {
+    const el = scrollRef.current
+    if (!el) return
+    const step = el.clientWidth * 0.85
+    el.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' })
+    setTimeout(updateScrollState, 350)
+  }, [updateScrollState])
+
+  useEffect(() => {
+    updateScrollState()
+    const el = scrollRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => updateScrollState())
+    ro.observe(el)
+    const t1 = requestAnimationFrame(() => updateScrollState())
+    const t2 = setTimeout(updateScrollState, 150)
+    const t3 = setTimeout(updateScrollState, 400)
+    return () => {
+      ro.disconnect()
+      cancelAnimationFrame(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [items.length, updateScrollState])
+
+  useEffect(() => {
+    if (items.length === 0) return
+    const keys = items.map((i) => i.listing_key).filter(Boolean)
+    getEngagementCountsBatch(keys).then(setEngagementMap)
+  }, [items])
 
   const toggleCity = useCallback(
     (city: string) => {
@@ -86,7 +143,7 @@ export default function ActivityFeedSection({
     >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 id="activity-feed-heading" className="text-2xl font-bold tracking-tight text-foreground">
+          <h2 id="activity-feed-heading" className="text-2xl text-primary sm:text-3xl">
             {heading}
           </h2>
           <div className="flex items-center gap-2">
@@ -128,30 +185,71 @@ export default function ActivityFeedSection({
             )}
           </div>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-2 text-muted-foreground">
           New listings, price drops, and status changes. Select cities above to filter.
         </p>
-        <div className="mt-6 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6">
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Updating…</p>
-          ) : items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No activity in selected cities yet. Try selecting more cities above.</p>
-          ) : (
-            <div
-              className="flex gap-6 min-w-max snap-x snap-mandatory"
-              style={{ scrollSnapType: 'x mandatory' }}
-            >
-              {items.map((item, i) => (
+        <div className="relative group/slider mt-6">
+          {!loading && items.length > 0 && (
+            <>
+              <Button
+                type="button"
+                onClick={() => scrollTrack('left')}
+                disabled={!canScrollLeft}
+                className="absolute left-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-r from-foreground/40 to-transparent opacity-90 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+                aria-label="Scroll left"
+              >
+                <span className="rounded-full bg-card/90 p-2 shadow-md">
+                  <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5 text-foreground" />
+                </span>
+              </Button>
+              <Button
+                type="button"
+                onClick={() => scrollTrack('right')}
+                disabled={!canScrollRight}
+                className="absolute right-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-l from-foreground/40 to-transparent opacity-90 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+                aria-label="Scroll right"
+              >
+                <span className="rounded-full bg-card/90 p-2 shadow-md">
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="h-5 w-5 text-foreground" />
+                </span>
+              </Button>
+            </>
+          )}
+          <div
+            ref={scrollRef}
+            onScroll={updateScrollState}
+            className={cn(
+              'overflow-x-auto pb-2 scroll-smooth no-scrollbar',
+              'flex gap-4 snap-x snap-mandatory'
+            )}
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {loading ? (
+              <p className="text-sm text-muted-foreground py-4">Updating…</p>
+            ) : items.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">No activity in selected cities yet. Try selecting more cities above.</p>
+            ) : (
+              items.map((item, i) => (
                 <div
                   key={item.id}
                   className="shrink-0 snap-start w-[85vw] min-w-[260px] max-w-[320px] sm:w-[50vw] sm:min-w-[280px] sm:max-w-[360px] lg:w-[33.333vw] lg:min-w-[300px] lg:max-w-[420px]"
                   style={{ scrollSnapAlign: 'start' }}
                 >
-                  <ActivityFeedCard item={item} priority={i < 3} />
+                  <ActivityFeedCard
+                    item={item}
+                    priority={i < 3}
+                    signedIn={signedIn}
+                    saved={savedKeys.includes(item.listing_key)}
+                    liked={likedKeys.includes(item.listing_key)}
+                    viewCount={engagementMap[item.listing_key]?.view_count ?? 0}
+                    likeCount={engagementMap[item.listing_key]?.like_count ?? 0}
+                    saveCount={engagementMap[item.listing_key]?.save_count ?? 0}
+                    shareCount={engagementMap[item.listing_key]?.share_count ?? 0}
+                  />
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
     </section>

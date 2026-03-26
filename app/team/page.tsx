@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { getAgentsForIndex } from '@/app/actions/agents'
 import { getBrokerageSettings } from '@/app/actions/brokerage'
 import BrokerCard from '@/components/broker/BrokerCard'
+import BrokerSocialProofCta from '@/components/broker/BrokerSocialProofCta'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
+import { listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -53,7 +55,7 @@ export default async function TeamPage() {
         subtitle={`The people behind ${brokerageName}. Local experts ready to help you find or sell your next home in Central Oregon.`}
         imageUrl={CONTENT_HERO_IMAGES.team}
         ctas={[
-          { label: 'View Listings', href: '/listings', primary: true },
+          { label: 'View Listings', href: listingsBrowsePath(), primary: true },
           { label: 'Contact Us', href: '/contact', primary: false },
         ]}
       />
@@ -68,6 +70,15 @@ export default async function TeamPage() {
           </div>
         )}
       </section>
+      <BrokerSocialProofCta
+        title="Work With a Proven Local Team"
+        subtitle="Each broker page includes reviews, track record, and direct contact options so buyers and sellers can move forward with confidence."
+        primaryCtaHref="/contact"
+        primaryCtaLabel="Talk to Ryan Realty"
+        secondaryCtaHref="/reviews"
+        secondaryCtaLabel="Read More Reviews"
+        ctaContext="team_index"
+      />
     </main>
   )
 }

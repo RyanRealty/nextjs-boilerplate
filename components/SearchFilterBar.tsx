@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { PROPERTY_TYPES } from '@/lib/property-type'
 import SaveSearchButton from '@/components/SaveSearchButton'
+import { listingsBrowsePath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Location01Icon } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
@@ -123,7 +124,7 @@ type OpenKey = 'status' | 'price' | 'bedsbaths' | 'hometype' | 'more' | null
 export default function SearchFilterBar(props: SearchFilterBarProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const pathname = props.basePath ?? '/listings'
+  const pathname = props.basePath ?? listingsBrowsePath()
   const [open, setOpen] = useState<OpenKey>(null)
   const barRef = useRef<HTMLDivElement>(null)
 

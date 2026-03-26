@@ -63,7 +63,7 @@ export default function SalesReportCard({ card }: Props) {
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary via-primary/90 to-accent/30" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/85 via-foreground/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 text-primary-foreground">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary-foreground/90">{card.city}</p>
             <h3 className="mt-0.5 text-xl font-bold drop-shadow-md">

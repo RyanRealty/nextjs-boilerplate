@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createServiceClient } from '@/lib/supabase/service'
 
 const BUCKET_NAME = 'community-media'
@@ -85,20 +85,24 @@ function classifyFolder(folderName: string): AreaGuideEntityType {
   return 'community'
 }
 
-async function fetchAllEntities(supabase: ReturnType<typeof createClient>): Promise<EntityRow[]> {
+type CommunityRow = { id: string; name: string; slug: string; hero_image_url: string | null; hero_video_url: string | null }
+type CityRow = { id: string; name: string; slug: string; hero_image_url: string | null; hero_video_url: string | null }
+type NeighborhoodRow = { id: string; name: string; slug: string; hero_image_url: string | null; city_id: string | null }
+
+async function fetchAllEntities(supabase: SupabaseClient): Promise<EntityRow[]> {
   const entities: EntityRow[] = []
   const [communities, cities, neighborhoods] = await Promise.all([
     supabase.from('communities').select('id, name, slug, hero_image_url, hero_video_url'),
     supabase.from('cities').select('id, name, slug, hero_image_url, hero_video_url'),
     supabase.from('neighborhoods').select('id, name, slug, hero_image_url, city_id'),
   ])
-  for (const c of communities.data ?? []) {
+  for (const c of (communities.data ?? []) as CommunityRow[]) {
     entities.push({ ...c, type: 'community' })
   }
-  for (const c of cities.data ?? []) {
+  for (const c of (cities.data ?? []) as CityRow[]) {
     entities.push({ ...c, type: 'city' })
   }
-  for (const n of neighborhoods.data ?? []) {
+  for (const n of (neighborhoods.data ?? []) as NeighborhoodRow[]) {
     entities.push({ ...n, type: 'neighborhood', hero_video_url: null })
   }
   return entities
@@ -174,7 +178,7 @@ export async function getAreaGuideEntityMapping(
   return { ok: true, rows }
 }
 
-async function ensureBucket(supabase: ReturnType<typeof createClient>): Promise<void> {
+async function ensureBucket(supabase: SupabaseClient): Promise<void> {
   const { data: buckets } = await supabase.storage.listBuckets()
   if (buckets?.some((b) => b.name === BUCKET_NAME)) return
   await supabase.storage.createBucket(BUCKET_NAME, {
@@ -191,40 +195,41 @@ async function ensureBucket(supabase: ReturnType<typeof createClient>): Promise<
  * Create a city, neighborhood, or community if it doesn't exist. Returns entity id and slug.
  */
 async function getOrCreateEntity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   folderName: string,
   entityType: AreaGuideEntityType,
   bendCityId: string | null
 ): Promise<{ id: string; name: string; slug: string; type: AreaGuideEntityType } | null> {
   const canonicalName = FOLDER_ALIASES[folderName] ?? folderName
   const slug = slugify(canonicalName)
+  type InsertRow = { id: string; name: string; slug: string }
   if (entityType === 'city') {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('cities')
       .insert({ name: canonicalName, slug, state: 'OR' })
       .select('id, name, slug')
       .single()
     if (error) return null
-    return { ...data, type: 'city' }
+    return { ...(data as InsertRow), type: 'city' }
   }
   if (entityType === 'neighborhood') {
     const insertData: { name: string; slug: string; city_id?: string } = { name: canonicalName, slug }
     if (bendCityId) insertData.city_id = bendCityId
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('neighborhoods')
       .insert(insertData)
       .select('id, name, slug')
       .single()
     if (error) return null
-    return { ...data, type: 'neighborhood' }
+    return { ...(data as InsertRow), type: 'neighborhood' }
   }
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('communities')
     .insert({ name: canonicalName, slug })
     .select('id, name, slug')
     .single()
   if (error) return null
-  return { ...data, type: 'community' }
+  return { ...(data as InsertRow), type: 'community' }
 }
 
 /**

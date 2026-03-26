@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
+import { logAdminAction } from '@/app/actions/log-admin-action'
 
 export type SitePageContent = { title: string; body_html: string } | null
 
@@ -45,6 +48,21 @@ export async function updatePageContent(
     { onConflict: 'key' }
   )
   if (error) return { ok: false, error: error.message }
+  const session = await getSession()
+  const adminEmail = session?.user?.email ?? ''
+  if (adminEmail) {
+  const role = adminEmail ? (await getAdminRoleForEmail(adminEmail))?.role ?? null : null
+    if (role) {
+      await logAdminAction({
+        adminEmail,
+        role,
+        actionType: 'update',
+        resourceType: 'site_page',
+        resourceId: key,
+        details: { title: payload.title?.trim() ?? '' },
+      })
+    }
+  }
   revalidatePath('/about')
   revalidatePath('/sell')
   revalidatePath('/contact')
@@ -56,5 +74,5 @@ export async function updatePageContent(
 export async function listSitePageKeys(): Promise<string[]> {
   const supabase = await createClient()
   const { data } = await supabase.from('site_pages').select('key').order('key')
-  return (data ?? []).map((r) => (r as { key: string }).key)
+  return (data ?? []).map((r: { key: string }) => r.key)
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import GeoMarketOverview from '@/components/geo-page/GeoMarketOverview'
+import { reportsExploreYtdPath } from '@/lib/slug'
 
 type Props = {
   neighborhoodName: string
@@ -33,6 +34,7 @@ export default function NeighborhoodMarketStats({
       stats={stats}
       priceHistory={priceHistory}
       fullReportHref={`/reports/city/${encodeURIComponent(cityName)}`}
+      ytdReportHref={reportsExploreYtdPath(cityName)}
       trackContext="neighborhood_market_stats"
     />
   )

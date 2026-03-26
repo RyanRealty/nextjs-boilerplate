@@ -8,6 +8,7 @@ import {
   getCommunitiesInNeighborhood,
 } from '@/app/actions/cities'
 import { getActivityFeed } from '@/app/actions/activity-feed'
+import { getEngagementCountsBatch } from '@/app/actions/engagement'
 import { getActiveBrokers } from '@/app/actions/brokers'
 import { shareDescription, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '@/lib/share-metadata'
 import { getSession } from '@/app/actions/auth'
@@ -32,7 +33,7 @@ import NeighborhoodPageActionBar from '@/components/geo-page/NeighborhoodPageAct
 import ListingsSlider from '@/components/geo-page/ListingsSlider'
 import GeoCTAWithBroker from '@/components/geo-page/GeoCTAWithBroker'
 import GeoSectionNewestListings from '@/components/geo-page/GeoSectionNewestListings'
-import GeoSectionPopularCommunities from '@/components/geo-page/GeoSectionPopularCommunities'
+import CommunitiesSlider from '@/components/sliders/CommunitiesSlider'
 import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
 import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
 
@@ -82,10 +83,10 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
   const pageUrl = `${siteUrl}/cities/${citySlug}/${neighborhoodSlug}`
   const pageTitle = `${neighborhood.name} in ${neighborhood.cityName}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
-  const heroImageUrl =
-    neighborhood.heroImageUrl ?? null
-
-  const [listings, soldListings, savedKeys, likedKeys, prefs, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys] = await Promise.all([
+  const [placePhotoUrl, listings, soldListings, savedKeys, likedKeys, prefs, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys] = await Promise.all([
+    !neighborhood.heroImageUrl
+      ? fetchPlacePhoto(`${neighborhood.name} ${neighborhood.cityName} Oregon`).then((r) => r?.url ?? null).catch(() => null)
+      : Promise.resolve(null),
     getNeighborhoodListings(neighborhood.id, 24),
     getNeighborhoodSoldListings(neighborhood.id, 6),
     session?.user ? getSavedListingKeys() : Promise.resolve([]),
@@ -97,6 +98,8 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
   ])
+
+  const heroImageUrl = neighborhood.heroImageUrl ?? placePhotoUrl ?? null
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -114,16 +117,51 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         })
       : undefined
 
+  const listingKeys = listings
+    .map((l) => (l.ListingKey ?? l.ListNumber ?? '').toString().trim())
+    .filter(Boolean)
+  const engagementMap = listingKeys.length > 0
+    ? await getEngagementCountsBatch(listingKeys)
+    : ({} as Record<string, { view_count: number; like_count: number; save_count: number; share_count: number }>)
+  const engagementScore = (key: string) => {
+    const e = engagementMap[key]
+    return (e?.view_count ?? 0) + (e?.like_count ?? 0) + (e?.save_count ?? 0) + (e?.share_count ?? 0)
+  }
+  const featuredListings = [...listings]
+    .sort((a, b) => {
+      const keyA = (a.ListingKey ?? a.ListNumber ?? '').toString().trim()
+      const keyB = (b.ListingKey ?? b.ListNumber ?? '').toString().trim()
+      const scoreA = engagementScore(keyA)
+      const scoreB = engagementScore(keyB)
+      if (scoreB !== scoreA) return scoreB - scoreA
+      const priceA = Number(a.ListPrice ?? 0)
+      const priceB = Number(b.ListPrice ?? 0)
+      return priceB - priceA
+    })
+    .slice(0, 12)
+
   const prices = listings
     .map((l) => l.ListPrice)
     .filter((p): p is number => p != null && Number.isFinite(p) && p > 0)
   const priceRangeMin = prices.length > 0 ? Math.min(...prices) : null
   const priceRangeMax = prices.length > 0 ? Math.max(...prices) : null
 
+  const domValues = listings
+    .map((l) => {
+      const onMarket = (l as { OnMarketDate?: string | null }).OnMarketDate
+      if (!onMarket) return null
+      const d = new Date(onMarket)
+      if (Number.isNaN(d.getTime())) return null
+      const days = Math.floor((Date.now() - d.getTime()) / (24 * 60 * 60 * 1000))
+      return days >= 0 ? days : null
+    })
+    .filter((n): n is number => n != null)
+  const avgDom = domValues.length > 0 ? Math.round(domValues.reduce((a, b) => a + b, 0) / domValues.length) : null
+
   const neighborhoodStats = {
     medianPrice: neighborhood.medianPrice,
     count: neighborhood.activeCount,
-    avgDom: null as number | null,
+    avgDom,
     closedLast12Months: 0,
   }
 
@@ -206,6 +244,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         heroImageUrl={heroImageUrl}
         activeCount={neighborhood.activeCount}
         medianPrice={neighborhood.medianPrice}
+        avgDom={avgDom}
         actions={
           <NeighborhoodPageActionBar
             neighborhoodName={neighborhood.name}
@@ -223,16 +262,6 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
           { label: neighborhood.cityName, href: `${siteUrl}/cities/${citySlug}` },
           { label: neighborhood.name },
         ]}
-      />
-
-      <ListingsSlider
-        title="Homes for sale in this neighborhood"
-        listings={listings}
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-        placeName={neighborhood.name}
       />
 
       <NeighborhoodOverview
@@ -255,6 +284,37 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         priceHistory={[]}
       />
 
+      <GeoSectionLatestActivity
+        title="Latest activity"
+        items={activityFeed}
+        signedIn={!!session?.user}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+      />
+
+      <GeoSectionFeaturedListings
+        title="Featured homes"
+        listings={featuredListings}
+        viewAllHref={homesForSalePath(neighborhood.cityName)}
+        viewAllLabel="View all"
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
+      />
+
+      <ListingsSlider
+        title="Homes for sale in this neighborhood"
+        listings={listings}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        placeName={neighborhood.name}
+        engagementMap={engagementMap}
+      />
+
       <GeoSectionNewestListings
         title="Newest listings"
         listings={listings}
@@ -264,9 +324,10 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         likedKeys={session?.user ? likedKeys : []}
         signedIn={!!session?.user}
         userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
       />
 
-      <GeoSectionPopularCommunities
+      <CommunitiesSlider
         title="Popular communities"
         communities={communitiesInNeighborhood}
         viewAllHref={`/cities/${citySlug}`}
@@ -275,19 +336,6 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         savedEntityKeys={savedCommunityKeys}
         likedEntityKeys={likedCommunityKeys}
       />
-
-      <GeoSectionFeaturedListings
-        title="Featured listings"
-        listings={listings.slice(6, 12)}
-        viewAllHref={homesForSalePath(neighborhood.cityName)}
-        viewAllLabel="View all"
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-      />
-
-      <GeoSectionLatestActivity title="Latest activity" items={activityFeed} />
 
       <GeoCTAWithBroker
         heading={`Looking for a Home in ${neighborhood.name}?`}

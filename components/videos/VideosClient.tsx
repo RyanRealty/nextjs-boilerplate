@@ -9,6 +9,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { PlayIcon, Cancel01Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { listingDetailPath } from '@/lib/slug'
 
 type Props = { initialListings: VideoListingRow[] }
 
@@ -110,7 +111,11 @@ export default function VideosClient({ initialListings }: Props) {
                   {listing.living_area != null && ` Â· ${Number(listing.living_area).toLocaleString()} sq ft`}
                 </p>
                 <Link
-                  href={`/listing/${encodeURIComponent(listing.listing_key)}`}
+                  href={listingDetailPath(
+                    listing.listing_key,
+                    { streetName: listing.unparsed_address ?? undefined, city: listing.city ?? undefined },
+                    { city: listing.city ?? undefined, subdivision: listing.subdivision_name ?? undefined }
+                  )}
                   className="mt-2 inline-block text-sm font-medium text-accent-foreground"
                 >
                   View Listing
@@ -142,7 +147,11 @@ export default function VideosClient({ initialListings }: Props) {
                   </p>
                 </div>
                 <Link
-                  href={`/listing/${encodeURIComponent(listing.listing_key)}`}
+                  href={listingDetailPath(
+                    listing.listing_key,
+                    { streetName: listing.unparsed_address ?? undefined, city: listing.city ?? undefined },
+                    { city: listing.city ?? undefined, subdivision: listing.subdivision_name ?? undefined }
+                  )}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-card/90 px-3 py-2 text-sm font-medium text-primary"
                 >
                   View Listing
@@ -190,7 +199,11 @@ export default function VideosClient({ initialListings }: Props) {
                 {selected.living_area != null && ` Â· ${Number(selected.living_area).toLocaleString()} sq ft`}
               </p>
               <Link
-                href={`/listing/${encodeURIComponent(selected.listing_key)}`}
+                href={listingDetailPath(
+                  selected.listing_key,
+                  { streetName: selected.unparsed_address ?? undefined, city: selected.city ?? undefined },
+                  { city: selected.city ?? undefined, subdivision: selected.subdivision_name ?? undefined }
+                )}
                 className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-primary"
               >
                 View Listing

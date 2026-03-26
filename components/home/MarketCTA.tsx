@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 type MarketStats = {
   count: number
@@ -51,14 +51,26 @@ export default function MarketCTA({ stats }: Props) {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/reports"
-            onClick={() => trackEvent('click_cta', { cta_location: 'market_report_cta' })}
+            onClick={() =>
+              trackCtaClick({
+                label: 'View Full Market Report',
+                destination: '/reports',
+                context: 'home_market_cta',
+              })
+            }
             className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3 font-semibold text-accent-foreground hover:bg-accent/90"
           >
             View Full Market Report
           </Link>
           <Link
             href="/sell"
-            onClick={() => trackEvent('click_cta', { cta_location: 'whats_your_home_worth' })}
+            onClick={() =>
+              trackCtaClick({
+                label: "What's Your Home Worth?",
+                destination: '/sell',
+                context: 'home_market_cta',
+              })
+            }
             className="inline-flex items-center justify-center rounded-lg border-2 border-primary-foreground/60 px-6 py-3 font-semibold text-primary-foreground hover:bg-primary-foreground/10"
           >
             What&apos;s Your Home Worth?

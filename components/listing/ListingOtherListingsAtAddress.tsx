@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ListingTileRow } from '@/app/actions/listings'
+import { listingDetailPath } from '@/lib/slug'
 import { Button } from "@/components/ui/button"
 type Props = {
   addressLabel: string
@@ -114,7 +115,7 @@ export default function ListingOtherListingsAtAddress({
       <ul className="mt-4 space-y-3">
         {sortedActive.map((l) => {
           const key = (l.ListNumber ?? l.ListingKey ?? '').toString().trim()
-          const href = key ? `/listing/${encodeURIComponent(key)}` : null
+          const href = key ? listingDetailPath(key, { streetNumber: l.StreetNumber, streetName: l.StreetName, city: l.City, state: l.State, postalCode: l.PostalCode }) : null
           const status = l.StandardStatus ?? 'Active'
           return (
             <li key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
@@ -146,7 +147,7 @@ export default function ListingOtherListingsAtAddress({
         })}
         {showPast && hasPast && sortedPast.map((l) => {
           const key = (l.ListNumber ?? l.ListingKey ?? '').toString().trim()
-          const href = key ? `/listing/${encodeURIComponent(key)}` : null
+          const href = key ? listingDetailPath(key, { streetNumber: l.StreetNumber, streetName: l.StreetName, city: l.City, state: l.State, postalCode: l.PostalCode }) : null
           const status = l.StandardStatus ?? 'Closed'
           return (
             <li key={key} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">

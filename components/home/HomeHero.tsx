@@ -5,8 +5,10 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { getSearchSuggestions, type SearchSuggestionsResult } from '@/app/actions/listings'
 import { trackEvent } from '@/lib/tracking'
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { cityPagePath } from '@/lib/slug'
+import { communityPagePath } from '@/lib/community-slug'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 // No stock photography â€” fallback is empty; hero renders a navy gradient when no brokerage image is set.
 const DEFAULT_HERO_IMAGE = ''
@@ -66,25 +68,59 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
     return () => clearTimeout(t)
   }, [query])
 
+  const MAX_ADDRESSES = 6
+  const MAX_CITIES = 6
+  const MAX_SUBDIVISIONS = 6
+  const MAX_NEIGHBORHOODS = 5
+  const MAX_ZIPS = 5
+  const MAX_BROKERS = 5
+  const MAX_REPORTS = 5
+
   useEffect(() => {
     setHighlight(0)
   }, [suggestions])
 
-  const totalItems = suggestions
-    ? suggestions.addresses.length + suggestions.cities.length + suggestions.subdivisions.length
+  const displayedCounts = suggestions
+    ? {
+        addresses: Math.min(MAX_ADDRESSES, suggestions.addresses.length),
+        cities: Math.min(MAX_CITIES, suggestions.cities.length),
+        subdivisions: Math.min(MAX_SUBDIVISIONS, suggestions.subdivisions.length),
+        neighborhoods: Math.min(MAX_NEIGHBORHOODS, suggestions.neighborhoods.length),
+        zips: Math.min(MAX_ZIPS, suggestions.zips.length),
+        brokers: Math.min(MAX_BROKERS, suggestions.brokers.length),
+        reports: Math.min(MAX_REPORTS, suggestions.reports.length),
+      }
+    : null
+
+  const totalItems = displayedCounts
+    ? displayedCounts.addresses +
+      displayedCounts.cities +
+      displayedCounts.subdivisions +
+      displayedCounts.neighborhoods +
+      displayedCounts.zips +
+      displayedCounts.brokers +
+      displayedCounts.reports
     : 0
 
   const getHref = (index: number): string | null => {
-    if (!suggestions) return null
+    if (!suggestions || !displayedCounts) return null
     let i = index
-    if (i < suggestions.addresses.length) return suggestions.addresses[i]?.href ?? null
-    i -= suggestions.addresses.length
-    if (i < suggestions.cities.length) return `/homes-for-sale?city=${encodeURIComponent(suggestions.cities[i]!.city)}`
-    i -= suggestions.cities.length
-    if (i < suggestions.subdivisions.length) {
+    if (i < displayedCounts.addresses) return suggestions.addresses[i]?.href ?? null
+    i -= displayedCounts.addresses
+    if (i < displayedCounts.cities) return cityPagePath(suggestions.cities[i]!.city)
+    i -= displayedCounts.cities
+    if (i < displayedCounts.subdivisions) {
       const s = suggestions.subdivisions[i]!
-      return `/homes-for-sale?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`
+      return communityPagePath(s.city, s.subdivisionName)
     }
+    i -= displayedCounts.subdivisions
+    if (i < displayedCounts.neighborhoods) return suggestions.neighborhoods[i]?.href ?? null
+    i -= displayedCounts.neighborhoods
+    if (i < displayedCounts.zips) return suggestions.zips[i]?.href ?? null
+    i -= displayedCounts.zips
+    if (i < displayedCounts.brokers) return suggestions.brokers[i]?.href ?? null
+    i -= displayedCounts.brokers
+    if (i < displayedCounts.reports) return suggestions.reports[i]?.href ?? null
     return null
   }
 
@@ -160,7 +196,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
               ref={inputRef}
               type="search"
               autoComplete="off"
-              placeholder="City, community, or zip"
+              placeholder="City, community, neighborhood, address, or broker…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => query.trim().length >= 2 && setOpen(true)}
@@ -176,49 +212,144 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
             </Button>
           </div>
           {open && suggestions && totalItems > 0 && (
-            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-card shadow-lg max-h-64 overflow-auto z-20">
-              {suggestions.addresses.slice(0, 5).map((a, i) => (
-                <Button
-                  key={a.href + i}
-                  type="button"
-                  role="option"
-                  aria-selected={highlight === i}
-                  className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === i ? 'bg-muted' : ''}`}
-                  onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(a.href); setOpen(false); }}
-                >
-                  {a.label}
-                </Button>
-              ))}
-              {suggestions.cities.slice(0, 5).map((c, i) => {
-                const idx = suggestions.addresses.length + i
-                return (
-                  <Button
-                    key={c.city}
-                    type="button"
-                    role="option"
-                    aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
-                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(c.city)}`); setOpen(false); }}
-                  >
-                    {c.city} {c.count > 0 ? `(${c.count})` : ''}
-                  </Button>
-                )
-              })}
-              {suggestions.subdivisions.slice(0, 6).map((s, i) => {
-                const idx = suggestions.addresses.length + suggestions.cities.length + i
-                return (
-                  <Button
-                    key={`${s.city}-${s.subdivisionName}`}
-                    type="button"
-                    role="option"
-                    aria-selected={highlight === idx}
-                    className={`block w-full text-left px-4 py-3 text-primary hover:bg-muted ${highlight === idx ? 'bg-muted' : ''}`}
-                    onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(`/homes-for-sale?city=${encodeURIComponent(s.city)}&subdivision=${encodeURIComponent(s.subdivisionName)}`); setOpen(false); }}
-                  >
-                    {s.subdivisionName}, {s.city}
-                  </Button>
-                )
-              })}
+            <div role="listbox" className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-card shadow-lg max-h-[min(70vh,400px)] overflow-auto z-20 py-2">
+              {suggestions.addresses.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Listings</p>
+                  {suggestions.addresses.slice(0, 6).map((a, i) => (
+                    <Button
+                      key={`addr-${i}-${a.label}`}
+                      type="button"
+                      role="option"
+                      aria-selected={highlight === i}
+                      className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === i ? 'bg-muted' : ''}`}
+                      onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(a.href); setOpen(false); }}
+                    >
+                      {a.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              {suggestions.cities.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cities</p>
+                  {suggestions.cities.slice(0, 6).map((c, i) => {
+                    const idx = suggestions.addresses.length + i
+                    return (
+                      <Button
+                        key={`city-${c.city}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(cityPagePath(c.city)); setOpen(false); }}
+                      >
+                        {c.city} {c.count > 0 ? `(${c.count})` : ''}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.subdivisions.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Communities</p>
+                  {suggestions.subdivisions.slice(0, 6).map((s, i) => {
+                    const idx = suggestions.addresses.length + suggestions.cities.length + i
+                    return (
+                      <Button
+                        key={`sub-${s.city}-${s.subdivisionName}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(communityPagePath(s.city, s.subdivisionName)); setOpen(false); }}
+                      >
+                        {s.subdivisionName}, {s.city} {s.count > 0 ? `(${s.count})` : ''}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.neighborhoods.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Neighborhoods</p>
+                  {suggestions.neighborhoods.slice(0, 5).map((n, i) => {
+                    const idx = suggestions.addresses.length + suggestions.cities.length + suggestions.subdivisions.length + i
+                    return (
+                      <Button
+                        key={`n-${n.citySlug}-${n.neighborhoodSlug}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(n.href); setOpen(false); }}
+                      >
+                        {n.neighborhoodName}, {n.cityName}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.zips.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Zip codes</p>
+                  {suggestions.zips.slice(0, 5).map((z, i) => {
+                    const idx = suggestions.addresses.length + suggestions.cities.length + suggestions.subdivisions.length + suggestions.neighborhoods.length + i
+                    return (
+                      <Button
+                        key={`zip-${z.postalCode}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(z.href); setOpen(false); }}
+                      >
+                        {z.postalCode} {z.city ? `(${z.city})` : ''} {z.count > 0 ? `· ${z.count}` : ''}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.brokers.length > 0 && (
+                <div className="mb-1">
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agents &amp; brokers</p>
+                  {suggestions.brokers.slice(0, 5).map((b, i) => {
+                    const idx = suggestions.addresses.length + suggestions.cities.length + suggestions.subdivisions.length + suggestions.neighborhoods.length + suggestions.zips.length + i
+                    return (
+                      <Button
+                        key={`broker-${b.label}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(b.href); setOpen(false); }}
+                      >
+                        {b.label}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.reports.length > 0 && (
+                <div>
+                  <p className="px-4 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Market reports</p>
+                  {suggestions.reports.slice(0, 5).map((r, i) => {
+                    const idx = suggestions.addresses.length + suggestions.cities.length + suggestions.subdivisions.length + suggestions.neighborhoods.length + suggestions.zips.length + suggestions.brokers.length + i
+                    return (
+                      <Button
+                        key={`report-${i}-${r.label}`}
+                        type="button"
+                        role="option"
+                        aria-selected={highlight === idx}
+                        className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
+                        onMouseDown={() => { trackEvent('hero_search', { cta_location: 'hero_search' }); router.push(r.href); setOpen(false); }}
+                      >
+                        {r.label}
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </form>

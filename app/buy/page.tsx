@@ -6,8 +6,11 @@ import { trackPageViewIfPossible } from '@/lib/followupboss'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import { LocationHugeIcon, HomeHugeIcon, SupportHugeIcon, ArrowRightHugeIcon } from '@/components/icons/HugeIcons'
+import { listingsBrowsePath } from '@/lib/slug'
+import ShareButton from '@/components/ShareButton'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'Buy With Us | Find Your Central Oregon Home | Ryan Realty',
@@ -19,6 +22,14 @@ export const metadata: Metadata = {
     description: 'Find your Central Oregon home with local expertise and personalized support.',
     url: `${siteUrl}/buy`,
     type: 'website',
+    siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty buy with us' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Buy With Us | Ryan Realty — Central Oregon Real Estate',
+    description: 'Find your Central Oregon home with local expertise and personalized support.',
+    images: [defaultOgImage],
   },
 }
 
@@ -50,10 +61,19 @@ export default async function BuyPage() {
         subtitle="Local expertise, real-time listings, and a team that puts you first. Bend, Redmond, Sisters, Sunriver—and the lifestyle you've been looking for."
         imageUrl={CONTENT_HERO_IMAGES.buy}
         ctas={[
-          { label: 'View Listings', href: '/listings', primary: true },
+          { label: 'View Listings', href: listingsBrowsePath(), primary: true },
           { label: 'Search Homes', href: '/homes-for-sale', primary: false },
         ]}
       />
+      <div className="mx-auto mt-4 flex w-full max-w-6xl justify-end px-4 sm:px-6">
+        <ShareButton
+          url={`${siteUrl}/buy`}
+          title="Buy with Ryan Realty"
+          text="Find your Central Oregon home with local expertise and real-time listings."
+          trackContext="buy_page"
+          variant="compact"
+        />
+      </div>
 
       {/* Why buy with us */}
       <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
@@ -142,7 +162,7 @@ export default async function BuyPage() {
           </h2>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/listings"
+              href={listingsBrowsePath()}
               className="rounded-lg border-2 border-primary bg-transparent px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Featured Listings

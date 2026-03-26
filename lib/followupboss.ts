@@ -57,6 +57,9 @@ export type FubEventPerson = {
   lastName?: string
   emails?: Array<{ value: string }>
   phones?: Array<{ value: string }>
+  assignedTo?: string
+  assignedUserId?: number
+  tags?: string[]
 }
 
 export type FubProperty = {
@@ -82,6 +85,228 @@ export type SendEventParams = {
   property?: FubProperty
   pageUrl?: string
   pageTitle?: string
+  brokerAttribution?: {
+    brokerSlug: string
+    brokerEmail?: string
+  }
+  campaign?: {
+    source?: string
+    medium?: string
+    campaign?: string
+    term?: string
+    content?: string
+  }
+}
+
+type FubUser = {
+  id: number
+  email?: string
+  name?: string
+}
+
+const brokerUserIdCache = new Map<string, { id: number; source: 'env_map' | 'email_lookup' }>()
+
+function parseBrokerUserMapFromEnv(): Record<string, number> {
+  const raw = process.env.FOLLOWUPBOSS_BROKER_USER_MAP?.trim()
+  if (!raw) return {}
+  const parsed: Record<string, number> = {}
+  for (const pair of raw.split(',')) {
+    const [k, v] = pair.split(':')
+    const key = (k ?? '').trim().toLowerCase()
+    const value = Number((v ?? '').trim())
+    if (!key || !Number.isFinite(value) || value <= 0) continue
+    parsed[key] = value
+  }
+  return parsed
+}
+
+function getMappedUserIdForSlug(slug: string): number | null {
+  const brokerSlug = slug.trim().toLowerCase()
+  if (!brokerSlug) return null
+  const mapped = parseBrokerUserMapFromEnv()[brokerSlug]
+  return mapped && mapped > 0 ? mapped : null
+}
+
+function isBrokerAssignmentGuardrailEnabled(): boolean {
+  const raw = process.env.FOLLOWUPBOSS_REQUIRE_BROKER_ASSIGNMENT?.trim().toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes' || raw === 'on'
+}
+
+async function findUserByEmail(email: string): Promise<FubUser | null> {
+  const auth = getAuth()
+  if (!auth) return null
+  const q = new URLSearchParams({
+    email: email.trim(),
+    limit: '1',
+    fields: 'id,email,name',
+  })
+  const res = await fetch(`${FUB_BASE}/users?${q}`, {
+    headers: fubHeaders(auth),
+    next: { revalidate: 0 },
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as { users?: FubUser[] }
+  const users = data.users
+  return Array.isArray(users) && users.length > 0 ? users[0] : null
+}
+
+async function getBrokerEmailBySlug(slug: string): Promise<string | null> {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  if (!baseUrl || !anonKey) return null
+  const brokerSlug = slug.trim().toLowerCase()
+  if (!brokerSlug) return null
+  const url = new URL(`${baseUrl}/rest/v1/brokers`)
+  url.searchParams.set('select', 'email')
+  url.searchParams.set('slug', `eq.${brokerSlug}`)
+  url.searchParams.set('is_active', 'eq.true')
+  url.searchParams.set('limit', '1')
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      Accept: 'application/json',
+    },
+    next: { revalidate: 0 },
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as Array<{ email?: string | null }>
+  if (!Array.isArray(data) || data.length === 0) return null
+  const email = data[0]?.email?.trim()
+  return email || null
+}
+
+type ResolvedAssignedUser = {
+  id: number | null
+  source: 'env_map' | 'email_lookup' | 'none'
+  brokerEmailUsed: string | null
+}
+
+async function resolveAssignedUserIdWithSource(
+  brokerSlug: string,
+  brokerEmail?: string
+): Promise<ResolvedAssignedUser> {
+  const slug = brokerSlug.trim().toLowerCase()
+  if (!slug) {
+    return { id: null, source: 'none', brokerEmailUsed: null }
+  }
+  const cached = brokerUserIdCache.get(slug)
+  if (cached) {
+    return { id: cached.id, source: cached.source, brokerEmailUsed: brokerEmail?.trim() || null }
+  }
+
+  const mapped = getMappedUserIdForSlug(slug)
+  if (mapped) {
+    brokerUserIdCache.set(slug, { id: mapped, source: 'env_map' })
+    return { id: mapped, source: 'env_map', brokerEmailUsed: brokerEmail?.trim() || null }
+  }
+
+  const emailFromBroker = brokerEmail?.trim() || (await getBrokerEmailBySlug(slug))
+  if (!emailFromBroker) {
+    return { id: null, source: 'none', brokerEmailUsed: null }
+  }
+
+  const user = await findUserByEmail(emailFromBroker)
+  if (!user?.id) {
+    return { id: null, source: 'none', brokerEmailUsed: emailFromBroker }
+  }
+  brokerUserIdCache.set(slug, { id: user.id, source: 'email_lookup' })
+  return { id: user.id, source: 'email_lookup', brokerEmailUsed: emailFromBroker }
+}
+
+async function resolveAssignedUserId(brokerSlug: string, brokerEmail?: string): Promise<number | null> {
+  const resolved = await resolveAssignedUserIdWithSource(brokerSlug, brokerEmail)
+  return resolved.id
+}
+
+async function resolvePersonId(person: FubEventPerson): Promise<number | null> {
+  if (person.id && person.id > 0) return person.id
+  const email = person.emails?.[0]?.value?.trim()
+  if (!email) return null
+  const existing = await findPersonByEmail(email)
+  return existing?.id ?? null
+}
+
+async function updatePersonAttribution(params: {
+  personId: number
+  brokerSlug: string
+  assignedUserId?: number | null
+}): Promise<boolean> {
+  const auth = getAuth()
+  if (!auth) return false
+  const slug = params.brokerSlug.trim().toLowerCase()
+  if (!slug) return false
+  const tags = [`broker:${slug}`]
+  const body: Record<string, unknown> = { tags }
+  if (params.assignedUserId && params.assignedUserId > 0) {
+    body.assignedUserId = params.assignedUserId
+  }
+  const res = await fetch(`${FUB_BASE}/people/${params.personId}?mergeTags=true`, {
+    method: 'PUT',
+    headers: fubHeaders(auth),
+    body: JSON.stringify(body),
+    next: { revalidate: 0 },
+  }).catch(() => null)
+  return !!res?.ok
+}
+
+type BrokerAttributionOutcome = {
+  personId: number | null
+  assignedUserId: number | null
+  attributionUpdated: boolean
+}
+
+async function applyBrokerAttribution(params: {
+  person: FubEventPerson
+  brokerSlug: string
+  brokerEmail?: string
+}): Promise<BrokerAttributionOutcome> {
+  const personId = await resolvePersonId(params.person)
+  if (!personId) {
+    return { personId: null, assignedUserId: null, attributionUpdated: false }
+  }
+  const assignedUserId = await resolveAssignedUserId(params.brokerSlug, params.brokerEmail)
+  const attributionUpdated = await updatePersonAttribution({
+    personId,
+    brokerSlug: params.brokerSlug,
+    assignedUserId,
+  })
+  return {
+    personId,
+    assignedUserId,
+    attributionUpdated,
+  }
+}
+
+export type BrokerAttributionDiagnostic = {
+  brokerSlug: string
+  brokerEmail: string | null
+  mappedUserId: number | null
+  resolvedAssignedUserId: number | null
+  resolutionSource: 'env_map' | 'email_lookup' | 'none'
+  brokerEmailUsed: string | null
+  brokerTag: string
+}
+
+/**
+ * Resolve how broker assignment would be applied in FUB for diagnostics in admin.
+ */
+export async function diagnoseBrokerAttribution(params: {
+  brokerSlug: string
+  brokerEmail?: string | null
+}): Promise<BrokerAttributionDiagnostic> {
+  const slug = params.brokerSlug.trim().toLowerCase()
+  const email = params.brokerEmail?.trim() || null
+  const resolved = await resolveAssignedUserIdWithSource(slug, email ?? undefined)
+  return {
+    brokerSlug: slug,
+    brokerEmail: email,
+    mappedUserId: getMappedUserIdForSlug(slug),
+    resolvedAssignedUserId: resolved.id,
+    resolutionSource: resolved.source,
+    brokerEmailUsed: resolved.brokerEmailUsed,
+    brokerTag: `broker:${slug}`,
+  }
 }
 
 /**
@@ -101,6 +326,7 @@ export async function sendEvent(params: SendEventParams): Promise<{ ok: true; st
     ...(params.property && Object.keys(params.property).length > 0 && { property: params.property }),
     ...(params.pageUrl && { pageUrl: params.pageUrl }),
     ...(params.pageTitle && { pageTitle: params.pageTitle }),
+    ...(params.campaign && Object.values(params.campaign).some(Boolean) && { campaign: params.campaign }),
   }
   const res = await fetch(`${FUB_BASE}/events`, {
     method: 'POST',
@@ -108,8 +334,40 @@ export async function sendEvent(params: SendEventParams): Promise<{ ok: true; st
     body: JSON.stringify(body),
     next: { revalidate: 0 },
   })
-  if (res.status === 204) return { ok: true, status: 204 }
-  if (res.ok) return { ok: true, status: res.status }
+  if (res.status === 204) {
+    if (params.brokerAttribution?.brokerSlug) {
+      const attribution = await applyBrokerAttribution({
+        person: params.person,
+        brokerSlug: params.brokerAttribution.brokerSlug,
+        brokerEmail: params.brokerAttribution.brokerEmail,
+      })
+      if (!attribution.assignedUserId || !attribution.attributionUpdated) {
+        const message = `FUB broker attribution incomplete for "${params.brokerAttribution.brokerSlug}" (person=${attribution.personId ?? 'unknown'})`
+        if (isBrokerAssignmentGuardrailEnabled()) {
+          return { ok: false, status: 500, error: `${message}. Set FOLLOWUPBOSS_BROKER_USER_MAP or matching broker email.` }
+        }
+        console.error(message)
+      }
+    }
+    return { ok: true, status: 204 }
+  }
+  if (res.ok) {
+    if (params.brokerAttribution?.brokerSlug) {
+      const attribution = await applyBrokerAttribution({
+        person: params.person,
+        brokerSlug: params.brokerAttribution.brokerSlug,
+        brokerEmail: params.brokerAttribution.brokerEmail,
+      })
+      if (!attribution.assignedUserId || !attribution.attributionUpdated) {
+        const message = `FUB broker attribution incomplete for "${params.brokerAttribution.brokerSlug}" (person=${attribution.personId ?? 'unknown'})`
+        if (isBrokerAssignmentGuardrailEnabled()) {
+          return { ok: false, status: 500, error: `${message}. Set FOLLOWUPBOSS_BROKER_USER_MAP or matching broker email.` }
+        }
+        console.error(message)
+      }
+    }
+    return { ok: true, status: res.status }
+  }
   let error: string | undefined
   try {
     const data = await res.json() as { error?: string; message?: string }

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import type { ListingTileRow } from '@/app/actions/listings'
 import type { ListingTileListing } from '@/components/ListingTile'
+import type { EngagementCounts } from '@/app/actions/engagement'
 import ListingTile from '@/components/ListingTile'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
@@ -16,6 +17,7 @@ type Props = {
   likedKeys?: string[]
   signedIn: boolean
   userEmail?: string | null
+  engagementMap?: Record<string, EngagementCounts>
 }
 
 /** Newest listings section: single-row slider of listing tiles + View all link. */
@@ -28,6 +30,7 @@ export default function GeoSectionNewestListings({
   likedKeys = [],
   signedIn,
   userEmail,
+  engagementMap,
 }: Props) {
   if (listings.length === 0) return null
 
@@ -45,6 +48,7 @@ export default function GeoSectionNewestListings({
       {listings.map((listing) => {
         const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString()
         if (!key) return null
+        const engagement = engagementMap?.[key]
         return (
           <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
             <ListingTile
@@ -54,6 +58,10 @@ export default function GeoSectionNewestListings({
               liked={likedKeys.includes(key)}
               signedIn={signedIn}
               userEmail={userEmail}
+              viewCount={engagement?.view_count ?? 0}
+              likeCount={engagement?.like_count ?? 0}
+              saveCount={engagement?.save_count ?? 0}
+              shareCount={engagement?.share_count ?? 0}
             />
           </TilesSliderItem>
         )

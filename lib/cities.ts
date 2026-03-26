@@ -92,6 +92,45 @@ export function filterToPrimaryCitiesOnly(cities: CityForIndex[]): CityForIndex[
 /** Order for Explore by City slider: these appear first, then the rest by count. */
 export const SLIDER_CITY_ORDER = ['Bend', 'Redmond', 'Sisters', 'La Pine', 'Sunriver', 'Tumalo']
 
+/** Home page Popular Cities section: exact display order (Bend, Redmond, Sunriver, Sisters, La Pine, Tumalo, Prineville, Madras). */
+export const HOME_POPULAR_CITY_NAMES = [
+  'Bend',
+  'Redmond',
+  'Sunriver',
+  'Sisters',
+  'La Pine',
+  'Tumalo',
+  'Prineville',
+  'Madras',
+] as const
+
+/** Match city name to home popular list (handles "Sun River" vs "Sunriver", "Lapine" vs "La Pine"). */
+function homePopularCityRank(name: string): number {
+  const lower = name.trim().toLowerCase()
+  for (let i = 0; i < HOME_POPULAR_CITY_NAMES.length; i++) {
+    const n = HOME_POPULAR_CITY_NAMES[i]!
+    if (n.toLowerCase() === lower) return i
+    if (lower === 'sun river' && n === 'Sunriver') return i
+    if (lower === 'lapine' && n === 'La Pine') return i
+  }
+  return -1
+}
+
+/** Return only the home popular cities in the specified order; excludes cities not in the list. */
+export function getHomePopularCitiesOrdered(cities: CityForIndex[]): CityForIndex[] {
+  const byRank = new Map<number, CityForIndex>()
+  for (const c of cities) {
+    const r = homePopularCityRank(c.name)
+    if (r >= 0 && !byRank.has(r)) byRank.set(r, c)
+  }
+  const out: CityForIndex[] = []
+  for (let i = 0; i < HOME_POPULAR_CITY_NAMES.length; i++) {
+    const c = byRank.get(i)
+    if (c) out.push(c)
+  }
+  return out
+}
+
 /** Quick facts for known cities (population, elevation, county, etc.). */
 export type CityQuickFacts = {
   population?: string

@@ -8,7 +8,9 @@ import { BookmarkIcon, HeartIcon as ActionHeartIcon } from '@/components/icons/A
 import { trackEvent } from '@/lib/tracking'
 import { toggleSavedListing } from '@/app/actions/saved-listings'
 import { toggleLikeListing } from '@/app/actions/likes'
+import { incrementListingShareCount } from '@/app/actions/engagement'
 import { useComparison } from '@/contexts/ComparisonContext'
+import { listingDetailPath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeftRightIcon } from '@hugeicons/core-free-icons'
 
@@ -43,7 +45,7 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
     shareUrlProp ??
     (typeof window !== 'undefined'
       ? window.location.href
-      : `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${listingKey}`)
+      : `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}${listingDetailPath(listingKey)}`)
   const shareTitleForButton = shareTitleProp ?? [address, price != null ? `$${price.toLocaleString()}` : ''].filter(Boolean).join(' | ')
   const property = { street: address, city: city ?? undefined, mlsNumber, price, bedrooms: beds ?? undefined, bathrooms: baths ?? undefined }
 
@@ -60,7 +62,7 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
   const handleSaveClick = async () => {
     const result = await toggleSavedListing(listingKey)
     if (result.error === 'Not signed in') {
-      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/listing/${listingKey}`)
+      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : listingDetailPath(listingKey))
       window.location.href = `/account?signin=1&returnUrl=${returnUrl}`
       return
     }
@@ -70,8 +72,9 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
     router.refresh()
   }
 
-  const handleShareClick = () => {
+  const handleShareComplete = () => {
     trackEvent('share_listing', { listing_key: listingKey, listing_url: listingUrl })
+    incrementListingShareCount(listingKey).then(() => router.refresh())
   }
 
   const handleCompareToggle = () => {
@@ -87,7 +90,7 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
   const handleLikeClick = async () => {
     const result = await toggleLikeListing(listingKey)
     if (result.error === 'Not signed in') {
-      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/listing/${listingKey}`)
+      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : listingDetailPath(listingKey))
       window.location.href = `/account?signin=1&returnUrl=${returnUrl}`
       return
     }
@@ -124,9 +127,15 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
           <ActionHeartIcon filled={liked} className="h-5 w-5 flex-shrink-0" />
           <span className="hidden sm:inline">Like</span>
         </Button>
-        <div onClick={handleShareClick}>
-          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="default" trackContext="listing_detail" className="!rounded-lg !border-border !bg-card !text-primary !px-4 !py-2" />
-        </div>
+        <ShareButton
+          url={listingUrl}
+          title={shareTitleForButton}
+          text={shareText ?? shareTitleForButton}
+          variant="default"
+          trackContext="listing_detail"
+          onShare={handleShareComplete}
+          className="!rounded-lg !border-border !bg-card !text-primary !px-4 !py-2"
+        />
         <Button
           type="button"
           onClick={handleCompareToggle}
@@ -158,9 +167,7 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
         <Button type="button" onClick={handleLikeClick} disabled={likePending} className="p-2 rounded-full border border-border" aria-label={liked ? 'Unlike' : 'Like'}>
           <ActionHeartIcon filled={liked} className={`h-5 w-5 ${liked ? 'text-destructive' : 'text-muted-foreground'}`} />
         </Button>
-        <div onClick={handleShareClick}>
-          <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="compact" aria-label="Share" trackContext="listing_detail" className="!p-2 !rounded-full !border-border" />
-        </div>
+        <ShareButton url={listingUrl} title={shareTitleForButton} text={shareText ?? shareTitleForButton} variant="compact" aria-label="Share" trackContext="listing_detail" onShare={handleShareComplete} className="!p-2 !rounded-full !border-border" />
         <Button
           type="button"
           onClick={handleCompareToggle}

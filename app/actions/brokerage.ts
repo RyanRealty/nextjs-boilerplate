@@ -3,6 +3,9 @@
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { revalidatePath } from 'next/cache'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
+import { logAdminAction } from '@/app/actions/log-admin-action'
 
 export type BrokerageSettingsRow = {
   id: string
@@ -65,6 +68,7 @@ export async function updateBrokerageLogoUrl(logoUrl: string | null): Promise<{ 
     .update({ logo_url: logoUrl?.trim() || null, updated_at: new Date().toISOString() })
     .eq('id', DEFAULT_ID)
   if (error) return { ok: false, error: error.message }
+  await logBrokerageAudit({ field: 'logo_url', logo_url: logoUrl?.trim() || null })
   revalidatePath('/', 'layout')
   return { ok: true }
 }
@@ -107,6 +111,11 @@ export async function updateBrokerageHeroMedia(heroVideoUrl: string | null, hero
     })
     .eq('id', DEFAULT_ID)
   if (error) return { ok: false, error: error.message }
+  await logBrokerageAudit({
+    field: 'hero_media',
+    hero_video_url: heroVideoUrl?.trim() || null,
+    hero_image_url: heroImageUrl?.trim() || null,
+  })
   revalidatePath('/', 'layout')
   revalidatePath('/')
   return { ok: true }
@@ -121,6 +130,7 @@ export async function updateBrokerageTeamImageUrl(teamImageUrl: string | null): 
     .update({ team_image_url: teamImageUrl?.trim() || null, updated_at: new Date().toISOString() })
     .eq('id', DEFAULT_ID)
   if (error) return { ok: false, error: error.message }
+  await logBrokerageAudit({ field: 'team_image_url', team_image_url: teamImageUrl?.trim() || null })
   revalidatePath('/', 'layout')
   revalidatePath('/')
   return { ok: true }
@@ -147,6 +157,90 @@ export async function uploadBrokerageTeamImage(formData: FormData): Promise<{ ok
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') ?? ''
   const url = `${supabaseUrl}/storage/v1/object/public/${LOGO_BUCKET}/${storagePath}`
   const result = await updateBrokerageTeamImageUrl(url)
+  if (!result.ok) return { ok: false, error: result.error }
+  return { ok: true, url }
+}
+
+async function ensureBrandingBucket() {
+  const supabase = getServiceSupabase()
+  if (!supabase) return null
+  const { data: buckets } = await supabase.storage.listBuckets()
+  if (!buckets?.some((b) => b.name === LOGO_BUCKET)) {
+    await supabase.storage.createBucket(LOGO_BUCKET, { public: true })
+  }
+  return supabase
+}
+
+function getPublicBrandingUrl(path: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') ?? ''
+  return `${supabaseUrl}/storage/v1/object/public/${LOGO_BUCKET}/${path}`
+}
+
+async function logBrokerageAudit(details: Record<string, unknown>) {
+  const session = await getSession()
+  const adminEmail = session?.user?.email ?? ''
+  if (!adminEmail) return
+  const role = adminEmail ? (await getAdminRoleForEmail(adminEmail))?.role ?? null : null
+  if (!role) return
+  await logAdminAction({
+    adminEmail,
+    role,
+    actionType: 'update',
+    resourceType: 'brokerage_settings',
+    resourceId: DEFAULT_ID,
+    details,
+  })
+}
+
+export async function uploadBrokerageHeroImage(formData: FormData): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const file = formData.get('file') as File | null
+  if (!file?.size || !file.type.startsWith('image/')) {
+    return { ok: false, error: 'Please choose an image file.' }
+  }
+  const supabase = await ensureBrandingBucket()
+  if (!supabase) return { ok: false, error: 'Server not configured' }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+  const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'avif'].includes(ext) ? ext : 'jpg'
+  const storagePath = `hero-image.${safeExt}`
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const { error: uploadError } = await supabase.storage.from(LOGO_BUCKET).upload(storagePath, buffer, {
+    contentType: file.type,
+    upsert: true,
+  })
+  if (uploadError) return { ok: false, error: `Upload failed: ${uploadError.message}` }
+
+  const url = getPublicBrandingUrl(storagePath)
+  const current = await _getBrokerageSettingsUncached()
+  const result = await updateBrokerageHeroMedia(current?.hero_video_url ?? null, url)
+  if (!result.ok) return { ok: false, error: result.error }
+  return { ok: true, url }
+}
+
+export async function uploadBrokerageHeroVideo(formData: FormData): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const file = formData.get('file') as File | null
+  if (!file?.size || !file.type.startsWith('video/')) {
+    return { ok: false, error: 'Please choose a video file.' }
+  }
+  if (!['video/mp4', 'video/webm'].includes(file.type)) {
+    return { ok: false, error: 'Only MP4 and WebM are supported.' }
+  }
+  const supabase = await ensureBrandingBucket()
+  if (!supabase) return { ok: false, error: 'Server not configured' }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'mp4'
+  const safeExt = ['mp4', 'webm'].includes(ext) ? ext : 'mp4'
+  const storagePath = `hero-video.${safeExt}`
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const { error: uploadError } = await supabase.storage.from(LOGO_BUCKET).upload(storagePath, buffer, {
+    contentType: file.type,
+    upsert: true,
+  })
+  if (uploadError) return { ok: false, error: `Upload failed: ${uploadError.message}` }
+
+  const url = getPublicBrandingUrl(storagePath)
+  const current = await _getBrokerageSettingsUncached()
+  const result = await updateBrokerageHeroMedia(url, current?.hero_image_url ?? null)
   if (!result.ok) return { ok: false, error: result.error }
   return { ok: true, url }
 }

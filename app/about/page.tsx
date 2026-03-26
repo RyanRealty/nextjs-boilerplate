@@ -9,6 +9,7 @@ import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import { sanitizeHtml } from '@/lib/sanitize'
 import { Button } from '@/components/ui/button'
+import { listingsBrowsePath } from '@/lib/slug'
 
 export const revalidate = 60
 
@@ -35,7 +36,7 @@ export default async function AboutPage() {
         imageUrl={CONTENT_HERO_IMAGES.about}
         ctas={[
           { label: 'Meet the Team', href: '/team', primary: true },
-          { label: 'View Listings', href: '/listings', primary: false },
+          { label: 'View Listings', href: listingsBrowsePath(), primary: false },
           { label: 'Get in Touch', href: '/contact', primary: false },
         ]}
       />
@@ -59,7 +60,7 @@ export default async function AboutPage() {
                 Meet the team
               </Button>
             </Link>
-            <Link href="/listings">
+            <Link href={listingsBrowsePath()}>
               <Button variant="outline" className="inline-flex items-center gap-2">
                 Browse listings
               </Button>
@@ -79,5 +80,5 @@ export default async function AboutPage() {
 function defaultAboutBody(): string {
   return `<p>Ryan Realty is Central Oregon's trusted source for buying and selling homes. We combine local expertise with a personal approach to help you find the right property or the right buyer.</p>
 <p>Our team of experienced brokers serves Bend, Redmond, Sisters, Sunriver, and the wider region. Whether you're looking for a primary residence, vacation home, or investment property, we're here to guide you.</p>
-<p><a href="/team">Meet our team</a> and <a href="/listings">browse current listings</a> to get started.</p>`
+<p><a href="/team">Meet our team</a> and <a href="/homes-for-sale">browse current listings</a> to get started.</p>`
 }

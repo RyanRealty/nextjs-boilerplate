@@ -1,4 +1,8 @@
 import { getBrokerageSettings } from '@/app/actions/brokerage'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
 import SiteLogoForm from './SiteLogoForm'
 import HeroMediaForm from './HeroMediaForm'
 import TeamImageForm from './TeamImageForm'
@@ -7,6 +11,10 @@ import SitePagesList from './SitePagesList'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminSitePagesPage() {
+  const session = await getSession()
+  const adminRole = await getAdminRoleForEmail(session?.user?.email ?? null)
+  if (adminRole?.role !== 'superuser') redirect('/admin/access-denied')
+
   const brokerage = await getBrokerageSettings()
   const logoUrl = brokerage?.logo_url ?? null
   const heroVideoUrl = brokerage?.hero_video_url ?? null
@@ -18,6 +26,9 @@ export default async function AdminSitePagesPage() {
       <h1 className="text-2xl font-bold text-foreground">Site pages</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Logo, branding, hero media, and editable content for public pages.
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Need broader asset control? Open the <Link href="/admin/media" className="underline">Media Library</Link>.
       </p>
 
       <div className="mt-8">

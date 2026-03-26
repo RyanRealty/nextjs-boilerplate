@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { listingsBrowsePath } from '@/lib/slug'
 
 /**
  * Shows "Back to search results" when user came from a search page (referrer or return param).
@@ -19,7 +20,7 @@ export default function BackToSearchLink({ returnUrl }: { returnUrl?: string | n
       }
     }
   }, [])
-  const href = returnUrl ?? referrer ?? '/listings'
+  const href = returnUrl ?? referrer ?? listingsBrowsePath()
   const show = returnUrl != null || referrer != null
   if (!show) return null
   return (

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { pushToFub } from '@/lib/fub'
+import { listingDetailPath } from '@/lib/slug'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
   const in24h = new Date(eventDateTime.getTime() - 24 * 60 * 60 * 1000)
   const in1h = new Date(eventDateTime.getTime() - 60 * 60 * 1000)
   const now = new Date()
-  const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(listingId)}`
+  const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}${listingDetailPath(listingId)}`
   if (in24h > now) {
     await service.from('notification_queue').insert({
       user_id: user.id,
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
   const [firstName, ...rest] = name.split(/\s+/)
   const lastName = rest.join(' ') || undefined
   await pushToFub('Open House RSVP', { email, firstName: firstName || undefined, lastName }, {
-    listingUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}/listing/${encodeURIComponent(listingId)}`,
+    listingUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}${listingDetailPath(listingId)}`,
     eventDate,
     tags: ['open-house-rsvp'],
   })

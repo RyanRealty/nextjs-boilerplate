@@ -1,0 +1,35 @@
+# Existing violations tracked for incremental cleanup.
+# New files should not be added without a cleanup plan.
+app/actions/generate-market-report.ts
+app/admin/(protected)/audit-log/page.tsx
+app/admin/(protected)/email/campaigns/page.tsx
+app/admin/(protected)/expired-listings/page.tsx
+app/admin/(protected)/geo/AssignCommunity.tsx
+app/admin/(protected)/geo/NeighborhoodForm.tsx
+app/admin/(protected)/geo/area-guide-upload/AreaGuideUploadClient.tsx
+app/admin/(protected)/listings/page.tsx
+app/admin/(protected)/query-builder/AdminQueryBuilderForm.tsx
+app/admin/(protected)/reports/CityReportSection.tsx
+app/admin/(protected)/reports/brokers/page.tsx
+app/admin/(protected)/reports/custom/CustomReportBuilder.tsx
+app/admin/(protected)/resort-communities/page.tsx
+app/admin/(protected)/site-pages/TeamImageForm.tsx
+app/admin/(protected)/sync/SyncHistoryTable.tsx
+app/admin/(protected)/sync/SyncHistoryTest.tsx
+app/admin/(protected)/sync/SyncRunLog.tsx
+app/admin/(protected)/sync/page.tsx
+app/api/og/route.tsx
+app/components/admin/AdminBrokerForm.tsx
+app/components/admin/AdminUsersList.tsx
+app/dashboard/page.tsx
+app/layout.tsx
+app/reports/sales/[city]/[period]/page.tsx
+components/ListingMapGoogle.tsx
+components/SearchFilterBar.tsx
+components/activity/ActivityFeedSection.tsx
+components/admin/DashboardSyncPanel.tsx
+components/compare/CompareClient.tsx
+components/listing/ListingGallery.tsx
+components/listing/ListingHero.tsx
+components/listing/ListingNav.tsx
+components/open-houses/OpenHousesClient.tsx

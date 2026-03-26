@@ -1,6 +1,7 @@
 'use client'
 
 import type { CommunityForIndex } from '@/lib/communities'
+import type { CommunityEngagementCounts } from '@/app/actions/community-engagement'
 import { subdivisionEntityKey } from '@/lib/slug'
 import GeoSlider from '@/components/geo-page/GeoSlider'
 import CommunityBarCard from '@/components/geo-page/CommunityBarCard'
@@ -11,10 +12,12 @@ type Props = {
   signedIn?: boolean
   savedEntityKeys?: string[]
   likedEntityKeys?: string[]
+  /** Engagement counts per entity key for view/like/save/share on each card. */
+  engagementMap?: Record<string, CommunityEngagementCounts>
 }
 
-/** Compact horizontal bar of communities (thumbnail + name + count). Matches the compact strip below hero on listing detail. */
-export default function CommunitiesBar({ cityName, communities, signedIn = false, savedEntityKeys = [], likedEntityKeys = [] }: Props) {
+/** Compact horizontal bar of communities (thumbnail + name + count). Same action bar as full community tiles. */
+export default function CommunitiesBar({ cityName, communities, signedIn = false, savedEntityKeys = [], likedEntityKeys = [], engagementMap }: Props) {
   const resortFirst = [...communities].sort((a, b) => (b.isResort ? 1 : 0) - (a.isResort ? 1 : 0))
   const savedSet = new Set(savedEntityKeys)
   const likedSet = new Set(likedEntityKeys)
@@ -38,6 +41,7 @@ export default function CommunitiesBar({ cityName, communities, signedIn = false
             signedIn={signedIn}
             saved={savedSet.has(entityKey)}
             liked={likedSet.has(entityKey)}
+            engagement={engagementMap?.[entityKey] ?? null}
           />
         )
       })}

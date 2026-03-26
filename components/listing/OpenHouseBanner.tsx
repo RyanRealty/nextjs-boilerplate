@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { ListingDetailOpenHouse } from '@/app/actions/listing-detail'
 import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/tracking'
+import { listingDetailPath } from '@/lib/slug'
 
 function formatTime(t: string | null): string {
   if (!t) return ''
@@ -74,7 +75,7 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
       body: JSON.stringify({ openHouseId: oh.id, listingId: listingKey }),
     })
     if (res.status === 401) {
-      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : `/listing/${listingKey}`)
+      const returnUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : listingDetailPath(listingKey))
       window.location.href = `/account?signin=1&returnUrl=${returnUrl}`
       return
     }

@@ -97,19 +97,9 @@ Once `npm run build` succeeds with zero errors:
 3. Provide a summary of every file you changed and why
 4. Note any changes that might affect runtime behavior (not just types)
 
-## Design System (for reference only — not relevant to build fixes)
-
-If you need to add any UI to fix a build error (unlikely), use CSS custom property tokens:
-- Colors: `var(--color-primary)` (#102742 navy), `var(--color-cta)` (#D4A853 gold), `var(--color-cream)` (#F0EEEC)
-- Never use raw Tailwind color classes (bg-zinc-*, etc.)
-- Never use raw hex values outside `globals.css`
-
 ## Source of Truth Docs (read only if needed for understanding a specific error)
 
-1. `docs/DESIGN_SYSTEM.md` — Visual standards
-2. `docs/FEATURES.md` — What's built
-3. `docs/GAP_ANALYSIS_REPORT.md` — What's missing
-4. `docs/CODEBASE_AUDIT_REPORT.md` — All known issues (F-001 through F-023)
+1. `docs/FEATURES.md` — What's built
 
 ## Start
 

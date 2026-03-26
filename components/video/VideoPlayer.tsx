@@ -48,12 +48,12 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
     const id = parsed.id ?? videoUrl.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/)?.[1]
     if (!id) return <div className={className}>Invalid YouTube URL</div>
     return (
-      <div className={`relative aspect-video bg-black ${className}`}>
+      <div className={`relative aspect-video bg-foreground ${className}`}>
         {!played ? (
           <Button
             type="button"
             onClick={handlePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black"
+            className="absolute inset-0 flex items-center justify-center bg-foreground"
             aria-label="Play video"
           >
             <div

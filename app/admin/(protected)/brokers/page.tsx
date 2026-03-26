@@ -1,5 +1,8 @@
 import Link from 'next/link'
-import { getBrokersForAdmin } from '@/app/actions/brokers'
+import { redirect } from 'next/navigation'
+import { getSession } from '@/app/actions/auth'
+import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
+import { getBrokerById, getBrokersForAdmin } from '@/app/actions/brokers'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -7,15 +10,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export const dynamic = 'force-dynamic'
 
 export default async function AdminBrokersPage() {
-  const brokers = await getBrokersForAdmin()
+  const session = await getSession()
+  const adminRole = await getAdminRoleForEmail(session?.user?.email ?? null)
+  if (!adminRole) redirect('/admin/access-denied')
+  if (adminRole.role === 'report_viewer') redirect('/admin/access-denied')
+  if (adminRole.role === 'broker' && !adminRole.brokerId) redirect('/admin/access-denied')
+
+  const ownBroker = adminRole.role === 'broker' && adminRole.brokerId
+    ? await getBrokerById(adminRole.brokerId)
+    : null
+  const brokers = ownBroker ? [ownBroker] : await getBrokersForAdmin()
 
   return (
     <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-foreground">Brokers</h1>
-        <Button asChild>
-          <Link href="/admin/brokers/new">Add broker</Link>
-        </Button>
+        {adminRole.role === 'superuser' && (
+          <Button asChild>
+            <Link href="/admin/brokers/new">Add broker</Link>
+          </Button>
+        )}
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         Team members appear on the public <Link href="/team" className="text-success hover:underline">/team</Link> page. Required: display name, title, Oregon license number.
@@ -60,7 +74,7 @@ export default async function AdminBrokersPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Link href={`/admin/brokers/${b.id}`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                    <Link href={`/admin/brokers/edit?id=${encodeURIComponent(b.id)}`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
                       Edit
                     </Link>
                   </TableCell>

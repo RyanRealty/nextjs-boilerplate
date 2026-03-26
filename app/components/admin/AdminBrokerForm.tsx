@@ -121,6 +121,12 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
     social_linkedin: broker.social_linkedin ?? '',
     social_youtube: broker.social_youtube ?? '',
     social_tiktok: broker.social_tiktok ?? '',
+    social_x: broker.social_x ?? '',
+    mls_id: broker.mls_id ?? '',
+    zillow_id: broker.zillow_id ?? '',
+    realtor_id: broker.realtor_id ?? '',
+    yelp_id: broker.yelp_id ?? '',
+    google_business_id: broker.google_business_id ?? '',
     intro_video_url: broker.intro_video_url ?? '',
   })
 
@@ -159,6 +165,12 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
         social_linkedin: form.social_linkedin.trim() || null,
         social_youtube: form.social_youtube.trim() || null,
         social_tiktok: form.social_tiktok.trim() || null,
+        social_x: form.social_x.trim() || null,
+        mls_id: form.mls_id.trim() || null,
+        zillow_id: form.zillow_id.trim() || null,
+        realtor_id: form.realtor_id.trim() || null,
+        yelp_id: form.yelp_id.trim() || null,
+        google_business_id: form.google_business_id.trim() || null,
         intro_video_url: form.intro_video_url.trim() || null,
       })
       if (result.ok) {
@@ -997,6 +1009,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   {m.type === 'video' ? (
                     <video src={m.url} className="h-20 w-32 rounded object-cover" muted playsInline />
                   ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element -- Dynamic media URLs from storage table in admin manager */
                     <img src={m.url} alt="Broker media" className="h-20 w-32 rounded object-cover" />
                   )}
                   <div className="min-w-0 flex-1">
@@ -1171,6 +1184,67 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
               className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </Label>
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">X</span>
+            <Input
+              type="url"
+              value={form.social_x}
+              onChange={(e) => setForm((f) => ({ ...f, social_x: e.target.value }))}
+              placeholder="https://x.com/..."
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
+        </div>
+      </div>
+      <div className="border-t border-border pt-4">
+        <h3 className="text-sm font-semibold text-foreground">External profile IDs</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">Used for linking broker pages to external profile sources.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">MLS ID</span>
+            <Input
+              type="text"
+              value={form.mls_id}
+              onChange={(e) => setForm((f) => ({ ...f, mls_id: e.target.value }))}
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">Zillow ID</span>
+            <Input
+              type="text"
+              value={form.zillow_id}
+              onChange={(e) => setForm((f) => ({ ...f, zillow_id: e.target.value }))}
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">Realtor.com ID</span>
+            <Input
+              type="text"
+              value={form.realtor_id}
+              onChange={(e) => setForm((f) => ({ ...f, realtor_id: e.target.value }))}
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">Yelp ID</span>
+            <Input
+              type="text"
+              value={form.yelp_id}
+              onChange={(e) => setForm((f) => ({ ...f, yelp_id: e.target.value }))}
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
+          <Label className="block">
+            <span className="text-sm font-medium text-muted-foreground">Google Business ID</span>
+            <Input
+              type="text"
+              value={form.google_business_id}
+              onChange={(e) => setForm((f) => ({ ...f, google_business_id: e.target.value }))}
+              className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </Label>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-6 border-t border-border pt-4">
@@ -1204,7 +1278,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
           {loading ? 'Savingâ€¦' : 'Save changes'}
         </Button>
         <a
-          href={`/agents/${broker.slug}`}
+          href={`/team/${broker.slug}`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted"

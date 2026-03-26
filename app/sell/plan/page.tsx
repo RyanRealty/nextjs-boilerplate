@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRightHugeIcon } from '@/components/icons/HugeIcons'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import BrokerSocialProofCta from '@/components/broker/BrokerSocialProofCta'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -18,20 +21,16 @@ export const metadata: Metadata = {
 
 const PLAN_STEPS = [
   {
-    title: 'Consultation & pricing',
-    body: 'We review your home, recent sales, and market trends to recommend a listing price and strategy. You get a clear range and the reasoning behind it—no guesswork.',
+    title: 'Hyper-Local Marketing (Not Just Zillow)',
+    body: "Anyone can put a house on the internet. We put your home in front of the right people. We leverage a deep network of local Bend buyers, relocation agents, and premium presentation (drone videography, staging consults) to create emotional urgency. We don't just list it. We launch it.",
   },
   {
-    title: 'Marketing & presentation',
-    body: 'Professional photography, listing copy, and placement across the major sites. We showcase your property so serious buyers find you fast.',
+    title: 'The Negotiation Shield',
+    body: 'FSBO sellers are magnets for bargain hunters and sharks. We act as your buffer. We vet the buyers, verify the funds, and fight for your price. We keep the emotion out of the transaction so you do not make concessions that cost you thousands.',
   },
   {
-    title: 'Showings & offers',
-    body: 'We coordinate showings, manage feedback, and help you evaluate offers. Our goal: a strong offer and a smooth path to closing.',
-  },
-  {
-    title: 'Closing',
-    body: 'We stay on top of inspections, appraisals, and paperwork so you can focus on your next chapter. Clear communication every step of the way.',
+    title: 'The Net Proceeds Focus',
+    body: "Our job is not to take a cut of your money. It is to grow the pie. Selling a home for $700k on your own is worse than selling it for $760k with us. We focus entirely on your bottom line check.",
   },
 ]
 
@@ -40,85 +39,74 @@ export default function SellPlanPage() {
     <main className="min-h-screen bg-background">
       <section className="bg-primary px-4 py-16 sm:px-6 sm:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent-foreground">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary-foreground/80">
             Our Plan
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl">
-            How We Sell Your Home
+            Is Saving the Commission Actually Costing You Your Equity
           </h1>
-          <p className="mt-6 text-lg text-muted/90">
-            A clear, proven process—from listing to closing—designed to maximize your home&apos;s
-            value and minimize stress. Central Oregon is our backyard; we know how to market it.
+          <p className="mt-6 text-lg text-primary-foreground/90">
+            Most Bend homeowners try FSBO to maximize profit. But data shows that self-listed homes in
+            Central Oregon often sell for 10% to 26% less than agent-listed homes. Do not step over
+            dollars to pick up pennies.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/sell/valuation"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3.5 text-base font-semibold text-primary shadow-md hover:bg-accent/90"
-            >
-              Get a home valuation
-              <ArrowRightHugeIcon className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/contact?inquiry=Selling"
-              className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/40 bg-card/10 px-6 py-3.5 text-base font-semibold text-primary-foreground backdrop-blur-sm hover:bg-card/20"
-            >
-              Talk to our team
-            </Link>
+            <Button asChild size="lg">
+              <Link href="/sell/valuation">Get a Home Valuation</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/contact?inquiry=Selling">Talk to Our Team</Link>
+            </Button>
           </div>
         </div>
       </section>
 
       <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="plan-heading">
         <div className="mx-auto max-w-4xl">
-          <h2 id="plan-heading" className="text-center text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-            The Ryan Realty Plan
+          <h2 id="plan-heading" className="text-center text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            We Get It Why Pay a Fee If You Can Do It Yourself
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
-            Every listing gets the same attention: data-driven pricing, strong marketing, and
-            local expertise from day one to closing.
+          <p className="mx-auto mt-4 max-w-3xl text-center text-muted-foreground">
+            It is the right mindset. You want to protect your equity. But in today&apos;s complex market,
+            avoiding a commission often results in a lower final sales price. We believe you should make
+            decisions based on math, not sales pitches.
           </p>
-          <ul className="mt-14 space-y-12">
+          <p className="mx-auto mt-3 max-w-3xl text-center text-muted-foreground">
+            Before you commit to the solo route, take a look at what the current market data says about
+            your true bottom line.
+          </p>
+          <Separator className="mt-10" />
+          <h3 className="mt-10 text-center text-2xl font-semibold text-foreground">
+            How We Bridge the Gap And Pay for Ourselves
+          </h3>
+          <ul className="mt-10 space-y-6">
             {PLAN_STEPS.map((step, i) => (
-              <li key={step.title} className="flex gap-6">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary text-2xl font-bold text-accent-foreground">
-                  {i + 1}
-                </span>
-                <div className="rounded-lg border border-border bg-muted p-6 shadow-sm">
-                  <h3 className="text-xl font-semibold text-primary">{step.title}</h3>
-                  <p className="mt-3 text-muted-foreground">{step.body}</p>
-                </div>
+              <li key={step.title}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">
+                      {i + 1}. {step.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{step.body}</p>
+                  </CardContent>
+                </Card>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      <section className="bg-muted px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="why-heading">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 id="why-heading" className="text-3xl font-bold text-primary sm:text-4xl">
-            Why list with us?
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            We combine <strong>data-driven pricing</strong>, <strong>professional marketing</strong>,
-            and <strong>local expertise</strong> so your home stands out in Central Oregon&apos;s
-            market. No cookie-cutter approach—we tailor the plan to your property and timeline.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/sell"
-              className="rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-accent/90"
-            >
-              Sell With Us
-            </Link>
-            <Link
-              href="/our-homes"
-              className="rounded-lg border-2 border-primary px-6 py-3 font-semibold text-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              Our Homes
-            </Link>
-          </div>
-        </div>
-      </section>
+      <BrokerSocialProofCta
+        title="Trusted in Bend"
+        subtitle="From first-time buyers to seasoned sellers, our clients share how Ryan Realty turned Central Oregon goals into real results."
+        primaryCtaHref="/contact?inquiry=Selling"
+        primaryCtaLabel="Book a Listing Consultation"
+        secondaryCtaHref="/sell"
+        secondaryCtaLabel="See Sell With Us"
+        ctaContext="sell_plan"
+      />
     </main>
   )
 }

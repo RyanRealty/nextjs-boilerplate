@@ -5,18 +5,42 @@ import { getPublishedBlogPosts, getPopularBlogSlugs, getBlogCategories } from '@
 import { getSession } from '@/app/actions/auth'
 import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { trackPageViewIfPossible } from '@/lib/followupboss'
+import { shouldNoIndexBlogIndex } from '@/lib/seo-routing'
+import ShareButton from '@/components/ShareButton'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
-export const metadata: Metadata = {
-  title: 'Central Oregon Real Estate Blog | Market Insights & Guides | Ryan Realty',
-  description: 'Market reports, community guides, and tips for buying and selling in Central Oregon.',
-  alternates: { canonical: `${siteUrl}/blog` },
-  openGraph: {
-    title: 'Central Oregon Real Estate Blog | Ryan Realty',
-    url: `${siteUrl}/blog`,
-    type: 'website',
-  },
+type BlogSearchParams = { category?: string; page?: string }
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<BlogSearchParams>
+}): Promise<Metadata> {
+  const params = await searchParams
+  const shouldNoIndex = shouldNoIndexBlogIndex(params)
+  const title = 'Central Oregon Real Estate Blog | Market Insights and Guides | Ryan Realty'
+  const description = 'Market reports, community guides, and tips for buying and selling in Central Oregon.'
+  return {
+    title,
+    description,
+    alternates: { canonical: `${siteUrl}/blog` },
+    robots: shouldNoIndex ? { index: false, follow: true } : undefined,
+    openGraph: {
+      title: 'Central Oregon Real Estate Blog | Ryan Realty',
+      description,
+      url: `${siteUrl}/blog`,
+      type: 'website',
+      images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty blog' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Central Oregon Real Estate Blog | Ryan Realty',
+      description,
+      images: [defaultOgImage],
+    },
+  }
 }
 
 function estimateReadTime(content: string | null): number {
@@ -25,7 +49,7 @@ function estimateReadTime(content: string | null): number {
   return Math.max(1, Math.round(words / 200))
 }
 
-type PageProps = { searchParams: Promise<{ category?: string; page?: string }> }
+type PageProps = { searchParams: Promise<BlogSearchParams> }
 
 export default async function BlogIndexPage({ searchParams }: PageProps) {
   const params = await searchParams
@@ -56,7 +80,16 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <h1 className="text-3xl font-bold text-foreground">Blog</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-foreground">Blog</h1>
+        <ShareButton
+          url={`${siteUrl}/blog`}
+          title="Central Oregon real estate blog"
+          text="Market reports, community guides, and buying or selling tips for Central Oregon."
+          trackContext="blog_index"
+          variant="compact"
+        />
+      </div>
       <p className="mt-2 text-muted-foreground">
         Market insights, community guides, and tips for buying and selling in Central Oregon.
       </p>

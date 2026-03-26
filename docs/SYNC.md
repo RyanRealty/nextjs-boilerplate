@@ -1,5 +1,16 @@
 # Full sync: listings, history, photos, videos
 
+## Always-on sync (production)
+
+Sync runs **in the background** with no manual steps:
+
+- **Delta sync (every 2 min)** — Inngest fetches listings changed in the last 2 minutes and upserts them. Keeps active and pending listings up to date.
+- **Full sync (every 10 min)** — Vercel cron calls `GET /api/cron/sync-full`. Each run does one chunk: 5 listing pages **or** 30 history listings. Newer listing pages are processed first; then history is backfilled for non-finalized listings. Once a closed listing’s history is finalized, it is never synced again.
+
+**Admin → Sync** is the **status page**: Spark API vs database, last sync times, by-city breakdown. Manual controls (Smart Sync, Refresh active & pending, delta trigger, history buttons) are under **Advanced / override** for one-off runs or troubleshooting. No buttons are required for normal operation.
+
+**Cron is on by default.** The `sync_cursor` row has `cron_enabled = true` (see migration `20260415120000_sync_cron_always_on.sql`). To disable background full sync, set `cron_enabled` to `false` in the database or via the Advanced section.
+
 ## What gets synced
 
 1. **Listings** – Fetched from Spark with `expand=Photos,FloorPlans,Videos,VirtualTours,OpenHouses,Documents`. Each listing is upserted into `listings` with:
@@ -11,17 +22,13 @@
 
 3. **Photos/videos** – Not in separate tables. They live inside `listings.details` (e.g. `details.Photos`, `details.Videos`). Admin counts use `get_listing_media_counts()` (listings with PhotoURL, listings with `details.Videos` array length > 0).
 
-## How to run a full sync
+## How to run sync (override / local)
 
-### Option A: Admin UI (Full sync)
+### Option A: Admin UI (Advanced)
 
-1. Open **Admin → Sync**.
-2. Use **Full sync (listings + history)**. It will:
-   - Run listing sync in chunks (20 pages at a time) until all pages are done.
-   - Then run history sync in batches (50 listings at a time) until every listing that needs history has been processed.
-3. Keep the tab open until it reports “Full sync complete.”
+Open **Admin → Sync**, expand **Advanced / override**, and use **Full sync (Smart Sync)**, **Refresh active & pending**, **Trigger delta sync**, or **Sync history** as needed. Use only for troubleshooting or one-off backfills; background sync handles normal updates.
 
-### Option B: Script (hands-off)
+### Option B: Script (local hands-off)
 
 1. **Env** – In `.env.local` set:
    - `CRON_SECRET` (any string, e.g. `local-sync-secret`)
@@ -38,9 +45,9 @@
    ```
    Uses `?pages=20&history_limit=100` so each request does more work. Run until you see “Full sync complete.”
 
-### Option C: Cron (production)
+### Option C: Cron (production – automatic)
 
-Call `GET /api/cron/sync-full` with `Authorization: Bearer <CRON_SECRET>` on a schedule (e.g. every 10–15 min). Each run does 5 listing pages or 30 history listings by default; override with `?pages=5&history_limit=30` if needed.
+Vercel Cron invokes `GET /api/cron/sync-full` every 10 minutes (`*/10 * * * *` in `vercel.json`). Each run does 5 listing pages or 30 history listings by default; override with `?pages=5&history_limit=30` if needed. Ensure `CRON_SECRET` is set in Vercel env.
 
 ## Spark: Listing History vs Historical Listings
 

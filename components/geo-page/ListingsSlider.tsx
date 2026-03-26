@@ -1,6 +1,7 @@
 'use client'
 
 import type { ListingTileRow } from '@/app/actions/listings'
+import type { EngagementCounts } from '@/app/actions/engagement'
 import GeoSlider from '@/components/geo-page/GeoSlider'
 import ListingBarCard from '@/components/geo-page/ListingBarCard'
 
@@ -13,6 +14,8 @@ type Props = {
   userEmail?: string | null
   /** e.g. community or neighborhood name for context (subtitle). */
   placeName?: string
+  /** Engagement counts per listing key for view/like/save/share on each card. */
+  engagementMap?: Record<string, EngagementCounts>
 }
 
 /** Compact bar of listing cards under hero (e.g. homes in this community/neighborhood). Matches listing detail strip; hover arrows, infinite wrap. */
@@ -24,6 +27,7 @@ export default function ListingsSlider({
   likedKeys = [],
   signedIn = false,
   userEmail,
+  engagementMap,
 }: Props) {
   if (listings.length === 0) return null
 
@@ -38,6 +42,7 @@ export default function ListingsSlider({
       {listings.map((listing) => {
         const key = (listing.ListingKey ?? listing.ListNumber ?? '').toString()
         if (!key) return null
+        const engagement = engagementMap?.[key]
         return (
           <ListingBarCard
             key={key}
@@ -47,6 +52,10 @@ export default function ListingsSlider({
             saved={savedKeys.includes(key)}
             liked={likedKeys.includes(key)}
             userEmail={userEmail}
+            viewCount={engagement?.view_count ?? 0}
+            likeCount={engagement?.like_count ?? 0}
+            saveCount={engagement?.save_count ?? 0}
+            shareCount={engagement?.share_count ?? 0}
           />
         )
       })}

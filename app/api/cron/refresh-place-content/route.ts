@@ -14,15 +14,24 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url)
-  const limit = Math.min(Number(url.searchParams.get('limit')) || 20, 100)
+  const limitCities = Math.min(Number(url.searchParams.get('cities')) || 3, 20)
+  const limitNeighborhoods = Math.min(Number(url.searchParams.get('neighborhoods')) || 5, 30)
+  const limitCommunities = Math.min(Number(url.searchParams.get('communities')) || 20, 50)
 
   try {
-    const result = await refreshPlaceContent({ maxSubdivisions: limit })
+    const result = await refreshPlaceContent({
+      limitCities,
+      limitNeighborhoods,
+      limitCommunities,
+    })
     return NextResponse.json({
       ok: true,
       updated: result.updated,
       failed: result.failed,
-      errors: result.errors.slice(0, 10),
+      errors: result.errors.slice(0, 15),
+      citiesProcessed: result.citiesProcessed,
+      neighborhoodsProcessed: result.neighborhoodsProcessed,
+      communitiesProcessed: result.communitiesProcessed,
     })
   } catch (e) {
     console.error('Refresh place content cron error:', e)

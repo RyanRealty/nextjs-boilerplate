@@ -27,7 +27,7 @@ function supabase() {
 const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details, lot_size_acres, lot_size_sqft'
 
 export type CityListingRow = {
   ListingKey: string | null
@@ -52,6 +52,8 @@ export type CityListingRow = {
   OnMarketDate?: string | null
   OpenHouses?: unknown
   details?: unknown
+  lot_size_acres?: number | null
+  lot_size_sqft?: number | null
 }
 
 /** All cities for index with counts and median — uses RPC for single-scan aggregation instead of 60k row fetches. */
@@ -202,7 +204,7 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
     heroImageUrl: db?.hero_image_url ?? bannerUrl ?? null,
     activeCount,
     medianPrice: stats.medianPrice,
-    avgDom: null,
+    avgDom: stats.avgDom ?? null,
     closedLast12Months: stats.closedLast12Months,
     communityCount,
   }
@@ -292,7 +294,7 @@ export async function getCommunitiesInCity(cityName: string): Promise<CommunityF
   return result
 }
 
-/** Neighborhoods in this city (from neighborhoods table). Listing count via properties.neighborhood_id when available. */
+/** Neighborhoods in this city (from neighborhoods table). Uses RPC when available for single-query stats; otherwise N+1 fallback. */
 export async function getNeighborhoodsInCity(cityName: string): Promise<
   { slug: string; name: string; listingCount: number; medianPrice: number | null }[]
 > {
@@ -304,6 +306,19 @@ export async function getNeighborhoodsInCity(cityName: string): Promise<
     .maybeSingle()
   const cityId = (cityRow as { id?: string } | null)?.id
   if (!cityId) return []
+  try {
+    const { data: stats, error } = await sb.rpc('get_neighborhoods_in_city_stats', { p_city_id: cityId })
+    if (!error && stats && Array.isArray(stats)) {
+      return stats.map((r: { slug?: string; name?: string; listing_count?: number; median_price?: number | null }) => ({
+        slug: String(r.slug ?? ''),
+        name: String(r.name ?? ''),
+        listingCount: Number(r.listing_count ?? 0),
+        medianPrice: r.median_price != null ? Number(r.median_price) : null,
+      }))
+    }
+  } catch {
+    // Fall through to legacy path
+  }
   const { data: neighborhoods } = await sb
     .from('neighborhoods')
     .select('id, name, slug')
@@ -491,12 +506,23 @@ export async function getCityBoundary(cityName: string): Promise<unknown | null>
   return row?.boundary_geojson ?? null
 }
 
-/** Active listings in a neighborhood (property_id in properties with neighborhood_id), limit 24. */
+/** Active listings in a neighborhood (property_id in properties with neighborhood_id), limit 24. Uses RPC when available for one-query performance. */
 export async function getNeighborhoodListings(
   neighborhoodId: string,
   limit: number
 ): Promise<CityListingRow[]> {
   const sb = supabase()
+  try {
+    const { data, error } = await sb.rpc('get_neighborhood_listings', {
+      p_neighborhood_id: neighborhoodId,
+      p_limit: Math.min(limit, 100),
+    })
+    if (!error && data && Array.isArray(data) && data.length > 0) {
+      return data as CityListingRow[]
+    }
+  } catch {
+    // Fall through to legacy path
+  }
   const { data: propIds } = await sb.from('properties').select('id').eq('neighborhood_id', neighborhoodId).limit(5000)
   const ids = (propIds ?? []).map((p: { id: string }) => p.id)
   if (ids.length === 0) return []

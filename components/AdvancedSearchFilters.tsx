@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition, useState } from 'react'
 import { PROPERTY_TYPES } from '@/lib/property-type'
+import { listingsBrowsePath } from '@/lib/slug'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -93,7 +94,7 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
   } = props
   const router = useRouter()
   const rawPathname = usePathname()
-  const pathname = basePath ?? (rawPathname?.split('?')[0] ?? '/listings')
+  const pathname = basePath ?? (rawPathname?.split('?')[0] ?? listingsBrowsePath())
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
   const [advancedOpen, setAdvancedOpen] = useState(

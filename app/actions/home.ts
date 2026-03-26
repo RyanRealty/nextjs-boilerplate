@@ -235,7 +235,7 @@ async function _getMarketSnapshotUncached(): Promise<CityMarketStats & { avgDom?
 export const getMarketSnapshot = unstable_cache(
   _getMarketSnapshotUncached,
   ['market-snapshot'],
-  { revalidate: 120, tags: ['market-snapshot'] }
+  { revalidate: 60, tags: ['market-snapshot'] }
 )
 
 const TRENDING_MIN_COUNT = 5

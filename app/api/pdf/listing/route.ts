@@ -4,6 +4,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { ListingPdfDocument } from '@/lib/pdf/listing-pdf'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { listingDetailPath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -64,7 +65,11 @@ export async function POST(request: Request) {
     agentName: (agent as { agent_name?: string } | null)?.agent_name ?? null,
     agentPhone: (agent as { agent_phone?: string } | null)?.agent_phone ?? null,
     agentEmail: (agent as { agent_email?: string } | null)?.agent_email ?? null,
-    listingUrl: `${siteUrl}/listing/${listingKey}`,
+    listingUrl: `${siteUrl}${listingDetailPath(
+      listingKey,
+      { city: p.city != null ? String(p.city) : null, state: p.state != null ? String(p.state) : null, postalCode: p.postal_code != null ? String(p.postal_code) : null },
+      { city: p.city != null ? String(p.city) : null }
+    )}`,
   }
 
   const doc = React.createElement(ListingPdfDocument, { data: pdfData })

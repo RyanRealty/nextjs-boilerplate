@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 type Props = {
   cityName: string
@@ -11,11 +11,19 @@ type Props = {
 
 export default function CityCTA({ cityName, slug }: Props) {
   function handleGetNotified() {
-    trackEvent('city_cta_click', { cta: 'get_notified', city_name: cityName })
+    trackCtaClick({
+      label: 'Get Notified of New Listings',
+      destination: '/account/saved-searches',
+      context: `city_cta:${slug}`,
+    })
   }
 
   function handleTalkExpert() {
-    trackEvent('city_cta_click', { cta: 'talk_expert', city_name: cityName })
+    trackCtaClick({
+      label: 'Talk to a Local Expert',
+      destination: '/about',
+      context: `city_cta:${slug}`,
+    })
   }
 
   return (

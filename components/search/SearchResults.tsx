@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { ListingTileRow } from '@/app/actions/listings'
 import { getSearchListings } from '@/app/actions/search'
+import { listingDetailPath } from '@/lib/slug'
 import type { SearchFiltersInitial } from '@/components/search/SearchFilters'
 
 const PAGE_SIZE = 24
@@ -106,7 +107,7 @@ export default function SearchResults({
     return () => io.disconnect()
   }, [loadMore])
 
-  const listingKey = (row: ListingTileRow) => row.ListingKey ?? row.ListNumber ?? ''
+  const listingKey = (row: ListingTileRow) => row.ListNumber ?? row.ListingKey ?? ''
   const showEmptyState = total === 0 && hasActiveFilters
 
   return (
@@ -134,7 +135,13 @@ export default function SearchResults({
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {listings.map((listing) => {
           const key = String(listingKey(listing)).trim()
-          const href = `/listing/${encodeURIComponent(key)}`
+          const href = listingDetailPath(key, {
+            streetNumber: listing.StreetNumber,
+            streetName: listing.StreetName,
+            city: listing.City,
+            state: listing.State,
+            postalCode: listing.PostalCode,
+          }, undefined, { mlsNumber: listing.ListNumber ?? null })
           const photoUrl = listing.PhotoURL ?? ''
           return (
             <Link key={key} href={href} className="group" data-listing-key={key}>

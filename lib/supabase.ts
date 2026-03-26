@@ -28,7 +28,9 @@ export async function createServerClient() {
   return createServerClientSSR(u, k, {
     cookies: {
       getAll() {
-        return cookieStore.getAll()
+        return Promise.resolve(
+          cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }))
+        )
       },
       setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
         try {

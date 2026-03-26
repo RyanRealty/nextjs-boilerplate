@@ -13,6 +13,7 @@ type Props = {
   userEmail?: string | null
   /** When true, show "Hot" badge (e.g. Trending section). */
   hotBadge?: boolean
+  viewCount?: number
   likeCount?: number
   saveCount?: number
   shareCount?: number
@@ -28,6 +29,7 @@ export default function HomeTileCard({
   signedIn,
   userEmail,
   hotBadge,
+  viewCount,
   likeCount,
   saveCount,
   shareCount,
@@ -42,6 +44,7 @@ export default function HomeTileCard({
       signedIn={signedIn}
       userEmail={userEmail}
       hotBadge={hotBadge}
+      viewCount={viewCount}
       likeCount={likeCount}
       saveCount={saveCount}
       shareCount={shareCount}

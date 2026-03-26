@@ -10,10 +10,16 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
   LineChart,
   Line,
 } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   searchReportLocations,
   getReportMetrics,
@@ -25,6 +31,8 @@ import {
   type ReportLocation,
   type ReportFilters,
 } from '../../actions/reports'
+import { getHousingWireMarketContext } from '@/app/actions/housingwire'
+import HousingWireMarketContextCard from '@/components/reports/HousingWireMarketContextCard'
 import ShareButton from '../../../components/ShareButton'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -87,9 +95,11 @@ export default function ExploreClient({
   initialSubdivision = '',
   initialStart = '',
   initialEnd = '',
+  initialPresetId,
   initialIncludeCondoTown = false,
   initialIncludeManufactured = false,
   initialIncludeAcreage = false,
+  initialIncludeCommercial = false,
   initialMinPrice,
   initialMaxPrice,
 }: {
@@ -97,9 +107,11 @@ export default function ExploreClient({
   initialSubdivision?: string
   initialStart?: string
   initialEnd?: string
+  initialPresetId?: string
   initialIncludeCondoTown?: boolean
   initialIncludeManufactured?: boolean
   initialIncludeAcreage?: boolean
+  initialIncludeCommercial?: boolean
   initialMinPrice?: number | null
   initialMaxPrice?: number | null
 }) {
@@ -114,13 +126,14 @@ export default function ExploreClient({
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const suggestionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [presetId, setPresetId] = useState('this_month')
+  const [presetId, setPresetId] = useState(initialPresetId ?? 'this_month')
   const [start, setStart] = useState(initialStart || '')
   const [end, setEnd] = useState(initialEnd || '')
   const [customMode, setCustomMode] = useState(false)
   const [includeCondoTown, setIncludeCondoTown] = useState(initialIncludeCondoTown)
   const [includeManufactured, setIncludeManufactured] = useState(initialIncludeManufactured)
   const [includeAcreage, setIncludeAcreage] = useState(initialIncludeAcreage)
+  const [includeCommercial, setIncludeCommercial] = useState(initialIncludeCommercial)
   const [minPrice, setMinPrice] = useState<string>(initialMinPrice != null ? String(initialMinPrice) : '')
   const [maxPrice, setMaxPrice] = useState<string>(initialMaxPrice != null ? String(initialMaxPrice) : '')
   const [metrics, setMetrics] = useState<ReportMetrics | null>(null)
@@ -129,6 +142,8 @@ export default function ExploreClient({
   const [timeSeries, setTimeSeries] = useState<ReportMetricsTimeSeriesPoint[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [housingWireContext, setHousingWireContext] = useState<Awaited<ReturnType<typeof getHousingWireMarketContext>>['data']>(null)
+  const [housingWireError, setHousingWireError] = useState<string | null>(null)
 
   const city = location?.city ?? ''
   const subdivision = location?.subdivision ?? null
@@ -139,10 +154,11 @@ export default function ExploreClient({
       includeCondoTown: includeCondoTown || undefined,
       includeManufactured: includeManufactured || undefined,
       includeAcreage: includeAcreage || undefined,
+      includeCommercial: includeCommercial || undefined,
       minPrice: Number.isFinite(min) ? min! : null,
       maxPrice: Number.isFinite(max) ? max! : null,
     }
-  }, [includeCondoTown, includeManufactured, includeAcreage, minPrice, maxPrice])
+  }, [includeCondoTown, includeManufactured, includeAcreage, includeCommercial, minPrice, maxPrice])
 
   // Sync state from URL on load / when URL changes
   useEffect(() => {
@@ -153,6 +169,7 @@ export default function ExploreClient({
     const condo = searchParams.get('condo') === '1'
     const mfd = searchParams.get('mfd') === '1'
     const acre = searchParams.get('acre') === '1'
+    const commercial = searchParams.get('commercial') === '1'
     const minP = searchParams.get('minPrice')
     const maxP = searchParams.get('maxPrice')
     if (c) {
@@ -161,9 +178,11 @@ export default function ExploreClient({
     }
     if (s) setStart(s)
     if (e) setEnd(e)
+    if (initialPresetId) setPresetId(initialPresetId)
     setIncludeCondoTown(condo)
     setIncludeManufactured(mfd)
     setIncludeAcreage(acre)
+    setIncludeCommercial(commercial)
     if (minP != null) setMinPrice(minP)
     if (maxP != null) setMaxPrice(maxP)
     if (!s || !e) {
@@ -174,7 +193,7 @@ export default function ExploreClient({
         if (!e) setEnd(pe)
       }
     }
-  }, [initialCity, initialSubdivision, initialStart, initialEnd, searchParams, presetId])
+  }, [initialCity, initialSubdivision, initialStart, initialEnd, initialPresetId, searchParams, presetId])
 
   // Type-ahead: debounced search
   useEffect(() => {
@@ -208,6 +227,15 @@ export default function ExploreClient({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  // Fetch HousingWire national context when report has been loaded (so we show it alongside local data)
+  useEffect(() => {
+    if (metrics === null) return
+    getHousingWireMarketContext().then(({ data, error: err }) => {
+      setHousingWireContext(data)
+      setHousingWireError(err ?? null)
+    })
+  }, [metrics])
+
   const updateUrl = useCallback(
     (updates: {
       city?: string
@@ -217,6 +245,7 @@ export default function ExploreClient({
       condo?: boolean
       mfd?: boolean
       acre?: boolean
+      commercial?: boolean
       minPrice?: string
       maxPrice?: string
     }) => {
@@ -228,6 +257,7 @@ export default function ExploreClient({
       if (updates.condo !== undefined) (updates.condo ? params.set('condo', '1') : params.delete('condo'))
       if (updates.mfd !== undefined) (updates.mfd ? params.set('mfd', '1') : params.delete('mfd'))
       if (updates.acre !== undefined) (updates.acre ? params.set('acre', '1') : params.delete('acre'))
+      if (updates.commercial !== undefined) (updates.commercial ? params.set('commercial', '1') : params.delete('commercial'))
       if (updates.minPrice !== undefined) (updates.minPrice ? params.set('minPrice', updates.minPrice) : params.delete('minPrice'))
       if (updates.maxPrice !== undefined) (updates.maxPrice ? params.set('maxPrice', updates.maxPrice) : params.delete('maxPrice'))
       const q = params.toString()
@@ -324,14 +354,26 @@ export default function ExploreClient({
   const shareTitle = location ? `${locationLabel(location)} Market Snapshot` : 'Market Explorer'
   const shareText = city && start && end ? `${locationLabel(location)} market: ${start} – ${end}` : shareTitle
 
-  // Chart data: price bands (combine sales + current into one structure for grouped bar)
+  // Chart data: price bands (combine sales + current), sorted by ascending price range so the chart reads left-to-right
   const priceBandChartData = useMemo(() => {
     if (!priceBands?.sales_by_band?.length && !priceBands?.current_listings_by_band?.length) return []
     const bands = new Set<string>()
     ;(priceBands.sales_by_band ?? []).forEach((b) => bands.add(b.band))
     ;(priceBands.current_listings_by_band ?? []).forEach((b) => bands.add(b.band))
+    /** Parse band label to min price in dollars for sort order (e.g. "100-150K" -> 100000, "1.8M+" -> 1800000). */
+    const bandToMinPrice = (band: string): number => {
+      const u = band.toUpperCase()
+      const hasK = u.includes('K')
+      const hasM = u.includes('M')
+      const match = band.match(/^(\d+(?:\.\d+)?)/)
+      if (!match) return 0
+      const num = parseFloat(match[1]!)
+      if (hasM) return num * 1_000_000
+      if (hasK) return num * 1_000
+      return num
+    }
     return Array.from(bands)
-      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
+      .sort((a, b) => bandToMinPrice(a) - bandToMinPrice(b))
       .map((band) => ({
         band,
         sales: priceBands.sales_by_band?.find((b) => b.band === band)?.cnt ?? 0,
@@ -446,6 +488,7 @@ export default function ExploreClient({
           </Label>
           <div className="flex flex-col gap-2 border-l border-border pl-4">
             <span className="text-sm font-medium text-muted-foreground">Property type</span>
+            <p className="text-xs text-muted-foreground">Default: residential homes only (no condos). Add types below to include in the report.</p>
             <div className="flex flex-wrap gap-4">
               <Label className="flex items-center gap-2">
                 <Input
@@ -454,7 +497,7 @@ export default function ExploreClient({
                   onChange={(e) => setIncludeCondoTown(e.target.checked)}
                   className="rounded border-border"
                 />
-                <span className="text-sm text-muted-foreground">Include condos & townhomes</span>
+                <span className="text-sm text-muted-foreground">Condos & townhomes</span>
               </Label>
               <Label className="flex items-center gap-2">
                 <Input
@@ -463,7 +506,7 @@ export default function ExploreClient({
                   onChange={(e) => setIncludeManufactured(e.target.checked)}
                   className="rounded border-border"
                 />
-                <span className="text-sm text-muted-foreground">Include manufactured</span>
+                <span className="text-sm text-muted-foreground">Manufactured</span>
               </Label>
               <Label className="flex items-center gap-2">
                 <Input
@@ -472,10 +515,18 @@ export default function ExploreClient({
                   onChange={(e) => setIncludeAcreage(e.target.checked)}
                   className="rounded border-border"
                 />
-                <span className="text-sm text-muted-foreground">Include acreage/land</span>
+                <span className="text-sm text-muted-foreground">Acreage / land</span>
+              </Label>
+              <Label className="flex items-center gap-2">
+                <Input
+                  type="checkbox"
+                  checked={includeCommercial}
+                  onChange={(e) => setIncludeCommercial(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <span className="text-sm text-muted-foreground">Commercial</span>
               </Label>
             </div>
-            <p className="text-xs text-muted-foreground">Default: single-family residential only. Check to add other types.</p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <Label className="flex flex-col gap-1">
@@ -532,145 +583,212 @@ export default function ExploreClient({
 
       {metrics !== null && (
         <>
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-2 text-sm">
+            <span className="font-medium text-foreground">Report period:</span>
+            <span className="text-muted-foreground">
+              {start && end
+                ? (() => {
+                    try {
+                      const s = new Date(start + 'Z')
+                      const e = new Date(end + 'Z')
+                      return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    } catch {
+                      return `${start} – ${end}`
+                    }
+                  })()
+                : '—'}
+            </span>
+            {location?.city && (
+              <span className="text-muted-foreground">
+                · {location.subdivision ? `${location.subdivision}, ` : ''}{location.city}
+              </span>
+            )}
+          </div>
+          <HousingWireMarketContextCard
+            data={housingWireContext}
+            error={housingWireError}
+            showConfigHint={!housingWireError && housingWireContext === null}
+          />
           <section aria-labelledby="metrics-heading">
             <h2 id="metrics-heading" className="sr-only">
               Key metrics
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Sales (period)</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sold_count}</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Median price</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">
-                  ${Number(metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Median DOM</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.median_dom} days</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Median $/sqft</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">
-                  ${Number(metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Current listings</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.current_listings}</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Sales (12 mo)</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sales_12mo}</p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                <p className="text-sm font-medium text-muted-foreground">Inventory (months)</p>
-                <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.inventory_months ?? '—'}</p>
-              </div>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Sales (period)</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sold_count}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Median price</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">
+                    ${Number(metrics.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Median DOM</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.median_dom} days</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Median $/sqft</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">
+                    ${Number(metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Current listings</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.current_listings}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Sales (12 mo)</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.sales_12mo}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium text-muted-foreground">Inventory (months)</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{metrics.inventory_months ?? '—'}</p>
+                </CardContent>
+              </Card>
             </div>
           </section>
 
           {trendChartData.length > 0 && (
-            <section aria-labelledby="trend-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm">
-              <h2 id="trend-heading" className="mb-4 text-lg font-semibold text-foreground">
-                Monthly trend (last {NUM_MONTHS_TREND} months)
-              </h2>
-              <div className="h-[320px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={trendChartData}
-                    margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-                    accessibilityLayer
+            <div className="grid gap-8 lg:grid-cols-2">
+              <Card className="overflow-hidden border-border bg-card shadow-sm" aria-labelledby="sales-trend-heading">
+                <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+                  <CardTitle id="sales-trend-heading" className="text-base font-semibold text-foreground">
+                    Sales over time
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Monthly sales (last {NUM_MONTHS_TREND} months)</p>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ChartContainer
+                    config={{
+                      sold_count: { label: 'Sales', color: 'var(--primary)' },
+                      month_label: { label: 'Month' },
+                    } satisfies ChartConfig}
+                    className="h-[280px] w-full"
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                    <XAxis
-                      dataKey="month_label"
-                      tick={{ fontSize: 12 }}
-                      stroke="#71717a"
-                      aria-label="Month"
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      tick={{ fontSize: 12 }}
-                      stroke="#71717a"
-                      tickFormatter={(v) => (v >= 1000 ? `${v / 1000}k` : String(v))}
-                      aria-label="Number of sales"
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      tick={{ fontSize: 12 }}
-                      stroke="#71717a"
-                      tickFormatter={(v) => (v >= 1000 ? `$${v / 1000}k` : `$${v}`)}
-                      aria-label="Median price (dollars)"
-                    />
-                    <Tooltip
-                      formatter={(value: number, name: string) =>
-                        name === 'median_price' ? [`$${Number(value).toLocaleString()}`, 'Median price'] : [value, 'Sales']
+                    <LineChart data={trendChartData} margin={{ top: 8, right: 8, left: 8, bottom: 24 }} accessibilityLayer>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+                      <XAxis dataKey="month_label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                      <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} width={36} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line type="monotone" dataKey="sold_count" stroke="var(--color-sold_count)" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+              <Card className="overflow-hidden border-border bg-card shadow-sm" aria-labelledby="price-trend-heading">
+                <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+                  <CardTitle id="price-trend-heading" className="text-base font-semibold text-foreground">
+                    Median price over time
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Monthly median price (last {NUM_MONTHS_TREND} months)</p>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <ChartContainer
+                    config={{
+                      median_price: { label: 'Median price', color: 'var(--chart-1)' },
+                      month_label: { label: 'Month' },
+                    } satisfies ChartConfig}
+                    className="h-[280px] w-full"
+                  >
+                    <LineChart data={trendChartData} margin={{ top: 8, right: 8, left: 8, bottom: 24 }} accessibilityLayer>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+                      <XAxis dataKey="month_label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                      <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `$${v / 1000}k` : `$${v}`)} width={44} />
+                      <ChartTooltip content={<ChartTooltipContent formatter={(v) => (typeof v === 'number' ? [`$${Number(v).toLocaleString()}`, 'Median price'] : [v, ''])} />} />
+                      <Line type="monotone" dataKey="median_price" stroke="var(--color-median_price)" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {trendChartData.length > 0 && (
+            <Card className="overflow-hidden border-border bg-card shadow-sm" aria-labelledby="combined-trend-heading">
+              <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+                <CardTitle id="combined-trend-heading" className="text-base font-semibold text-foreground">
+                  Sales and median price (combined)
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Dual-axis view for the last {NUM_MONTHS_TREND} months</p>
+              </CardHeader>
+              <CardContent className="p-4">
+                <ChartContainer
+                  config={{
+                    sold_count: { label: 'Sales', color: 'var(--primary)' },
+                    median_price: { label: 'Median price', color: 'var(--chart-1)' },
+                    month_label: { label: 'Month' },
+                  } satisfies ChartConfig}
+                  className="h-[320px] w-full"
+                >
+                  <LineChart data={trendChartData} margin={{ top: 8, right: 8, left: 8, bottom: 24 }} accessibilityLayer>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+                    <XAxis dataKey="month_label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} width={36} />
+                    <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `$${v / 1000}k` : `$${v}`)} width={44} />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(v, name) =>
+                            name === 'median_price' ? [`$${Number(v).toLocaleString()}`, 'Median price'] : [v, 'Sales']
+                          }
+                        />
                       }
-                      labelFormatter={(label) => label}
                     />
                     <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="sold_count"
-                      name="Sales"
-                      stroke="#18181b"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      connectNulls
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="median_price"
-                      name="Median price"
-                      stroke="#0ea5e9"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      connectNulls
-                    />
+                    <Line yAxisId="left" type="monotone" dataKey="sold_count" name="Sales" stroke="var(--color-sold_count)" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                    <Line yAxisId="right" type="monotone" dataKey="median_price" name="Median price" stroke="var(--color-median_price)" strokeWidth={2} dot={{ r: 3 }} connectNulls />
                   </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
+                </ChartContainer>
+              </CardContent>
+            </Card>
           )}
 
           {priceBandChartData.length > 0 && (
-            <section aria-labelledby="bands-heading" className="rounded-lg border border-border bg-card p-4 shadow-sm">
-              <h2 id="bands-heading" className="mb-4 text-lg font-semibold text-foreground">
-                Price bands: sales vs current listings
-              </h2>
-              <div className="h-[320px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={priceBandChartData}
-                    margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-                    accessibilityLayer
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                    <XAxis
-                      dataKey="band"
-                      tick={{ fontSize: 11 }}
-                      stroke="#71717a"
-                      angle={-45}
-                      textAnchor="end"
-                      height={72}
-                      interval={0}
-                      aria-label="Price band"
-                    />
-                    <YAxis tick={{ fontSize: 12 }} stroke="#71717a" aria-label="Count" />
-                    <Tooltip />
+            <Card className="overflow-hidden border-border bg-card shadow-sm" aria-labelledby="bands-heading">
+              <CardHeader className="border-b border-border/60 bg-muted/20 pb-3">
+                <CardTitle id="bands-heading" className="text-base font-semibold text-foreground">
+                  Price bands: sales vs current listings
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Distribution by price range for the selected period{start && end ? ` (${start} – ${end})` : ''}
+                </p>
+              </CardHeader>
+              <CardContent className="p-4">
+                <ChartContainer
+                  config={{
+                    sales: { label: 'Sales (period)', color: 'var(--primary)' },
+                    currentListings: { label: 'Current listings', color: 'var(--chart-1)' },
+                    band: { label: 'Price band' },
+                  } satisfies ChartConfig}
+                  className="h-[320px] w-full"
+                >
+                  <BarChart data={priceBandChartData} margin={{ top: 8, right: 8, left: 8, bottom: 48 }} accessibilityLayer>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+                    <XAxis dataKey="band" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={56} interval={0} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} width={36} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Bar dataKey="sales" name="Sales (period)" fill="#18181b" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Current listings" name="Current listings" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="sales" name="Sales (period)" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Current listings" name="Current listings" fill="var(--color-currentListings)" radius={[4, 4, 0, 0]} />
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
+                </ChartContainer>
+              </CardContent>
+            </Card>
           )}
         </>
       )}

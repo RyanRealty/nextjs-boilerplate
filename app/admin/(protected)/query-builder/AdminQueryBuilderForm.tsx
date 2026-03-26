@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { runQueryBuilderSearch } from '@/app/actions/query-builder'
 import type { ListingTileRow } from '@/app/actions/listings'
+import { listingDetailPath } from '@/lib/slug'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -177,7 +178,16 @@ export default function AdminQueryBuilderForm() {
                       <TableCell className="px-4 py-2">{row.BedroomsTotal ?? '—'}</TableCell>
                       <TableCell className="px-4 py-2">{row.BathroomsTotal ?? '—'}</TableCell>
                       <TableCell className="px-4 py-2">
-                        <a href={`/listing/${encodeURIComponent(key)}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground underline hover:no-underline">
+                        <a
+                          href={listingDetailPath(
+                            key,
+                            { streetNumber: row.StreetNumber ?? null, streetName: row.StreetName ?? null, city: row.City ?? null, state: row.State ?? null, postalCode: row.PostalCode ?? null },
+                            { city: row.City ?? null, subdivision: row.SubdivisionName ?? null }
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground underline hover:no-underline"
+                        >
                           {key}
                         </a>
                       </TableCell>

@@ -7,8 +7,9 @@ import { toggleSavedListing } from '../app/actions/saved-listings'
 import { BookmarkIcon } from '@/components/icons/ActionIcons'
 import { trackListingTileClick } from '../app/actions/track-listing-click'
 import { trackSavedPropertyAction } from '../app/actions/track-saved-property'
-import type { ActivityFeedItem } from '../app/actions/activity-feed'
+import type { ActivityFeedItem } from '@/app/actions/activity-feed-shared'
 import { Button } from "@/components/ui/button"
+import { listingDetailPath } from '@/lib/slug'
 
 function eventBadge(type: ActivityFeedItem['event_type']): { label: string; className: string } {
   switch (type) {
@@ -41,7 +42,13 @@ type Props = {
 
 export default function ActivityFeedCard({ item, saved = false, signedIn = false, userEmail }: Props) {
   const router = useRouter()
-  const listingHref = `/listing/${encodeURIComponent(item.listing_key)}`
+  // Activity feed links should always resolve even when location metadata is noisy.
+  const listingHref = listingDetailPath(
+    item.listing_key,
+    undefined,
+    undefined,
+    { mlsNumber: item.ListNumber ?? null }
+  )
   const address = [item.StreetNumber, item.StreetName].filter(Boolean).join(' ')
   const badge = eventBadge(item.event_type)
   const price = item.ListPrice != null ? Number(item.ListPrice) : 0
@@ -120,7 +127,7 @@ export default function ActivityFeedCard({ item, saved = false, signedIn = false
           </Button>
         )}
         {/* Stats overlay at bottom */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/80 to-transparent p-3 pt-8">
           <p className="font-semibold text-primary-foreground">{formatPrice(price) || 'Price TBD'}</p>
           <p className="mt-0.5 flex items-center gap-2 text-sm text-primary-foreground/90">
             {[item.BedroomsTotal, item.BathroomsTotal].filter(Boolean).length > 0 && (

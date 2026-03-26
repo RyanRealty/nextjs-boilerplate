@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 type Props = {
   firstName: string
@@ -17,7 +17,14 @@ export default function BrokerHeroCtaButtons({ firstName, slug, phone, email }: 
       {phone && (
         <Button
           asChild
-          onClick={() => trackEvent('call_initiated', { broker_slug: slug })}
+          onClick={() =>
+            trackCtaClick({
+              label: `Call ${firstName}`,
+              destination: `tel:${phone.replace(/\D/g, '')}`,
+              context: 'broker_hero',
+              brokerSlug: slug,
+            })
+          }
         >
           <a href={`tel:${phone.replace(/\D/g, '')}`}>
             Call {firstName}
@@ -28,7 +35,14 @@ export default function BrokerHeroCtaButtons({ firstName, slug, phone, email }: 
         <Button
           asChild
           variant="outline"
-          onClick={() => trackEvent('email_agent', { broker_slug: slug })}
+          onClick={() =>
+            trackCtaClick({
+              label: `Email ${firstName}`,
+              destination: `mailto:${email}`,
+              context: 'broker_hero',
+              brokerSlug: slug,
+            })
+          }
         >
           <a href={`mailto:${email}`}>
             Email {firstName}
@@ -37,7 +51,14 @@ export default function BrokerHeroCtaButtons({ firstName, slug, phone, email }: 
       )}
       <Button
         asChild
-        onClick={() => trackEvent('click_cta', { context: 'broker_schedule_consultation', broker_slug: slug })}
+        onClick={() =>
+          trackCtaClick({
+            label: `Schedule Consultation with ${firstName}`,
+            destination: '#contact',
+            context: 'broker_hero',
+            brokerSlug: slug,
+          })
+        }
       >
         <Link href="#contact">
           Schedule Consultation

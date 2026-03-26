@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState, useMemo, memo } from 'react'
+import { useState, useMemo, memo, useRef, useCallback, useEffect } from 'react'
 import type { HomeTileRow, ListingTileRow } from '@/app/actions/listings'
 import { isResortCommunity } from '@/lib/resort-communities'
 import { toggleSavedListing } from '@/app/actions/saved-listings'
@@ -14,9 +14,10 @@ import { useComparison } from '@/contexts/ComparisonContext'
 import CardBadges from '@/components/ui/CardBadges'
 import { Button } from '@/components/ui/button'
 import { getCanonicalSiteUrl, listingShareText } from '@/lib/share-metadata'
+import { incrementListingShareCount } from '@/app/actions/engagement'
 import { trackListingTileClick } from '@/app/actions/track-listing-click'
 import { trackListingClick } from '@/lib/tracking'
-import { listingAddressSlug } from '@/lib/slug'
+import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeftRightIcon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 
@@ -47,6 +48,23 @@ function statusColor(s: string | null | undefined): string {
 
 /** Listing tile accepts full HomeTileRow or ListingTileRow (missing fields shown as empty). */
 export type ListingTileListing = ListingTileRow & Partial<Pick<HomeTileRow, 'TotalLivingAreaSqFt' | 'ListOfficeName' | 'ListAgentName' | 'OnMarketDate' | 'OpenHouses' | 'details'>>
+
+function getNeighborhoodName(listing: ListingTileListing): string | null {
+  const maybe = listing as ListingTileListing & {
+    NeighborhoodName?: string | null
+    neighborhood_name?: string | null
+    Neighborhood?: string | null
+    neighborhood?: string | null
+  }
+  const value =
+    maybe.NeighborhoodName ??
+    maybe.neighborhood_name ??
+    maybe.Neighborhood ??
+    maybe.neighborhood ??
+    null
+  const trimmed = typeof value === 'string' ? value.trim() : ''
+  return trimmed || null
+}
 
 function formatAddress(listing: ListingTileListing): string {
   const parts = [
@@ -155,20 +173,20 @@ function ListingTile({
     listing.City != null &&
     listing.SubdivisionName != null &&
     isResortCommunity(listing.City, listing.SubdivisionName)
-  // SEO-friendly URL: /listing/[key]-[street-city-state-zip]. Detail page resolves key from slug; key-only fallback when no address.
   const row = listing as { ListNumber?: string | null; ListingKey?: string | null; list_number?: string | null; listing_key?: string | null }
-  const linkKey = (row.ListNumber ?? row.ListingKey ?? row.list_number ?? row.listing_key ?? listingKey).toString().trim()
+  const canonicalListingKey = (row.ListingKey ?? row.listing_key ?? listingKey ?? row.ListNumber ?? row.list_number ?? '').toString().trim()
+  const linkKey = canonicalListingKey
   /** MLS# shown to users: prefer ListNumber (actual MLS list number); fall back to link key for routing. */
-  const mlsDisplay = (row.ListNumber ?? row.list_number ?? row.ListingKey ?? row.listing_key ?? listingKey).toString().trim()
-  const addressSlug = linkKey ? listingAddressSlug({
-    streetNumber: listing.StreetNumber,
-    streetName: listing.StreetName,
-    city: listing.City,
-    state: listing.State,
-    postalCode: listing.PostalCode,
-  }) : ''
-  const pathSegment = addressSlug ? `${linkKey}-${addressSlug}` : linkKey
-  const href = pathSegment ? `/listing/${encodeURIComponent(pathSegment)}` : '/listings'
+  const mlsDisplay = (row.ListNumber ?? row.list_number ?? canonicalListingKey).toString().trim()
+  const neighborhood = getNeighborhoodName(listing)
+  const href = linkKey
+    ? listingDetailPath(
+        linkKey,
+        { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
+        { city: listing.City, neighborhood, subdivision: listing.SubdivisionName },
+        { mlsNumber: row.ListNumber ?? row.list_number ?? null }
+      )
+    : listingsBrowsePath()
   const videoUrls = useMemo(() => getVideoUrls(listing), [listing.details])
   const primaryPhoto = listing.PhotoURL?.trim() || null
   const showVideoFirst = videoUrls.length > 0
@@ -182,7 +200,8 @@ function ListingTile({
     e.preventDefault()
     e.stopPropagation()
     if (!signedIn) return
-    const result = await toggleSavedListing(listingKey)
+    if (!canonicalListingKey) return
+    const result = await toggleSavedListing(canonicalListingKey)
     setSavedState(result.saved)
   }
 
@@ -190,7 +209,8 @@ function ListingTile({
     e.preventDefault()
     e.stopPropagation()
     if (!signedIn) return
-    const result = await toggleLikeListing(listingKey)
+    if (!canonicalListingKey) return
+    const result = await toggleLikeListing(canonicalListingKey)
     setLikedState(result.liked)
   }
 
@@ -210,18 +230,19 @@ function ListingTile({
   })
 
   function handleTileClick() {
+    if (!canonicalListingKey) return
     const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${href}` : href
     const sourcePage = typeof window !== 'undefined' ? window.location.href : ''
     trackListingClick({
-      listingKey,
+      listingKey: canonicalListingKey,
       listingUrl: fullUrl,
       sourcePage,
       price: price > 0 ? price : undefined,
       city: listing.City ?? undefined,
-      mlsNumber: listingKey,
+      mlsNumber: mlsDisplay,
     })
     trackListingTileClick({
-      listingKey,
+      listingKey: canonicalListingKey,
       listingUrl: fullUrl,
       sourcePage,
       userEmail: userEmail ?? undefined,
@@ -230,7 +251,7 @@ function ListingTile({
         street: address || undefined,
         city: listing.City ?? undefined,
         state: listing.State ?? undefined,
-        mlsNumber: listingKey,
+        mlsNumber: mlsDisplay,
         price: price > 0 ? price : undefined,
         bedrooms: listing.BedroomsTotal ?? undefined,
         bathrooms: listing.BathroomsTotal ?? undefined,
@@ -244,16 +265,16 @@ function ListingTile({
       onClick={handleTileClick}
       className="group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1"
     >
-      {/* Photo / video area */}
-      <div className="relative aspect-[4/3] bg-muted">
+      {/* Photo / video area — overflow-hidden + rounded-t-xl so image fills to top with no gap */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-muted">
         {showVideoFirst ? (
-          <VideoSlider urls={videoUrls} address={address} />
+          <VideoSlider urls={videoUrls} address={address} previewSeconds={TILE_VIDEO_PREVIEW_SECONDS} />
         ) : primaryPhoto ? (
           <Image
             src={primaryPhoto}
             alt={address || 'Property photo'}
             fill
-            className="object-cover transition group-hover:scale-[1.02]"
+            className="object-cover object-top transition group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 85vw, 320px"
             priority={priority}
           />
@@ -284,11 +305,11 @@ function ListingTile({
           max={3}
           items={[
             ...(dom !== 0 && likeCount >= MIN_LIKES_FOR_FIRE ? [{ label: String(likeCount), variant: 'hot' as const, icon: <span aria-hidden><svg className="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 23C12 23 20 16 20 10c0-2.5-1.5-4-4-4-.8 0-1.5.2-2 .7-.5-.5-1.2-.7-2-.7-2.5 0-4 1.5-4 4 0 6 8 13 8 13z" /></svg></span> }] : []),
-            ...(hotBadge ? [{ label: 'Hot', variant: 'hot' as const, icon: <span aria-hidden>ðŸ”¥</span> }] : []),
-            ...(hasOpenHouse ? [{ label: 'Open house', variant: 'open-house' as const, icon: <span aria-hidden>ðŸ </span> }] : []),
-            ...(dom === 0 ? [{ label: 'New', variant: 'new' as const, icon: <span aria-hidden>âœ¨</span> }] : []),
-            ...(hasRecentPriceChange ? [{ label: 'Price reduced', variant: 'price-drop' as const, icon: <span aria-hidden>ðŸ“‰</span> }] : []),
-            ...(isResort ? [{ label: 'Resort & master plan', variant: 'resort' as const, icon: <span aria-hidden>ðŸ”ï¸</span> }] : []),
+            ...(hotBadge ? [{ label: 'Hot', variant: 'hot' as const }] : []),
+            ...(hasOpenHouse ? [{ label: 'Open house', variant: 'open-house' as const }] : []),
+            ...(dom === 0 ? [{ label: 'New', variant: 'new' as const, icon: <span aria-hidden><svg className="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg></span> }] : []),
+            ...(hasRecentPriceChange ? [{ label: 'Price reduced', variant: 'price-drop' as const }] : []),
+            ...(isResort ? [{ label: 'Resort & master plan', variant: 'resort' as const }] : []),
           ]}
         />
 
@@ -301,6 +322,28 @@ function ListingTile({
             ...(hasVirtTour ? [{ label: 'Virtual tour', variant: 'media' as const }] : []),
             ...(hasPlans ? [{ label: 'Floor plan', variant: 'media' as const }] : []),
           ]}
+        />
+        <CardActionBar
+          position="overlay"
+          variant="onDark"
+          onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+          viewCount={viewCount}
+          share={{
+            url: shareUrl,
+            title: shareTitle,
+            text: shareText,
+            ariaLabel: 'Share listing',
+            shareCount,
+            onShare: () => canonicalListingKey ? incrementListingShareCount(canonicalListingKey) : Promise.resolve({ ok: false }),
+          }}
+          like={signedIn
+            ? { active: likedState, count: likeCount, ariaLabel: likedState ? 'Unlike' : 'Like', onToggle: handleToggleLike }
+            : { active: false, count: likeCount, ariaLabel: 'Like', onToggle: goToLogin }}
+          save={signedIn
+            ? { active: savedState, count: saveCount, ariaLabel: savedState ? 'Remove from saved' : 'Save listing', onToggle: handleToggleSave }
+            : { active: false, count: saveCount, ariaLabel: 'Save listing', onToggle: goToLogin }}
+          signedIn={signedIn}
+          guestCounts={!signedIn ? { viewCount, likeCount, saveCount } : undefined}
         />
 
       </div>
@@ -316,26 +359,6 @@ function ListingTile({
               <p className="mt-0.5 text-sm text-muted-foreground">Est. {monthlyPayment}/mo</p>
             )}
           </div>
-          <CardActionBar
-            position="priceRow"
-            variant="onLight"
-            onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
-            share={{
-              url: shareUrl,
-              title: shareTitle,
-              text: shareText,
-              ariaLabel: 'Share listing',
-              shareCount: shareCount > 0 ? shareCount : undefined,
-            }}
-            like={signedIn
-              ? { active: likedState, count: likeCount, ariaLabel: likedState ? 'Unlike' : 'Like', onToggle: handleToggleLike }
-              : { active: false, count: likeCount, ariaLabel: 'Like', onToggle: goToLogin }}
-            save={signedIn
-              ? { active: savedState, count: saveCount, ariaLabel: savedState ? 'Remove from saved' : 'Save listing', onToggle: handleToggleSave }
-              : { active: false, count: saveCount, ariaLabel: 'Save listing', onToggle: goToLogin }}
-            signedIn={signedIn}
-            guestCounts={!signedIn ? { viewCount, likeCount, saveCount } : undefined}
-          />
         </div>
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0 text-sm text-muted-foreground">
           {listing.BedroomsTotal != null && <span>{listing.BedroomsTotal} bed</span>}
@@ -362,25 +385,52 @@ function ListingTile({
   )
 }
 
-function VideoSlider({ urls, address }: { urls: string[]; address: string }) {
+const TILE_VIDEO_PREVIEW_SECONDS = 3
+
+function VideoSlider({ urls, address, previewSeconds = 0 }: { urls: string[]; address: string; previewSeconds?: number }) {
   const [index, setIndex] = useState(0)
   const url = urls[index] ?? urls[0]
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [previewEnded, setPreviewEnded] = useState(false)
+
+  useEffect(() => {
+    setPreviewEnded(false)
+  }, [url])
+
+  const handleTimeUpdate = useCallback(() => {
+    if (previewSeconds <= 0 || !videoRef.current) return
+    if (videoRef.current.currentTime >= previewSeconds) {
+      videoRef.current.pause()
+      setPreviewEnded(true)
+    }
+  }, [previewSeconds])
 
   if (!url) return null
 
   return (
     <div className="relative h-full w-full">
       <video
+        ref={videoRef}
         key={url}
         src={url}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-top"
         playsInline
         muted
-        loop
+        loop={previewSeconds <= 0}
+        autoPlay
         poster=""
+        onTimeUpdate={handleTimeUpdate}
       />
+      {previewSeconds > 0 && previewEnded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-foreground/20" aria-hidden>
+          <span className="rounded-full bg-card/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm flex items-center gap-1.5">
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+            Watch video
+          </span>
+        </div>
+      )}
       {address && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent px-2 py-2">
           <p className="text-sm font-medium text-primary-foreground drop-shadow">{address}</p>
         </div>
       )}

@@ -13,7 +13,6 @@ type Props = {
   brokerId: string
   brokerSlug: string
   brokerFirstName: string
-  brokerEmail: string | null
 }
 
 const HELP_OPTIONS = [
@@ -30,7 +29,6 @@ export default function BrokerContactForm({
   brokerId,
   brokerSlug,
   brokerFirstName,
-  brokerEmail,
 }: Props) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -45,6 +43,7 @@ export default function BrokerContactForm({
     trackEvent('contact_agent', { broker_id: brokerId, broker_slug: brokerSlug })
     const result = await submitBrokerInquiry({
       brokerId,
+      brokerSlug,
       name: name.trim(),
       email: email.trim(),
       phone: phone.trim() || undefined,

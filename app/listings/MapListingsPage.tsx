@@ -6,6 +6,7 @@ import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from '@react-google-map
 import { useRouter } from 'next/navigation'
 import { MAP_DEFAULT_CENTER, getListingMarkerIcon } from '@/lib/map-constants'
 import { Button } from "@/components/ui/button"
+import { listingDetailPath } from '@/lib/slug'
 
 type ListingForMap = {
   ListingKey: string
@@ -16,6 +17,8 @@ type ListingForMap = {
   StreetNumber?: string | null
   StreetName?: string | null
   City?: string | null
+  State?: string | null
+  PostalCode?: string | null
   BedroomsTotal?: number | null
   BathroomsTotal?: number | null
 }
@@ -125,7 +128,12 @@ export default function MapListingsPage({ listings }: { listings: ListingForMap[
                       <Button
                         type="button"
                         className="mt-1 text-sm text-primary hover:underline"
-                        onClick={() => router.push(`/listing/${encodeURIComponent(linkKey)}`)}
+                        onClick={() => router.push(listingDetailPath(
+                          linkKey,
+                          { streetNumber: house.StreetNumber, streetName: house.StreetName, city: house.City, state: house.State, postalCode: house.PostalCode },
+                          undefined,
+                          { mlsNumber: house.ListNumber ?? null }
+                        ))}
                       >
                         View listing →
                       </Button>

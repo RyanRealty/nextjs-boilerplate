@@ -88,6 +88,7 @@ export default function TrendingListings({
                   signedIn={signedIn}
                   userEmail={userEmail}
                   hotBadge
+                  viewCount={engagementCounts?.[String(key)]?.view_count}
                   likeCount={engagementCounts?.[String(key)]?.like_count}
                   saveCount={engagementCounts?.[String(key)]?.save_count}
                   shareCount={engagementCounts?.[String(key)]?.share_count}

@@ -76,7 +76,7 @@ export default function AffordabilityRow({
       <div
         ref={scrollRef}
         onScroll={updateScrollState}
-        className="mt-4 flex gap-4 overflow-x-auto pb-2 scroll-smooth"
+        className="mt-4 flex gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar"
       >
         {/* First tile: target price input — max 3 visible site-wide */}
         <div className="w-[85vw] min-w-[260px] max-w-[320px] shrink-0 sm:w-[50vw] sm:min-w-[280px] sm:max-w-[360px] lg:w-[33.333vw] lg:min-w-[300px] lg:max-w-[420px]">

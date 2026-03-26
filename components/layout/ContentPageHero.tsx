@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { trackCtaClick } from '@/lib/cta-tracking'
 
 export type ContentPageHeroCta = { label: string; href: string; primary?: boolean }
 
@@ -46,7 +47,7 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
         aria-hidden
       />
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-        <div className="absolute top-0 left-0 h-full w-[60%] bg-gradient-to-r from-transparent via-white/10 to-transparent animate-hero-shine" />
+        <div className="absolute top-0 left-0 h-full w-[60%] bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent animate-hero-shine" />
       </div>
       <div className="relative z-10 flex min-h-[40vh] sm:min-h-[50vh] flex-col justify-center px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto w-full max-w-4xl text-center">
@@ -65,6 +66,13 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
                   <Link
                     key={cta.href}
                     href={cta.href}
+                    onClick={() =>
+                      trackCtaClick({
+                        label: cta.label,
+                        destination: cta.href,
+                        context: `content_hero:${title.toLowerCase().replace(/\s+/g, '_')}`,
+                      })
+                    }
                     className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3.5 text-base font-semibold text-primary shadow-md transition hover:bg-accent/90 hover:shadow-lg"
                   >
                     {cta.label}
@@ -74,6 +82,13 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
                   <Link
                     key={cta.href}
                     href={cta.href}
+                    onClick={() =>
+                      trackCtaClick({
+                        label: cta.label,
+                        destination: cta.href,
+                        context: `content_hero:${title.toLowerCase().replace(/\s+/g, '_')}`,
+                      })
+                    }
                     className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/40 bg-card/10 px-6 py-3.5 text-base font-semibold text-primary-foreground backdrop-blur-sm transition hover:bg-card/20"
                   >
                     {cta.label}

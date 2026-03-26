@@ -26,6 +26,8 @@ export type BlogPostWithAuthor = BlogPostRow & {
   author_name: string | null
   author_slug: string | null
   author_photo_url: string | null
+  content?: string | null
+  tags?: string[] | null
 }
 
 const PAGE_SIZE = 12

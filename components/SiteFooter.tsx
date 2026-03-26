@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { listingsBrowsePath } from '@/lib/slug'
 
 const FALLBACK_NAME = process.env.NEXT_PUBLIC_SITE_OWNER_NAME || 'Ryan Realty'
 const FALLBACK_EMAIL = process.env.NEXT_PUBLIC_SITE_OWNER_EMAIL
@@ -43,10 +44,10 @@ export default function SiteFooter({ brokerageName, brokerageTagline, brokerageE
             <Link href="/team" className="text-sm hover:text-foreground">
               Team
             </Link>
-            <Link href="/listings" className="text-sm hover:text-foreground">
+            <Link href={listingsBrowsePath()} className="text-sm hover:text-foreground">
               Listings
             </Link>
-            <Link href="/listings?view=map" className="text-sm hover:text-foreground">
+            <Link href={`${listingsBrowsePath()}?view=map`} className="text-sm hover:text-foreground">
               Map
             </Link>
             <Link href="/reports" className="text-sm hover:text-foreground">

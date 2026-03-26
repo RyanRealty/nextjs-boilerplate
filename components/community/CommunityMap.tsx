@@ -13,6 +13,7 @@ import {
   MAP_LABEL_CITY,
 } from '@/lib/map-constants'
 import { Button } from "@/components/ui/button"
+import { listingDetailPath } from '@/lib/slug'
 
 type GeoJSONPolygon = {
   type: 'Polygon'
@@ -172,7 +173,7 @@ export default function CommunityMap({
                 />
               ))}
             {validListings.map((listing) => {
-              const key = listing.ListingKey ?? listing.ListNumber ?? ''
+              const key = listing.ListNumber ?? listing.ListingKey ?? ''
               const lat = Number(listing.Latitude)
               const lng = Number(listing.Longitude)
               if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
@@ -207,8 +208,13 @@ export default function CommunityMap({
                   <Button
                     type="button"
                     onClick={() => {
-                      const k = infoListing.ListingKey ?? infoListing.ListNumber
-                      if (k) router.push(`/listing/${k}`)
+                      const k = (infoListing.ListNumber ?? infoListing.ListingKey)?.toString()?.trim()
+                      if (k) router.push(listingDetailPath(
+                        k,
+                        { streetNumber: infoListing.StreetNumber, streetName: infoListing.StreetName, city: infoListing.City, state: infoListing.State, postalCode: infoListing.PostalCode },
+                        undefined,
+                        { mlsNumber: infoListing.ListNumber ?? null }
+                      ))
                     }}
                     className="mt-2 text-sm font-semibold text-accent-foreground hover:underline"
                   >

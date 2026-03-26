@@ -80,7 +80,7 @@ export default function CitySlider({ cities, currentCitySlug, ctaCard }: Props) 
                     />
                   )}
                   <div
-                    className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-t from-foreground/75 via-foreground/20 to-transparent"
                     aria-hidden
                   />
                   <div className="relative z-10 px-4 pb-4 pt-8">
@@ -109,7 +109,7 @@ export default function CitySlider({ cities, currentCitySlug, ctaCard }: Props) 
                 className="relative flex flex-col justify-end overflow-hidden rounded-lg border border-border bg-primary transition hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                 style={{ minHeight: TILE_MIN_HEIGHT_PX, boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" aria-hidden />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" aria-hidden />
                 <div className="relative z-10 px-4 pb-4 pt-8">
                   <span
                     className="block text-xl font-bold tracking-tight text-primary-foreground drop-shadow-md sm:text-2xl"

@@ -23,6 +23,8 @@ type Props = {
   priceHistory: PricePoint[]
   /** e.g. /reports/city/Bend */
   fullReportHref: string
+  /** Year-to-date report for this place (reports/explore?city=X&start=YTD&end=today). When set, shown as primary CTA. */
+  ytdReportHref?: string | null
   /** e.g. /reports/explore */
   exploreHref?: string
   /** For analytics, e.g. "city_market_stats" */
@@ -51,10 +53,12 @@ export default function GeoMarketOverview({
   stats,
   priceHistory,
   fullReportHref,
+  ytdReportHref,
   exploreHref = '/reports/explore',
   trackContext,
 }: Props) {
   const hasChartData = priceHistory.length >= 2
+  const showYtd = Boolean(ytdReportHref)
 
   return (
     <section className="bg-muted px-4 py-10 sm:px-6 sm:py-12" aria-labelledby={headingId}>
@@ -110,8 +114,19 @@ export default function GeoMarketOverview({
           </p>
         )}
         <div className="mt-6 flex flex-wrap gap-3">
+          {showYtd && (
+            <Button
+              asChild
+              onClick={() => trackEvent('view_market_report', { context: `${trackContext}_ytd`, place: placeName })}
+            >
+              <Link href={ytdReportHref!}>
+                Year-to-date report
+              </Link>
+            </Button>
+          )}
           <Button
             asChild
+            variant={showYtd ? 'outline' : 'default'}
             onClick={() => trackEvent('view_market_report', { context: trackContext, place: placeName })}
           >
             <Link href={fullReportHref}>

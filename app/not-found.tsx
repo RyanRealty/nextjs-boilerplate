@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { listingsBrowsePath } from '@/lib/slug'
 
 export default function NotFound() {
   return (
@@ -15,7 +16,7 @@ export default function NotFound() {
           Go to homepage
         </Link>
         <Link
-          href="/listings"
+          href={listingsBrowsePath()}
           className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
         >
           Browse listings

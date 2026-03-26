@@ -300,6 +300,7 @@ export async function getBrokerGalleryImages(brokerId: string): Promise<{ id: st
 
 export type SubmitBrokerInquiryParams = {
   brokerId: string
+  brokerSlug?: string
   name: string
   email: string
   phone?: string
@@ -311,7 +312,7 @@ export type SubmitBrokerInquiryParams = {
 export async function submitBrokerInquiry(
   params: SubmitBrokerInquiryParams
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { brokerId, name, email, message, phone, helpType } = params
+  const { brokerId, brokerSlug, name, email, message, phone, helpType } = params
   const emailTrim = email?.trim()
   if (!emailTrim) return { ok: false, error: 'Email is required.' }
 
@@ -341,6 +342,11 @@ export async function submitBrokerInquiry(
     sourceUrl: `${source}/agents`,
     pageUrl: `${source}/agents`,
     pageTitle: 'Agent contact form',
+    brokerAttribution: brokerSlug?.trim()
+      ? {
+          brokerSlug: brokerSlug.trim().toLowerCase(),
+        }
+      : undefined,
   })
 
   if (!result.ok) return { ok: false, error: result.error ?? 'Failed to send.' }

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import ValuationForm from './ValuationForm'
+import { valuationPath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -10,11 +11,12 @@ export const metadata: Metadata = {
   title: 'Free Home Valuation | What\'s My Home Worth? | Ryan Realty',
   description:
     'Get a free, data-driven home value estimate for your Central Oregon property. No obligation. We\'ll send you a Comparative Market Analysis and follow up to answer questions.',
-  alternates: { canonical: `${siteUrl}/home-valuation` },
+  alternates: { canonical: `${siteUrl}${valuationPath()}` },
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'Free Home Valuation | Ryan Realty',
     description: 'Get a free home value estimate. We use local comps and market data to give you a clear picture of your home\'s worth.',
-    url: `${siteUrl}/home-valuation`,
+    url: `${siteUrl}${valuationPath()}`,
     type: 'website',
   },
 }

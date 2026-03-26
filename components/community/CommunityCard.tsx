@@ -108,7 +108,7 @@ export default function CommunityCard({
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary to-foreground" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
           {isResort && (
             <div className="absolute right-2 top-2">
               <Badge variant="secondary">Resort</Badge>
@@ -131,17 +131,16 @@ export default function CommunityCard({
             )}
           </div>
         </Link>
-      </div>
-      <div className="flex flex-wrap items-center justify-end border-t border-border bg-muted/80 px-2 py-1.5">
         <CardActionBar
-          position="below"
-          variant="onLight"
+          position="overlay"
+          variant="onDark"
           onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+          viewCount={viewCount}
           share={{
             url: typeof window !== 'undefined' ? `${window.location.origin}${href}` : undefined!,
             title: `${name} homes for sale in ${city}`,
             ariaLabel: `Share ${name}`,
-            shareCount: shareCount > 0 ? shareCount : undefined,
+            shareCount,
             onShare: handleShareClick,
           }}
           like={signedIn ? {

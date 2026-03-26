@@ -1,11 +1,13 @@
 /**
  * JSON-LD structured data generators for SEO. Step 20.
  */
+import { listingDetailPath, teamPath } from '@/lib/slug'
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export type ListingForSchema = {
   listing_key: string
+  list_number?: string | null
   list_price?: number | null
   beds_total?: number | null
   baths_full?: number | null
@@ -33,7 +35,23 @@ export function generateListingSchema(
     '@context': 'https://schema.org',
     '@type': listing.living_area != null && listing.living_area > 0 ? 'SingleFamilyResidence' : 'Residence',
     name: address.unparsed_address ?? street ?? 'Property',
-    url: `${SITE_URL}/listing/${encodeURIComponent(listing.listing_key)}`,
+    url: `${SITE_URL}${listingDetailPath(
+      listing.list_number ?? listing.listing_key,
+      {
+        streetNumber: address.street_number ?? null,
+        streetName: address.street_name ?? null,
+        city: address.city ?? null,
+        state: address.state ?? null,
+        postalCode: address.postal_code ?? null,
+      },
+      {
+        city: address.city ?? null,
+        subdivision: listing.subdivision_name ?? null,
+      },
+      {
+        mlsNumber: listing.list_number ?? null,
+      }
+    )}`,
     ...(listing.list_price != null && listing.list_price > 0 && {
       offers: { '@type': 'Offer', price: listing.list_price, priceCurrency: 'USD' },
     }),
@@ -83,7 +101,7 @@ export function generateBrokerSchema(broker: {
     '@type': 'RealEstateAgent',
     name: broker.display_name,
     jobTitle: broker.title ?? undefined,
-    url: `${SITE_URL}/agents/${encodeURIComponent(broker.slug)}`,
+    url: `${SITE_URL}${teamPath(broker.slug)}`,
     email: broker.email ?? undefined,
     telephone: broker.phone ?? undefined,
     image: broker.photo_url ?? undefined,

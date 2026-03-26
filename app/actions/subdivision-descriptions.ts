@@ -5,7 +5,7 @@ import { subdivisionEntityKey } from '../../lib/slug'
 import { generateGrokText } from '../../lib/grok-text'
 
 const TONE =
-  'Use a warm, friendly, welcoming, and honest tone. Write as if you are helping a potential resident or visitor feel at home. Be factual and avoid hype.'
+  'Use a warm, factual, and welcoming tone. Be specific and accurate. Do not use hype words like stunning, nestled, boasts, must see, exclusive, unparalleled, or world-class. CTAs should be specific. Write for search engines and readers; substantive, useful copy.'
 
 export type SubdivisionTabContent = {
   about: string | null

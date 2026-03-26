@@ -7,13 +7,13 @@ type Props = {
   brokerName: string
   slug: string
   transactionCount: number
-  /** Base path for share URL (e.g. 'agents' or 'team'). Default 'agents'. */
+  /** Base path for share URL. Canonical is 'team'. */
   basePath?: 'agents' | 'team'
 }
 
-export default function BrokerShare({ brokerFirstName, brokerName, slug, transactionCount, basePath = 'agents' }: Props) {
+export default function BrokerShare({ brokerFirstName, brokerName, slug, transactionCount, basePath = 'team' }: Props) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'
-  const path = basePath === 'team' ? `/team/${slug}` : `/agents/${slug}`
+  const path = basePath === 'agents' ? `/team/${slug}` : `/team/${slug}`
   const url = `${siteUrl.replace(/\/$/, '')}${path}`
   const title = `${brokerName} — Real Estate Agent | Ryan Realty`
   const text = transactionCount > 0

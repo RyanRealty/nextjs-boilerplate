@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { CityForIndex } from '@/lib/cities'
 import CardActionBar from '@/components/ui/CardActionBar'
 import { toggleSavedCity } from '@/app/actions/saved-cities'
@@ -19,13 +20,16 @@ export type CityTileProps = {
   signedIn?: boolean
   /** Whether this city is currently saved by the user */
   saved?: boolean
+  /** Engagement counts for display (views, likes, etc.) */
+  engagement?: { view_count?: number; like_count?: number; save_count?: number; share_count?: number }
 }
 
 /**
  * Single city tile: same size and behavior as ListingTile/CommunityTile (image, share, save).
  * Use everywhere we show a city card (cities page, Browse by city, sliders).
  */
-export default function CityTile({ city, signedIn = false, saved = false }: CityTileProps) {
+export default function CityTile({ city, signedIn = false, saved = false, engagement }: CityTileProps) {
+  const router = useRouter()
   const href = `/cities/${city.slug}`
   const countLabel =
     city.activeCount === 0
@@ -35,9 +39,21 @@ export default function CityTile({ city, signedIn = false, saved = false }: City
         : `${city.activeCount} homes for sale`
   const [savedState, setSavedState] = useState(saved)
   const [pending, setPending] = useState(false)
+  const viewCount = engagement?.view_count ?? 0
+  const likeCount = engagement?.like_count ?? 0
+  const saveCount = engagement?.save_count ?? 0
+  const shareCount = engagement?.share_count ?? 0
+
   useEffect(() => {
     setSavedState(saved)
   }, [saved])
+
+  function goToLogin(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const returnUrl = typeof window !== 'undefined' ? encodeURIComponent(window.location.pathname + window.location.search) : ''
+    router.push(`/login${returnUrl ? `?returnUrl=${returnUrl}` : ''}`)
+  }
 
   async function handleToggleSave(e: React.MouseEvent) {
     e.preventDefault()
@@ -67,7 +83,7 @@ export default function CityTile({ city, signedIn = false, saved = false }: City
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary to-foreground" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 text-primary-foreground">
             <h3 className="text-xl font-bold drop-shadow-md">{city.name}</h3>
             <p className="mt-0.5 text-sm text-primary-foreground/90">{countLabel}</p>
@@ -76,24 +92,25 @@ export default function CityTile({ city, signedIn = false, saved = false }: City
             </p>
           </div>
         </Link>
-      </div>
-      <div className="flex flex-wrap items-center justify-end border-t border-border bg-muted/80 px-2 py-1.5">
         <CardActionBar
-          position="below"
-          variant="onLight"
-          onClickWrap={(e) => e.preventDefault()}
+          position="overlay"
+          variant="onDark"
+          onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+          viewCount={viewCount}
           share={{
             url: typeof window !== 'undefined' ? `${window.location.origin}${href}` : undefined!,
             title: `Homes for sale in ${city.name}`,
             ariaLabel: `Share ${city.name}`,
+            shareCount,
           }}
-          save={signedIn ? {
-            active: savedState,
-            ariaLabel: savedState ? 'Remove from saved cities' : 'Save city',
-            onToggle: handleToggleSave,
-            disabled: pending,
-          } : undefined}
+          like={signedIn
+            ? { active: false, count: likeCount, ariaLabel: 'Like city', onToggle: () => {}, disabled: true }
+            : { active: false, count: likeCount, ariaLabel: 'Like city', onToggle: goToLogin }}
+          save={signedIn
+            ? { active: savedState, count: saveCount, ariaLabel: savedState ? 'Remove from saved cities' : 'Save city', onToggle: handleToggleSave, disabled: pending }
+            : { active: false, count: saveCount, ariaLabel: 'Save city', onToggle: goToLogin }}
           signedIn={signedIn}
+          guestCounts={!signedIn ? { viewCount, likeCount, saveCount } : undefined}
         />
       </div>
     </div>

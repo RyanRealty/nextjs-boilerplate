@@ -10,6 +10,7 @@ import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_DOWN_PCT
 import type { GetListingsForMapOptions } from '@/app/actions/listings'
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { listingsBrowsePath } from '@/lib/slug'
 
 const PER_PAGE = 20
 const SORT_OPTIONS = [
@@ -77,7 +78,7 @@ export type UnifiedMapListingsViewProps = GetListingsForMapOptions & {
 export default function UnifiedMapListingsView({
   placeQuery = null,
   pageTitle = 'Central Oregon Real Estate & Homes For Sale',
-  basePath = '/listings',
+  basePath = listingsBrowsePath(),
   savedKeys = [],
   likedKeys = [],
   priceChangeKeys = new Set(),

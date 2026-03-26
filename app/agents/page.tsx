@@ -2,20 +2,21 @@ import type { Metadata } from 'next'
 import { getAgentsForIndex } from '@/app/actions/agents'
 import BrokerCard from '@/components/broker/BrokerCard'
 import { fetchPlacePhoto } from '@/lib/photo-api'
+import { teamPath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Our Agents | Ryan Realty â€” Central Oregon Real Estate',
+  title: 'Our Agents | Ryan Realty - Central Oregon Real Estate',
   description:
     'Meet the real estate agents at Ryan Realty. Expert brokers serving Bend, Redmond, Sisters, Sunriver, and Central Oregon.',
-  alternates: { canonical: `${siteUrl}/agents` },
+  alternates: { canonical: `${siteUrl}${teamPath()}` },
   openGraph: {
     title: 'Our Agents | Ryan Realty',
     description: 'Meet the real estate agents at Ryan Realty. Expert brokers serving Central Oregon.',
-    url: `${siteUrl}/agents`,
+    url: `${siteUrl}${teamPath()}`,
     siteName: 'Ryan Realty',
     type: 'website',
   },
@@ -37,7 +38,7 @@ export default async function AgentsIndexPage() {
             '@type': 'CollectionPage',
             name: 'Our Agents | Ryan Realty',
             description: 'Meet the real estate agents at Ryan Realty. Expert brokers serving Central Oregon.',
-            url: `${siteUrl}/agents`,
+            url: `${siteUrl}${teamPath()}`,
             publisher: { '@type': 'Organization', name: 'Ryan Realty' },
           }),
         }}

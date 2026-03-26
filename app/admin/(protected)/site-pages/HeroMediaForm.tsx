@@ -1,7 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { updateBrokerageHeroMedia } from '@/app/actions/brokerage'
+import {
+  updateBrokerageHeroMedia,
+  uploadBrokerageHeroImage,
+  uploadBrokerageHeroVideo,
+} from '@/app/actions/brokerage'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -15,6 +19,8 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
   const [heroVideoUrl, setHeroVideoUrl] = useState(initialHeroVideoUrl?.trim() || '')
   const [heroImageUrl, setHeroImageUrl] = useState(initialHeroImageUrl?.trim() || '')
   const [saving, setSaving] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,6 +42,38 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
     }
   }
 
+  async function handleUploadHeroVideo(formData: FormData) {
+    setMessage(null)
+    setUploadingVideo(true)
+    try {
+      const result = await uploadBrokerageHeroVideo(formData)
+      if (result.ok && result.url) {
+        setHeroVideoUrl(result.url)
+        setMessage({ type: 'ok', text: 'Hero video uploaded and linked.' })
+      } else {
+        setMessage({ type: 'err', text: result.error ?? 'Failed to upload video' })
+      }
+    } finally {
+      setUploadingVideo(false)
+    }
+  }
+
+  async function handleUploadHeroImage(formData: FormData) {
+    setMessage(null)
+    setUploadingImage(true)
+    try {
+      const result = await uploadBrokerageHeroImage(formData)
+      if (result.ok && result.url) {
+        setHeroImageUrl(result.url)
+        setMessage({ type: 'ok', text: 'Hero image uploaded and linked.' })
+      } else {
+        setMessage({ type: 'err', text: result.error ?? 'Failed to upload image' })
+      }
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
   return (
     <div className="rounded-lg border border-border bg-card p-6">
       <h2 className="text-lg font-semibold text-foreground">Homepage hero</h2>
@@ -44,6 +82,27 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
         as the hero background (autoplay, muted, loop). Otherwise the image is used. Use a direct
         link to an MP4 file for video.
       </p>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <form action={handleUploadHeroVideo} className="space-y-2 rounded-lg border border-border p-3">
+          <Label htmlFor="hero-video-file" className="block text-sm font-medium text-muted-foreground">
+            Upload hero video
+          </Label>
+          <Input id="hero-video-file" name="file" type="file" accept="video/mp4,video/webm" required />
+          <Button type="submit" disabled={uploadingVideo} variant="outline">
+            {uploadingVideo ? 'Uploading…' : 'Upload video'}
+          </Button>
+        </form>
+        <form action={handleUploadHeroImage} className="space-y-2 rounded-lg border border-border p-3">
+          <Label htmlFor="hero-image-file" className="block text-sm font-medium text-muted-foreground">
+            Upload hero image
+          </Label>
+          <Input id="hero-image-file" name="file" type="file" accept="image/*" required />
+          <Button type="submit" disabled={uploadingImage} variant="outline">
+            {uploadingImage ? 'Uploading…' : 'Upload image'}
+          </Button>
+        </form>
+      </div>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div>

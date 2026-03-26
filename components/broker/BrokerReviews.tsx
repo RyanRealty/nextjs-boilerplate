@@ -79,10 +79,10 @@ export default function BrokerReviews({
   if (reviewCount === 0) return null
 
   return (
-    <section className="bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-reviews-heading">
+    <section id="reviews" className="bg-muted px-4 py-12 sm:px-6 sm:py-16" aria-labelledby="broker-reviews-heading">
       <div className="mx-auto max-w-7xl">
         <h2 id="broker-reviews-heading" className="text-2xl font-bold tracking-tight text-primary">
-          Client Reviews
+          Client Reviews for {brokerFirstName}
         </h2>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {avgRating != null && (

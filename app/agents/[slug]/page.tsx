@@ -24,7 +24,7 @@ import BrokerGallery from '@/components/broker/BrokerGallery'
 import BrokerContactForm from '@/components/broker/BrokerContactForm'
 import BrokerShare from '@/components/broker/BrokerShare'
 import BrokerPageTracker from '@/components/broker/BrokerPageTracker'
-import { fetchPlacePhoto } from '@/lib/photo-api'
+import { teamPath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     broker.bio?.slice(0, 155) ??
     `${broker.display_name}, ${broker.title ?? 'Real Estate Agent'} at Ryan Realty. ${broker.soldCount24Mo} transactions. Contact for Central Oregon real estate.`
-  const canonical = `${siteUrl}/agents/${slug}`
+  const canonical = `${siteUrl}${teamPath(slug)}`
   return {
     title,
     description,
@@ -56,7 +56,7 @@ export default async function AgentDetailPage({ params }: Props) {
   if (!broker) notFound()
 
   const [session, fubPersonId] = await Promise.all([getSession(), getFubPersonIdFromCookie()])
-  const pageUrl = `${siteUrl}/agents/${slug}`
+  const pageUrl = `${siteUrl}${teamPath(slug)}`
   const pageTitle = `${broker.display_name} — Real Estate Agent | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
 
@@ -115,7 +115,7 @@ export default async function AgentDetailPage({ params }: Props) {
                   reviewCount: broker.reviewCount,
                 },
               }),
-            url: `${siteUrl}/agents/${slug}`,
+            url: `${siteUrl}${teamPath(slug)}`,
           }),
         }}
       />
@@ -155,7 +155,6 @@ export default async function AgentDetailPage({ params }: Props) {
         brokerId={broker.id}
         brokerSlug={slug}
         brokerFirstName={firstName}
-        brokerEmail={broker.email}
       />
       <BrokerShare
         brokerFirstName={firstName}

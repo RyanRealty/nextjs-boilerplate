@@ -27,7 +27,7 @@ import BrokerGallery from '@/components/broker/BrokerGallery'
 import BrokerContactForm from '@/components/broker/BrokerContactForm'
 import BrokerShare from '@/components/broker/BrokerShare'
 import BrokerPageTracker from '@/components/broker/BrokerPageTracker'
-import { fetchPlacePhoto } from '@/lib/photo-api'
+import BrokerSocialProofCta from '@/components/broker/BrokerSocialProofCta'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -43,12 +43,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     broker.bio?.slice(0, 155) ??
     `${broker.display_name}, ${broker.title ?? 'Real Estate Agent'} at ${siteName}. ${broker.soldCount24Mo} transactions. Contact for Central Oregon real estate.`
   const canonical = `${siteUrl}/team/${slug}`
+  const ogImage = `${siteUrl}/api/og?type=broker&id=${encodeURIComponent(slug)}`
   return {
     title,
     description,
     alternates: { canonical },
-    openGraph: { title, description, url: canonical, siteName, type: 'profile' },
-    twitter: { card: 'summary_large_image', title, description },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName,
+      type: 'profile',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${broker.display_name} | ${siteName}` }],
+    },
+    twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
   }
 }
 
@@ -169,12 +177,21 @@ export default async function TeamMemberPage({ params }: Props) {
         reviewCount={broker.reviewCount}
         reviews={reviews}
       />
+      <BrokerSocialProofCta
+        title={`What Clients Say About Working With ${firstName}`}
+        subtitle={`Top brokerages keep trust and proof visible at every step. Review real feedback, then choose your next step with ${firstName}.`}
+        primaryCtaHref="#contact"
+        primaryCtaLabel={`Schedule With ${firstName}`}
+        secondaryCtaHref="#reviews"
+        secondaryCtaLabel={`Read ${firstName}'s Reviews`}
+        ctaContext="broker_profile"
+        brokerSlug={slug}
+      />
       {galleryImages.length > 0 && <BrokerGallery images={galleryImages} />}
       <BrokerContactForm
         brokerId={broker.id}
         brokerSlug={slug}
         brokerFirstName={firstName}
-        brokerEmail={broker.email}
       />
       <BrokerShare
         brokerFirstName={firstName}

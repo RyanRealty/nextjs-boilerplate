@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import type { SparkVideo, SparkVirtualTour } from '@/lib/spark'
+import { listingAddressSlug, slugify } from '@/lib/slug'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -14,6 +15,7 @@ function getSupabase() {
 export type ListingDetailListing = {
   id: string
   listing_key: string
+  list_number: string | null
   listing_id: string | null
   property_id: string | null
   standard_status: string | null
@@ -152,6 +154,9 @@ export type ListingDetailCommunity = {
   id: string
   name: string
   slug: string
+  neighborhood_name?: string | null
+  neighborhood_slug?: string | null
+  city_slug?: string | null
 }
 
 export type ListingDetailData = {
@@ -168,10 +173,217 @@ export type ListingDetailData = {
   virtualTours: SparkVirtualTour[]
 }
 
+/** Resolve URL slug (key or key-address-slug) to listing_key. Tries exact match, then prefix segments. */
+async function resolveListingKeyFromSlug(supabase: ReturnType<typeof getSupabase>, slug: string): Promise<string | null> {
+  const raw = String(slug ?? '').trim()
+  if (!raw) return null
+  const decoded = decodeURIComponent(raw).trim()
+  if (!decoded) return null
+
+  const getCanonicalKey = (row: unknown, fallback: string): string => {
+    const record = row as { listing_key?: string | null; ListingKey?: string | null } | null
+    return (record?.listing_key ?? record?.ListingKey ?? fallback).toString().trim()
+  }
+
+  const tryLookup = async (candidate: string): Promise<string | null> => {
+    const c = String(candidate ?? '').trim()
+    if (!c) return null
+
+    const lookups: Array<() => Promise<unknown>> = [
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('listing_key', c).limit(1)).data?.[0],
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('ListingKey', c).limit(1)).data?.[0],
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('list_number', c).limit(1)).data?.[0],
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('ListNumber', c).limit(1)).data?.[0],
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('listing_id', c).limit(1)).data?.[0],
+      async () => (await supabase.from('listings').select('listing_key, ListingKey').eq('ListingId', c).limit(1)).data?.[0],
+    ]
+
+    for (const lookup of lookups) {
+      try {
+        const row = await lookup()
+        if (row != null) return getCanonicalKey(row, c)
+      } catch {
+        // Ignore missing-column/schema mismatches across environments and continue fallbacks.
+      }
+    }
+
+    return null
+  }
+
+  const exact = await tryLookup(decoded)
+  if (exact) return exact
+
+  const parts = decoded.split('-')
+  for (let i = 1; i < parts.length; i++) {
+    const candidate = parts.slice(0, i).join('-')
+    const resolved = await tryLookup(candidate)
+    if (resolved) return resolved
+  }
+  return null
+}
+
+/**
+ * Resolve listing key from breadcrumb-style path:
+ * /homes-for-sale/:citySlug/:optional-area.../:addressSlug
+ */
+export async function resolveListingKeyFromBreadcrumbPath(input: {
+  citySlug: string
+  areaSlugs?: string[]
+  addressSlug: string
+}): Promise<string | null> {
+  const supabase = getSupabase()
+  const citySlug = slugify(decodeURIComponent(input.citySlug || ''))
+  const addressSlug = slugify(decodeURIComponent(input.addressSlug || ''))
+  if (!citySlug || !addressSlug) return null
+  const areaSlugs = (input.areaSlugs ?? []).map((s) => slugify(decodeURIComponent(s || ''))).filter(Boolean)
+  const cityLike = decodeURIComponent(input.citySlug || '').replace(/-/g, ' ').trim()
+  if (!cityLike) return null
+
+  const { data } = await supabase
+    .from('listings')
+    .select('listing_key, ListingKey, list_number, ListNumber, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, ModificationTimestamp')
+    .ilike('City', cityLike)
+    .limit(5000)
+
+  const rows = (data ?? []) as Array<{
+    listing_key?: string | null
+    ListingKey?: string | null
+    list_number?: string | null
+    ListNumber?: string | null
+    StreetNumber?: string | null
+    StreetName?: string | null
+    City?: string | null
+    State?: string | null
+    PostalCode?: string | null
+    SubdivisionName?: string | null
+    ModificationTimestamp?: string | null
+  }>
+
+  const matches = rows.filter((row) => {
+    if (slugify(row.City ?? '') !== citySlug) return false
+    const fullAddressSlug = listingAddressSlug({
+      streetNumber: row.StreetNumber ?? null,
+      streetName: row.StreetName ?? null,
+      city: row.City ?? null,
+      state: row.State ?? null,
+      postalCode: row.PostalCode ?? null,
+    })
+    const streetCitySlug = slugify([
+      [row.StreetNumber, row.StreetName].filter(Boolean).join('-'),
+      row.City ?? '',
+    ].filter(Boolean).join('-'))
+    const streetOnlySlug = slugify([row.StreetNumber, row.StreetName].filter(Boolean).join('-'))
+
+    const addressCandidates = [fullAddressSlug, streetCitySlug, streetOnlySlug].filter(Boolean)
+    const addressMatched = addressCandidates.some((candidate) => (
+      candidate === addressSlug ||
+      candidate.startsWith(`${addressSlug}-`) ||
+      addressSlug.startsWith(`${candidate}-`)
+    ))
+    if (!addressMatched) return false
+
+    if (areaSlugs.length === 0) return true
+    const subdivisionSlug = slugify(row.SubdivisionName ?? '')
+    return subdivisionSlug ? areaSlugs.includes(subdivisionSlug) : true
+  })
+
+  if (matches.length === 0) return null
+  matches.sort((a, b) => {
+    const aTime = a.ModificationTimestamp ? new Date(a.ModificationTimestamp).getTime() : 0
+    const bTime = b.ModificationTimestamp ? new Date(b.ModificationTimestamp).getTime() : 0
+    return bTime - aTime
+  })
+  const top = matches[0]
+  return (
+    top.listing_key ??
+    top.ListingKey ??
+    top.list_number ??
+    top.ListNumber ??
+    null
+  )
+}
+
+/**
+ * Resolve listing key from canonical MLS/key + ZIP segment with path context:
+ * /homes-for-sale/:citySlug/:optional-area.../:keyOrMls-:zip
+ *
+ * This avoids ambiguous matches when MLS-like identifiers exist across cities/areas.
+ */
+export async function resolveListingKeyFromCanonicalPath(input: {
+  citySlug: string
+  areaSlugs?: string[]
+  keyOrMls: string
+  postalCode?: string | null
+}): Promise<string | null> {
+  const supabase = getSupabase()
+  const citySlug = slugify(decodeURIComponent(input.citySlug || ''))
+  const keyOrMls = String(input.keyOrMls ?? '').trim()
+  if (!citySlug || !keyOrMls) return null
+
+  const areaSlugs = (input.areaSlugs ?? []).map((s) => slugify(decodeURIComponent(s || ''))).filter(Boolean)
+  const postalCode = String(input.postalCode ?? '').trim().replace(/\D/g, '').slice(0, 5)
+  const cityLike = decodeURIComponent(input.citySlug || '').replace(/-/g, ' ').trim()
+  if (!cityLike) return null
+
+  const { data } = await supabase
+    .from('listings')
+    .select('listing_key, ListingKey, list_number, ListNumber, City, PostalCode, SubdivisionName, ModificationTimestamp')
+    .ilike('City', cityLike)
+    .limit(5000)
+
+  const rows = (data ?? []) as Array<{
+    listing_key?: string | null
+    ListingKey?: string | null
+    list_number?: string | null
+    ListNumber?: string | null
+    City?: string | null
+    PostalCode?: string | null
+    SubdivisionName?: string | null
+    ModificationTimestamp?: string | null
+  }>
+
+  const matches = rows.filter((row) => {
+    if (slugify(row.City ?? '') !== citySlug) return false
+
+    const keys = [
+      row.listing_key,
+      row.ListingKey,
+      row.list_number,
+      row.ListNumber,
+    ].map((v) => String(v ?? '').trim()).filter(Boolean)
+    if (!keys.includes(keyOrMls)) return false
+
+    if (postalCode) {
+      const rowZip = String(row.PostalCode ?? '').trim().replace(/\D/g, '').slice(0, 5)
+      if (rowZip !== postalCode) return false
+    }
+
+    if (areaSlugs.length === 0) return true
+    const subdivisionSlug = slugify(row.SubdivisionName ?? '')
+    return subdivisionSlug ? areaSlugs.includes(subdivisionSlug) : true
+  })
+
+  if (matches.length === 0) return null
+  matches.sort((a, b) => {
+    const aTime = a.ModificationTimestamp ? new Date(a.ModificationTimestamp).getTime() : 0
+    const bTime = b.ModificationTimestamp ? new Date(b.ModificationTimestamp).getTime() : 0
+    return bTime - aTime
+  })
+  const top = matches[0]
+  return (
+    top.listing_key ??
+    top.ListingKey ??
+    top.list_number ??
+    top.ListNumber ??
+    null
+  )
+}
+
 /** Fetch listing by listing_key with all related data for the listing detail page. */
 export async function getListingDetailData(listingKey: string): Promise<ListingDetailData | null> {
   const supabase = getSupabase()
-  const key = String(listingKey ?? '').trim()
+  const requestedKey = String(listingKey ?? '').trim()
+  const key = (await resolveListingKeyFromSlug(supabase, requestedKey)) ?? requestedKey
   if (!key) return null
 
   // Try snake_case first (migration 002), then PascalCase (legacy)
@@ -225,10 +437,28 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   if (property?.community_id) {
     const { data: comm } = await supabase
       .from('communities')
-      .select('id, name, slug')
+      .select('id, name, slug, neighborhoods(name, slug), cities(slug)')
       .eq('id', property.community_id)
       .maybeSingle()
-    community = comm as ListingDetailCommunity | null
+    const row = comm as {
+      id: string
+      name: string
+      slug: string
+      neighborhoods?: { name?: string | null; slug?: string | null } | { name?: string | null; slug?: string | null }[] | null
+      cities?: { slug?: string | null } | { slug?: string | null }[] | null
+    } | null
+    if (row) {
+      const neighborhood = Array.isArray(row.neighborhoods) ? row.neighborhoods[0] : row.neighborhoods
+      const cityRef = Array.isArray(row.cities) ? row.cities[0] : row.cities
+      community = {
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        neighborhood_name: neighborhood?.name ?? null,
+        neighborhood_slug: neighborhood?.slug ?? null,
+        city_slug: cityRef?.slug ?? null,
+      }
+    }
   }
 
   const videoRows = (videosRes.data ?? []) as { id: string; video_url: string; sort_order?: number }[]
@@ -261,6 +491,10 @@ export type SimilarListingForDetail = {
   subdivision_name: string | null
   address: string
   photo_url: string | null
+  /** For SEO listing URL slug (city, state, postal_code). */
+  city?: string | null
+  state?: string | null
+  postal_code?: string | null
 }
 
 /** Similar listings: same community or city, ±20% price, ±1 beds, Active, exclude current, limit 6. */
@@ -335,6 +569,9 @@ export async function getSimilarListingsForDetailPage(
       subdivision_name: r.subdivision_name,
       address,
       photo_url: firstPhotoByKey.get(r.listing_key) ?? null,
+      city: prop?.city ?? null,
+      state: prop?.state ?? null,
+      postal_code: prop?.postal_code ?? null,
     }
   })
 }

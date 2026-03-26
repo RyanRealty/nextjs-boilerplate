@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { AGENT_PHONE_TEL } from '../../lib/listing-cta'
 import { trackContactAgentEmail, submitListingInquiry } from '@/app/actions/track-contact-agent'
 import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
@@ -33,14 +34,6 @@ type Props = {
   fubPersonId?: number | null
   /** Pre-filled mortgage calculator URL (price + optional saved prefs) */
   calculatorUrl?: string
-}
-
-function buildScheduleShowingMailto(listingUrl: string, address: string, cityStateZip?: string): string {
-  const subject = encodeURIComponent(`Showing request: ${address}${cityStateZip ? `, ${cityStateZip}` : ''}`)
-  const body = encodeURIComponent(
-    `I'd like to schedule a showing for this property.\n\nListing: ${listingUrl}\n\nAddress: ${address}${cityStateZip ? `\n${cityStateZip}` : ''}`
-  )
-  return `mailto:?subject=${subject}&body=${body}`
 }
 
 function buildContactEmailMailto(params: {
@@ -81,6 +74,7 @@ export default function ListingCtaSidebar({
   fubPersonId,
   calculatorUrl,
 }: Props) {
+  void calculatorUrl
   const [open, setOpen] = useState(false)
   const [showModal, setShowModal] = useState<'showing' | 'question' | null>(null)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
@@ -99,6 +93,11 @@ export default function ListingCtaSidebar({
 
   async function handleSendEmail() {
     setOpen(false)
+    trackCtaClick({
+      label: 'Send an email',
+      destination: 'mailto:',
+      context: `listing_cta_sidebar:${listingKey ?? listingId ?? 'unknown'}`,
+    })
     await trackContactAgentEmail({
       listingUrl,
       userEmail: userEmail ?? null,
@@ -168,7 +167,14 @@ export default function ListingCtaSidebar({
         <div className="flex flex-col gap-3">
           <Button
             type="button"
-            onClick={() => setShowModal('showing')}
+            onClick={() => {
+              trackCtaClick({
+                label: 'Schedule a showing',
+                destination: '#listing-showing-modal',
+                context: `listing_cta_sidebar:${listingKey ?? listingId ?? 'unknown'}`,
+              })
+              setShowModal('showing')
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-success px-4 py-3 text-base font-semibold text-success-foreground shadow-sm hover:bg-success/85 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
           >
             <span aria-hidden>📅</span>
@@ -176,7 +182,14 @@ export default function ListingCtaSidebar({
           </Button>
           <Button
             type="button"
-            onClick={() => setShowModal('question')}
+            onClick={() => {
+              trackCtaClick({
+                label: 'Ask a question',
+                destination: '#listing-question-modal',
+                context: `listing_cta_sidebar:${listingKey ?? listingId ?? 'unknown'}`,
+              })
+              setShowModal('question')
+            }}
             className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-border bg-card px-4 py-3 text-base font-semibold text-foreground hover:border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2"
           >
             Ask a question
@@ -202,7 +215,14 @@ export default function ListingCtaSidebar({
                   href={smsUrl}
                   role="menuitem"
                   className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    trackCtaClick({
+                      label: 'Send a text',
+                      destination: smsUrl,
+                      context: `listing_cta_sidebar:${listingKey ?? listingId ?? 'unknown'}`,
+                    })
+                    setOpen(false)
+                  }}
                 >
                   Send a text
                 </a>
@@ -210,7 +230,14 @@ export default function ListingCtaSidebar({
                   href={telUrl}
                   role="menuitem"
                   className="flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    trackCtaClick({
+                      label: 'Call',
+                      destination: telUrl,
+                      context: `listing_cta_sidebar:${listingKey ?? listingId ?? 'unknown'}`,
+                    })
+                    setOpen(false)
+                  }}
                 >
                   Call
                 </a>

@@ -1,59 +1,35 @@
 'use server'
 
-import { getBrowseCities } from './listings'
-import { getSubdivisionsInCity } from './listings'
-import { getSubdivisionTabContent } from './subdivision-descriptions'
-import { generateSubdivisionDescription, generateSubdivisionAttractions } from './subdivision-descriptions'
-import { subdivisionEntityKey } from '../../lib/slug'
+import { runPlaceContentChunk } from './place-content-pipeline'
 
 /**
- * Refresh about and attractions content for communities that are missing it.
- * Call from cron (e.g. weekly). Processes up to maxSubdivisions (default 20) per run to avoid timeouts.
+ * Refresh place content for cities, neighborhoods, and communities in the background.
+ * Runs one chunk per invocation (so cron can call daily or weekly; over time all places get robust copy).
+ * Copy is written in brand voice, uses listing/report data, and is stored in the DB so pages are not thin for SEO or LLMs.
  */
 export async function refreshPlaceContent(options: {
-  maxSubdivisions?: number
-}): Promise<{ updated: number; failed: number; errors: string[] }> {
-  const max = options.maxSubdivisions ?? 20
-  const errors: string[] = []
-  let updated = 0
-  let failed = 0
-
-  const cities = await getBrowseCities()
-  const processed: string[] = []
-
-  for (const { City } of cities) {
-    const subs = await getSubdivisionsInCity(City)
-    for (const { subdivisionName } of subs) {
-      if (processed.length >= max) break
-      const key = subdivisionEntityKey(City, subdivisionName)
-      if (processed.includes(key)) continue
-      processed.push(key)
-
-      const content = await getSubdivisionTabContent(City, subdivisionName)
-      try {
-        if (!content.about?.trim()) {
-          const r = await generateSubdivisionDescription(City, subdivisionName)
-          if (r.ok) updated++
-          else {
-            failed++
-            errors.push(`${key} about: ${r.error}`)
-          }
-        }
-        if (!content.attractions?.trim()) {
-          const r = await generateSubdivisionAttractions(City, subdivisionName)
-          if (r.ok) updated++
-          else {
-            failed++
-            errors.push(`${key} attractions: ${r.error}`)
-          }
-        }
-      } catch (e) {
-        failed++
-        errors.push(`${key}: ${e instanceof Error ? e.message : 'Unknown'}`)
-      }
-    }
-    if (processed.length >= max) break
+  limitCities?: number
+  limitNeighborhoods?: number
+  limitCommunities?: number
+}): Promise<{
+  updated: number
+  failed: number
+  errors: string[]
+  citiesProcessed: number
+  neighborhoodsProcessed: number
+  communitiesProcessed: number
+}> {
+  const result = await runPlaceContentChunk({
+    limitCities: options.limitCities ?? 3,
+    limitNeighborhoods: options.limitNeighborhoods ?? 5,
+    limitCommunities: options.limitCommunities ?? 20,
+  })
+  return {
+    updated: result.updated,
+    failed: result.failed,
+    errors: result.errors,
+    citiesProcessed: result.citiesProcessed,
+    neighborhoodsProcessed: result.neighborhoodsProcessed,
+    communitiesProcessed: result.communitiesProcessed,
   }
-
-  return { updated, failed, errors }
 }

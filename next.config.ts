@@ -83,13 +83,25 @@ const nextConfig: NextConfig = {
     return [
       { source: '/search', destination: '/homes-for-sale', permanent: true },
       { source: '/search/:path*', destination: '/homes-for-sale/:path*', permanent: true },
+      { source: '/listings', destination: '/homes-for-sale', permanent: true },
       { source: '/listings/:listingKey', destination: '/listing/:listingKey', permanent: true },
+      { source: '/homes-for-sale/in/listing/:listingKey', destination: '/homes-for-sale/listing/:listingKey', permanent: true },
+      { source: '/homes-for-sale/in/:path*', destination: '/homes-for-sale/:path*', permanent: true },
+      { source: '/home-valuation', destination: '/sell/valuation', permanent: true },
       { source: '/agents', destination: '/team', permanent: true },
       { source: '/agents/:slug', destination: '/team/:slug', permanent: true },
+      { source: '/reports', destination: '/housing-market/reports', permanent: true },
+      { source: '/reports/explore', destination: '/housing-market/explore', permanent: true },
+      { source: '/reports/:slug/:geoName', destination: '/housing-market/reports/:slug/:geoName', permanent: true },
     ];
   },
   async rewrites() {
     return [
+      { source: '/homes-for-sale/listing/:listingKey', destination: '/listing/by-key/:listingKey' },
+      { source: '/homes-for-sale/:city/:community/:listingSlug([^/]*-[0-9]{5})', destination: '/listing/by-address/:city/:community/:listingSlug' },
+      { source: '/homes-for-sale/:city/:neighborhood/:community/:listingSlug([^/]*-[0-9]{5})', destination: '/listing/by-address/:city/:neighborhood/:community/:listingSlug' },
+      { source: '/homes-for-sale/:city/:community/:listingSlug([^/]*~[^/]*)', destination: '/listing/by-address/:city/:community/:listingSlug' },
+      { source: '/homes-for-sale/:city/:neighborhood/:community/:listingSlug([^/]*~[^/]*)', destination: '/listing/by-address/:city/:neighborhood/:community/:listingSlug' },
       { source: '/homes-for-sale', destination: '/search' },
       { source: '/homes-for-sale/:path*', destination: '/search/:path*' },
     ];

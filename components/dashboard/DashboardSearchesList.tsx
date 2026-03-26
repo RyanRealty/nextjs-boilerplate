@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { homesForSalePath } from '@/lib/slug'
+import { homesForSalePath, listingsBrowsePath } from '@/lib/slug'
 import { deleteSavedSearch } from '@/app/actions/saved-searches'
 import type { SavedSearchRow } from '@/app/actions/saved-searches'
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,7 @@ function buildSearchUrl(filters: Record<string, unknown>): string {
   if (city && subdivision)
     return `${homesForSalePath(city, subdivision)}${q ? `?${q}` : ''}`
   if (city) return `${homesForSalePath(city)}${q ? `?${q}` : ''}`
-  return `/listings${q ? `?${q}` : ''}`
+  return `${listingsBrowsePath()}${q ? `?${q}` : ''}`
 }
 
 function filterSummary(filters: Record<string, unknown>): string {

@@ -105,6 +105,9 @@ Borders: `border-border`, NOT `border-gray-200`
 All defined in `globals.css`. Use the `.animate-*` utility classes.
 All respect `prefers-reduced-motion`. Never define new keyframes outside `globals.css`.
 
+## Sliders and horizontal carousels
+- **Arrows only, no scrollbars.** Any single-row slider (listings, activity feed, city/community tiles, etc.) must have left/right arrow navigation and must hide the track scrollbar (`no-scrollbar`). See `.cursor/rules/sliders-no-scrollbars.mdc`. Reference: `TilesSlider.tsx`.
+
 ## Brand Voice (copy in components)
 - No hyphens or colons in user-facing copy
 - Never: "stunning", "nestled", "boasts", "don't miss", "won't last", "must see", "exclusive", "unparalleled", "world-class", "exquisite", "once in a lifetime"

@@ -8,6 +8,7 @@ import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { getCanonicalSiteUrl } from '@/lib/share-metadata'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
+import { listingsBrowsePath } from '@/lib/slug'
 
 type PageProps = { searchParams: Promise<{ inquiry?: string }> }
 
@@ -46,7 +47,7 @@ export default async function ContactPage({ searchParams }: PageProps) {
         imageUrl={CONTENT_HERO_IMAGES.contact}
         ctas={[
           { label: 'Meet the Team', href: '/team', primary: false },
-          { label: 'View Listings', href: '/listings', primary: false },
+          { label: 'View Listings', href: listingsBrowsePath(), primary: false },
         ]}
       />
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import {
   getListingsWithAdvanced,
@@ -25,7 +26,7 @@ import { getHeroVideoUrl, refreshHeroMedia } from '../../actions/hero-videos'
 import SaveSearchButton from '../../../components/SaveSearchButton'
 import { getGeocodedListings } from '../../actions/geocode'
 import { getCityContent, getSubdivisionBlurb } from '../../../lib/city-content'
-import { cityEntityKey, subdivisionEntityKey, getSubdivisionDisplayName, cityPagePath, homesForSalePath } from '../../../lib/slug'
+import { cityEntityKey, subdivisionEntityKey, getSubdivisionDisplayName, cityPagePath, homesForSalePath, listingDetailPath, listingsBrowsePath, slugify } from '../../../lib/slug'
 import { entityKeyToSlug } from '../../../lib/community-slug'
 import { getPresetBySlug, isPresetSlug } from '../../../lib/search-presets'
 import { communityPagePath } from '../../../lib/community-slug'
@@ -59,6 +60,15 @@ import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_RATE, DE
 import ListingsMapSplitView from '../../listings/ListingsMapSplitView'
 import UnifiedMapListingsView from '../../../components/UnifiedMapListingsView'
 import SearchFilterBar from '../../../components/SearchFilterBar'
+import { shouldNoIndexSearchVariant } from '../../../lib/seo-routing'
+import { getActivityFeed } from '../../actions/activity-feed'
+import { getRecentlySold } from '../../actions/recently-sold'
+import { getLiveMarketPulse } from '../../actions/market-stats'
+import ActivityFeedSlider from '../../../components/ActivityFeedSlider'
+import RecentlySoldRow from '../../../components/RecentlySoldRow'
+import LivePulseBanner from '../../../components/reports/LivePulseBanner'
+import AdUnit from '../../../components/AdUnit'
+import InFeedAdCard from '../../../components/search/InFeedAdCard'
 
 /** Fallback map center when no listing coords (Central Oregon cities). */
 const FALLBACK_CITY_CENTERS: Record<string, { latitude: number; longitude: number; zoom: number }> = {
@@ -111,7 +121,7 @@ async function resolveSlug(slug: string[]): Promise<{
 }
 
 function buildCanonicalPath(city: string | null, subdivisionDisplayName: string | null, subdivisionSlug: string | null, presetSlug: string | null): string {
-  if (!city) return '/homes-for-sale'
+  if (!city) return listingsBrowsePath()
   const base = subdivisionDisplayName ?? subdivisionSlug
     ? homesForSalePath(city, subdivisionDisplayName ?? subdivisionSlug ?? null)
     : homesForSalePath(city, null)
@@ -120,11 +130,15 @@ function buildCanonicalPath(city: string | null, subdivisionDisplayName: string 
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string[] }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }): Promise<Metadata> {
   const { slug = [] } = await params
+  const sp = await searchParams
   const { city, subdivisionDisplayName, subdivisionSlug, presetSlug, preset } = await resolveSlug(slug)
+  const hasInvalidPresetSegment = slug.length >= 3 && !!presetSlug && !preset
   const placeName = subdivisionDisplayName ? getSubdivisionDisplayName(subdivisionDisplayName) : (city ?? 'Central Oregon')
   const displayName = preset ? `${placeName} ${preset.shortLabel}` : placeName
   const content = city ? getCityContent(city) : null
@@ -143,23 +157,33 @@ export async function generateMetadata({
       ? await getBannerUrl('subdivision', subdivisionEntityKey(city, subdivisionDisplayName))
       : await getBannerUrl('city', cityEntityKey(city)))
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+  const defaultOgImage = `${siteUrl}/api/og?type=default`
   const canonicalPath = buildCanonicalPath(city, subdivisionDisplayName, subdivisionSlug, presetSlug)
+  const dynamicOgImage = slug.length > 0
+    ? `${siteUrl}/search/og/${slug.map((part) => encodeURIComponent(part)).join('/')}`
+    : defaultOgImage
   const title = preset ? `${preset.label} in ${placeName}` : `Homes for Sale in ${placeName}`
   return {
     title,
     description: metaDesc,
     alternates: { canonical: `${siteUrl}${canonicalPath}` },
+    robots: hasInvalidPresetSegment || shouldNoIndexSearchVariant(sp) ? { index: false, follow: true } : undefined,
     openGraph: {
       title,
       description: metaDesc,
       url: `${siteUrl}${canonicalPath}`,
       siteName: 'Ryan Realty',
       type: 'website',
-      ...(bannerUrl && {
-        images: [{ url: bannerUrl, width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT, alt: `Real estate in ${placeName}, Central Oregon` }],
-      }),
+      images: [
+        {
+          url: dynamicOgImage || bannerUrl || defaultOgImage,
+          width: OG_IMAGE_WIDTH,
+          height: OG_IMAGE_HEIGHT,
+          alt: `Real estate in ${placeName}, Central Oregon`,
+        },
+      ],
     },
-    twitter: { card: 'summary_large_image', title, description: metaDesc },
+    twitter: { card: 'summary_large_image', title, description: metaDesc, images: [dynamicOgImage || bannerUrl || defaultOgImage] },
   }
 }
 
@@ -222,6 +246,9 @@ export default async function SearchPage({
   const { slug = [] } = await params
   const sp = await searchParams
   const resolved = await resolveSlug(slug)
+  if (slug.length >= 3 && resolved.presetSlug && !resolved.preset) {
+    notFound()
+  }
   const { city: cityResolved, subdivisionDisplayName: decodedSubdivisionFromSlug, preset } = resolved
   const city = cityResolved ?? undefined
   const subdivision = resolved.subdivisionSlug ?? undefined
@@ -311,6 +338,25 @@ export default async function SearchPage({
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     city ? getCityPriceHistory(city) : Promise.resolve([]),
   ])
+  const [searchPulse, searchActivityFeed, searchRecentlySold] = await Promise.all([
+    city
+      ? getLiveMarketPulse({
+          geoType: subdivision && decodedSubdivision ? 'subdivision' : 'city',
+          geoSlug: subdivision && decodedSubdivision ? `${slugify(city)}-${slugify(decodedSubdivision)}` : slugify(city),
+        })
+      : Promise.resolve(null),
+    city
+      ? getActivityFeed({
+          city,
+          subdivision: decodedSubdivision ?? undefined,
+          limit: 12,
+          eventTypes: ['new_listing', 'price_drop', 'status_pending', 'status_closed', 'status_expired', 'back_on_market'],
+        })
+      : Promise.resolve([]),
+    city
+      ? getRecentlySold({ city, subdivision: decodedSubdivision ?? undefined, limit: 12 })
+      : Promise.resolve([]),
+  ])
   const { listings, totalCount } = listingsResult
   const effectiveStatusFilter = (filterOpts.statusFilter && ['active', 'active_and_pending', 'pending', 'closed', 'all'].includes(filterOpts.statusFilter))
     ? filterOpts.statusFilter
@@ -361,6 +407,35 @@ export default async function SearchPage({
     subdivision
       ? (subdivisionTabContent?.about ?? getSubdivisionBlurb(decodedSubdivision!))
       : null
+  const communityQuickFacts = subdivision
+    ? (() => {
+        const prices = listings.map((l) => Number(l.ListPrice ?? 0)).filter((v) => Number.isFinite(v) && v > 0)
+        const hoa = listings
+          .map((l) => Number((l as { AssociationFee?: number | null }).AssociationFee ?? 0))
+          .filter((v) => Number.isFinite(v) && v > 0)
+        const lot = listings
+          .map((l) => {
+            const acres = Number((l as { lot_size_acres?: number | null }).lot_size_acres ?? 0)
+            const sqft = Number((l as { lot_size_sqft?: number | null }).lot_size_sqft ?? 0)
+            if (Number.isFinite(acres) && acres > 0) return acres
+            if (Number.isFinite(sqft) && sqft > 0) return sqft / 43560
+            return 0
+          })
+          .filter((v) => v > 0)
+        const years = listings
+          .map((l) => Number((l as { YearBuilt?: number | null }).YearBuilt ?? 0))
+          .filter((v) => Number.isFinite(v) && v > 0)
+        return {
+          minPrice: prices.length ? Math.min(...prices) : null,
+          maxPrice: prices.length ? Math.max(...prices) : null,
+          minHoa: hoa.length ? Math.min(...hoa) : null,
+          maxHoa: hoa.length ? Math.max(...hoa) : null,
+          avgLot: lot.length ? lot.reduce((a, b) => a + b, 0) / lot.length : null,
+          minYear: years.length ? Math.min(...years) : null,
+          maxYear: years.length ? Math.max(...years) : null,
+        }
+      })()
+    : null
 
   const entityType = subdivision ? ('subdivision' as const) : ('city' as const)
   const entityKey = subdivision ? subdivisionEntityKey(city!, decodedSubdivision!) : cityEntityKey(city!)
@@ -598,10 +673,30 @@ export default async function SearchPage({
               siteUrl={siteUrl}
               description={subdivisionBlurb ?? subdivisionTabContent?.about ?? null}
               bannerUrl={bannerUrl ?? null}
-              listingUrls={listings.slice(0, 10).map((l) => {
-                const key = l.ListingKey ?? l.ListNumber
-                return key ? `${siteUrl}/listing/${encodeURIComponent(String(key))}` : ''
-              }).filter(Boolean)}
+              listingUrls={listings
+                .slice(0, 10)
+                .map((l) => {
+                  const key = l.ListNumber ?? l.ListingKey
+                  if (!key) return ''
+                  return `${siteUrl}${listingDetailPath(
+                    String(key),
+                    {
+                      streetNumber: l.StreetNumber ?? null,
+                      streetName: l.StreetName ?? null,
+                      city: l.City ?? city ?? null,
+                      state: l.State ?? null,
+                      postalCode: l.PostalCode ?? null,
+                    },
+                    {
+                      city: l.City ?? city ?? null,
+                      subdivision: l.SubdivisionName ?? decodedSubdivision ?? null,
+                    },
+                    {
+                      mlsNumber: l.ListNumber ?? null,
+                    }
+                  )}`
+                })
+                .filter(Boolean)}
             />
           )}
         </>
@@ -759,6 +854,82 @@ export default async function SearchPage({
           )}
         </div>
       </section>
+      <section className="mb-10">
+        <AdUnit slot="2002001001" format="horizontal" />
+      </section>
+
+      {searchPulse && (
+        <section className="mb-10">
+          <LivePulseBanner
+            title={`${displayName} live market pulse`}
+            activeCount={searchPulse.active_count}
+            pendingCount={searchPulse.pending_count}
+            newCount7d={searchPulse.new_count_7d}
+            updatedAt={searchPulse.updated_at}
+          />
+        </section>
+      )}
+
+      {subdivision && communityQuickFacts && (
+        <section className="mb-10 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="community-quick-facts-heading">
+          <h2 id="community-quick-facts-heading" className="text-lg font-semibold text-foreground">
+            Community quick facts
+          </h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-border bg-muted p-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Price range</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {communityQuickFacts.minPrice && communityQuickFacts.maxPrice
+                  ? `$${communityQuickFacts.minPrice.toLocaleString()} - $${communityQuickFacts.maxPrice.toLocaleString()}`
+                  : 'Not available'}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted p-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">HOA range</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {communityQuickFacts.minHoa && communityQuickFacts.maxHoa
+                  ? `$${communityQuickFacts.minHoa.toLocaleString()} - $${communityQuickFacts.maxHoa.toLocaleString()}`
+                  : 'Not available'}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted p-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Average lot size</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {communityQuickFacts.avgLot ? `${communityQuickFacts.avgLot.toFixed(2)} ac` : 'Not available'}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-muted p-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Year built</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                {communityQuickFacts.minYear && communityQuickFacts.maxYear
+                  ? `${communityQuickFacts.minYear} - ${communityQuickFacts.maxYear}`
+                  : 'Not available'}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {searchActivityFeed.length > 0 && (
+        <section className="mb-10">
+          <ActivityFeedSlider
+            title={subdivision ? `What is happening in ${displayName}` : `What is happening in ${city ?? 'Central Oregon'}`}
+            items={searchActivityFeed}
+            signedIn={!!session?.user}
+            savedKeys={savedKeys}
+            likedKeys={likedKeys}
+          />
+        </section>
+      )}
+
+      {searchRecentlySold.length > 0 && (
+        <section className="mb-10">
+          <RecentlySoldRow
+            title={subdivision ? `Recently sold in ${displayName}` : `Recently sold in ${city ?? 'Central Oregon'}`}
+            listings={searchRecentlySold}
+          />
+        </section>
+      )}
 
       {/* Hot communities (city page only) — scrollable row with photo background */}
       {city && !subdivision && hotCommunities.length > 0 && (
@@ -790,6 +961,38 @@ export default async function SearchPage({
                 {getSubdivisionDisplayName(subdivisionName)} <span className="text-muted-foreground">({count})</span>
               </Link>
             ))}
+          </div>
+        </section>
+      )}
+
+      {city && !subdivision && (
+        <section className="mb-10 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="browse-by-heading">
+          <h2 id="browse-by-heading" className="text-lg font-semibold text-foreground">Browse by</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href={`${homesForSalePath(city)}/under-500k`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Price under $500K
+            </Link>
+            <Link href={`${homesForSalePath(city)}/under-1m`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Price under $1M
+            </Link>
+            <Link href={`${homesForSalePath(city)}/luxury`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Luxury homes
+            </Link>
+            <Link href={`${homesForSalePath(city)}/new-listings`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              New listings
+            </Link>
+            <Link href={`${homesForSalePath(city)}/open-house`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Open houses
+            </Link>
+            <Link href={`${homesForSalePath(city)}/with-pool`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Homes with pool
+            </Link>
+            <Link href={`${homesForSalePath(city)}/with-view`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Homes with view
+            </Link>
+            <Link href={`${homesForSalePath(city)}/on-golf-course`} className="rounded-lg border border-border bg-muted px-4 py-2.5 text-sm font-medium text-foreground hover:bg-background">
+              Golf course homes
+            </Link>
           </div>
         </section>
       )}
@@ -873,12 +1076,12 @@ export default async function SearchPage({
           <section
             className={`grid gap-6 ${columns === 1 ? 'grid-cols-1 max-w-md' : columns === 2 ? 'grid-cols-1 sm:grid-cols-2' : columns === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}
           >
-            {listings.map((listing, i) => {
+            {listings.flatMap((listing, i) => {
               const key = (listing.ListNumber ?? listing.ListingKey ?? `listing-${i}`).toString().trim()
               const price = Number(listing.ListPrice ?? 0)
               const displayPrefs = prefs ?? { downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT, interestRate: DEFAULT_DISPLAY_RATE, loanTermYears: DEFAULT_DISPLAY_TERM_YEARS }
               const monthly = price > 0 ? estimatedMonthlyPayment(price, displayPrefs.downPaymentPercent, displayPrefs.interestRate, displayPrefs.loanTermYears) : null
-              return (
+              const tiles = [
                 <ListingTile
                   key={key}
                   listing={listing}
@@ -890,7 +1093,16 @@ export default async function SearchPage({
                   signedIn={!!session?.user}
                   userEmail={session?.user?.email ?? null}
                 />
-              )
+              ]
+              if ((i + 1) % 8 === 0) {
+                tiles.push(
+                  <InFeedAdCard
+                    key={`ad-${i}`}
+                    slot="2002001002"
+                  />
+                )
+              }
+              return tiles
             })}
           </section>
           {subdivision && nearbyCommunities.length > 0 && (
@@ -912,6 +1124,9 @@ export default async function SearchPage({
               </div>
             </section>
           )}
+          <section className="mt-10">
+            <AdUnit slot="2002001003" format="horizontal" />
+          </section>
         </>
       )}
       </div>

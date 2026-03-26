@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/sync-full",
-      "schedule": "0 6 * * *"
+      "schedule": "*/10 * * * *"
     },
     {
       "path": "/api/cron/refresh-place-content",
-      "schedule": "0 10 * * 0"
+      "schedule": "0 3 * * *"
     }
   ]
 }

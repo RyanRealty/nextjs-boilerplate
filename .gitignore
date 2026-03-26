@@ -36,6 +36,7 @@ yarn-error.log*
 
 # vercel
 .vercel
+.firecrawl/
 .vercel-env-sync.log
 
 # supabase local
@@ -51,5 +52,8 @@ next-env.d.ts
 
 # Claude IDE local settings (optional)
 .claude
+
+# Legacy style backup — old design system (hex, .btn-cta, .card-base); do not use or import
+_style_backup
 
 .vercel

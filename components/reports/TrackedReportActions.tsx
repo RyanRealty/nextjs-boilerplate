@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
+import { listingsBrowsePath } from '@/lib/slug'
 
 type Props = {
   geoName: string
@@ -34,11 +36,19 @@ export function TrackedReportExploreLink({ className, children }: { className?: 
 }
 
 export function TrackedReportListingsLink({ className, children }: { className?: string; children: React.ReactNode }) {
+  const listingsPath = listingsBrowsePath()
   return (
     <Link
-      href="/listings"
+      href={listingsPath}
       className={className}
-      onClick={() => trackEvent('click_cta', { context: 'report_view_listings' })}
+      onClick={() => {
+        trackEvent('click_cta', { context: 'report_view_listings' })
+        trackCtaClick({
+          label: 'View Listings',
+          destination: listingsPath,
+          context: 'report_page',
+        })
+      }}
     >
       {children}
     </Link>
@@ -50,7 +60,14 @@ export function TrackedReportValuationLink({ className, children }: { className?
     <Link
       href="/sell/valuation"
       className={className}
-      onClick={() => trackEvent('valuation_requested', { context: 'report_page' })}
+      onClick={() => {
+        trackEvent('valuation_requested', { context: 'report_page' })
+        trackCtaClick({
+          label: 'Get Home Valuation',
+          destination: '/sell/valuation',
+          context: 'report_page',
+        })
+      }}
     >
       {children}
     </Link>

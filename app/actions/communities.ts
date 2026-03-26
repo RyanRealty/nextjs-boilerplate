@@ -1,10 +1,11 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { subdivisionEntityKey, slugify } from '@/lib/slug'
 import { getSubdivisionMatchNames } from '@/lib/subdivision-aliases'
 import { parseCommunitySlug } from '@/lib/community-slug'
-import { getBannerUrl, getOrCreatePlaceBanner, getBannerSearchQuery } from '@/app/actions/banners'
+import { getBannerUrl, getBannersBatch, getOrCreatePlaceBanner, getBannerSearchQuery } from '@/app/actions/banners'
 import { getCityMarketStats } from '@/app/actions/listings'
 import type { CityMarketStats } from '@/app/actions/listings'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
@@ -32,7 +33,7 @@ export async function getCitySlugs(): Promise<Set<string>> {
 }
 
 /** All communities for index: from listings + subdivision_flags, with counts and hero. */
-export async function getCommunitiesForIndex(): Promise<CommunityForIndex[]> {
+async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
   const [rows, resortSet, listingRows] = await Promise.all([
     listSubdivisionsWithFlags(),
     import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()),
@@ -59,10 +60,12 @@ export async function getCommunitiesForIndex(): Promise<CommunityForIndex[]> {
   }
   const result: CommunityForIndex[] = []
   const seen = new Set<string>()
+  const entityKeys: string[] = []
   for (const r of rows) {
     const entityKey = r.entity_key
     if (seen.has(entityKey)) continue
     seen.add(entityKey)
+    entityKeys.push(entityKey)
     const agg = byKey.get(entityKey)
     const activeCount = agg ? agg.prices.length : 0
     let medianPrice: number | null = null
@@ -71,7 +74,6 @@ export async function getCommunitiesForIndex(): Promise<CommunityForIndex[]> {
       const mid = Math.floor(agg.prices.length / 2)
       medianPrice = agg.prices.length % 2 ? agg.prices[mid]! : Math.round((agg.prices[mid - 1]! + agg.prices[mid]!) / 2)
     }
-    const heroResult = await getBannerUrl('subdivision', entityKey)
     result.push({
       slug: entityKeyToSlug(entityKey),
       entityKey,
@@ -79,14 +81,24 @@ export async function getCommunitiesForIndex(): Promise<CommunityForIndex[]> {
       subdivision: r.subdivision,
       activeCount,
       medianPrice,
-      heroImageUrl: heroResult ?? null,
+      heroImageUrl: null,
       isResort: r.is_resort || resortSet.has(entityKey),
       description: undefined,
     })
   }
+  const bannerMap = await getBannersBatch('subdivision', entityKeys)
+  for (const row of result) {
+    row.heroImageUrl = bannerMap.get(row.entityKey)?.url ?? null
+  }
   result.sort((a, b) => a.subdivision.localeCompare(b.subdivision))
   return result
 }
+
+export const getCommunitiesForIndex = unstable_cache(
+  _getCommunitiesForIndexUncached,
+  ['communities-index'],
+  { revalidate: 120, tags: ['communities-index'] }
+)
 
 /** Get community by slug; returns null if not found. */
 export async function getCommunityBySlug(slug: string): Promise<CommunityDetail | null> {
@@ -172,7 +184,7 @@ export async function getSubdivisionNeighborhood(subdivisionName: string): Promi
 }
 
 const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details, AssociationYN, AssociationFee, AssociationFeeFrequency'
 
 export type ListingRow = {
   ListingKey: string | null
@@ -197,6 +209,9 @@ export type ListingRow = {
   OnMarketDate?: string | null
   OpenHouses?: unknown
   details?: unknown
+  AssociationYN?: boolean | null
+  AssociationFee?: number | null
+  AssociationFeeFrequency?: string | null
 }
 
 /** Active listings in a community (city + subdivision), newest first, limit 24. */

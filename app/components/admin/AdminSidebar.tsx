@@ -20,6 +20,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
 
   const main: Array<{ href: string; label: string; icon: string }> = [
     navItem('/admin', 'Dashboard', '◉'),
+    navItem('/admin/search', 'Search', '🔎'),
     navItem('/admin/listings', 'Listings', '🏠'),
     navItem('/admin/sync', 'Sync status', '🔄'),
   ]
@@ -30,11 +31,14 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
     main.push(navItem('/admin/optimization', 'Optimization', '📈'))
   }
   if (canBrokers) main.push(navItem(role === 'broker' && brokerId ? `/admin/brokers?highlight=${brokerId}` : '/admin/brokers', role === 'broker' ? 'My profile' : 'Brokers', '👔'))
+  if (canBrokers) main.push(navItem('/admin/broker-dashboard', 'Broker dashboard', '📉'))
+  if (canBrokers) main.push(navItem('/admin/fub-attribution', 'FUB attribution', '🎯'))
   if (canFullAdmin) {
     main.push(
       navItem('/admin/geo', 'Communities & geo', '📍'),
       navItem('/admin/resort-communities', 'Resort & master plan', '🏘'),
       navItem('/admin/site-pages', 'Site pages', '📄'),
+      navItem('/admin/media', 'Media', '🗂'),
       navItem('/admin/banners', 'Banners', '🖼'),
       navItem('/admin/query-builder', 'Query builder', '🔍'),
     )

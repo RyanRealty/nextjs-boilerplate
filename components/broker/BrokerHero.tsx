@@ -2,10 +2,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { AgentDetail } from '@/app/actions/agents'
 import BrokerHeroCtaButtons from '@/components/broker/BrokerHeroCtaButtons'
+import { teamPath } from '@/lib/slug'
 
 type Props = {
   broker: AgentDetail
-  /** Base path for breadcrumb and context (e.g. 'agents' or 'team'). Default 'agents'. */
+  /** Base path for breadcrumb and context (canonical: 'team'). */
   basePath?: 'agents' | 'team'
   /** When broker has no photo_url, use this image (e.g. from Unsplash). */
   fallbackImageUrl?: string | null
@@ -33,10 +34,10 @@ function StarDisplay({ rating, count }: { rating: number | null; count: number }
 
 const DEFAULT_AGENT_PLACEHOLDER = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=560&q=80'
 
-export default function BrokerHero({ broker, basePath = 'agents', fallbackImageUrl }: Props) {
+export default function BrokerHero({ broker, fallbackImageUrl }: Props) {
   const firstName = broker.display_name.split(' ')[0] ?? broker.display_name
-  const listHref = basePath === 'team' ? '/team' : '/agents'
-  const listLabel = basePath === 'team' ? 'Team' : 'Agents'
+  const listHref = teamPath()
+  const listLabel = 'Team'
   const agentImageUrl = broker.photo_url ?? fallbackImageUrl ?? DEFAULT_AGENT_PLACEHOLDER
   const showInitial = !broker.photo_url && !fallbackImageUrl
   const introVideoUrl = broker.intro_video_url?.trim() || null

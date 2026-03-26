@@ -13,13 +13,16 @@ type Props = {
   initialLogoUrl: string | null
 }
 
+/** Default logo path; use relative path so Next.js Image never fetches localhost (avoids private-IP error). */
+const DEFAULT_LOGO_PATH = '/logo.png'
+
 export default function SiteLogoForm({ initialLogoUrl }: Props) {
   const [logoUrl, setLogoUrl] = useState(initialLogoUrl?.trim() || '')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
-  const displayUrl = logoUrl || `${siteUrl}/logo.png`
+  const displayUrl = logoUrl || DEFAULT_LOGO_PATH
 
   async function handleSaveUrl(e: React.FormEvent) {
     e.preventDefault()
@@ -87,7 +90,7 @@ export default function SiteLogoForm({ initialLogoUrl }: Props) {
               type="url"
               value={logoUrl}
               onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder={`${siteUrl}/logo.png`}
+              placeholder={siteUrl ? `${siteUrl}/logo.png` : DEFAULT_LOGO_PATH}
               className="min-w-[200px] flex-1 rounded-lg border border-primary/20 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
             <Button

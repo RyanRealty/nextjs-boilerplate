@@ -10,6 +10,7 @@ import type { AuthUser } from '@/app/actions/auth'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Search01Icon, Cancel01Icon, Menu02Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
+import { listingsBrowsePath } from '@/lib/slug'
 
 type NavLink = { href: string; label: string }
 type SiteHeaderProps = {
@@ -30,8 +31,8 @@ export default function SiteHeader({ totalListings, user = null, brokerageName =
     { href: '/feed', label: 'Feed' },
     { href: '/about', label: 'About' },
     { href: '/team', label: 'Team' },
-    { href: '/listings', label: 'Listings' },
-    { href: '/listings?view=map', label: 'Map' },
+    { href: listingsBrowsePath(), label: 'Listings' },
+    { href: `${listingsBrowsePath()}?view=map`, label: 'Map' },
   ]
 
   const isActive = (href: string) => {

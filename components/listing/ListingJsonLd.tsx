@@ -1,6 +1,7 @@
 /**
  * JSON-LD for a single listing: Product + Offer + Place for rich results and AI.
  */
+import { listingDetailPath } from '@/lib/slug'
 type Fields = {
   ListingKey?: string
   ListingId?: string
@@ -29,7 +30,12 @@ type Props = { listingKey: string; fields: Fields; /** First listing photo URL f
 
 export default function ListingJsonLd({ listingKey, fields, imageUrl }: Props) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'
-  const url = `${baseUrl}/listing/${listingKey}`
+  const url = `${baseUrl}${listingDetailPath(
+    fields.ListingId ?? listingKey,
+    { streetNumber: fields.StreetNumber, streetName: fields.StreetName, city: fields.City, state: fields.StateOrProvince, postalCode: fields.PostalCode },
+    { city: fields.City, subdivision: fields.SubdivisionName ?? null },
+    { mlsNumber: fields.ListingId ?? null }
+  )}`
   const address = [
     fields.StreetNumber,
     fields.StreetDirPrefix,

@@ -5,6 +5,7 @@ import React, { useMemo, useCallback, useState } from 'react'
 import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
 import { useRouter } from 'next/navigation'
 import { MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM_CITY, getListingMarkerIcon, MAP_LABEL_LISTING, MAP_COLOR_ACCENT, MAP_STROKE_WHITE, MAP_STROKE_WEIGHT } from '@/lib/map-constants'
+import { listingDetailPath } from '@/lib/slug'
 
 type ListingPoint = {
   latitude: number
@@ -173,9 +174,9 @@ export default function ListingDetailMapGoogle({ subjectListing, otherListings }
                 <div className="p-1 text-foreground">
                   <div className="text-sm font-semibold">${(Number(listing.listPrice ?? 0) / 1000).toFixed(0)}k</div>
                   <Link
-                    href={`/listing/${listing.listingKey}`}
+                    href={listingDetailPath(listing.listingKey)}
                     className="text-sm text-primary hover:underline"
-                    onClick={(e) => { e.stopPropagation(); router.push(`/listing/${listing.listingKey}`) }}
+                    onClick={(e) => { e.stopPropagation(); router.push(listingDetailPath(listing.listingKey)) }}
                   >
                     View listing →
                   </Link>

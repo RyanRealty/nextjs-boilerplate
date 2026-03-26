@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { generateICS } from '@/lib/ics'
+import { listingDetailPath } from '@/lib/slug'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   const listingRow = listing as { listing_key?: string; ListingKey?: string } | null
   const key = listingRow?.listing_key ?? listingRow?.ListingKey ?? listingKey
-  const listingUrl = `${siteUrl.replace(/\/$/, '')}/listing/${encodeURIComponent(key)}`
+  const listingUrl = `${siteUrl.replace(/\/$/, '')}${listingDetailPath(key)}`
   const address = await getAddress(supabase, listingKey)
 
   const startTime = (oh.start_time ?? '09:00:00').toString().slice(0, 8)

@@ -8,6 +8,7 @@ import { getBuyingPreferences } from '@/app/actions/buying-preferences'
 import ListingTile from '@/components/ListingTile'
 import RemoveSavedButton from './RemoveSavedButton'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
+import { listingsBrowsePath } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'Saved homes',
@@ -34,7 +35,7 @@ export default async function SavedHomesPage() {
         <div className="mt-8 rounded-lg border border-border bg-muted p-8 text-center">
           <p className="text-muted-foreground">You haven’t saved any homes yet.</p>
           <Link
-            href="/listings"
+            href={listingsBrowsePath()}
             className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Browse listings

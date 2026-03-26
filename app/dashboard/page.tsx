@@ -13,6 +13,7 @@ import {
   DEFAULT_DISPLAY_DOWN_PCT,
   DEFAULT_DISPLAY_TERM_YEARS,
 } from '@/lib/mortgage'
+import { listingsBrowsePath } from '@/lib/slug'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -68,7 +69,7 @@ export default async function DashboardOverviewPage() {
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-3">
               <Link
-                href="/listings"
+                href={listingsBrowsePath()}
                 className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-accent/90"
               >
                 Browse listings

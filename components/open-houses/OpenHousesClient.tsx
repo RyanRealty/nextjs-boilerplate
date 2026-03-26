@@ -11,6 +11,7 @@ import ListingMapGoogle from '@/components/ListingMapGoogle'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { listingDetailPath } from '@/lib/slug'
 
 type ViewMode = 'map' | 'list' | 'calendar'
 
@@ -177,7 +178,13 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
           {initialOpenHouses.map((oh) => (
             <li key={oh.id}>
               <Link
-                href={`/listing/${encodeURIComponent(oh.listing_key)}`}
+                href={listingDetailPath(oh.listing_key, {
+                  streetNumber: oh.street_number,
+                  streetName: oh.street_name,
+                  city: oh.city,
+                  state: oh.state,
+                  postalCode: oh.postal_code,
+                }, undefined, { mlsNumber: oh.list_number })}
                 className="block overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md"
               >
                 <div className="relative aspect-[4/3] bg-muted">
@@ -214,7 +221,13 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
               {initialOpenHouses.map((oh) => (
                 <li key={oh.id}>
                   <Link
-                    href={`/listing/${encodeURIComponent(oh.listing_key)}`}
+                    href={listingDetailPath(oh.listing_key, {
+                      streetNumber: oh.street_number,
+                      streetName: oh.street_name,
+                      city: oh.city,
+                      state: oh.state,
+                      postalCode: oh.postal_code,
+                    }, undefined, { mlsNumber: oh.list_number })}
                     className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-3 hover:bg-muted"
                   >
                     <span className="font-medium text-primary">{formatDate(oh.event_date)}</span>

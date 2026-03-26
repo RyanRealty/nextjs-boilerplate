@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
+import { listingsBrowsePath } from '@/lib/slug'
 
 type Props = {
   mapContent: React.ReactNode
@@ -39,7 +40,7 @@ export default function HomeCollapsibleMap({ mapContent, cityName, totalInCity, 
               View all {totalInCity} in {cityName} →
             </Link>
             <Link
-              href="/listings?view=map"
+              href={`${listingsBrowsePath()}?view=map`}
               className="text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               Full map view →

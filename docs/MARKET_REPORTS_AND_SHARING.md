@@ -18,7 +18,7 @@
   - **Monthly trend chart**: last 12 months of sales and median price (Recharts line chart).
   - **Price bands chart**: sales vs current listings by price band (Recharts bar chart).
 - **Sharing**: The **Share** button uses the **current URL including query params** (`?city=...&start=...&end=...`). Anyone opening the link sees the same city and date range and can run the same view. Copy link, Email, X, Facebook, and LinkedIn all share this URL.
-- **Data**: Same RPCs as admin reports: `get_city_period_metrics`, `get_city_price_bands`, plus `get_city_metrics_timeseries` for the trend (monthly sold count and median price). SFR only (excludes condo, townhouse, etc.).
+- **Data**: Same RPCs as admin reports: `get_city_period_metrics`, `get_city_price_bands`, plus `get_city_metrics_timeseries` for the trend (monthly sold count and median price). Default: single-family residential only. You can include **condos & townhomes**, **manufactured**, or **acreage/land** via the Property type checkboxes; optional min/max price filters apply. Report period and location are shown at the top of the results and in chart subtitles. **Commercial** is supported: use the “Commercial” checkbox in the Property type section (or `?commercial=1` in the URL). Multi-family would require an additional RPC parameter and `PropertyType` matching if needed.
 
 ## Market reports (weekly)
 
@@ -46,6 +46,24 @@
   - **Pending (went pending in period)**: From **listing_history**: events with `event` ilike '%Pending%' and `event_date` in the period; city resolved via `listings` (match on `ListingKey` or `ListNumber`). Requires **Sync listing history** to have been run (Admin → Sync).
 - **Weekly market report** (generated report): Uses the same logic — closed from `listings` (CloseDate), pending from `listing_history`. City and listing details come from `listings`.
 - **If reports show no data**: Ensure (1) Spark listing sync runs and returns `CloseDate` and `StandardStatus` for closed listings, and (2) for “pending” counts, run **Sync listing history** (and optionally run it with “Include closed listings” to backfill history for closed listings too).
+
+## External data: HousingWire / Altos Research
+
+**HousingWire Data** (formerly Altos Research) offers national and local real estate data that could complement local MLS/sales data:
+
+- **Listings data** – Weekly active listing counts, inventory, property-level detail (ZIP/city).
+- **Pending data** – Contract activity (30–90 day lead on closings).
+- **Sold data** – Closed sale insights, pricing trends, market velocity.
+- **Rental data** – Single-family and multifamily rental supply and pricing.
+- **Trends** – Weekly housing indicators; median list price; 30-year fixed mortgage rates (hourly); 10-year treasury.
+
+Coverage is broad (110M+ properties, 99% U.S., weekly refresh). Delivery is API or bulk files; they offer 4-week sample files for evaluation.
+
+**Integration (implemented)**:
+- **Server action**: `app/actions/housingwire.ts` — `getHousingWireMarketContext()` fetches national context when credentials are set.
+- **Env**: `HOUSINGWIRE_API_KEY` (required for fetch), `HOUSINGWIRE_API_BASE_URL` (endpoint URL from HousingWire). If either is missing, the explore report shows a hint card instead of data.
+- **Explore report**: A “National market context” card appears below the report period when data is loaded. It shows U.S. inventory, 30-yr fixed rate, 10Y Treasury, and optional median list price when the API returns them. Response fields are normalized from common shapes (`nationalInventory`/`inventory`, `mortgageRate30Yr`/`mortgage_rate_30yr`/`rate30yr`, etc.). When the API is not configured, the card explains how to set the env vars.
+- **Types**: `lib/housingwire-types.ts` — `HousingWireMarketContext`. Adjust the action’s response mapping when HousingWire provides the actual API schema.
 
 ## Optional: daily reports
 

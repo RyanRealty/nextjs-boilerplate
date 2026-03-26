@@ -78,7 +78,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
               src={heroVideoUrl}
               aria-hidden
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" aria-hidden />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent pointer-events-none" aria-hidden />
           </div>
         </section>
       )}
@@ -167,7 +167,7 @@ export default function ListingDetailHero({ photos, virtualTourUrl, listingKey, 
       {/* Full-screen gallery modal */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground"
           role="dialog"
           aria-modal="true"
           aria-label="Photo gallery"

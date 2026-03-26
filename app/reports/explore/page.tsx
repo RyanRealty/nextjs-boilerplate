@@ -6,6 +6,7 @@ import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { trackPageViewIfPossible } from '@/lib/followupboss'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'Explore Market Data',
@@ -18,11 +19,13 @@ export const metadata: Metadata = {
     url: `${siteUrl}/reports/explore`,
     type: 'website',
     siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty explore market data' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Explore Market Data | Ryan Realty',
     description: 'Interactive market data by city and period. Share your view.',
+    images: [defaultOgImage],
   },
 }
 
@@ -48,8 +51,13 @@ export default async function ExplorePage({ searchParams }: Props) {
   const includeCondoTown = params?.condo === '1'
   const includeManufactured = params?.mfd === '1'
   const includeAcreage = params?.acre === '1'
+  const includeCommercial = params?.commercial === '1'
   const initialMinPrice = parseNum(params?.minPrice)
   const initialMaxPrice = parseNum(params?.maxPrice)
+  const now = new Date()
+  const ytdStart = `${now.getFullYear()}-01-01`
+  const ytdEnd = now.toISOString().slice(0, 10)
+  const initialPresetId = start && end && start === ytdStart && end === ytdEnd ? 'ytd' : undefined
 
   const pageUrl = `${siteUrl}/reports/explore`
   const pageTitle = 'Explore Market Data | Ryan Realty'
@@ -74,9 +82,11 @@ export default async function ExplorePage({ searchParams }: Props) {
             initialSubdivision={subdivision}
             initialStart={start}
             initialEnd={end}
+            initialPresetId={initialPresetId}
             initialIncludeCondoTown={includeCondoTown}
             initialIncludeManufactured={includeManufactured}
             initialIncludeAcreage={includeAcreage}
+            initialIncludeCommercial={includeCommercial}
             initialMinPrice={initialMinPrice}
             initialMaxPrice={initialMaxPrice}
           />

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRef, useState, useEffect } from 'react'
 import type { AdjacentListingThumb } from '@/app/actions/listings'
+import { listingDetailPath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeft01Icon, ArrowRight01Icon, Camera01Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,12 @@ function PrevNextCard({
   label: string
   direction: 'prev' | 'next'
 }) {
-  const href = `/listing/${encodeURIComponent(listing.ListingKey)}`
+  const href = listingDetailPath(
+    listing.ListingKey,
+    { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
+    undefined,
+    { mlsNumber: listing.ListNumber ?? null }
+  )
   const content = (
     <>
       <div className="relative h-12 w-16 shrink-0 overflow-hidden bg-muted">
@@ -193,7 +199,7 @@ export default function ListingNav({
             type="button"
             onClick={() => scrollStrip('left')}
             disabled={!hasOverflow}
-            className="absolute left-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+            className="absolute left-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-r from-foreground/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
             aria-label="Scroll listings left"
           >
             <span className="rounded-full bg-card/90 p-2 shadow">
@@ -204,7 +210,7 @@ export default function ListingNav({
             type="button"
             onClick={() => scrollStrip('right')}
             disabled={!hasOverflow}
-            className="absolute right-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+            className="absolute right-0 top-0 z-10 flex h-full w-12 items-center justify-center bg-gradient-to-l from-foreground/30 to-transparent opacity-0 transition-opacity group-hover/strip:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
             aria-label="Scroll listings right"
           >
             <span className="rounded-full bg-card/90 p-2 shadow">
@@ -218,7 +224,12 @@ export default function ListingNav({
           >
             {items.map((item) => {
               const isCurrent = item.ListingKey === listingKey
-              const href = `/listing/${encodeURIComponent(item.ListingKey)}`
+              const href = listingDetailPath(
+                item.ListingKey,
+                { streetNumber: item.StreetNumber, streetName: item.StreetName, city: item.City, state: item.State, postalCode: item.PostalCode },
+                undefined,
+                { mlsNumber: item.ListNumber ?? null }
+              )
               return (
                 <Link
                   key={item.ListingKey}
@@ -270,7 +281,7 @@ export default function ListingNav({
           <PrevNextCard listing={prevListing} label="← Previous" direction="prev" />
         ) : (
           <Link
-            href={`/listing/${prevKey}`}
+            href={listingDetailPath(prevKey)}
             className="flex min-w-[120px] items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
           >
             ← Previous
@@ -286,7 +297,7 @@ export default function ListingNav({
           <PrevNextCard listing={nextListing} label="Next →" direction="next" />
         ) : (
           <Link
-            href={`/listing/${nextKey}`}
+            href={listingDetailPath(nextKey)}
             className="flex min-w-[120px] justify-end rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted"
           >
             Next →

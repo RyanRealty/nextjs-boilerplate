@@ -26,6 +26,20 @@ export type AdminRoleRow = {
   updated_at: string
 }
 
+export type AdminPlatformUserRow = {
+  id: string
+  email: string | null
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  created_at: string
+  updated_at: string
+  saved_listings_count: number
+  saved_searches_count: number
+  activities_count: number
+}
+
 /** Get admin role for an email. Returns role if in admin_roles; superuser if isSuperuserAdmin(email). */
 export async function getAdminRoleForEmail(email: string | null | undefined): Promise<{ role: AdminRoleType; brokerId: string | null } | null> {
   if (!email || typeof email !== 'string') return null
@@ -87,4 +101,51 @@ export async function removeAdminRole(email: string): Promise<{ ok: true } | { o
   revalidatePath('/admin')
   revalidatePath('/admin/users')
   return { ok: true }
+}
+
+/** List all platform users with engagement counts (superuser only). */
+export async function listPlatformUsersForAdmin(): Promise<AdminPlatformUserRow[]> {
+  const session = await getSession()
+  const role = await getAdminRoleForEmail(session?.user?.email ?? null)
+  if (role?.role !== 'superuser') return []
+
+  const supabase = getServiceSupabase()
+  const [{ data: profiles }, { data: savedListings }, { data: savedSearches }, { data: activities }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, email, display_name, first_name, last_name, phone, created_at, updated_at')
+      .order('created_at', { ascending: false }),
+    supabase.from('saved_listings').select('user_id'),
+    supabase.from('saved_searches').select('user_id'),
+    supabase.from('user_activities').select('user_id'),
+  ])
+
+  const countByUser = (rows: Array<{ user_id: string | null }> | null | undefined) => {
+    const map = new Map<string, number>()
+    for (const row of rows ?? []) {
+      if (!row.user_id) continue
+      map.set(row.user_id, (map.get(row.user_id) ?? 0) + 1)
+    }
+    return map
+  }
+
+  const savedListingsMap = countByUser(savedListings as Array<{ user_id: string | null }>)
+  const savedSearchesMap = countByUser(savedSearches as Array<{ user_id: string | null }>)
+  const activitiesMap = countByUser(activities as Array<{ user_id: string | null }>)
+
+  return ((profiles ?? []) as Array<{
+    id: string
+    email: string | null
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+    phone: string | null
+    created_at: string
+    updated_at: string
+  }>).map((row) => ({
+    ...row,
+    saved_listings_count: savedListingsMap.get(row.id) ?? 0,
+    saved_searches_count: savedSearchesMap.get(row.id) ?? 0,
+    activities_count: activitiesMap.get(row.id) ?? 0,
+  }))
 }

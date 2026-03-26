@@ -2,15 +2,6 @@
 
 Reports use **100% of listing data** and stay **fast** by reading from pre-aggregated cache tables that are updated after each sync.
 
-## Report branding
-
-All reports (PDF and web) are **branded consistently**:
-
-- **Logo** — When a brokerage logo is configured (Admin → Site pages), it appears in report PDFs and anywhere the report is identified. When no logo is set, the business name is used as text.
-- **Fonts** — Brand typography from `app/globals.css`: **Amboqia Boriango** (display/headings) and **AzoSans** (body). PDFs register these fonts and use them; report web pages use `font-[family-name:var(--font-display)]` and `font-[family-name:var(--font-body)]`.
-- **Colors** — Brand palette only: navy (`#102742` / `--brand-navy`), cream (`#F0EEEC` / `--brand-cream`), accent (`#D4A853` / `--accent`), and design tokens for text/surfaces (`--text-primary`, `--text-secondary`, `--gray-border`, `--surface`, etc.). No one-off zinc or gray hex values in report UI.
-- **Tone** — Professional, confident, and aligned with the luxury real estate brand: clear headings, concise copy, and a trustworthy, expert voice. Report copy and CTAs should feel consistent with the rest of the site (align with the rest of the site).
-
 ## How it works
 
 1. **Source of truth**  
@@ -57,7 +48,7 @@ Once a **closed** listing has full history and media synced, it is marked `histo
 
 - `20250305100000_reporting_cache_and_indexes.sql`: report cache table, `refresh_listings_breakdown()`, `get_listings_breakdown()` reading from cache, and indexes for listings and listing_history.
 - `20250304100000_sync_history_and_media_counts.sql`: `get_listing_media_counts()` for admin photos/videos counts.
-- `20250305110000_finalized_sync_and_beacon.sql`: `CloseDate`, `ListDate`, `history_finalized`, `media_finalized` on listings; indexes; report RPC implementation.
+- Finalized sync and report migration: `CloseDate`, `ListDate`, `history_finalized`, `media_finalized` on listings; indexes; report RPC implementation.
 - `20250305120000_rename_report_functions.sql`: `get_city_period_metrics()`, `get_city_price_bands()` (generic names used by the app).
 
 Run: `npx supabase db push`

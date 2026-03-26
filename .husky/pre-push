@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/h"
+
+if [ "$SKIP_LOCAL_GATES" = "1" ]; then
+  echo "Skipping local quality gates (SKIP_LOCAL_GATES=1)."
+  exit 0
+fi
+
+if [ "$SKIP_DB_GUARD" = "1" ]; then
+  echo "Skipping Supabase migration drift guard (SKIP_DB_GUARD=1)."
+else
+  echo "Checking Supabase migration drift..."
+  npm run db:guard
+fi
+
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRTUXB @{upstream}...HEAD 2>/dev/null || git diff --name-only --diff-filter=ACMRTUXB HEAD~1 2>/dev/null || true)
+
+NEEDS_STRICT=0
+if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "master" ]; then
+  NEEDS_STRICT=1
+fi
+
+if [ "$NEEDS_STRICT" -eq 0 ]; then
+  for file in $CHANGED_FILES; do
+    case "$file" in
+      app/*|components/*|lib/*|types/*|next.config.*|package.json|tsconfig*.json|eslint.config.*)
+        NEEDS_STRICT=1
+        break
+        ;;
+    esac
+  done
+fi
+
+if [ "$NEEDS_STRICT" -eq 1 ]; then
+  echo "Running strict local quality gates..."
+  npm run quality:local:strict
+else
+  echo "Running fast local quality gates..."
+  npm run quality:local
+fi

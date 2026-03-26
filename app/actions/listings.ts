@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { listingKeyFromSlug } from '../../lib/slug'
+import { listingDetailPath, listingKeyFromSlug, neighborhoodPagePath, reportsExploreYtdPath } from '../../lib/slug'
 import { getSubdivisionMatchNames } from '../../lib/subdivision-aliases'
 
 function getAnonSupabase(): SupabaseClient | null {
@@ -272,21 +272,25 @@ export type SearchSuggestionCity = { city: string; count: number }
 export type SearchSuggestionSubdivision = { city: string; subdivisionName: string; count: number }
 export type SearchSuggestionZip = { postalCode: string; city?: string; count: number; href: string }
 export type SearchSuggestionBroker = { label: string; href: string }
+export type SearchSuggestionNeighborhood = { cityName: string; citySlug: string; neighborhoodName: string; neighborhoodSlug: string; count?: number; href: string }
+export type SearchSuggestionReport = { label: string; href: string }
 export type SearchSuggestionsResult = {
   addresses: SearchSuggestionAddress[]
   cities: SearchSuggestionCity[]
   subdivisions: SearchSuggestionSubdivision[]
+  neighborhoods: SearchSuggestionNeighborhood[]
   zips: SearchSuggestionZip[]
   brokers: SearchSuggestionBroker[]
+  reports: SearchSuggestionReport[]
 }
 
 /**
- * Smart search: autocomplete for address, city, neighborhood (subdivision/community), zip, and broker.
+ * Smart search: autocomplete for address, city, community (subdivision), neighborhood, zip, broker, and market reports.
  * Call with at least 2 characters. Returns grouped suggestions for dropdown.
  */
 export async function getSearchSuggestions(query: string): Promise<SearchSuggestionsResult> {
   const q = (query ?? '').trim()
-  const empty: SearchSuggestionsResult = { addresses: [], cities: [], subdivisions: [], zips: [], brokers: [] }
+  const empty: SearchSuggestionsResult = { addresses: [], cities: [], subdivisions: [], neighborhoods: [], zips: [], brokers: [], reports: [] }
   if (q.length < 2) return empty
 
   const supabase = getAnonSupabase()
@@ -294,7 +298,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
   const safeQ = q.replace(/%/g, '').replace(/\\/g, '')
   const like = `%${safeQ}%`
 
-  const [citiesRes, subdivisionsRes, addressesRes, zipsRes, brokersRes] = await Promise.all([
+  const [citiesRes, subdivisionsRes, addressesRes, zipsRes, brokersRes, neighborhoodsRes] = await Promise.all([
     getBrowseCities().then((list) =>
       list.filter((c) => (c.City ?? '').toLowerCase().includes(q.toLowerCase())).slice(0, 8)
     ),
@@ -322,6 +326,11 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
       .eq('is_active', true)
       .ilike('display_name', like)
       .limit(10),
+    supabase
+      .from('neighborhoods')
+      .select('name, slug, cities(slug, name)')
+      .ilike('name', like)
+      .limit(15),
   ])
 
   const cities: SearchSuggestionCity[] = citiesRes.map((c) => ({ city: c.City, count: c.count }))
@@ -368,7 +377,14 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
     if (!label) continue
     const key = (row.ListNumber ?? row.ListingKey ?? '').toString().trim()
     if (!key) continue
-    addresses.push({ label, href: `/listing/${encodeURIComponent(key)}` })
+    addresses.push({
+      label,
+      href: listingDetailPath(
+        key,
+        { streetNumber: sn, streetName: sname, city, state, postalCode: zip },
+        { city }
+      ),
+    })
     if (addresses.length >= 10) break
   }
 
@@ -393,11 +409,45 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
     .filter((r) => r.slug?.trim() && r.display_name?.trim())
     .map((r) => ({
       label: (r.display_name ?? '').trim(),
-      href: `/agents/${encodeURIComponent((r.slug ?? '').trim())}`,
+      href: `/team/${encodeURIComponent((r.slug ?? '').trim())}`,
     }))
     .slice(0, 8)
 
-  return { addresses, cities, subdivisions, zips, brokers }
+  const neighborhoodRows = (neighborhoodsRes.data ?? []) as {
+    name?: string | null
+    slug?: string | null
+    cities?: { slug?: string | null; name?: string | null } | null
+  }[]
+  const neighborhoods: SearchSuggestionNeighborhood[] = neighborhoodRows
+    .filter((n) => n.name?.trim() && n.slug?.trim() && n.cities?.slug?.trim() && n.cities?.name?.trim())
+    .map((n) => {
+      const citySlug = (n.cities!.slug ?? '').trim()
+      const cityName = (n.cities!.name ?? '').trim()
+      const neighborhoodName = (n.name ?? '').trim()
+      const neighborhoodSlug = (n.slug ?? '').trim()
+      return {
+        cityName,
+        citySlug,
+        neighborhoodName,
+        neighborhoodSlug,
+        href: neighborhoodPagePath(citySlug, neighborhoodSlug),
+      }
+    })
+    .slice(0, 10)
+
+  const qLower = q.toLowerCase()
+  const reports: SearchSuggestionReport[] = []
+  if (/\b(report|market)\b/.test(qLower)) {
+    reports.push({ label: 'Market reports', href: '/reports' })
+  }
+  for (const c of cities.slice(0, 3)) {
+    reports.push({
+      label: `Market report · ${c.city}`,
+      href: reportsExploreYtdPath(c.city),
+    })
+  }
+
+  return { addresses, cities, subdivisions, neighborhoods, zips, brokers, reports }
 }
 
 export type ListingsFilters = {
@@ -982,6 +1032,22 @@ export type AdminSyncCounts = {
   listingsCountError?: string
 }
 
+async function countExactWithRetry(
+  run: () => Promise<{ count: number | null; error: { message?: string } | null }>,
+  attempts = 3
+): Promise<{ count: number; error?: string }> {
+  let lastError: string | undefined
+  for (let i = 0; i < attempts; i++) {
+    const { count, error } = await run()
+    if (!error) return { count: count ?? 0 }
+    lastError = (error.message ?? '').trim() || 'Unknown count query error'
+    if (i < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 150 * (i + 1)))
+    }
+  }
+  return { count: 0, error: lastError }
+}
+
 /**
  * Admin sync page: counts using service role so we see real data (not affected by RLS).
  * Total listings uses the lightweight PostgREST count; get_listing_media_counts() is best-effort for photos/videos only.
@@ -1010,50 +1076,73 @@ export async function getAdminSyncCounts(): Promise<AdminSyncCounts> {
   const expiredOr = 'StandardStatus.ilike.%Expired%'
   const withdrawnOr = 'StandardStatus.ilike.%Withdrawn%'
   const canceledOr = 'StandardStatus.ilike.%Cancel%'
-  const [listingsRes, totalRes, historyRes, activeNeedingHistoryRes, finalizedRes, closedF, closedN, expiredF, expiredN, withdrawnF, withdrawnN, canceledF, canceledN] = await Promise.all([
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(ACTIVE_STATUS_OR),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }),
-    supabase.from('listing_history').select('listing_key', { count: 'exact', head: true }),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(ACTIVE_OR_PENDING_OR).eq('history_finalized', false),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).eq('history_finalized', true),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(closedOr).eq('history_finalized', true),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(closedOr).eq('history_finalized', false),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(expiredOr).eq('history_finalized', true),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(expiredOr).eq('history_finalized', false),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(withdrawnOr).eq('history_finalized', true),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(withdrawnOr).eq('history_finalized', false),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(canceledOr).eq('history_finalized', true),
-    supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(canceledOr).eq('history_finalized', false),
+  const [listingsRes, totalRes, historyRes, activeNeedingHistoryRes, finalizedRes, closedTotal, closedF, expiredTotal, expiredF, withdrawnTotal, withdrawnF, canceledTotal, canceledF] = await Promise.all([
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(ACTIVE_STATUS_OR)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true })),
+    countExactWithRetry(async () => await supabase.from('listing_history').select('listing_key', { count: 'exact', head: true })),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(ACTIVE_OR_PENDING_OR).eq('history_finalized', false)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).eq('history_finalized', true)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(closedOr)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(closedOr).eq('history_finalized', true)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(expiredOr)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(expiredOr).eq('history_finalized', true)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(withdrawnOr)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(withdrawnOr).eq('history_finalized', true)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(canceledOr)),
+    countExactWithRetry(async () => await supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).or(canceledOr).eq('history_finalized', true)),
   ])
-  let historyError: string | undefined
-  if (historyRes.error) {
-    const msg = historyRes.error.message ?? String(historyRes.error)
+  let historyError = historyRes.error
+  if (historyError) {
+    const msg = historyError
     if (/relation.*does not exist|does not exist|relation "listing_history"/i.test(msg)) {
       historyError = 'listing_history table missing. Run migration: supabase/migrations/20250303120000_listing_history.sql'
-    } else {
-      historyError = msg
     }
   }
-  const totalListings = totalRes.count ?? 0
-  let listingsCountError: string | undefined
-  if (totalRes.error) {
-    listingsCountError = totalRes.error.message ?? String(totalRes.error)
-  }
+  const totalListings = totalRes.count
+  const closedFinalizedCount = closedF.count
+  const expiredFinalizedCount = expiredF.count
+  const withdrawnFinalizedCount = withdrawnF.count
+  const canceledFinalizedCount = canceledF.count
+  const closedNotFinalizedCount = Math.max(0, closedTotal.count - closedFinalizedCount)
+  const expiredNotFinalizedCount = Math.max(0, expiredTotal.count - expiredFinalizedCount)
+  const withdrawnNotFinalizedCount = Math.max(0, withdrawnTotal.count - withdrawnFinalizedCount)
+  const canceledNotFinalizedCount = Math.max(0, canceledTotal.count - canceledFinalizedCount)
+
+  const countErrors = [
+    totalRes.error,
+    listingsRes.error,
+    activeNeedingHistoryRes.error,
+    finalizedRes.error,
+    closedTotal.error,
+    closedF.error,
+    expiredTotal.error,
+    expiredF.error,
+    withdrawnTotal.error,
+    withdrawnF.error,
+    canceledTotal.error,
+    canceledF.error,
+  ]
+    .filter(Boolean)
+    .map((e) => String(e))
+
+  const listingsCountError = countErrors.length > 0
+    ? `Some status counts had transient query errors and may be fallback-estimated: ${countErrors[0]}`
+    : undefined
 
   return {
-    activeCount: listingsRes.count ?? 0,
+    activeCount: listingsRes.count,
     totalListings,
-    historyCount: historyRes.count ?? 0,
-    activeNeedingHistoryCount: activeNeedingHistoryRes.count ?? 0,
-    historyFinalizedCount: finalizedRes.count ?? 0,
-    closedFinalizedCount: closedF.count ?? 0,
-    closedNotFinalizedCount: closedN.count ?? 0,
-    expiredFinalizedCount: expiredF.count ?? 0,
-    expiredNotFinalizedCount: expiredN.count ?? 0,
-    withdrawnFinalizedCount: withdrawnF.count ?? 0,
-    withdrawnNotFinalizedCount: withdrawnN.count ?? 0,
-    canceledFinalizedCount: canceledF.count ?? 0,
-    canceledNotFinalizedCount: canceledN.count ?? 0,
+    historyCount: historyRes.count,
+    activeNeedingHistoryCount: activeNeedingHistoryRes.count,
+    historyFinalizedCount: finalizedRes.count,
+    closedFinalizedCount,
+    closedNotFinalizedCount,
+    expiredFinalizedCount,
+    expiredNotFinalizedCount,
+    withdrawnFinalizedCount,
+    withdrawnNotFinalizedCount,
+    canceledFinalizedCount,
+    canceledNotFinalizedCount,
     historyError,
     listingsCountError,
   }
@@ -1438,18 +1527,52 @@ export async function getHotCommunitiesInCity(city: string): Promise<HotCommunit
   if (supabaseService) {
     const { data: rpcData } = await supabaseService.rpc('get_subdivision_status_counts', { p_city: city.trim() })
     if (rpcData != null && Array.isArray(rpcData)) {
-    const arr = rpcData as { subdivision_name?: string; active?: number; pending?: number }[]
-    const list: HotCommunity[] = arr
-      .filter((r) => !isNaSubdivision(r.subdivision_name))
-      .map((r) => ({
-        subdivisionName: (r.subdivision_name ?? '').trim(),
-        forSale: Number(r.active) ?? 0,
-        pending: Number(r.pending) ?? 0,
-        newLast7Days: 0,
-        medianListPrice: null as number | null,
-      }))
-      .sort((a, b) => (b.pending * 2 + b.forSale) - (a.pending * 2 + a.forSale) || b.forSale - a.forSale || a.subdivisionName.localeCompare(b.subdivisionName))
-      return list.slice(0, 5)
+      const arr = rpcData as { subdivision_name?: string; active?: number; pending?: number }[]
+      const list: HotCommunity[] = arr
+        .filter((r) => !isNaSubdivision(r.subdivision_name))
+        .map((r) => ({
+          subdivisionName: (r.subdivision_name ?? '').trim(),
+          forSale: Number(r.active) ?? 0,
+          pending: Number(r.pending) ?? 0,
+          newLast7Days: 0,
+          medianListPrice: null as number | null,
+        }))
+        .sort((a, b) => (b.pending * 2 + b.forSale) - (a.pending * 2 + a.forSale) || b.forSale - a.forSale || a.subdivisionName.localeCompare(b.subdivisionName))
+      const topSubs = list.slice(0, 5)
+      const subNames = topSubs.map((c) => c.subdivisionName).filter(Boolean)
+      if (subNames.length > 0) {
+        const supabase = getAnonSupabase()
+        if (supabase) {
+          const { data: priceRows } = await supabase
+            .from('listings')
+            .select('SubdivisionName, ListPrice')
+            .ilike('City', city.trim())
+            .or(ACTIVE_STATUS_OR)
+            .limit(8000)
+          const rows = (priceRows ?? []) as { SubdivisionName?: string | null; ListPrice?: number | null }[]
+          const bySub = new Map<string, number[]>()
+          for (const row of rows) {
+            const name = (row.SubdivisionName ?? '').trim()
+            if (!name || isNaSubdivision(name) || !subNames.includes(name)) continue
+            const p = Number(row.ListPrice)
+            if (Number.isFinite(p) && p > 0) {
+              const arr = bySub.get(name) ?? []
+              arr.push(p)
+              bySub.set(name, arr)
+            }
+          }
+          for (const c of topSubs) {
+            const prices = bySub.get(c.subdivisionName) ?? []
+            if (prices.length > 0) {
+              prices.sort((a, b) => a - b)
+              const mid = Math.floor(prices.length / 2)
+              c.medianListPrice =
+                prices.length % 2 ? prices[mid]! : Math.round((prices[mid - 1]! + prices[mid]!) / 2)
+            }
+          }
+        }
+      }
+      return topSubs
     }
   }
   const supabase = getAnonSupabase()
@@ -1842,11 +1965,14 @@ export async function getAdjacentListingKeyFromSupabase(
 
 export type AdjacentListingThumb = {
   ListingKey: string
+  ListNumber?: string | null
   PhotoURL: string | null
   ListPrice: number | null
   StreetNumber: string | null
   StreetName: string | null
   City: string | null
+  State?: string | null
+  PostalCode?: string | null
 }
 
 /**
@@ -1859,7 +1985,7 @@ export async function getAdjacentListingsFromSupabase(modificationTimestamp: str
   const supabase = getAnonSupabase()
   if (!supabase || !modificationTimestamp) return { prev: null, next: null }
   const orderCol = 'ModificationTimestamp'
-  const select = 'ListingKey, PhotoURL, ListPrice, StreetNumber, StreetName, City'
+  const select = 'ListingKey, ListNumber, PhotoURL, ListPrice, StreetNumber, StreetName, City, State, PostalCode'
   const [prevRes, nextRes] = await Promise.all([
     supabase
       .from('listings')
@@ -1892,7 +2018,7 @@ export async function getAdjacentListingsSliceFromSupabase(
 ): Promise<{ prevList: AdjacentListingThumb[]; nextList: AdjacentListingThumb[] }> {
   const supabase = getAnonSupabase()
   if (!supabase || !modificationTimestamp) return { prevList: [], nextList: [] }
-  const select = 'ListingKey, PhotoURL, ListPrice, StreetNumber, StreetName, City'
+  const select = 'ListingKey, ListNumber, PhotoURL, ListPrice, StreetNumber, StreetName, City, State, PostalCode'
   const orderCol = 'ModificationTimestamp'
   const [prevRes, nextRes] = await Promise.all([
     supabase
@@ -1929,7 +2055,7 @@ export async function getListingsSliceInSubdivision(
   const subTrim = (subdivisionName ?? '').trim()
   const supabase = getAnonSupabase()
   if (!supabase || !modificationTimestamp || !cityTrim || !subTrim) return { prevList: [], nextList: [] }
-  const select = 'ListingKey, PhotoURL, ListPrice, StreetNumber, StreetName, City, StandardStatus'
+  const select = 'ListingKey, ListNumber, PhotoURL, ListPrice, StreetNumber, StreetName, City, State, PostalCode, StandardStatus'
   const orderCol = 'ModificationTimestamp'
   const subNames = getSubdivisionMatchNames(subTrim)
   const subFilter =

@@ -477,7 +477,7 @@ export async function updateSyncCursorToIdle(): Promise<void> {
 export type SyncStatus = {
   cursor: SyncCursor | null
   lastSync: { completedAt: string; runType: string; durationSeconds: number; listingsUpserted: number; historyRowsUpserted: number; error: string | null } | null
-  /** Last time Inngest delta sync (2-min) completed. Null if never run. */
+  /** Last time delta sync completed. Null if never run. */
   lastDeltaSyncCompletedAt: string | null
 }
 

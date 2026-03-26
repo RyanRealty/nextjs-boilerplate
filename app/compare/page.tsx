@@ -2,9 +2,25 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import CompareClient, { type CompareListingData } from '@/components/compare/CompareClient'
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+
 export const metadata: Metadata = {
   title: 'Compare Properties',
   description: 'Compare up to 4 Central Oregon homes side by side — price, size, features, and more.',
+  alternates: { canonical: `${siteUrl}/compare` },
+  robots: { index: false, follow: true },
+  openGraph: {
+    title: 'Compare Properties | Ryan Realty',
+    description: 'Compare up to 4 Central Oregon homes side by side — price, size, features, and more.',
+    url: `${siteUrl}/compare`,
+    type: 'website',
+    siteName: 'Ryan Realty',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Compare Properties | Ryan Realty',
+    description: 'Compare up to 4 Central Oregon homes side by side — price, size, features, and more.',
+  },
 }
 
 export const revalidate = 60

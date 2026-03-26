@@ -76,6 +76,7 @@ export default function RecentlySold({
                     liked={signedIn && likedKeys.includes(String(key))}
                     signedIn={signedIn}
                     userEmail={userEmail}
+                    viewCount={engagementCounts?.[String(key)]?.view_count}
                     likeCount={engagementCounts?.[String(key)]?.like_count}
                     saveCount={engagementCounts?.[String(key)]?.save_count}
                     shareCount={engagementCounts?.[String(key)]?.share_count}

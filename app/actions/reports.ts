@@ -23,6 +23,7 @@ export type ReportFilters = {
   includeCondoTown?: boolean
   includeManufactured?: boolean
   includeAcreage?: boolean
+  includeCommercial?: boolean
   minPrice?: number | null
   maxPrice?: number | null
 }
@@ -54,6 +55,7 @@ export async function getReportMetrics(
     p_include_condo_town: filters?.includeCondoTown ?? false,
     p_include_manufactured: filters?.includeManufactured ?? false,
     p_include_acreage: filters?.includeAcreage ?? false,
+    p_include_commercial: filters?.includeCommercial ?? false,
     p_min_price: filters?.minPrice ?? null,
     p_max_price: filters?.maxPrice ?? null,
   })
@@ -89,6 +91,7 @@ export async function getReportPriceBands(
     p_include_condo_town: filters?.includeCondoTown ?? false,
     p_include_manufactured: filters?.includeManufactured ?? false,
     p_include_acreage: filters?.includeAcreage ?? false,
+    p_include_commercial: filters?.includeCommercial ?? false,
     p_min_price: filters?.minPrice ?? null,
     p_max_price: filters?.maxPrice ?? null,
   })
@@ -128,6 +131,7 @@ export async function getReportMetricsTimeSeries(
     p_include_condo_town: filters?.includeCondoTown ?? false,
     p_include_manufactured: filters?.includeManufactured ?? false,
     p_include_acreage: filters?.includeAcreage ?? false,
+    p_include_commercial: filters?.includeCommercial ?? false,
     p_min_price: filters?.minPrice ?? null,
     p_max_price: filters?.maxPrice ?? null,
   })

@@ -5,32 +5,35 @@ import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { listMarketReports, getSalesReportCardsData } from '../actions/market-reports'
 import { getEngagementCountsBatch } from '@/app/actions/engagement'
 import { getReportCities } from '@/app/actions/reports'
-import { getBeaconReportData } from '@/app/actions/beacon-report'
-import { BEACON_REPORT_DEFAULT_CITIES } from '@/app/actions/beacon-report-types'
+import { getMarketReportData } from '@/app/actions/market-report'
+import { MARKET_REPORT_DEFAULT_CITIES } from '@/app/actions/market-report-types'
 import { PRIMARY_CITIES } from '@/lib/cities'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
-import BeaconReportView from '@/components/reports/BeaconReportView'
+import ReportsByCityView from '@/components/reports/ReportsByCityView'
 import ReportsIndexContent from './ReportsIndexContent'
 import { Badge } from '@/components/ui/badge'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'Central Oregon Real Estate Market Reports | Ryan Realty',
-  description: 'Real-time Beacon market reports by city: sold volume, median price, days on market, inventory. Choose cities and time range. Weekly reports and explore tools.',
+  description: 'Real-time Housing Market Report by city: sold volume, median price, days on market, inventory. Choose cities and time range. Weekly reports and explore tools.',
   alternates: { canonical: `${siteUrl}/reports` },
   openGraph: {
     title: 'Central Oregon Real Estate Market Reports | Ryan Realty',
-    description: 'Real-time Beacon market reports by city. Weekly reports and explore tools.',
+    description: 'Real-time Housing Market Report by city. Weekly reports and explore tools.',
     url: `${siteUrl}/reports`,
     type: 'website',
     siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty market reports' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Market Reports | Ryan Realty',
-    description: 'Real-time Beacon market reports by city. Weekly reports and explore.',
+    description: 'Real-time Housing Market Report by city. Weekly reports and explore.',
+    images: [defaultOgImage],
   },
 }
 
@@ -41,7 +44,7 @@ function parseReportsParams(params: { [key: string]: string | string[] | undefin
   const cities =
     typeof citiesParam === 'string' && citiesParam.trim()
       ? citiesParam.split(',').map((c) => c.trim()).filter(Boolean)
-      : [...BEACON_REPORT_DEFAULT_CITIES]
+      : [...MARKET_REPORT_DEFAULT_CITIES]
   const rangeParam = params?.range
   const rangeStr = typeof rangeParam === 'string' ? rangeParam : Array.isArray(rangeParam) ? rangeParam[0] : undefined
   const rangeDays = Math.min(30, Math.max(7, parseInt(rangeStr ?? '7', 10) || 7))
@@ -57,12 +60,12 @@ export default async function ReportsIndexPage({ searchParams }: PageProps) {
   const params = await searchParams
   const { cities: selectedCities, rangeDays, periodStart, periodEnd } = parseReportsParams(params ?? null)
 
-  const [reports, salesCardsRaw, session, fubPersonId, beaconData, allCitiesRes] = await Promise.all([
+  const [reports, salesCardsRaw, session, fubPersonId, reportData, allCitiesRes] = await Promise.all([
     listMarketReports(30),
     getSalesReportCardsData(PRIMARY_CITIES),
     getSession(),
     getFubPersonIdFromCookie(),
-    getBeaconReportData({ periodStart, periodEnd, cities: selectedCities }),
+    getMarketReportData({ periodStart, periodEnd, cities: selectedCities }),
     getReportCities(),
   ])
   const allListingKeys = salesCardsRaw.flatMap((c) => c.listingKeys)
@@ -82,7 +85,7 @@ export default async function ReportsIndexPage({ searchParams }: PageProps) {
     <main className="min-h-screen bg-background">
       <ContentPageHero
         title="Market Reports"
-        subtitle="Real-time Beacon data by city. Add or remove cities and change the time range. Default: last 7 days."
+        subtitle="Real-time market data by city. Add or remove cities and change the time range. Default: last 7 days."
         imageUrl={CONTENT_HERO_IMAGES.reports}
         ctas={[
           { label: 'Explore market data', href: '/reports/explore', primary: false },
@@ -90,17 +93,17 @@ export default async function ReportsIndexPage({ searchParams }: PageProps) {
         ]}
       />
 
-      <section id="beacon" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+      <section id="housing-market-report" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="rounded-md border-primary/30 text-xs font-medium uppercase tracking-wider text-primary">
             Live data
           </Badge>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
-            Beacon report
+            Housing Market Report
           </h2>
         </div>
-        <BeaconReportView
-          data={beaconData}
+        <ReportsByCityView
+          data={reportData}
           selectedCities={selectedCities}
           allCities={allCities}
           rangeDays={rangeDays}

@@ -29,4 +29,4 @@ If videos don’t play: check that the listing has the correct URL fields and th
 ## What to do next
 
 1. **Hero videos:** Add `XAI_API_KEY` to `.env.local` if you want generation. Then open a city/search page (e.g. `/search/bend`) and use the “Generate” hero video action so a video is created and stored.
-2. **Homepage:** If the homepage still looks off, describe what feels wrong (e.g. hero too plain, sections too cramped, footer) and the agent can target those using the design system and `HOME_PAGE_BEST_PRACTICES.md`.
+2. **Homepage:** If the homepage still looks off, describe what feels wrong (e.g. hero too plain, sections too cramped, footer) and address it directly using enforced guardrails in `.cursor/rules/` and `CLAUDE.md`.

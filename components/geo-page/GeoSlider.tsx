@@ -119,7 +119,7 @@ export default function GeoSlider({
               type="button"
               onClick={() => scroll('left')}
               disabled={!hasOverflow}
-              className="absolute left-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-r from-black/30 to-transparent opacity-0 transition-opacity group-hover/slider:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+              className="absolute left-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-r from-foreground/30 to-transparent opacity-90 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
               aria-label="Scroll left"
             >
               <span className="rounded-full bg-card/90 p-2 shadow-md">
@@ -130,7 +130,7 @@ export default function GeoSlider({
               type="button"
               onClick={() => scroll('right')}
               disabled={!hasOverflow}
-              className="absolute right-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-l from-black/30 to-transparent opacity-0 transition-opacity group-hover/slider:opacity-100 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
+              className="absolute right-0 top-0 z-10 flex h-full w-14 items-center justify-center bg-gradient-to-l from-foreground/30 to-transparent opacity-90 hover:opacity-100 focus:opacity-100 focus:outline-none disabled:pointer-events-none disabled:opacity-0"
               aria-label="Scroll right"
             >
               <span className="rounded-full bg-card/90 p-2 shadow-md">
@@ -142,7 +142,7 @@ export default function GeoSlider({
         <div
           ref={scrollRef}
           onScroll={updateScrollState}
-          className="flex gap-4 overflow-x-auto pb-2 scroll-smooth [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground"
+          className="flex gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar [scroll-snap-type:x_mandatory]"
         >
           {children}
         </div>

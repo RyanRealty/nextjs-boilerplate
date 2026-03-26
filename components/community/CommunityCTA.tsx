@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { trackEvent } from '@/lib/tracking'
+import { trackCtaClick } from '@/lib/cta-tracking'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,11 +22,19 @@ export default function CommunityCTA({ communityName, slug }: Props) {
   const [showModal, setShowModal] = useState(false)
 
   function handleGetNotified() {
-    trackEvent('community_cta_click', { cta: 'get_notified', community_name: communityName })
+    trackCtaClick({
+      label: 'Get Notified of New Listings',
+      destination: '/account/saved-communities',
+      context: `community_cta:${slug}`,
+    })
   }
 
   function handleTalkExpert() {
-    trackEvent('community_cta_click', { cta: 'talk_expert', community_name: communityName })
+    trackCtaClick({
+      label: 'Talk to a Local Expert',
+      destination: '#community-contact-modal',
+      context: `community_cta:${slug}`,
+    })
     setShowModal(true)
   }
 

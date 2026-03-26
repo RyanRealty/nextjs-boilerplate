@@ -5,6 +5,7 @@ import type { HomeTileRow } from '@/app/actions/listings'
 import { trackEvent } from '@/lib/tracking'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
+import { listingDetailPath } from '@/lib/slug'
 
 type SoldRow = HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null }
 
@@ -58,7 +59,7 @@ export default function BrokerSoldHistory({ brokerFirstName, soldListings }: Pro
             return (
               <TilesSliderItem key={String(key)} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                 <Link
-                  href={`/listing/${key}`}
+                  href={listingDetailPath(String(key), { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode })}
                   className="block h-full rounded-lg border border-border bg-muted p-4 transition hover:shadow-md"
                   onClick={() => trackEvent('view_listing', { context: 'broker_sold_history', listing_key: String(key) })}
                 >

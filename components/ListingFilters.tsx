@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 import { PROPERTY_TYPES } from '@/lib/property-type'
+import { listingsBrowsePath } from '@/lib/slug'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -46,7 +47,7 @@ export default function ListingFilters({
   perPage: initPerPage,
 }: Props) {
   const router = useRouter()
-  const pathname = usePathname()?.split('?')[0] ?? '/listings'
+  const pathname = usePathname()?.split('?')[0] ?? listingsBrowsePath()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 

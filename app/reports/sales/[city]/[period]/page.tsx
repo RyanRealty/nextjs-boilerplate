@@ -8,7 +8,7 @@ import { SALES_PERIODS, getDateRangeForPeriod, getPeriodLabel, type SalesPeriodS
 import { getMarketReportDataForLocation, type ReportListing } from '@/app/actions/market-reports'
 import { getPropertyTypeLabel } from '@/lib/property-type-labels'
 import { PRIMARY_CITIES } from '@/lib/cities'
-import { cityEntityKey } from '@/lib/slug'
+import { cityEntityKey, listingDetailPath } from '@/lib/slug'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import SalesReportCharts from '@/components/reports/SalesReportCharts'
@@ -60,11 +60,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   const periodLabel = getPeriodLabel(periodSlug)
   const title = `${cityName} — ${periodLabel} | Ryan Realty`
+  const description = `Sales report for ${cityName}: ${periodLabel}. Closed and pending sales with prices, days on market, and property types.`
+  const canonical = `${siteUrl}/reports/sales/${encodeURIComponent(cityEntityKey(cityName))}/${periodSlug}`
   return {
     title,
-    description: `Sales report for ${cityName}: ${periodLabel}. Closed and pending sales with prices, days on market, and property types.`,
-    alternates: {
-      canonical: `${siteUrl}/reports/sales/${encodeURIComponent(cityEntityKey(cityName))}/${periodSlug}`,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: 'article',
+      siteName: 'Ryan Realty',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
     },
   }
 }
@@ -195,7 +207,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 function ListingTableRow({ item }: { item: ReportListing }) {
-  const href = `/listing/${encodeURIComponent(item.listing_key)}`
+  const href = listingDetailPath(item.listing_key)
   const address = item.description?.trim() || 'Address not available'
   return (
     <TableRow className="group border-b border-border last:border-b-0">
@@ -215,7 +227,7 @@ function ListingTableRow({ item }: { item: ReportListing }) {
 }
 
 function PendingTableRow({ item }: { item: ReportListing }) {
-  const href = `/listing/${encodeURIComponent(item.listing_key)}`
+  const href = listingDetailPath(item.listing_key)
   const address = item.description?.trim() || `Listing ${item.listing_key}`
   return (
     <TableRow className="group border-b border-border last:border-b-0">

@@ -4,6 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useState, useEffect, useRef } from 'react'
 import { trackEvent } from '@/lib/tracking'
 import { getSearchSuggestions, type SearchSuggestionsResult } from '@/app/actions/listings'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -82,8 +83,10 @@ export default function SearchFilters({ initialFilters }: Props) {
     addresses: [],
     cities: [],
     subdivisions: [],
+    neighborhoods: [],
     zips: [],
     brokers: [],
+    reports: [],
   })
   const [moreOpen, setMoreOpen] = useState(false)
   const [view, setView] = useState<'split' | 'list' | 'map'>(() => (initialFilters.view === 'list' || initialFilters.view === 'map' ? initialFilters.view : 'split'))
@@ -92,7 +95,15 @@ export default function SearchFilters({ initialFilters }: Props) {
 
   useEffect(() => {
     if (debouncedLocation.length < 2) {
-      setSuggestions({ addresses: [], cities: [], subdivisions: [] })
+      setSuggestions({
+        addresses: [],
+        cities: [],
+        subdivisions: [],
+        neighborhoods: [],
+        zips: [],
+        brokers: [],
+        reports: [],
+      })
       return
     }
     getSearchSuggestions(debouncedLocation).then(setSuggestions)
@@ -198,15 +209,16 @@ export default function SearchFilters({ initialFilters }: Props) {
             onBlur={() => setTimeout(() => setLocationOpen(false), 200)}
             className="w-full rounded-lg border border-border px-3 py-2 text-primary placeholder:text-muted-foreground focus:border-accent focus:outline-none"
           />
-          {locationOpen && (suggestions.cities.length > 0 || suggestions.subdivisions.length > 0 || suggestions.zips.length > 0 || suggestions.brokers.length > 0) && (
+          {locationOpen && (suggestions.cities.length > 0 || suggestions.subdivisions.length > 0 || suggestions.neighborhoods.length > 0 || suggestions.zips.length > 0 || suggestions.brokers.length > 0 || suggestions.reports.length > 0) && (
             <div className="absolute top-full left-0 right-0 z-30 mt-1 rounded-lg border border-border bg-card shadow-md max-h-64 overflow-auto">
               {suggestions.cities.slice(0, 5).map((c) => (
                 <Button
                   key={c.city}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-muted"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
                   onMouseDown={() => handleLocationSelect('city', c.city)}
                 >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">City</Badge>
                   {c.city} {c.count > 0 && `(${c.count})`}
                 </Button>
               ))}
@@ -214,19 +226,32 @@ export default function SearchFilters({ initialFilters }: Props) {
                 <Button
                   key={`${s.city}-${s.subdivisionName}`}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-muted"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
                   onMouseDown={() => handleLocationSelect('subdivision', s.city, s.subdivisionName)}
                 >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">Community</Badge>
                   {s.subdivisionName}, {s.city}
+                </Button>
+              ))}
+              {suggestions.neighborhoods.slice(0, 5).map((n) => (
+                <Button
+                  key={n.href}
+                  type="button"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
+                  onMouseDown={() => handleBrokerSelect(n.href)}
+                >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">Neighborhood</Badge>
+                  {n.neighborhoodName}, {n.cityName}
                 </Button>
               ))}
               {suggestions.zips.slice(0, 5).map((z) => (
                 <Button
                   key={z.postalCode}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-muted"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
                   onMouseDown={() => handleZipSelect(z.postalCode)}
                 >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">Zip code</Badge>
                   {z.postalCode}
                   {z.city && ` (${z.city})`}
                   {z.count > 0 && ` · ${z.count}`}
@@ -236,10 +261,22 @@ export default function SearchFilters({ initialFilters }: Props) {
                 <Button
                   key={b.label}
                   type="button"
-                  className="block w-full text-left px-3 py-2 text-sm text-primary hover:bg-muted"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
                   onMouseDown={() => handleBrokerSelect(b.href)}
                 >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">Agent</Badge>
                   {b.label}
+                </Button>
+              ))}
+              {suggestions.reports.slice(0, 5).map((r) => (
+                <Button
+                  key={r.href}
+                  type="button"
+                  className="block w-full text-left justify-start gap-2 px-3 py-2 text-sm text-primary hover:bg-muted"
+                  onMouseDown={() => handleBrokerSelect(r.href)}
+                >
+                  <Badge variant="secondary" className="shrink-0 text-xs font-normal">Market report</Badge>
+                  {r.label}
                 </Button>
               ))}
             </div>

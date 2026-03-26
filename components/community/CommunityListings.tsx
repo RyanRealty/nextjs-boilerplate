@@ -6,7 +6,7 @@ import type { ListingRow } from '@/app/actions/communities'
 import HomeTileCard from '@/components/home/HomeTileCard'
 import { estimatedMonthlyPayment, formatMonthlyPayment } from '@/lib/mortgage'
 import { toggleSavedCommunity } from '@/app/actions/saved-communities'
-import { subdivisionEntityKey } from '@/lib/slug'
+import { subdivisionEntityKey, listingDetailPath } from '@/lib/slug'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import { Button } from "@/components/ui/button"
@@ -140,11 +140,18 @@ export default function CommunityListings({
               titleId="community-sold-heading"
             >
               {soldListings.map((listing) => {
-                const key = listing.ListingKey ?? listing.ListNumber ?? ''
+                const key = String(listing.ListingKey ?? listing.ListNumber ?? '').trim()
+                const href = listingDetailPath(key, {
+                  streetNumber: listing.StreetNumber,
+                  streetName: listing.StreetName,
+                  city: listing.City,
+                  state: listing.State,
+                  postalCode: listing.PostalCode,
+                })
                 return (
-                  <TilesSliderItem key={String(key)} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
+                  <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                     <Link
-                      href={`/listing/${key}`}
+                      href={href}
                       className="block h-full rounded-lg border border-border bg-card p-4 shadow-sm transition hover:shadow-md"
                     >
                       <p className="font-semibold text-primary">

@@ -10,6 +10,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 type Props = { user: AuthUser | null }
 
@@ -169,7 +170,8 @@ export default function AuthDropdown({ user }: Props) {
               >
                 Buying preferences
               </Link>
-              <div className="mt-1 border-t border-border pt-1">
+              <Separator className="mt-1" />
+              <div className="pt-1">
                 <Button
                   type="button"
                   onClick={handleSignOut}
@@ -211,7 +213,7 @@ export default function AuthDropdown({ user }: Props) {
                 >
                   {loading === 'google' ? 'â€¦' : 'Google'}
                 </Button>
-                <div className="my-2 border-t border-border" />
+                <Separator className="my-2" />
                 <Button
                   type="button"
                   onClick={() => setMode('signin')}

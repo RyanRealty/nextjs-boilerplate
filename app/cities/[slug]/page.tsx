@@ -19,11 +19,15 @@ import { DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YE
 import { CITY_QUICK_FACTS } from '@/lib/cities'
 import { getCityContent, buildDataDrivenCityAbout } from '@/lib/city-content'
 import { getActivityFeed } from '@/app/actions/activity-feed'
+import { getEngagementCountsBatch, type EngagementCounts } from '@/app/actions/engagement'
 import { getActiveBrokers } from '@/app/actions/brokers'
 import { isCitySaved } from '@/app/actions/saved-cities'
 import { getSavedCommunityKeys } from '@/app/actions/saved-communities'
-import { getLikedCommunityKeys } from '@/app/actions/community-engagement'
-import { homesForSalePath } from '@/lib/slug'
+import { getLikedCommunityKeys, getCommunityEngagementBatch } from '@/app/actions/community-engagement'
+import { homesForSalePath, subdivisionEntityKey } from '@/lib/slug'
+import { slugify } from '@/lib/slug'
+import { getLiveMarketPulse } from '@/app/actions/market-stats'
+import { getOpenHousesWithListings } from '@/app/actions/open-houses'
 import CityHero from '@/components/city/CityHero'
 import CityOverview from '@/components/city/CityOverview'
 import CityMarketStats from '@/components/city/CityMarketStats'
@@ -35,9 +39,13 @@ import CommunitiesBar from '@/components/geo-page/CommunitiesBar'
 import ListingsSlider from '@/components/geo-page/ListingsSlider'
 import GeoCTAWithBroker from '@/components/geo-page/GeoCTAWithBroker'
 import GeoSectionNewestListings from '@/components/geo-page/GeoSectionNewestListings'
-import GeoSectionPopularCommunities from '@/components/geo-page/GeoSectionPopularCommunities'
+import CommunitiesSlider from '@/components/sliders/CommunitiesSlider'
 import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
 import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
+import RecentlySoldRow from '@/components/RecentlySoldRow'
+import LivePulseBanner from '@/components/reports/LivePulseBanner'
+import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
+import VideoToursRow from '@/components/videos/VideoToursRow'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -75,7 +83,11 @@ export const revalidate = 60
 
 function buildQuickFacts(
   cityName: string,
-  listings: { ListPrice?: number | null }[]
+  listings: {
+    ListPrice?: number | null
+    lot_size_acres?: number | null
+    lot_size_sqft?: number | null
+  }[]
 ): {
   population?: string | null
   elevation?: string | null
@@ -92,6 +104,22 @@ function buildQuickFacts(
     .filter((p): p is number => p != null && p > 0)
   const priceRangeMin = prices.length > 0 ? Math.min(...prices) : null
   const priceRangeMax = prices.length > 0 ? Math.max(...prices) : null
+  const lotSizes = listings
+    .map((l) => {
+      const acres = l.lot_size_acres != null && Number.isFinite(l.lot_size_acres) ? l.lot_size_acres : null
+      const sqFt = l.lot_size_sqft != null && Number.isFinite(l.lot_size_sqft) ? l.lot_size_sqft : null
+      if (acres != null && acres > 0) return acres
+      if (sqFt != null && sqFt > 0) return sqFt / 43560
+      return null
+    })
+    .filter((n): n is number => n != null && n > 0)
+  const avgLotAcres = lotSizes.length > 0 ? lotSizes.reduce((a, b) => a + b, 0) / lotSizes.length : null
+  const avgLotSize =
+    avgLotAcres != null && avgLotAcres > 0
+      ? avgLotAcres >= 1
+        ? `${avgLotAcres.toFixed(1)} ac`
+        : `${(avgLotAcres * 43560).toFixed(0)} sq ft`
+      : null
   return {
     population: known?.population ?? null,
     elevation: known?.elevation ?? null,
@@ -99,7 +127,7 @@ function buildQuickFacts(
     schoolDistrict: known?.schoolDistrict ?? null,
     priceRangeMin,
     priceRangeMax,
-    avgLotSize: null,
+    avgLotSize,
     nearestAirport: known?.nearestAirport ?? null,
   }
 }
@@ -145,6 +173,8 @@ export default async function CityDetailPage({ params }: Props) {
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
   ])
+  const cityPulse = await getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) })
+  const cityOpenHouses = await getOpenHousesWithListings({ city: city.name })
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -153,7 +183,8 @@ export default async function CityDetailPage({ params }: Props) {
   }
 
   const quickFacts = buildQuickFacts(city.name, listings)
-  const cityContent = getCityContent(city.name)
+  const hasRobustDbContent = city.description != null && city.description.trim().length >= 300
+  const cityContent = hasRobustDbContent ? null : getCityContent(city.name)
   const dataDrivenParagraphs =
     !cityContent && (!city.description || city.description.trim().length < 180)
       ? buildDataDrivenCityAbout({
@@ -174,6 +205,49 @@ export default async function CityDetailPage({ params }: Props) {
     avgDom: city.avgDom,
     closedLast12Months: city.closedLast12Months,
   }
+
+  const listingKeys = listings
+    .map((l) => (l.ListingKey ?? l.ListNumber ?? '').toString().trim())
+    .filter(Boolean)
+  const communityEntityKeys = communities.map((c) => subdivisionEntityKey(c.city, c.subdivision))
+  const [engagementMap, communityEngagementMap] = await Promise.all([
+    listingKeys.length > 0 ? getEngagementCountsBatch(listingKeys) : Promise.resolve({} as Record<string, EngagementCounts>),
+    communityEntityKeys.length > 0 ? getCommunityEngagementBatch(communityEntityKeys) : Promise.resolve({}),
+  ])
+  const engagementScore = (key: string) => {
+    const e = engagementMap[key]
+    return (e?.view_count ?? 0) + (e?.like_count ?? 0) + (e?.save_count ?? 0) + (e?.share_count ?? 0)
+  }
+  const featuredListings = [...listings]
+    .sort((a, b) => {
+      const keyA = (a.ListingKey ?? a.ListNumber ?? '').toString().trim()
+      const keyB = (b.ListingKey ?? b.ListNumber ?? '').toString().trim()
+      const scoreA = engagementScore(keyA)
+      const scoreB = engagementScore(keyB)
+      if (scoreB !== scoreA) return scoreB - scoreA
+      const priceA = Number(a.ListPrice ?? 0)
+      const priceB = Number(b.ListPrice ?? 0)
+      return priceB - priceA
+    })
+    .slice(0, 12)
+  const recentlySoldRows = soldListings
+    .map((item) => ({
+      listingKey: (item.ListingKey ?? item.ListNumber ?? '').toString().trim(),
+      listNumber: item.ListNumber ?? null,
+      listPrice: item.ListPrice ?? null,
+      closePrice: item.ClosePrice ?? null,
+      closeDate: item.CloseDate ?? null,
+      beds: item.BedroomsTotal ?? null,
+      baths: item.BathroomsTotal ?? null,
+      sqft: item.TotalLivingAreaSqFt ?? null,
+      streetNumber: item.StreetNumber ?? null,
+      streetName: item.StreetName ?? null,
+      city: item.City ?? null,
+      state: item.State ?? null,
+      postalCode: item.PostalCode ?? null,
+      photoUrl: item.PhotoURL ?? null,
+    }))
+    .filter((item) => item.listingKey.length > 0)
 
   const geo = (() => {
     const withCoords = listings.filter(
@@ -245,24 +319,6 @@ export default async function CityDetailPage({ params }: Props) {
         ]}
       />
 
-      <CommunitiesBar
-        cityName={city.name}
-        communities={communities}
-        signedIn={!!session?.user}
-        savedEntityKeys={savedCommunityKeys}
-        likedEntityKeys={likedCommunityKeys}
-      />
-
-      <ListingsSlider
-        title="Homes for sale in this city"
-        listings={listings}
-        placeName={city.name}
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-      />
-
       <CityOverview
         cityName={city.name}
         description={city.description}
@@ -278,6 +334,84 @@ export default async function CityDetailPage({ params }: Props) {
         priceHistory={priceHistory}
       />
 
+      {cityPulse && (
+        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+          <LivePulseBanner
+            title={`${city.name} live market pulse`}
+            activeCount={cityPulse.active_count}
+            pendingCount={cityPulse.pending_count}
+            newCount7d={cityPulse.new_count_7d}
+            updatedAt={cityPulse.updated_at}
+          />
+        </div>
+      )}
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <OpenHouseSection
+          title={`Open houses in ${city.name} this week`}
+          items={cityOpenHouses.slice(0, 10)}
+          viewAllHref={`/open-houses/${slug}`}
+        />
+      </div>
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <VideoToursRow
+          title={`Video tours in ${city.name}`}
+          listings={listings}
+          signedIn={!!session?.user}
+          savedKeys={session?.user ? savedKeys : []}
+          likedKeys={session?.user ? likedKeys : []}
+          userEmail={session?.user?.email ?? null}
+          engagementMap={engagementMap}
+        />
+      </div>
+
+      <GeoSectionLatestActivity
+        title="Latest activity"
+        items={activityFeed}
+        signedIn={!!session?.user}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+      />
+
+      <div className="px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <RecentlySoldRow title={`Recently sold in ${city.name}`} listings={recentlySoldRows} />
+        </div>
+      </div>
+
+      <GeoSectionFeaturedListings
+        title="Featured homes"
+        listings={featuredListings}
+        viewAllHref={homesForSalePath(city.name)}
+        viewAllLabel="View all"
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
+      />
+
+      <CommunitiesBar
+        cityName={city.name}
+        communities={communities}
+        signedIn={!!session?.user}
+        savedEntityKeys={savedCommunityKeys}
+        likedEntityKeys={likedCommunityKeys}
+        engagementMap={communityEngagementMap}
+      />
+
+      <ListingsSlider
+        title="Homes for sale in this city"
+        listings={listings}
+        placeName={city.name}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
+      />
+
       <GeoSectionNewestListings
         title="Newest listings"
         listings={listings}
@@ -287,9 +421,10 @@ export default async function CityDetailPage({ params }: Props) {
         likedKeys={session?.user ? likedKeys : []}
         signedIn={!!session?.user}
         userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
       />
 
-      <GeoSectionPopularCommunities
+      <CommunitiesSlider
         title="Popular communities"
         communities={communities}
         viewAllHref={`/cities/${slug}`}
@@ -298,19 +433,6 @@ export default async function CityDetailPage({ params }: Props) {
         savedEntityKeys={savedCommunityKeys}
         likedEntityKeys={likedCommunityKeys}
       />
-
-      <GeoSectionFeaturedListings
-        title="Featured listings"
-        listings={listings.slice(6, 12)}
-        viewAllHref={homesForSalePath(city.name)}
-        viewAllLabel="View all"
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-      />
-
-      <GeoSectionLatestActivity title="Latest activity" items={activityFeed} />
 
       <GeoCTAWithBroker
         heading={`Looking for a Home in ${city.name}?`}

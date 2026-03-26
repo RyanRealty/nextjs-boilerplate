@@ -6,6 +6,7 @@ import UnifiedMapListingsView from '@/components/UnifiedMapListingsView'
 import SearchFilterBar from '@/components/SearchFilterBar'
 import type { ListingTileRow } from '@/app/actions/listings'
 import { Button } from "@/components/ui/button"
+import { listingsBrowsePath } from '@/lib/slug'
 
 type Props = {
   /** Initial listings so the map shows markers on first paint (Bend area). */
@@ -55,7 +56,7 @@ export default function HomeExploreMap({
             environment to show the map.
           </p>
           <Link
-            href="/listings?view=map"
+            href={`${listingsBrowsePath()}?view=map`}
             className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 font-semibold text-primary-foreground hover:bg-primary/90"
           >
             Browse listings
@@ -96,7 +97,7 @@ export default function HomeExploreMap({
             <div className="mx-auto max-w-7xl mt-4 h-[72vh] flex flex-col min-h-0 overflow-hidden px-4 pb-4 sm:px-6">
               <UnifiedMapListingsView
                 pageTitle="Bend OR Real Estate & Homes For Sale"
-                basePath="/listings"
+                basePath={listingsBrowsePath()}
                 placeQuery="Bend Oregon"
                 city="Bend"
                 boundaryGeojson={boundaryGeojson}
@@ -111,7 +112,7 @@ export default function HomeExploreMap({
                 containerClassName="h-full min-h-0 flex-1 rounded-lg border border-border bg-card shadow-sm overflow-hidden"
                 filterBar={
                   <SearchFilterBar
-                    basePath="/listings"
+                    basePath={listingsBrowsePath()}
                     locationLabel="Bend OR"
                     locationHref="/homes-for-sale/bend?view=map"
                     signedIn={signedIn}
@@ -122,7 +123,7 @@ export default function HomeExploreMap({
             </div>
             <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-center border-t border-border bg-card px-4 py-4 sm:px-6">
               <Link
-                href="/listings?view=map"
+                href={`${listingsBrowsePath()}?view=map`}
                 className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 font-semibold text-primary-foreground hover:bg-primary/90"
               >
                 Explore on map â†’

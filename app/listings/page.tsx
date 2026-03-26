@@ -19,6 +19,7 @@ import ListingsMapSplitView from './ListingsMapSplitView'
 import UnifiedMapListingsView from '../../components/UnifiedMapListingsView'
 import ListingsPagination from '../../components/ListingsPagination'
 import ListingsPageFooter from './ListingsPageFooter'
+import { listingsBrowsePath } from '@/lib/slug'
 
 type SearchParams = {
   view?: string
@@ -52,22 +53,26 @@ type SearchParams = {
 }
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'All Listings',
   description: 'Browse all Central Oregon homes for sale. View listings and map.',
-  alternates: { canonical: `${siteUrl}/listings` },
+  alternates: { canonical: `${siteUrl}${listingsBrowsePath()}` },
+  robots: { index: false, follow: true },
   openGraph: {
     title: 'All Listings | Ryan Realty',
     description: 'Browse all Central Oregon homes for sale. View listings and map.',
-    url: `${siteUrl}/listings`,
+    url: `${siteUrl}${listingsBrowsePath()}`,
     type: 'website',
     siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty all listings' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'All Listings | Ryan Realty',
     description: 'Browse all Central Oregon homes for sale. View listings and map.',
+    images: [defaultOgImage],
   },
 }
 

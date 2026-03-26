@@ -7,11 +7,11 @@ import type { ListingTileRow } from '@/app/actions/listings'
 import { toggleSavedListing } from '@/app/actions/saved-listings'
 import { toggleLikeListing } from '@/app/actions/likes'
 import { getCanonicalSiteUrl, listingShareText } from '@/lib/share-metadata'
-import ShareButton from '@/components/ShareButton'
-import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
+import { incrementListingShareCount } from '@/app/actions/engagement'
+import CardActionBar from '@/components/ui/CardActionBar'
+import { listingDetailPath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Camera01Icon } from '@hugeicons/core-free-icons'
-import { Button } from "@/components/ui/button"
 
 type Props = {
   listing: ListingTileRow
@@ -20,6 +20,10 @@ type Props = {
   saved?: boolean
   liked?: boolean
   userEmail?: string | null
+  viewCount?: number
+  likeCount?: number
+  saveCount?: number
+  shareCount?: number
 }
 
 function formatPrice(n: number | null | undefined): string {
@@ -32,15 +36,47 @@ function addressOneLine(listing: ListingTileRow): string {
   return parts || listing.City || ''
 }
 
+function getNeighborhoodName(listing: ListingTileRow): string | null {
+  const maybe = listing as ListingTileRow & {
+    NeighborhoodName?: string | null
+    neighborhood_name?: string | null
+    Neighborhood?: string | null
+    neighborhood?: string | null
+  }
+  const value =
+    maybe.NeighborhoodName ??
+    maybe.neighborhood_name ??
+    maybe.Neighborhood ??
+    maybe.neighborhood ??
+    null
+  const trimmed = typeof value === 'string' ? value.trim() : ''
+  return trimmed || null
+}
+
 /**
  * Compact listing card for the bar under hero on community/neighborhood pages.
  * Matches listing detail strip: small thumb + price + address. Share/like/save shown; guest click → login.
  */
-export default function ListingBarCard({ listing, listingKey, signedIn = false, saved = false, liked = false }: Props) {
+export default function ListingBarCard({
+  listing,
+  listingKey,
+  signedIn = false,
+  saved = false,
+  liked = false,
+  viewCount = 0,
+  likeCount = 0,
+  saveCount = 0,
+  shareCount = 0,
+}: Props) {
   const router = useRouter()
   const [savedState, setSavedState] = useState(saved)
   const [likedState, setLikedState] = useState(liked)
-  const href = `/listing/${encodeURIComponent(listingKey)}`
+  const neighborhood = getNeighborhoodName(listing)
+  const href = listingDetailPath(
+    listingKey,
+    { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
+    { city: listing.City, neighborhood, subdivision: listing.SubdivisionName }
+  )
   const shareUrl = `${getCanonicalSiteUrl()}${href}`
   const shareTitle = listing.ListPrice != null && listing.ListPrice > 0 ? `$${Number(listing.ListPrice).toLocaleString()}` : undefined
   const shareText = listingShareText({
@@ -75,21 +111,17 @@ export default function ListingBarCard({ listing, listingKey, signedIn = false, 
     setLikedState(result.liked)
   }
 
-  const btn = 'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground transition hover:bg-border hover:text-foreground'
-  const btnLike = likedState ? 'border-destructive/60 text-destructive' : ''
-  const btnSave = savedState ? 'border-primary/60 text-primary' : ''
-
   return (
     <div className="relative flex shrink-0 scroll-snap-align-center min-w-[140px] max-w-[160px] flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1">
-      <Link href={href} className="flex gap-2 p-0">
-        <div className="relative h-10 w-14 shrink-0 overflow-hidden bg-muted">
+      <Link href={href} className="block">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-muted">
           {listing.PhotoURL ? (
             <img
               src={listing.PhotoURL}
               alt={`${addressOneLine(listing) || 'Property'} photo`}
-              className="h-full w-full object-cover"
-              width={56}
-              height={40}
+              className="h-full w-full object-cover object-top"
+              width={160}
+              height={120}
               decoding="async"
             />
           ) : (
@@ -97,23 +129,36 @@ export default function ListingBarCard({ listing, listingKey, signedIn = false, 
               <HugeiconsIcon icon={Camera01Icon} className="h-5 w-5" />
             </div>
           )}
+          <CardActionBar
+            position="overlay"
+            variant="onDark"
+            onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+            viewCount={viewCount}
+            share={{
+              url: shareUrl,
+              title: shareTitle,
+              text: shareText,
+              ariaLabel: 'Share',
+              shareCount,
+              onShare: () => incrementListingShareCount(listingKey),
+            }}
+            like={signedIn
+              ? { active: likedState, count: likeCount, ariaLabel: likedState ? 'Unlike' : 'Like', onToggle: handleLike }
+              : { active: false, count: likeCount, ariaLabel: 'Like', onToggle: goToLogin }}
+            save={signedIn
+              ? { active: savedState, count: saveCount, ariaLabel: savedState ? 'Remove from saved' : 'Save listing', onToggle: handleSave }
+              : { active: false, count: saveCount, ariaLabel: 'Save listing', onToggle: goToLogin }}
+            signedIn={signedIn}
+            guestCounts={!signedIn ? { viewCount, likeCount, saveCount } : undefined}
+          />
         </div>
-        <div className="min-w-0 flex-1 py-1 pr-1.5">
+        <div className="min-w-0 px-2 py-2">
           {listing.ListPrice != null && listing.ListPrice > 0 && (
             <p className="text-xs font-semibold text-foreground truncate">{formatPrice(listing.ListPrice)}</p>
           )}
           <p className="text-xs text-muted-foreground truncate">{addressOneLine(listing) || listing.City || '—'}</p>
         </div>
       </Link>
-      <div className="flex items-center justify-end gap-0.5 border-t border-border px-1 py-1" onClick={(e) => e.stopPropagation()}>
-        <ShareButton url={shareUrl} title={shareTitle} text={shareText} variant="compact" iconClassName="h-3 w-3" className={`${btn} text-foreground`} aria-label="Share" />
-        <Button type="button" onClick={handleLike} className={`${btn} ${btnLike}`} aria-label={signedIn ? (likedState ? 'Unlike' : 'Like') : 'Like'}>
-          <ActionHeartIcon filled={likedState} className="h-3 w-3" />
-        </Button>
-        <Button type="button" onClick={handleSave} className={`${btn} ${btnSave}`} aria-label={signedIn ? (savedState ? 'Remove from saved' : 'Save listing') : 'Save listing'}>
-          <ActionBookmarkIcon filled={savedState} className="h-3 w-3" />
-        </Button>
-      </div>
     </div>
   )
 }

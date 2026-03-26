@@ -44,7 +44,7 @@ export default function ListingVideos({ videos, virtualTours }: Props) {
                   <video
                     src={v.Uri}
                     controls
-                    className="aspect-video w-full rounded-lg bg-black"
+                    className="aspect-video w-full rounded-lg bg-foreground"
                     playsInline
                     preload="metadata"
                   >

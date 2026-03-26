@@ -9,8 +9,13 @@ import { trackPageViewIfPossible } from '@/lib/followupboss'
 import ContentPageHero from '@/components/layout/ContentPageHero'
 import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import { sanitizeHtml } from '@/lib/sanitize'
+import { Button } from '@/components/ui/button'
+import BrokerSocialProofCta from '@/components/broker/BrokerSocialProofCta'
+import { valuationPath } from '@/lib/slug'
+import ShareButton from '@/components/ShareButton'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -23,7 +28,20 @@ export const metadata: Metadata = {
   title: 'Sell Your Home | Ryan Realty',
   description: 'Thinking of selling? Get a free home value estimate and learn how Ryan Realty markets and sells Central Oregon homes.',
   alternates: { canonical: `${siteUrl}/sell` },
-  openGraph: { title: 'Sell Your Home | Ryan Realty', url: `${siteUrl}/sell`, type: 'website' },
+  openGraph: {
+    title: 'Sell Your Home | Ryan Realty',
+    description: 'Thinking of selling? Get a free home value estimate and learn how Ryan Realty markets and sells Central Oregon homes.',
+    url: `${siteUrl}/sell`,
+    type: 'website',
+    siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Ryan Realty sell your home' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sell Your Home | Ryan Realty',
+    description: 'Thinking of selling? Get a free home value estimate and learn how Ryan Realty markets and sells Central Oregon homes.',
+    images: [defaultOgImage],
+  },
 }
 
 function defaultSellBody(): string {
@@ -54,7 +72,6 @@ export default async function SellPage() {
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     const periodStart = startOfMonth.toISOString().slice(0, 10)
-    const periodEnd = new Date().toISOString().slice(0, 10)
     const { data: row } = await supabase
       .from('reporting_cache')
       .select('metrics')
@@ -81,10 +98,19 @@ export default async function SellPage() {
         subtitle="Data-driven pricing, professional marketing, and a team that knows Central Oregon. Get a free valuation and a clear plan to sell."
         imageUrl={CONTENT_HERO_IMAGES.sell}
         ctas={[
-          { label: 'Get a Home Valuation', href: '/home-valuation', primary: true },
+          { label: 'Get a Home Valuation', href: valuationPath(), primary: true },
           { label: 'Contact Us to Sell', href: '/contact?inquiry=Selling', primary: false },
         ]}
       />
+      <div className="mx-auto mt-4 flex w-full max-w-4xl justify-end px-4 sm:px-6">
+        <ShareButton
+          url={`${siteUrl}/sell`}
+          title="Sell your home with Ryan Realty"
+          text="Get a free valuation and a data-driven strategy to sell in Central Oregon."
+          trackContext="sell_page"
+          variant="compact"
+        />
+      </div>
 
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <section className="prose prose-primary max-w-none" aria-labelledby="sell-content-heading">
@@ -101,21 +127,15 @@ export default async function SellPage() {
           Current Bend conditions: <span className="font-medium text-primary">{conditionLabel}</span>
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/reports"
-            className="inline-flex rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-          >
-            Weekly market reports
-          </Link>
-          <Link
-            href="/reports/explore"
-            className="inline-flex rounded-lg border border-primary/20 bg-card px-4 py-2.5 text-sm font-medium text-primary hover:bg-muted"
-          >
-            Explore market data
-          </Link>
-          <Link href="/reports/city/Bend" className="inline-block text-sm font-medium text-accent-foreground hover:underline">
-            Bend market report
-          </Link>
+          <Button asChild size="sm">
+            <Link href="/reports">Weekly market reports</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/reports/explore">Explore market data</Link>
+          </Button>
+          <Button asChild size="sm" variant="ghost">
+            <Link href="/reports/city/Bend">Bend market report</Link>
+          </Button>
         </div>
       </section>
 
@@ -130,14 +150,21 @@ export default async function SellPage() {
       <section className="mt-12 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="consult-heading">
         <h2 id="consult-heading" className="text-lg font-semibold text-foreground">Get a free consultation</h2>
         <p className="mt-1 text-muted-foreground">Tell us about your home and timeline. We&apos;ll follow up with a no-pressure conversation.</p>
-        <Link
-          href="/contact?inquiry=Selling"
-          className="mt-4 inline-block rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-foreground hover:opacity-90"
-        >
-          Contact us
-        </Link>
+        <Button asChild className="mt-4">
+          <Link href="/contact?inquiry=Selling">Contact us</Link>
+        </Button>
       </section>
       </div>
+
+      <BrokerSocialProofCta
+        title="Seller Results You Can Verify"
+        subtitle="Top brokerages win with clarity, data, and trust. We pair that approach with deep Central Oregon knowledge and direct communication."
+        primaryCtaHref="/contact?inquiry=Selling"
+        primaryCtaLabel="Request a Strategy Call"
+        secondaryCtaHref="/sell/plan"
+        secondaryCtaLabel="Review Our Plan"
+        ctaContext="sell_page"
+      />
     </main>
   )
 }

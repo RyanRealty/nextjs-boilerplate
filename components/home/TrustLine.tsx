@@ -11,7 +11,6 @@ type Props = {
 
 /**
  * Trust line: One line of proof below the hero showing listing count with a "Browse all" link.
- * Per HOME_PAGE_BEST_PRACTICES.md: "One line of proof below the hero (e.g. 'X homes for sale in [City] and surrounding areas') with a clear 'Browse all' or 'View listings' link."
  */
 export default function TrustLine({ listingCount, cityName }: Props) {
   return (

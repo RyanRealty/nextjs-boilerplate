@@ -1,13 +1,20 @@
 'use client'
 
+import { EyeIcon } from '@heroicons/react/24/outline'
 import { cn } from '@/lib/utils'
 import ShareButton from '@/components/ShareButton'
 import { HeartIcon as ActionHeartIcon, BookmarkIcon as ActionBookmarkIcon } from '@/components/icons/ActionIcons'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 /**
- * Shared action bar for all card types: share, like, save.
- * Always rendered in the bottom-right corner of the card media (or card) for consistency.
+ * Shared action bar for all card types: view count (read-only), share, like, save.
+ * Same order and behavior on every tile (listing, city, community, neighborhood).
  * Uses shadcn Button + design tokens: unselected = muted; selected = accent/destructive.
  */
 
@@ -58,6 +65,8 @@ export type CardActionBarProps = {
   signedIn?: boolean
   /** When not signed in, optional summary e.g. "12 views · 5 likes" */
   guestCounts?: { viewCount?: number; likeCount?: number; saveCount?: number }
+  /** View count shown next to eye icon (all users). When > 0, displayed first in bar with tooltip "X views". */
+  viewCount?: number
 }
 
 const overlayBase = 'flex flex-shrink-0 items-center justify-center rounded-full border-2 shadow-sm transition disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:shadow-none'
@@ -96,6 +105,7 @@ export default function CardActionBar({
   save,
   signedIn = true,
   guestCounts,
+  viewCount,
 }: CardActionBarProps) {
   const isDark = variant === 'onDark'
   const isBelow = position === 'below'
@@ -113,10 +123,32 @@ export default function CardActionBar({
   const belowActiveLike = 'border-2 border-destructive/60 text-destructive bg-muted hover:bg-destructive/10'
   const belowActiveSave = 'border-2 border-accent/60 text-accent bg-muted hover:bg-accent/10'
   const useBelowStyle = isBelow || isPriceRow
+  const showViewCount = typeof viewCount === 'number' && Number.isFinite(viewCount)
 
   return (
-    <div className={wrapperClass} onClick={onClickWrap}>
-      {share && (
+    <TooltipProvider delayDuration={300}>
+      <div className={wrapperClass} onClick={onClickWrap}>
+        {showViewCount && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className={cn(
+                  'flex flex-shrink-0 items-center gap-0.5',
+                  countColor,
+                  (isBelow || isPriceRow) ? 'text-[10px]' : 'text-xs',
+                )}
+                aria-label={`${viewCount} view${viewCount === 1 ? '' : 's'}`}
+              >
+                <EyeIcon className={iconSize} aria-hidden />
+                <span className={cn('tabular-nums', (isBelow || isPriceRow) ? 'min-w-[1ch] text-[10px]' : '')}>{viewCount}</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {viewCount} view{viewCount === 1 ? '' : 's'}
+            </TooltipContent>
+          </Tooltip>
+        )}
+        {share && (
         <>
           <ShareButton
             url={share.url}
@@ -132,7 +164,7 @@ export default function CardActionBar({
             )}
             aria-label={share.ariaLabel ?? 'Share'}
           />
-          {share.shareCount != null && share.shareCount > 0 && (
+          {share.shareCount != null && (
             <span className={cn(countClass, countColor)}>{share.shareCount}</span>
           )}
         </>
@@ -154,7 +186,7 @@ export default function CardActionBar({
           >
             <ActionHeartIcon filled={like.active} className={iconSize} />
           </Button>
-          {like.count != null && like.count > 0 && <span className={cn(countClass, countColor)}>{like.count}</span>}
+          {like.count != null && <span className={cn(countClass, countColor)}>{like.count}</span>}
         </>
       )}
       {save && (
@@ -174,16 +206,17 @@ export default function CardActionBar({
           >
             <ActionBookmarkIcon filled={save.active} className={iconSize} />
           </Button>
-          {save.count != null && save.count > 0 && <span className={cn(countClass, countColor)}>{save.count}</span>}
+          {save.count != null && <span className={cn(countClass, countColor)}>{save.count}</span>}
         </>
       )}
-      {!signedIn && guestCounts && (guestCounts.viewCount! > 0 || guestCounts.likeCount! > 0 || guestCounts.saveCount! > 0) && (
-        <span className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px]', (isBelow || isPriceRow) ? 'text-muted-foreground' : (isDark ? 'bg-foreground/40 text-primary-foreground/95 backdrop-blur-sm' : 'bg-muted text-muted-foreground'))}>
-          {guestCounts.viewCount! > 0 && <span>{guestCounts.viewCount} views</span>}
-          {guestCounts.likeCount! > 0 && <span>{guestCounts.likeCount} likes</span>}
-          {guestCounts.saveCount! > 0 && <span>{guestCounts.saveCount} saved</span>}
-        </span>
-      )}
-    </div>
+        {!signedIn && guestCounts && (guestCounts.viewCount! > 0 || guestCounts.likeCount! > 0 || guestCounts.saveCount! > 0) && (
+          <span className={cn('flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px]', (isBelow || isPriceRow) ? 'text-muted-foreground' : (isDark ? 'bg-foreground/40 text-primary-foreground/95 backdrop-blur-sm' : 'bg-muted text-muted-foreground'))}>
+            {guestCounts.viewCount! > 0 && <span>{guestCounts.viewCount} views</span>}
+            {guestCounts.likeCount! > 0 && <span>{guestCounts.likeCount} likes</span>}
+            {guestCounts.saveCount! > 0 && <span>{guestCounts.saveCount} saved</span>}
+          </span>
+        )}
+      </div>
+    </TooltipProvider>
   )
 }

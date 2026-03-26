@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/app/actions/auth'
-import { getAdminRoleForEmail, listAdminRoles } from '@/app/actions/admin-roles'
+import { getAdminRoleForEmail, listAdminRoles, listPlatformUsersForAdmin } from '@/app/actions/admin-roles'
 import { getBrokersForAdmin } from '@/app/actions/brokers'
 import AdminUsersList from '@/app/components/admin/AdminUsersList'
 
@@ -12,7 +12,7 @@ export default async function AdminUsersPage() {
   if (adminRole?.role !== 'superuser') {
     redirect('/admin/access-denied')
   }
-  const [initialRoles, brokers] = await Promise.all([listAdminRoles(), getBrokersForAdmin()])
+  const [initialRoles, brokers, users] = await Promise.all([listAdminRoles(), getBrokersForAdmin(), listPlatformUsersForAdmin()])
 
   return (
     <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6">
@@ -20,7 +20,7 @@ export default async function AdminUsersPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         Manage who can access the admin and their role. Sign in is via Google. Add a user by email and assign a role; they must sign in with that Google account to access.
       </p>
-      <AdminUsersList initialRoles={initialRoles} brokers={brokers} />
+      <AdminUsersList initialRoles={initialRoles} brokers={brokers} users={users} />
     </main>
   )
 }

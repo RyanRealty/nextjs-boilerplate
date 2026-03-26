@@ -9,7 +9,7 @@ import CardActionBar from '@/components/ui/CardActionBar'
 
 type Props = {
   agent: AgentForIndex
-  /** Base path for profile link (e.g. 'agents' or 'team'). Default 'agents'. */
+  /** Base path for profile link. Canonical is 'team'. */
   basePath?: 'agents' | 'team'
 }
 
@@ -41,10 +41,9 @@ function StarRating({ rating, count }: { rating: number | null; count: number })
   )
 }
 
-export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
-  const firstName = agent.display_name.split(' ')[0] ?? agent.display_name
+export default function BrokerCard({ agent, basePath = 'team' }: Props) {
   const specialties = (agent.specialties ?? []).filter((s): s is string => Boolean(s?.trim()))
-  const profileHref = basePath === 'team' ? `/team/${agent.slug}` : `/agents/${agent.slug}`
+  const profileHref = basePath === 'agents' ? `/team/${agent.slug}` : `/team/${agent.slug}`
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${profileHref}` : profileHref
 
@@ -66,6 +65,18 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
                 {agent.display_name.charAt(0)}
               </div>
             )}
+            <CardActionBar
+              position="overlay"
+              variant="onDark"
+              onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+              share={{
+                url: shareUrl,
+                title: `${agent.display_name} – Ryan Realty`,
+                text: agent.bio ? agent.bio.slice(0, 100) : undefined,
+                ariaLabel: `Share ${agent.display_name}`,
+              }}
+              signedIn={true}
+            />
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="font-bold text-lg text-primary">{agent.display_name}</h2>
@@ -124,20 +135,6 @@ export default function BrokerCard({ agent, basePath = 'agents' }: Props) {
           </div>
         </div>
       </Link>
-      <div className="flex flex-wrap items-center justify-end border-t border-border bg-muted px-2 py-1.5">
-        <CardActionBar
-          position="below"
-          variant="onLight"
-          onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
-          share={{
-            url: shareUrl,
-            title: `${agent.display_name} – Ryan Realty`,
-            text: agent.bio ? agent.bio.slice(0, 100) : undefined,
-            ariaLabel: `Share ${agent.display_name}`,
-          }}
-          signedIn={true}
-        />
-      </div>
     </Card>
   )
 }

@@ -15,8 +15,6 @@ import type { CommunityEngagementCounts } from "@/app/actions/community-engageme
 import { isResortCommunity } from "@/lib/resort-communities"
 import { TILE_MIN_HEIGHT_PX } from "@/lib/tile-constants"
 
-const MIN_LIKES_FOR_FIRE = 3
-
 export type CommunityTileProps = {
   city: string
   community: HotCommunity
@@ -48,7 +46,6 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
   const likeCount = engagement?.like_count ?? 0
   const saveCount = engagement?.save_count ?? 0
   const shareCount = engagement?.share_count ?? 0
-  const showFireLikes = likeCount >= MIN_LIKES_FOR_FIRE
   const medianK =
     community.medianListPrice != null && community.medianListPrice > 0
       ? `${Math.round(community.medianListPrice / 1000)}k`
@@ -126,12 +123,12 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-muted-foreground to-foreground" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <CardBadges
             position="top-left"
             max={3}
             items={[
-              ...(isHot ? [{ label: 'Hot market', variant: 'hot' as const, icon: <span aria-hidden>ðŸ”¥</span> }] : []),
+              ...(isHot ? [{ label: 'Hot market', variant: 'hot' as const }] : []),
               ...(!isHot && isPopular ? [{ label: 'Popular', variant: 'popular' as const }] : []),
               ...(!isHot && !isPopular && totalActive > 0 ? [{ label: 'Steady', variant: 'steady' as const }] : []),
             ]}
@@ -158,17 +155,16 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
             </div>
           </div>
         </Link>
-      </div>
-      <div className="flex flex-wrap items-center justify-end border-t border-border bg-muted/80 px-2 py-1.5">
         <CardActionBar
-          position="below"
-          variant="onLight"
-          onClickWrap={(e) => e.preventDefault()}
+          position="overlay"
+          variant="onDark"
+          onClickWrap={(e) => { e.preventDefault(); e.stopPropagation() }}
+          viewCount={viewCount}
           share={{
             url: typeof window !== 'undefined' ? `${window.location.origin}${href}` : undefined!,
             title: `${displayName} homes for sale in ${city}`,
             ariaLabel: `Share ${displayName}`,
-            shareCount: shareCount > 0 ? shareCount : undefined,
+            shareCount,
             onShare: () => incrementCommunityShare(entityKey).catch(() => {}),
           }}
           like={signedIn

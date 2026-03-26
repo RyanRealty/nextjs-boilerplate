@@ -25,6 +25,12 @@ export default function AdminBrokerCreateForm({ className = '' }: Props) {
     phone: '',
     google_review_url: '',
     zillow_review_url: '',
+    mls_id: '',
+    social_x: '',
+    zillow_id: '',
+    realtor_id: '',
+    yelp_id: '',
+    google_business_id: '',
     sort_order: 0,
     is_active: true,
   })
@@ -70,12 +76,18 @@ export default function AdminBrokerCreateForm({ className = '' }: Props) {
       phone: form.phone.trim() || null,
       google_review_url: form.google_review_url.trim() || null,
       zillow_review_url: form.zillow_review_url.trim() || null,
+      mls_id: form.mls_id.trim() || null,
+      social_x: form.social_x.trim() || null,
+      zillow_id: form.zillow_id.trim() || null,
+      realtor_id: form.realtor_id.trim() || null,
+      yelp_id: form.yelp_id.trim() || null,
+      google_business_id: form.google_business_id.trim() || null,
       sort_order: form.sort_order,
       is_active: form.is_active,
     })
     setLoading(false)
     if (result.ok) {
-      router.push(`/admin/brokers/${result.id}`)
+      router.push(`/admin/brokers/edit?id=${encodeURIComponent(result.id)}`)
       router.refresh()
       return
     }
@@ -174,6 +186,67 @@ export default function AdminBrokerCreateForm({ className = '' }: Props) {
           className="mt-1 block w-full max-w-xs rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
         />
       </Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">MLS ID</span>
+          <Input
+            type="text"
+            value={form.mls_id}
+            onChange={(e) => setForm((f) => ({ ...f, mls_id: e.target.value }))}
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">X profile URL</span>
+          <Input
+            type="url"
+            value={form.social_x}
+            onChange={(e) => setForm((f) => ({ ...f, social_x: e.target.value }))}
+            placeholder="https://x.com/..."
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">Zillow ID</span>
+          <Input
+            type="text"
+            value={form.zillow_id}
+            onChange={(e) => setForm((f) => ({ ...f, zillow_id: e.target.value }))}
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">Realtor.com ID</span>
+          <Input
+            type="text"
+            value={form.realtor_id}
+            onChange={(e) => setForm((f) => ({ ...f, realtor_id: e.target.value }))}
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">Yelp ID</span>
+          <Input
+            type="text"
+            value={form.yelp_id}
+            onChange={(e) => setForm((f) => ({ ...f, yelp_id: e.target.value }))}
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+        <Label className="block">
+          <span className="text-sm font-medium text-muted-foreground">Google Business ID</span>
+          <Input
+            type="text"
+            value={form.google_business_id}
+            onChange={(e) => setForm((f) => ({ ...f, google_business_id: e.target.value }))}
+            className="mt-1 block w-full rounded-lg border border-border px-3 py-2 text-foreground shadow-sm"
+          />
+        </Label>
+      </div>
       <div className="flex flex-wrap items-center gap-6 border-t border-border pt-4">
         <Label className="flex items-center gap-2">
           <Input

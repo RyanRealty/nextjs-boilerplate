@@ -53,12 +53,4 @@ Where data exists and UI supports it:
 | **Listing page** | Optional “Market trends” link to report for that city/community |
 | **Buy / area guides** | Link to “Explore market data” or “Market reports” |
 
----
-
-## Design standards for report pages
-
-- Same layout pattern as rest of site: **nav hero** (e.g. navy section with title + short description), then content in `max-w-7xl` (or max-w-4xl for single-column).
-- Use **design tokens** from `app/globals.css` (e.g. `--brand-navy`, `--brand-cream`, `--color-border-cream`, `--surface`).
-- Cards: `rounded-xl`, `border border-[var(--color-border-cream)]`, `shadow-[var(--shadow-subtle)]`.
-- CTAs: primary `bg-[var(--accent)]` or `bg-[var(--brand-navy)]`; secondary bordered.
 - Every report page: unique **title/description** and **canonical** for SEO; share button where appropriate.

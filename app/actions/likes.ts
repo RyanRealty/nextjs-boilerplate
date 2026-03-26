@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { incrementListingLikeCount, decrementListingLikeCount } from '@/app/actions/engagement'
 
 export async function getLikedListingKeys(): Promise<string[]> {
   const supabase = await createClient()
@@ -50,6 +51,7 @@ export async function unlikeListing(listingKey: string): Promise<{ error: string
     .eq('user_id', user.id)
     .eq('listing_key', listingKey.trim())
   if (error) return { error: error.message }
+  await decrementListingLikeCount(listingKey.trim())
   return { error: null }
 }
 

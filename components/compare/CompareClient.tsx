@@ -9,6 +9,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { LinkSquare01Icon, Cancel01Icon, Download01Icon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from '@/components/ui/card'
+import { listingDetailPath } from '@/lib/slug'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export type CompareListingData = {
@@ -176,8 +177,8 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
             >
               <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
             </Button>
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-              <Link href={`/listing/${encodeURIComponent(l.listingKey)}`} className="text-primary-foreground text-sm font-semibold hover:underline line-clamp-2">
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-foreground/70 to-transparent p-3">
+              <Link href={listingDetailPath(l.listingKey, { city: l.city, state: l.state, postalCode: l.postalCode })} className="text-primary-foreground text-sm font-semibold hover:underline line-clamp-2">
                 {l.address}
               </Link>
               <p className="text-primary-foreground/90 text-lg font-bold mt-0.5">{fmtPrice(l.price)}</p>

@@ -9,6 +9,7 @@ import {
 } from '@/app/actions/communities'
 import { getCommunitiesInCity } from '@/app/actions/cities'
 import { getActivityFeed } from '@/app/actions/activity-feed'
+import { getEngagementCountsBatch } from '@/app/actions/engagement'
 import { getActiveBrokers } from '@/app/actions/brokers'
 import { isCommunitySaved, getSavedCommunityKeys } from '@/app/actions/saved-communities'
 import { isCommunityLiked, getLikedCommunityKeys } from '@/app/actions/community-engagement'
@@ -22,7 +23,10 @@ import { getLikedListingKeys } from '@/app/actions/likes'
 import { getBuyingPreferences } from '@/app/actions/buying-preferences'
 import { DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
 import { homesForSalePath, neighborhoodPagePath } from '@/lib/slug'
+import { slugify } from '@/lib/slug'
 import { getResortCommunityContent, buildDataDrivenCommunityAbout } from '@/lib/community-content'
+import { getLiveMarketPulse } from '@/app/actions/market-stats'
+import { getOpenHousesWithListings } from '@/app/actions/open-houses'
 import CommunityHero from '@/components/community/CommunityHero'
 import CommunityOverview from '@/components/community/CommunityOverview'
 import CommunityMarketStats from '@/components/community/CommunityMarketStats'
@@ -33,9 +37,13 @@ import CommunityPageActionBar from '@/components/geo-page/CommunityPageActionBar
 import ListingsSlider from '@/components/geo-page/ListingsSlider'
 import GeoCTAWithBroker from '@/components/geo-page/GeoCTAWithBroker'
 import GeoSectionNewestListings from '@/components/geo-page/GeoSectionNewestListings'
-import GeoSectionPopularCommunities from '@/components/geo-page/GeoSectionPopularCommunities'
+import CommunitiesSlider from '@/components/sliders/CommunitiesSlider'
 import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
 import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
+import RecentlySoldRow from '@/components/RecentlySoldRow'
+import LivePulseBanner from '@/components/reports/LivePulseBanner'
+import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
+import VideoToursRow from '@/components/videos/VideoToursRow'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -99,6 +107,14 @@ export default async function CommunityDetailPage({ params }: Props) {
       session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
       session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
     ])
+  const communityPulse = await getLiveMarketPulse({
+    geoType: 'subdivision',
+    geoSlug: `${slugify(community.city)}-${slugify(community.subdivision)}`,
+  })
+  const communityOpenHouses = await getOpenHousesWithListings({
+    city: community.city,
+    community: [community.subdivision],
+  })
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -169,6 +185,45 @@ export default async function CommunityDetailPage({ params }: Props) {
     }),
     url: `${siteUrl}/communities/${slug}`,
   }
+  const listingKeys = listings
+    .map((l) => (l.ListingKey ?? l.ListNumber ?? '').toString().trim())
+    .filter(Boolean)
+  const engagementMap = listingKeys.length > 0 ? await getEngagementCountsBatch(listingKeys) : {}
+  const engagementScore = (key: string) => {
+    const e = engagementMap[key]
+    return (e?.view_count ?? 0) + (e?.like_count ?? 0) + (e?.save_count ?? 0) + (e?.share_count ?? 0)
+  }
+  const featuredListings = [...listings]
+    .sort((a, b) => {
+      const keyA = (a.ListingKey ?? a.ListNumber ?? '').toString().trim()
+      const keyB = (b.ListingKey ?? b.ListNumber ?? '').toString().trim()
+      const scoreA = engagementScore(keyA)
+      const scoreB = engagementScore(keyB)
+      if (scoreB !== scoreA) return scoreB - scoreA
+      const priceA = Number(a.ListPrice ?? 0)
+      const priceB = Number(b.ListPrice ?? 0)
+      return priceB - priceA
+    })
+    .slice(0, 12)
+  const recentlySoldRows = soldListings
+    .map((item) => ({
+      listingKey: (item.ListingKey ?? item.ListNumber ?? '').toString().trim(),
+      listNumber: item.ListNumber ?? null,
+      listPrice: item.ListPrice ?? null,
+      closePrice: item.ClosePrice ?? null,
+      closeDate: item.CloseDate ?? null,
+      beds: item.BedroomsTotal ?? null,
+      baths: item.BathroomsTotal ?? null,
+      sqft: item.TotalLivingAreaSqFt ?? null,
+      streetNumber: item.StreetNumber ?? null,
+      streetName: item.StreetName ?? null,
+      city: item.City ?? null,
+      state: item.State ?? null,
+      postalCode: item.PostalCode ?? null,
+      photoUrl: item.PhotoURL ?? null,
+    }))
+    .filter((item) => item.listingKey.length > 0)
+
   const resortSchema = community.isResort
     ? {
         '@context': 'https://schema.org',
@@ -239,16 +294,6 @@ export default async function CommunityDetailPage({ params }: Props) {
         ]}
       />
 
-      <ListingsSlider
-        title="Homes for sale in this community"
-        listings={listings}
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-        placeName={community.name}
-      />
-
       <CommunityOverview
         description={community.description}
         isResort={community.isResort}
@@ -262,6 +307,8 @@ export default async function CommunityDetailPage({ params }: Props) {
 
       <CommunityMarketStats
         communityName={community.name}
+        city={community.city}
+        subdivision={community.subdivision}
         slug={slug}
         stats={{
           medianPrice: community.medianPrice,
@@ -270,6 +317,75 @@ export default async function CommunityDetailPage({ params }: Props) {
           closedLast12Months: community.closedLast12Months,
         }}
         priceHistory={priceHistory}
+      />
+
+      {communityPulse && (
+        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+          <LivePulseBanner
+            title={`${community.name} live market pulse`}
+            activeCount={communityPulse.active_count}
+            pendingCount={communityPulse.pending_count}
+            newCount7d={communityPulse.new_count_7d}
+            updatedAt={communityPulse.updated_at}
+          />
+        </div>
+      )}
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <OpenHouseSection
+          title={`Open houses in ${community.name} this week`}
+          items={communityOpenHouses.slice(0, 10)}
+          viewAllHref={`/open-houses/${citySlug}`}
+        />
+      </div>
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <VideoToursRow
+          title={`Video tours in ${community.name}`}
+          listings={listings}
+          signedIn={!!session?.user}
+          savedKeys={session?.user ? savedKeys : []}
+          likedKeys={session?.user ? likedKeys : []}
+          userEmail={session?.user?.email ?? null}
+          engagementMap={engagementMap}
+        />
+      </div>
+
+      <GeoSectionLatestActivity
+        title="Latest activity"
+        items={activityFeed}
+        signedIn={!!session?.user}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+      />
+
+      <div className="px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <RecentlySoldRow title={`Recently sold in ${community.name}`} listings={recentlySoldRows} />
+        </div>
+      </div>
+
+      <GeoSectionFeaturedListings
+        title="Featured homes"
+        listings={featuredListings}
+        viewAllHref={homesForSalePath(community.city, community.subdivision)}
+        viewAllLabel="View all"
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
+      />
+
+      <ListingsSlider
+        title="Homes for sale in this community"
+        listings={listings}
+        savedKeys={session?.user ? savedKeys : []}
+        likedKeys={session?.user ? likedKeys : []}
+        signedIn={!!session?.user}
+        userEmail={session?.user?.email ?? null}
+        placeName={community.name}
+        engagementMap={engagementMap}
       />
 
       <GeoSectionNewestListings
@@ -281,9 +397,10 @@ export default async function CommunityDetailPage({ params }: Props) {
         likedKeys={session?.user ? likedKeys : []}
         signedIn={!!session?.user}
         userEmail={session?.user?.email ?? null}
+        engagementMap={engagementMap}
       />
 
-      <GeoSectionPopularCommunities
+      <CommunitiesSlider
         title="Popular communities"
         communities={communitiesInCity}
         viewAllHref={`/cities/${citySlug}`}
@@ -293,19 +410,6 @@ export default async function CommunityDetailPage({ params }: Props) {
         savedEntityKeys={savedCommunityKeys}
         likedEntityKeys={likedCommunityKeys}
       />
-
-      <GeoSectionFeaturedListings
-        title="Featured listings"
-        listings={listings.slice(6, 12)}
-        viewAllHref={homesForSalePath(community.city, community.subdivision)}
-        viewAllLabel="View all"
-        savedKeys={session?.user ? savedKeys : []}
-        likedKeys={session?.user ? likedKeys : []}
-        signedIn={!!session?.user}
-        userEmail={session?.user?.email ?? null}
-      />
-
-      <GeoSectionLatestActivity title="Latest activity" items={activityFeed} />
 
       <GeoCTAWithBroker
         heading={`Looking for a Home in ${community.name}?`}
