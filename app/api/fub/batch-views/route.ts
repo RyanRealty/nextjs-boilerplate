@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
   }
   for (const [userId, listingKeys] of byUser) {
     if (listingKeys.length === 0) continue
-    const { data: user } = await supabase.auth.admin.getUserById(userId)
+    const adminAuth = supabase.auth as unknown as { admin: { getUserById: (id: string) => Promise<{ data: { user?: { email?: string | null } | null } | null }> } }
+    const { data: user } = await adminAuth.admin.getUserById(userId)
     const email = user?.user?.email ?? ''
     if (!email) continue
     const listingUrls = listingKeys.map((k) => `${siteUrl}/listing/${encodeURIComponent(k)}`)
