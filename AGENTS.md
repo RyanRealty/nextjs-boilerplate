@@ -1,0 +1,284 @@
+# Agent Protocol — Ryan Realty
+
+This document tells AI coding agents (Cursor, Copilot, Windsurf, etc.) how to autonomously pick up, execute, validate, and complete development tasks on this project.
+
+---
+
+## Quick Start
+
+```bash
+# See what needs doing
+npx tsx scripts/orchestrate.ts status
+
+# Get the next task with full specification
+npx tsx scripts/orchestrate.ts next
+
+# Start working on a task
+npx tsx scripts/orchestrate.ts start <taskId>
+
+# When done, validate and complete
+npx tsx scripts/orchestrate.ts validate <taskId>
+npx tsx scripts/orchestrate.ts complete <taskId>
+```
+
+---
+
+## Development Environment
+
+| Tool | Details |
+|------|---------|
+| Runtime | Node 20, npm |
+| Framework | Next.js 16.1.6, React 19, TypeScript 5 |
+| Database | Supabase (PostgreSQL), migrations in `supabase/migrations/` |
+| Styling | Tailwind v4, shadcn/ui components only |
+| Testing | Vitest (unit), Lighthouse CI (perf), pa11y-ci (a11y) |
+| Deployment | Vercel |
+| CRM | Follow Up Boss |
+| Data Feed | Spark/MLS API |
+
+### Running Locally
+
+```bash
+npm install                  # Install dependencies
+npm run dev:unix             # Start dev server (Linux/macOS)
+npm run build                # Production build verification
+npm run test                 # Run unit tests
+npm run lint                 # Run ESLint
+npm run lint:design-tokens   # Check for design system violations
+npm run lint:seo-routes      # Check SEO route authoring
+```
+
+---
+
+## How to Pick Up Work
+
+1. Run `npx tsx scripts/orchestrate.ts next` to get the next prioritized, unblocked task
+2. Read the full task specification output carefully
+3. Check the file ownership matrix in `docs/plans/master-plan.md`
+4. Run `npx tsx scripts/orchestrate.ts start <taskId>` to mark it in-progress
+
+### Priority Order
+
+Tasks are prioritized by:
+1. Priority field: `high` > `medium` > `low`
+2. ID order (earlier phases before later, lower IDs first)
+3. Dependency chain (blocked tasks are excluded)
+
+---
+
+## How to Execute
+
+### Rules to Follow
+
+All rules in `.cursor/rules/` are mandatory. Key rules:
+
+| Rule File | What It Covers |
+|-----------|---------------|
+| `design-system.mdc` | shadcn/ui components only, semantic color tokens only |
+| `server-actions.mdc` | `'use server'` header, return `{ data, error }` never throw |
+| `error-handling.mdc` | Server: return errors. Client: use sonner toasts. No `alert()` |
+| `auth-patterns.mdc` | Use `getSession()`, `normalizeAvatarUrl()`, gate routes at top |
+| `supabase-data-layer.mdc` | Use cached stats, correct client for context, never `select(*)` |
+| `git-commit.mdc` | Conventional commits: `feat:`, `fix:`, `chore:`, etc. |
+| `sliders-no-scrollbars.mdc` | Arrow navigation, no visible scrollbars on carousels |
+| `master-plan-protocol.mdc` | File ownership matrix enforcement |
+
+### Design System (Zero Exceptions)
+
+- **Components**: Only use shadcn/ui from `@/components/ui/`. See `CLAUDE.md` for the full mapping.
+- **Colors**: Only semantic tokens (`bg-primary`, `text-foreground`, `border-border`). No hex, no `bg-white`, no `bg-gray-*`.
+- **Utilities**: Use `cn()` from `@/lib/utils` for conditional classes.
+- **Fonts**: Geist Sans (`font-sans`) and Geist Mono (`font-mono`) only.
+
+### Server Actions
+
+```ts
+'use server'
+
+export async function doThing(): Promise<{ data: Result | null; error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.from('table').select('col1, col2').eq('id', id)
+    if (error) return { data: null, error: error.message }
+    return { data, error: null }
+  } catch (err) {
+    console.error('[doThing]', err)
+    return { data: null, error: 'Something went wrong' }
+  }
+}
+```
+
+### File Ownership
+
+The ownership matrix in `docs/plans/master-plan.md` is enforced. Check it before modifying files owned by another workstream:
+
+| Owner | Key Files |
+|-------|-----------|
+| Reporting | `app/actions/market-stats.ts`, `components/reports/*`, `app/api/cron/sync-full/route.ts` |
+| Engagement | `app/search/[...slug]/page.tsx`, `app/page.tsx`, `app/listing/[listingKey]/page.tsx` |
+| Monetization | `components/AdUnit.tsx`, `app/layout.tsx` (banner), `app/guides/*`, `app/sitemap.ts` |
+| Admin | `app/admin/*` |
+| Shared | `lib/followupboss.ts`, `components/ShareButton.tsx` |
+
+---
+
+## Quality Gates
+
+Run these before committing:
+
+```bash
+# Minimum (always)
+npm run test
+npm run build
+
+# If you changed UI components
+npm run lint:design-tokens
+
+# If you changed routes or pages
+npm run lint:seo-routes
+
+# Full gate (recommended)
+npm run quality:full
+```
+
+### Pre-commit Hook
+
+Runs `npm test` automatically. If tests fail, the commit is blocked.
+
+### Pre-push Hook
+
+Runs `npm run quality:local:strict` (design tokens + test + build). Set `SKIP_LOCAL_GATES=1` to bypass (sparingly).
+
+### CI Pipeline (GitHub Actions)
+
+On PR to `main`:
+1. `npm run lint` — ESLint
+2. `npm run lint:seo-routes` — SEO route authoring checks
+3. `npm run ci:design-tokens` — Design token compliance
+4. `npm run test` — Vitest unit tests
+5. `npm run build` — Production build
+6. `npm run ci:lighthouse` — Lighthouse performance/a11y/SEO scores
+7. `npm run ci:a11y` — pa11y accessibility audit
+
+---
+
+## How to Validate
+
+After implementing a task:
+
+```bash
+npx tsx scripts/orchestrate.ts validate <taskId>
+```
+
+This runs:
+- File existence checks for the task's listed files
+- `npm run build`
+- `npm run test`
+- `npm run lint:design-tokens` (if UI files changed)
+- `npm run lint:seo-routes` (if page files changed)
+
+All checks must pass before marking a task complete.
+
+---
+
+## How to Complete
+
+```bash
+# After validation passes
+npx tsx scripts/orchestrate.ts complete <taskId>
+
+# Commit with conventional format
+git add -A
+git commit -m "feat: <short description of what was done>"
+git push
+```
+
+The orchestrator automatically:
+- Updates the task status in the registry
+- Checks if the parent phase is now fully complete
+- Updates phase status if all tasks are done
+
+---
+
+## Adding New Work
+
+```bash
+# Add a bug
+npx tsx scripts/orchestrate.ts add '{"title":"Fix broken avatar on mobile","priority":"high","category":"bug","owner":"engagement","files":["components/Avatar.tsx"],"acceptanceCriteria":["Avatar renders on mobile viewport","No layout shift"]}'
+
+# Add a feature request
+npx tsx scripts/orchestrate.ts add '{"title":"Add dark mode toggle","priority":"low","category":"feature","owner":"shared"}'
+
+# Add tech debt
+npx tsx scripts/orchestrate.ts add '{"title":"Refactor sync pipeline to use streams","priority":"medium","category":"tech-debt","owner":"reporting"}'
+```
+
+---
+
+## Generating Reports
+
+```bash
+npx tsx scripts/orchestrate.ts report
+```
+
+Generates `docs/plans/continuous-improvement.md` with:
+- Overall progress (complete/in-progress/open/blocked)
+- Phase-by-phase progress with percentages
+- Work breakdown by owner
+- Current priorities sorted by urgency
+- Blocked task list with reasons
+- Backlog by category
+- Recommended next actions
+
+---
+
+## Key Architecture Decisions
+
+1. **Market stats**: Always use `getCachedStats()` and `getLiveMarketPulse()` from `app/actions/market-stats.ts`. Never compute stats on the fly.
+2. **Listing URL**: Canonical form is `/listing/{key}-{slug}`. The `/listings/` route redirects.
+3. **Team URL**: Canonical form is `/team` and `/team/{slug}`. The `/agents/` route redirects.
+4. **Lead capture**: StickyMobileCTA and SiteLeadCaptureBanner must not both be visible simultaneously.
+5. **Ad placement order**: existing sections → AreaMarketContext → AdUnit → Similar Listings → ActivityFeedSlider → RecentlySoldRow → Sidebar ad below CTA.
+6. **Filter page links**: Browse-by UI links to `/search/{city}/{filter}` routes, not query-param URLs.
+
+---
+
+## Database Migrations
+
+```bash
+# Create a new migration
+npm run db:migration <name>
+
+# Push migrations to Supabase
+npm run db:push
+
+# Check for migration drift (pre-push hook)
+npm run db:guard
+```
+
+Naming: `YYYYMMDDHHMMSS_description_snake_case.sql`
+Always idempotent: use `IF NOT EXISTS`, `IF EXISTS`, `ON CONFLICT DO NOTHING`.
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `npm run build` fails with type errors | Check for missing imports, incorrect types. Run `npx tsc --noEmit` for detailed errors. |
+| Design token lint fails | Replace hardcoded colors with semantic tokens. See `CLAUDE.md` for the mapping. |
+| Pre-push hook fails | Run `npm run quality:local:strict` to see what's failing. Fix or use `SKIP_LOCAL_GATES=1`. |
+| Supabase migration drift | Run `npm run db:push` to sync migrations, or `SKIP_DB_GUARD=1` to bypass check. |
+| Tests fail on CI but pass locally | Ensure env vars are set in GitHub Secrets. Check if test depends on Supabase connection. |
+
+---
+
+## Reference
+
+- **Task Registry**: `docs/plans/task-registry.json` — all tasks and their status
+- **Master Plan**: `docs/plans/master-plan.md` — phases, ownership matrix, conflict resolutions
+- **Phase Briefs**: `docs/plans/phase-N-brief.md` — detailed specs per phase
+- **Features**: `docs/FEATURES.md` — what's currently implemented
+- **Design System**: `CLAUDE.md` — component mapping and color tokens
+- **Cursor Rules**: `.cursor/rules/` — enforced coding standards
+- **Continuous Improvement**: `docs/plans/continuous-improvement.md` — auto-generated progress report
