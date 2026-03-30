@@ -1,0 +1,151 @@
+'use server'
+
+import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { isSuperuserAdmin } from '@/lib/admin'
+import { getSession } from '@/app/actions/auth'
+import { logAdminAction } from '@/app/actions/log-admin-action'
+
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url?.trim() || !key?.trim()) throw new Error('Supabase service role not configured')
+  return createClient(url, key)
+}
+
+export type AdminRoleType = 'superuser' | 'broker' | 'report_viewer'
+
+export type AdminRoleRow = {
+  id: string
+  email: string
+  role: AdminRoleType
+  broker_id: string | null
+  user_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type AdminPlatformUserRow = {
+  id: string
+  email: string | null
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  created_at: string
+  updated_at: string
+  saved_listings_count: number
+  saved_searches_count: number
+  activities_count: number
+}
+
+/** Get admin role for an email. Returns role if in admin_roles; superuser if isSuperuserAdmin(email). */
+export async function getAdminRoleForEmail(email: string | null | undefined): Promise<{ role: AdminRoleType; brokerId: string | null } | null> {
+  if (!email || typeof email !== 'string') return null
+  const trimmed = email.trim().toLowerCase()
+  if (!trimmed) return null
+  if (isSuperuserAdmin(trimmed)) return { role: 'superuser', brokerId: null }
+  const supabase = await createServerClient()
+  const { data } = await supabase
+    .from('admin_roles')
+    .select('role, broker_id')
+    .eq('email', trimmed)
+    .single()
+  if (!data) return null
+  return { role: data.role as AdminRoleType, brokerId: data.broker_id ?? null }
+}
+
+/** List all admin users (admin_roles rows). Only superuser should call this. */
+export async function listAdminRoles(): Promise<AdminRoleRow[]> {
+  const supabase = await createServerClient()
+  const { data } = await supabase
+    .from('admin_roles')
+    .select('id, email, role, broker_id, user_id, created_at, updated_at')
+    .order('email', { ascending: true })
+  return (data ?? []) as AdminRoleRow[]
+}
+
+/** Add or update admin user. Only superuser. */
+export async function upsertAdminRole(
+  email: string,
+  role: AdminRoleType,
+  brokerId?: string | null
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const trimmed = email.trim().toLowerCase()
+  if (!trimmed) return { ok: false, error: 'Email is required' }
+  if (role === 'superuser' && !isSuperuserAdmin(trimmed)) return { ok: false, error: 'Only the designated superuser can be set as superuser.' }
+  const supabase = getServiceSupabase()
+  const { error } = await supabase.from('admin_roles').upsert(
+    { email: trimmed, role, broker_id: brokerId || null, updated_at: new Date().toISOString() },
+    { onConflict: 'email' }
+  )
+  if (error) return { ok: false, error: error.message }
+  const session = await getSession()
+  const actorRole = session?.user?.email ? (await getAdminRoleForEmail(session.user.email))?.role ?? null : null
+  await logAdminAction({ adminEmail: session?.user?.email ?? '', role: actorRole, actionType: 'upsert', resourceType: 'admin_role', resourceId: trimmed, details: { role, broker_id: brokerId ?? null } })
+  revalidatePath('/admin')
+  revalidatePath('/admin/users')
+  return { ok: true }
+}
+
+/** Remove admin access for an email. Only superuser. */
+export async function removeAdminRole(email: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (isSuperuserAdmin(email)) return { ok: false, error: 'Cannot remove the superuser.' }
+  const supabase = getServiceSupabase()
+  const { error } = await supabase.from('admin_roles').delete().eq('email', email.trim().toLowerCase())
+  if (error) return { ok: false, error: error.message }
+  const session = await getSession()
+  const actorRole = session?.user?.email ? (await getAdminRoleForEmail(session.user.email))?.role ?? null : null
+  await logAdminAction({ adminEmail: session?.user?.email ?? '', role: actorRole, actionType: 'delete', resourceType: 'admin_role', resourceId: email.trim().toLowerCase() })
+  revalidatePath('/admin')
+  revalidatePath('/admin/users')
+  return { ok: true }
+}
+
+/** List all platform users with engagement counts (superuser only). */
+export async function listPlatformUsersForAdmin(): Promise<AdminPlatformUserRow[]> {
+  const session = await getSession()
+  const role = await getAdminRoleForEmail(session?.user?.email ?? null)
+  if (role?.role !== 'superuser') return []
+
+  const supabase = getServiceSupabase()
+  const [{ data: profiles }, { data: savedListings }, { data: savedSearches }, { data: activities }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, email, display_name, first_name, last_name, phone, created_at, updated_at')
+      .order('created_at', { ascending: false }),
+    supabase.from('saved_listings').select('user_id'),
+    supabase.from('saved_searches').select('user_id'),
+    supabase.from('user_activities').select('user_id'),
+  ])
+
+  const countByUser = (rows: Array<{ user_id: string | null }> | null | undefined) => {
+    const map = new Map<string, number>()
+    for (const row of rows ?? []) {
+      if (!row.user_id) continue
+      map.set(row.user_id, (map.get(row.user_id) ?? 0) + 1)
+    }
+    return map
+  }
+
+  const savedListingsMap = countByUser(savedListings as Array<{ user_id: string | null }>)
+  const savedSearchesMap = countByUser(savedSearches as Array<{ user_id: string | null }>)
+  const activitiesMap = countByUser(activities as Array<{ user_id: string | null }>)
+
+  return ((profiles ?? []) as Array<{
+    id: string
+    email: string | null
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+    phone: string | null
+    created_at: string
+    updated_at: string
+  }>).map((row) => ({
+    ...row,
+    saved_listings_count: savedListingsMap.get(row.id) ?? 0,
+    saved_searches_count: savedSearchesMap.get(row.id) ?? 0,
+    activities_count: activitiesMap.get(row.id) ?? 0,
+  }))
+}

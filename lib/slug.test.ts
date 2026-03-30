@@ -1,0 +1,134 @@
+import { describe, it, expect } from 'vitest'
+import {
+  slugify,
+  cityEntityKey,
+  subdivisionEntityKey,
+  parseEntityKey,
+  listingsBrowsePath,
+  teamPath,
+  valuationPath,
+  listingDetailPath,
+  subdivisionListingsPath,
+  listingKeyFromSlug,
+} from './slug'
+
+describe('slug', () => {
+  it('slugify normalizes names', () => {
+    expect(slugify('Bend')).toBe('bend')
+    expect(slugify('Sunriver')).toBe('sunriver')
+    expect(slugify('  La Pine  ')).toBe('la-pine')
+    expect(slugify('Broken Top')).toBe('broken-top')
+  })
+
+  it('cityEntityKey returns slug', () => {
+    expect(cityEntityKey('Bend')).toBe('bend')
+  })
+
+  it('subdivisionEntityKey joins city and subdivision', () => {
+    expect(subdivisionEntityKey('Bend', 'Sunriver')).toBe('bend:sunriver')
+  })
+
+  it('parseEntityKey parses entity key', () => {
+    expect(parseEntityKey('bend:sunriver')).toEqual({ city: 'Bend', subdivision: 'Sunriver' })
+  })
+
+  it('returns canonical browse and valuation paths', () => {
+    expect(listingsBrowsePath()).toBe('/homes-for-sale')
+    expect(valuationPath()).toBe('/sell/valuation')
+  })
+
+  it('returns canonical team paths', () => {
+    expect(teamPath()).toBe('/team')
+    expect(teamPath('agent-slug')).toBe('/team/agent-slug')
+  })
+
+  it('uses canonical browse fallback when listing key missing', () => {
+    expect(listingDetailPath('')).toBe('/homes-for-sale')
+  })
+
+  it('builds listing hierarchy path with city and subdivision', () => {
+    expect(
+      listingDetailPath(
+        '12345',
+        {
+          streetNumber: '100',
+          streetName: 'Main St',
+          city: 'Bend',
+          state: 'OR',
+          postalCode: '97702',
+        },
+        {
+          city: 'Bend',
+          subdivision: 'Northwest Crossing',
+        }
+      )
+    ).toBe('/homes-for-sale/bend/northwest-crossing/12345-97702')
+  })
+
+  it('includes neighborhood segment before subdivision when provided', () => {
+    expect(
+      listingDetailPath(
+        '12345',
+        {
+          streetNumber: '100',
+          streetName: 'Main St',
+          city: 'Bend',
+          state: 'OR',
+          postalCode: '97702',
+        },
+        {
+          city: 'Bend',
+          neighborhood: 'Westside',
+          subdivision: 'Northwest Crossing',
+        }
+      )
+    ).toBe('/homes-for-sale/bend/westside/northwest-crossing/12345-97702')
+  })
+
+  it('falls back to by-key listing path when postal code is missing', () => {
+    expect(
+      listingDetailPath(
+        '12345',
+        {
+          city: null,
+          state: null,
+          postalCode: null,
+          streetNumber: null,
+          streetName: null,
+        },
+        {
+          city: 'Bend',
+          subdivision: 'Petrosa',
+        }
+      )
+    ).toBe('/homes-for-sale/listing/12345')
+  })
+
+  it('builds subdivision listings path with optional neighborhood', () => {
+    expect(subdivisionListingsPath('Bend', 'Northwest Crossing')).toBe('/homes-for-sale/bend/northwest-crossing')
+    expect(subdivisionListingsPath('Bend', 'Northwest Crossing', 'Westside')).toBe('/homes-for-sale/bend/westside/northwest-crossing')
+  })
+
+  it('uses listing key fallback path when hierarchy data missing', () => {
+    expect(listingDetailPath('abc-987')).toBe('/homes-for-sale/listing/abc-987')
+  })
+
+  it('prefers listing key over mls number for by-key fallback paths', () => {
+    expect(
+      listingDetailPath(
+        'abc-987',
+        undefined,
+        undefined,
+        { mlsNumber: '17133' }
+      )
+    ).toBe('/homes-for-sale/listing/abc-987')
+  })
+
+  it('extracts listing key from canonical mls-and-zip slug', () => {
+    expect(listingKeyFromSlug('17133-97702')).toBe('17133')
+  })
+
+  it('extracts listing key from legacy tilde slug', () => {
+    expect(listingKeyFromSlug('12345~100-main-st-bend-or-97702')).toBe('12345')
+  })
+})
