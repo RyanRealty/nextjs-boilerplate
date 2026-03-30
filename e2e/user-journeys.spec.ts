@@ -12,7 +12,7 @@ async function gotoMain(page: Page, path: string) {
   await expect(page.locator('main').first()).toBeVisible()
 }
 
-async function gotoAndFindFirstListing(page: Page, searchPath = '/search/bend') {
+async function gotoAndFindFirstListing(page: Page, searchPath = '/homes-for-sale/bend') {
   await gotoMain(page, searchPath)
   await page.waitForLoadState('networkidle')
   const listingLink = page.locator('a[href*="/listing/"]').first()
@@ -45,12 +45,12 @@ test.describe('User journeys coverage matrix', () => {
       .first()
     await expect(searchInput).toBeVisible()
     await searchInput.fill('Bend')
-    await gotoMain(page, '/search/bend')
+    await gotoMain(page, '/homes-for-sale/bend')
     await expect(page).toHaveTitle(/bend|homes for sale/i)
   })
 
   test('UJ-003: Apply Filters to Search', async ({ page }) => {
-    await gotoMain(page, '/search/bend?minPrice=300000&maxPrice=500000&beds=3&baths=2')
+    await gotoMain(page, '/homes-for-sale/bend?minPrice=300000&maxPrice=500000&beds=3&baths=2')
     const url = new URL(page.url())
     expect(url.searchParams.get('beds')).toBe('3')
     expect(url.searchParams.get('baths')).toBe('2')
@@ -59,23 +59,23 @@ test.describe('User journeys coverage matrix', () => {
   })
 
   test('UJ-004: Sort Search Results', async ({ page }) => {
-    await gotoMain(page, '/search/bend?sort=price_desc')
+    await gotoMain(page, '/homes-for-sale/bend?sort=price_desc')
     let url = new URL(page.url())
     expect(url.searchParams.get('sort')).toBe('price_desc')
 
-    await gotoMain(page, '/search/bend?sort=newest')
+    await gotoMain(page, '/homes-for-sale/bend?sort=newest')
     url = new URL(page.url())
     expect(url.searchParams.get('sort')).toBe('newest')
   })
 
   test('UJ-005: View Map and Switch to Map/List View', async ({ page }) => {
-    await gotoMain(page, '/search/bend')
+    await gotoMain(page, '/homes-for-sale/bend')
     const mapControl = page.locator('button:has-text("Map"), a:has-text("Map"), [aria-label*="map" i]').first()
     await expect(mapControl).toBeVisible()
   })
 
   test('UJ-006: Draw Polygon on Map to Search', async ({ page }) => {
-    await gotoMain(page, '/search/bend')
+    await gotoMain(page, '/homes-for-sale/bend')
     const drawControl = page.locator('button:has-text("Draw"), [aria-label*="draw" i]').first()
     const hasDrawControl = await drawControl.count()
     test.skip(hasDrawControl === 0, 'Draw control is not available in this environment state.')
@@ -172,7 +172,7 @@ test.describe('User journeys coverage matrix', () => {
   })
 
   test('UJ-018: View Community Page', async ({ page }) => {
-    await gotoMain(page, '/search/bend/tetherow')
+    await gotoMain(page, '/homes-for-sale/bend/tetherow')
     await expect(page.locator('main')).toContainText(/tetherow|community|bend/i)
   })
 
@@ -210,7 +210,7 @@ test.describe('User journeys coverage matrix', () => {
 
   test('UJ-032: Save a Search', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'E2E_SIGNED_IN_EMAIL and E2E_SIGNED_IN_PASSWORD are required.')
-    await gotoMain(page, '/search/bend')
+    await gotoMain(page, '/homes-for-sale/bend')
     const saveSearchControl = page.locator('button:has-text("Save Search"), button:has-text("Save search")').first()
     await expect(saveSearchControl).toBeVisible()
   })
@@ -229,7 +229,7 @@ test.describe('User journeys coverage matrix', () => {
 
   test('UJ-035: Set Buying Preferences', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
-    await gotoMain(page, '/account/preferences')
+    await gotoMain(page, '/account/buying-preferences')
     await expect(page.locator('main')).toBeVisible()
   })
 
@@ -249,7 +249,7 @@ test.describe('User journeys coverage matrix', () => {
 
   test('UJ-038: Export Personal Data', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
-    await gotoMain(page, '/account/settings')
+    await gotoMain(page, '/dashboard/settings')
     await expect(page.locator('main')).toBeVisible()
   })
 
@@ -285,7 +285,7 @@ test.describe('User journeys coverage matrix', () => {
   })
 
   test('UJ-056: View Analytics Dashboard', async ({ page }) => {
-    await gotoMain(page, '/admin/analytics')
+    await gotoMain(page, '/admin')
     await expect(page.locator('main')).toBeVisible()
   })
 
@@ -297,7 +297,7 @@ test.describe('User journeys coverage matrix', () => {
   })
 
   test('UJ-071: Every Public Page Has Meta Tags', async ({ page }) => {
-    const pages = ['/', '/search/bend', '/team', '/about']
+    const pages = ['/', '/homes-for-sale/bend', '/team', '/about']
     for (const path of pages) {
       await gotoMain(page, path)
       const title = await page.title()

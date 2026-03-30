@@ -43,7 +43,7 @@ test.describe('Visual Regression — Desktop', () => {
   })
 
   test('search page — Bend', async ({ page }) => {
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 
@@ -88,7 +88,7 @@ test.describe('Visual Regression — Desktop', () => {
 
   test('listing detail page', async ({ page }) => {
     // Navigate to a listing via search
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
     await page.waitForLoadState('networkidle')
 
     const listingLink = page.locator('a[href*="/listing/"]').first()
@@ -125,7 +125,7 @@ test.describe('Visual Regression — Mobile', () => {
   })
 
   test('search page mobile', async ({ page }) => {
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
 

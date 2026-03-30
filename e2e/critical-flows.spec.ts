@@ -38,7 +38,7 @@ test.describe('Homepage', () => {
 
 test.describe('Search', () => {
   test('city search page loads with listings', async ({ page }) => {
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
     await expect(page).toHaveTitle(/bend/i)
 
     // Page should render without errors
@@ -46,7 +46,7 @@ test.describe('Search', () => {
   })
 
   test('search page has filter/sort controls', async ({ page }) => {
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
 
     // Should have some form of listing grid or results
     await page.waitForLoadState('networkidle')
@@ -58,7 +58,7 @@ test.describe('Search', () => {
 test.describe('Listing Detail', () => {
   test('listing page structure loads correctly', async ({ page }) => {
     // Navigate to search first, then click a listing
-    await page.goto('/search/bend')
+    await page.goto('/homes-for-sale/bend')
     await page.waitForLoadState('networkidle')
 
     // Try to find a listing link
@@ -139,7 +139,7 @@ test.describe('Key Pages Return 200', () => {
   const pages = [
     { path: '/', name: 'Homepage' },
     { path: '/homes-for-sale', name: 'Listings browse' },
-    { path: '/search/bend', name: 'City search' },
+    { path: '/homes-for-sale/bend', name: 'City search' },
     { path: '/team', name: 'Team' },
     { path: '/about', name: 'About' },
     { path: '/admin/login', name: 'Admin login' },
@@ -154,7 +154,7 @@ test.describe('Key Pages Return 200', () => {
 })
 
 test.describe('SEO Essentials', () => {
-  const pages = ['/', '/search/bend', '/team', '/about']
+  const pages = ['/', '/homes-for-sale/bend', '/team', '/about']
 
   for (const path of pages) {
     test(`${path} has meta description`, async ({ page }) => {
