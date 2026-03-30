@@ -20,6 +20,22 @@ const PRICE_PRESETS = [
   { label: '$1.5M+', min: 1500000, max: undefined },
 ]
 
+/**
+ * Monthly payment presets — convert estimated monthly payment to equivalent list price.
+ * Uses a rough estimate: 30yr fixed at ~6.5%, ~1.2% property tax, ~0.5% insurance.
+ * Factor: price ≈ monthly × 155 (approximate for quick filtering).
+ */
+const PAYMENT_FACTOR = 155
+const MONTHLY_PRESETS = [
+  { label: 'Any', max: undefined as number | undefined },
+  { label: 'Under $2K/mo', max: 2000 },
+  { label: 'Under $3K/mo', max: 3000 },
+  { label: 'Under $4K/mo', max: 4000 },
+  { label: 'Under $5K/mo', max: 5000 },
+  { label: 'Under $7.5K/mo', max: 7500 },
+  { label: 'Under $10K/mo', max: 10000 },
+]
+
 const BEDS_OPTIONS = [undefined, 1, 2, 3, 4, 5] as const
 const BATHS_OPTIONS = [undefined, 1, 2, 3, 4] as const
 const STATUS_OPTIONS = ['Active', 'Pending', 'Sold'] as const
@@ -89,6 +105,7 @@ export default function SearchFilters({ initialFilters }: Props) {
     reports: [],
   })
   const [moreOpen, setMoreOpen] = useState(false)
+  const [priceMode, setPriceMode] = useState<'price' | 'payment'>('price')
   const [view, setView] = useState<'split' | 'list' | 'map'>(() => (initialFilters.view === 'list' || initialFilters.view === 'map' ? initialFilters.view : 'split'))
   const locationInputRef = useRef<HTMLInputElement>(null)
   const debouncedLocation = useDebounce(locationQuery, 300)
@@ -283,27 +300,68 @@ export default function SearchFilters({ initialFilters }: Props) {
           )}
         </div>
 
-        {/* Price presets */}
-        <div className="flex flex-wrap gap-1">
-          {PRICE_PRESETS.map((preset) => {
-            const active =
-              (preset.min == null && preset.max == null && !initialFilters.minPrice && !initialFilters.maxPrice) ||
-              (preset.min === (initialFilters.minPrice ? Number(initialFilters.minPrice) : undefined) && preset.max === (initialFilters.maxPrice ? Number(initialFilters.maxPrice) : undefined))
-            return (
-              <Button
-                key={preset.label}
-                type="button"
-                onClick={() => {
-                  setFilter('minPrice', preset.min)
-                  setFilter('maxPrice', preset.max)
-                  handleSearchTrack()
-                }}
-                className={`rounded-full px-3 py-1 text-sm ${active ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground hover:bg-border'}`}
-              >
-                {preset.label}
-              </Button>
-            )
-          })}
+        {/* Price / Monthly Payment toggle + presets */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              onClick={() => setPriceMode('price')}
+              className={`rounded-full px-2 py-0.5 text-xs ${priceMode === 'price' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+            >
+              Price
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setPriceMode('payment')}
+              className={`rounded-full px-2 py-0.5 text-xs ${priceMode === 'payment' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+            >
+              Monthly
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {priceMode === 'price' ? (
+              PRICE_PRESETS.map((preset) => {
+                const active =
+                  (preset.min == null && preset.max == null && !initialFilters.minPrice && !initialFilters.maxPrice) ||
+                  (preset.min === (initialFilters.minPrice ? Number(initialFilters.minPrice) : undefined) && preset.max === (initialFilters.maxPrice ? Number(initialFilters.maxPrice) : undefined))
+                return (
+                  <Button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      setFilter('minPrice', preset.min)
+                      setFilter('maxPrice', preset.max)
+                      handleSearchTrack()
+                    }}
+                    className={`rounded-full px-3 py-1 text-sm ${active ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground hover:bg-border'}`}
+                  >
+                    {preset.label}
+                  </Button>
+                )
+              })
+            ) : (
+              MONTHLY_PRESETS.map((preset) => {
+                const equivMax = preset.max ? preset.max * PAYMENT_FACTOR : undefined
+                const active =
+                  (preset.max == null && !initialFilters.maxPrice) ||
+                  (equivMax != null && initialFilters.maxPrice === String(equivMax))
+                return (
+                  <Button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      setFilter('minPrice', undefined)
+                      setFilter('maxPrice', equivMax)
+                      handleSearchTrack()
+                    }}
+                    className={`rounded-full px-3 py-1 text-sm ${active ? 'bg-accent text-primary' : 'bg-muted text-muted-foreground hover:bg-border'}`}
+                  >
+                    {preset.label}
+                  </Button>
+                )
+              })
+            )}
+          </div>
         </div>
 
         {/* Beds */}

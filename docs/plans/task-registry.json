@@ -217,7 +217,7 @@
         {
           "id": "T2-006",
           "title": "Build missing reporting components (StatCard, FreshnessBadge, MarketHealthGauge)",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "reporting",
           "files": [
@@ -240,7 +240,7 @@
         {
           "id": "T2-007",
           "title": "Build PageCTA component",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "engagement",
           "files": [
@@ -261,7 +261,7 @@
         {
           "id": "T2-008",
           "title": "Programmatic filter pages configuration",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "monetization",
           "files": [
@@ -283,7 +283,7 @@
         {
           "id": "T2-009",
           "title": "Author/expertise signals on all content pages",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "seo",
           "files": [
