@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getReportCities } from '@/app/actions/reports'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -83,6 +84,67 @@ export default async function HousingMarketHubPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      <Separator className="my-10" />
+
+      <section aria-labelledby="related-resources-heading">
+        <h2 id="related-resources-heading" className="text-xl font-semibold text-foreground">
+          Related resources
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Explore more Central Oregon real estate content across the site.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/cities"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            All Central Oregon cities
+          </Link>
+          <Link
+            href="/communities"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Communities & neighborhoods
+          </Link>
+          <Link
+            href="/homes-for-sale"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Browse homes for sale
+          </Link>
+          <Link
+            href="/guides"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Buying & selling guides
+          </Link>
+          <Link
+            href="/area-guides"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Area guides
+          </Link>
+          <Link
+            href="/open-houses"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Open houses
+          </Link>
+          <Link
+            href="/reports"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Market reports
+          </Link>
+          <Link
+            href="/activity"
+            className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            Recent activity feed
+          </Link>
         </div>
       </section>
     </main>
