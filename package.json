@@ -45,6 +45,10 @@
     "health:history": "npx tsx scripts/track-build-health.ts history",
     "coverage:report": "npx tsx scripts/generate-test-stubs.ts report",
     "coverage:generate": "npx tsx scripts/generate-test-stubs.ts generate",
+    "test:e2e": "npx playwright test --project=chromium",
+    "test:e2e:all": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui",
+    "test:e2e:update-snapshots": "npx playwright test --update-snapshots",
     "test:history": "node scripts/test-listing-history.mjs",
     "vercel:env": "node scripts/sync-vercel-env.mjs",
     "prepare": "husky"
@@ -91,6 +95,7 @@
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
+    "@playwright/test": "1.58.2",
     "@swc/helpers": "^0.5.19",
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
