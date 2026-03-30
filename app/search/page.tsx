@@ -8,7 +8,7 @@ import { getLikedListingKeys } from '@/app/actions/likes'
 import SearchFilters from '@/components/search/SearchFilters'
 import SearchResults from '@/components/search/SearchResults'
 import SearchSplitView from '@/components/search/SearchSplitView'
-import SearchMapClustered from '@/components/SearchMapClustered'
+import SearchMapClustered from '@/components/LazySearchMapClustered'
 import TrackSearchView from '@/components/tracking/TrackSearchView'
 
 const PAGE_SIZE = 24

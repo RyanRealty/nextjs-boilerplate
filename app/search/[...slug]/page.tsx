@@ -30,7 +30,7 @@ import { cityEntityKey, subdivisionEntityKey, getSubdivisionDisplayName, cityPag
 import { entityKeyToSlug } from '../../../lib/community-slug'
 import { getPresetBySlug, isPresetSlug } from '../../../lib/search-presets'
 import { communityPagePath } from '../../../lib/community-slug'
-import SearchMapClustered from '../../../components/SearchMapClustered'
+import SearchMapClustered from '../../../components/LazySearchMapClustered'
 import ListingTile from '../../../components/ListingTile'
 import AdvancedSearchFilters from '../../../components/AdvancedSearchFilters'
 import ShareButton from '../../../components/ShareButton'
@@ -599,6 +599,7 @@ export default async function SearchPage({
                   muted
                   loop
                   playsInline
+                  preload="metadata"
                   className="absolute inset-0 h-full w-full object-cover"
                   aria-label={`Aerial flyover of ${displayName}, Central Oregon`}
                 />

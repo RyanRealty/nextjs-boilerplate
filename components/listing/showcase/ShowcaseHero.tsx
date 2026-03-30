@@ -36,6 +36,7 @@ export default function ShowcaseHero({ listingKey, heroVideoUrl, photos }: Props
             loop
             autoPlay
             controls
+            preload="metadata"
             onPlay={handleVideoPlay}
             aria-label="Listing video"
           />

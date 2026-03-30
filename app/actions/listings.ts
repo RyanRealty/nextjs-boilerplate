@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import { listingDetailPath, listingKeyFromSlug, neighborhoodPagePath, reportsExploreYtdPath } from '../../lib/slug'
 import { getSubdivisionMatchNames } from '../../lib/subdivision-aliases'
 
@@ -208,7 +209,7 @@ const DEFAULT_BROWSE_CITIES: BrowseCity[] = [
  * Only cities with at least one active listing; count is active-only so it matches the city page.
  * Uses a direct query on listings first; falls back to RPC if needed; finally to a static list so the dropdown is never empty.
  */
-export async function getBrowseCities(): Promise<BrowseCity[]> {
+async function _getBrowseCitiesUncached(): Promise<BrowseCity[]> {
   const supabase = getAnonSupabase()
   if (!supabase) return DEFAULT_BROWSE_CITIES
 
@@ -247,6 +248,12 @@ export async function getBrowseCities(): Promise<BrowseCity[]> {
 
   return DEFAULT_BROWSE_CITIES
 }
+
+export const getBrowseCities = unstable_cache(
+  _getBrowseCitiesUncached,
+  ['browse-cities'],
+  { revalidate: 60, tags: ['browse-cities'] }
+)
 
 /**
  * Resolve URL slug to canonical city name from DB (e.g. "la-pine" or "La%20Pine" -> "La Pine").

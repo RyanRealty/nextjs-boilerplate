@@ -1,6 +1,22 @@
 'use client'
 
-import SearchMapClustered, { type ListingForMap } from '@/components/SearchMapClustered'
+import dynamic from 'next/dynamic'
+import type { ListingForMap } from '@/components/SearchMapClustered'
+
+const SearchMapClustered = dynamic(
+  () => import('@/components/SearchMapClustered'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+        style={{ minHeight: '320px' }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+)
 import type { CityListingRow } from '@/app/actions/cities'
 
 type Props = {

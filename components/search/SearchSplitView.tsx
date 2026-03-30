@@ -1,11 +1,26 @@
 'use client'
 
 import { useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import SearchResults from '@/components/search/SearchResults'
-import SearchMapClustered from '@/components/SearchMapClustered'
 import type { ListingTileRow } from '@/app/actions/listings'
 import type { SearchFiltersInitial } from '@/components/search/SearchFilters'
 import type { ListingForMap } from '@/components/SearchMapClustered'
+
+const SearchMapClustered = dynamic(
+  () => import('@/components/SearchMapClustered'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+        style={{ minHeight: '320px' }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+)
 
 export type SearchSplitViewProps = {
   /** List: initial data and filters */

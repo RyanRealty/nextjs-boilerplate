@@ -1,9 +1,25 @@
 'use client'
 
 import React, { useCallback, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { getListingsInBounds, type MapBounds, type ListingTileRow } from '@/app/actions/listings'
-import SearchMapClustered, { type ListingForMap } from '@/components/SearchMapClustered'
+import type { ListingForMap } from '@/components/SearchMapClustered'
+
+const SearchMapClustered = dynamic(
+  () => import('@/components/SearchMapClustered'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+        style={{ minHeight: '320px' }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+)
 import ListingTile, { type ListingTileListing } from '@/components/ListingTile'
 import { MAP_DEFAULT_CENTER } from '@/lib/map-constants'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
