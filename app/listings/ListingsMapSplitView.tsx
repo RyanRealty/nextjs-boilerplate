@@ -1,15 +1,30 @@
 'use client'
 
 import React, { useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import ListingTile from '@/components/ListingTile'
-import SearchMapClustered from '@/components/SearchMapClustered'
 import SearchFilterBar from '@/components/SearchFilterBar'
 import ListingsPagination from '@/components/ListingsPagination'
 import ListingsPageFooter from '@/app/listings/ListingsPageFooter'
 import type { ListingTileListing } from '@/components/ListingTile'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_TERM_YEARS } from '@/lib/mortgage'
 import type { ListingForMap } from '@/components/SearchMapClustered'
+
+const SearchMapClustered = dynamic(
+  () => import('@/components/SearchMapClustered'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+        style={{ minHeight: '320px' }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+)
 import type { CityForIndex } from '@/lib/cities'
 import {
   Select,

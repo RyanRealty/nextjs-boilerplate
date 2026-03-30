@@ -7,7 +7,22 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { trackEvent } from '@/lib/tracking'
 import type { OpenHouseWithListing } from '@/app/actions/open-houses'
 import type { OpenHousesFilters } from '@/app/actions/open-houses'
-import ListingMapGoogle from '@/components/ListingMapGoogle'
+import dynamic from 'next/dynamic'
+
+const ListingMapGoogle = dynamic(
+  () => import('@/components/ListingMapGoogle'),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+        style={{ minHeight: '400px' }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+)
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
