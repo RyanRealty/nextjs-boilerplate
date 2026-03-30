@@ -46,6 +46,8 @@ import RecentlySoldRow from '@/components/RecentlySoldRow'
 import LivePulseBanner from '@/components/reports/LivePulseBanner'
 import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import VideoToursRow from '@/components/videos/VideoToursRow'
+import CityClusterNav from '@/components/CityClusterNav'
+import { getGuidesByCity } from '@/app/actions/guides'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -158,6 +160,7 @@ export default async function CityDetailPage({ params }: Props) {
     citySaved,
     savedCommunityKeys,
     likedCommunityKeys,
+    cityGuides,
   ] = await Promise.all([
     getCityListings(city.name, 24),
     getCitySoldListings(city.name, 6),
@@ -172,7 +175,9 @@ export default async function CityDetailPage({ params }: Props) {
     session?.user ? isCitySaved(slug) : Promise.resolve(false),
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
+    getGuidesByCity(city.name),
   ])
+  const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
   const cityPulse = await getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) })
   const cityOpenHouses = await getOpenHousesWithListings({ city: city.name })
 
@@ -326,6 +331,15 @@ export default async function CityDetailPage({ params }: Props) {
         cityContent={cityContent}
         dataDrivenParagraphs={dataDrivenParagraphs}
       />
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <CityClusterNav
+          cityName={city.name}
+          citySlug={slug}
+          activePage="city"
+          guideSlug={cityGuideSlug}
+        />
+      </div>
 
       <CityMarketStats
         cityName={city.name}

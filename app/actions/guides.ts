@@ -133,6 +133,31 @@ export async function getGuideBySlug(slug: string): Promise<GuideRow | null> {
   return generated.find((guide) => guide.slug === slug) ?? null
 }
 
+/**
+ * Get published guides filtered by city name.
+ * Returns DB guides first; falls back to generated guides if none exist.
+ * Used by CityClusterNav for topic-cluster interlinking.
+ */
+export async function getGuidesByCity(city: string): Promise<GuideRow[]> {
+  if (!city?.trim()) return []
+  const supabase = getPublicClient()
+  if (!supabase) return []
+  const { data } = await supabase
+    .from('guides')
+    .select('id, slug, title, meta_description, content_html, category, city, status, published_at, updated_at')
+    .eq('status', 'published')
+    .ilike('city', city.trim())
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(10)
+  const rows = (data ?? []) as GuideRow[]
+  if (rows.length > 0) return rows
+  // Fall back to generated guides filtered by city
+  const generated = await getGeneratedGuidesFromStats(30)
+  return generated.filter(
+    (g) => g.city?.trim().toLowerCase() === city.trim().toLowerCase()
+  )
+}
+
 export async function getAdminGuides(): Promise<GuideRow[]> {
   const supabase = createServiceClient()
   const { data } = await supabase

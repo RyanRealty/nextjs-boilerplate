@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import AdUnit from '@/components/AdUnit'
 import HomeValuationCta from '@/components/HomeValuationCta'
+import CityClusterNav from '@/components/CityClusterNav'
 import { getGuideBySlug, getPublishedGuides } from '@/app/actions/guides'
+import { cityEntityKey } from '@/lib/slug'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -83,6 +85,16 @@ export default async function GuideDetailPage({ params }: { params: Promise<{ sl
           <AdUnit slot="4004001002" format="horizontal" />
         </div>
       </article>
+      {guide.city && (
+        <div className="mt-8">
+          <CityClusterNav
+            cityName={guide.city}
+            citySlug={cityEntityKey(guide.city)}
+            activePage="guide"
+            guideSlug={guide.slug}
+          />
+        </div>
+      )}
       {related.length > 0 && (
         <section className="mt-8 rounded-lg border border-border bg-card p-6">
           <h2 className="text-lg font-semibold text-foreground">More guides</h2>

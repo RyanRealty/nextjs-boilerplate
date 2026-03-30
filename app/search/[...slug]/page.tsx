@@ -69,6 +69,8 @@ import RecentlySoldRow from '../../../components/RecentlySoldRow'
 import LivePulseBanner from '../../../components/reports/LivePulseBanner'
 import AdUnit from '../../../components/AdUnit'
 import InFeedAdCard from '../../../components/search/InFeedAdCard'
+import CityClusterNav from '../../../components/CityClusterNav'
+import { getGuidesByCity } from '../../actions/guides'
 
 /** Fallback map center when no listing coords (Central Oregon cities). */
 const FALLBACK_CITY_CENTERS: Record<string, { latitude: number; longitude: number; zoom: number }> = {
@@ -327,7 +329,7 @@ export default async function SearchPage({
     getResortEntityKeys(),
   ])
   const hotCommunitiesSlice = city && !subdivision ? hotCommunities.slice(0, 10) : []
-  const [hotCommunityBannerUrls, savedCommunityKeys, cityPriceHistory] = await Promise.all([
+  const [hotCommunityBannerUrls, savedCommunityKeys, cityPriceHistory, cityGuidesForCluster] = await Promise.all([
     city && !subdivision && hotCommunitiesSlice.length > 0
       ? Promise.all(
           hotCommunitiesSlice.map((c) =>
@@ -337,7 +339,9 @@ export default async function SearchPage({
       : Promise.resolve([]),
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     city ? getCityPriceHistory(city) : Promise.resolve([]),
+    city && !subdivision ? getGuidesByCity(city) : Promise.resolve([]),
   ])
+  const cityGuideSlug = cityGuidesForCluster.length > 0 ? cityGuidesForCluster[0]!.slug : null
   const [searchPulse, searchActivityFeed, searchRecentlySold] = await Promise.all([
     city
       ? getLiveMarketPulse({
@@ -994,6 +998,17 @@ export default async function SearchPage({
               Golf course homes
             </Link>
           </div>
+        </section>
+      )}
+
+      {city && !subdivision && (
+        <section className="mb-10">
+          <CityClusterNav
+            cityName={city}
+            citySlug={cityEntityKey(city)}
+            activePage={preset ? 'filter' : 'homes-for-sale'}
+            guideSlug={cityGuideSlug}
+          />
         </section>
       )}
 

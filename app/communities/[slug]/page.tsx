@@ -44,6 +44,8 @@ import RecentlySoldRow from '@/components/RecentlySoldRow'
 import LivePulseBanner from '@/components/reports/LivePulseBanner'
 import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import VideoToursRow from '@/components/videos/VideoToursRow'
+import CityClusterNav from '@/components/CityClusterNav'
+import { getGuidesByCity } from '@/app/actions/guides'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -90,7 +92,7 @@ export default async function CommunityDetailPage({ params }: Props) {
   const pageTitle = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
   const citySlug = community.city.toLowerCase().replace(/\s+/g, '-')
-  const [listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys] =
+  const [listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides] =
     await Promise.all([
       getCommunityListings(community.city, community.subdivision, 24),
       getCommunitySoldListings(community.city, community.subdivision, 6),
@@ -106,7 +108,9 @@ export default async function CommunityDetailPage({ params }: Props) {
       session?.user ? isCommunityLiked(community.entityKey) : Promise.resolve(false),
       session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
       session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
+      getGuidesByCity(community.city),
     ])
+  const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
   const communityPulse = await getLiveMarketPulse({
     geoType: 'subdivision',
     geoSlug: `${slugify(community.city)}-${slugify(community.subdivision)}`,
@@ -304,6 +308,15 @@ export default async function CommunityDetailPage({ params }: Props) {
         resortStaticContent={resortStaticContent}
         dataDrivenParagraphs={dataDrivenParagraphs}
       />
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+        <CityClusterNav
+          cityName={community.city}
+          citySlug={citySlug}
+          activePage="community"
+          guideSlug={cityGuideSlug}
+        />
+      </div>
 
       <CommunityMarketStats
         communityName={community.name}

@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCachedStats, getLiveMarketPulse } from '@/app/actions/market-stats'
+import { getGuidesByCity } from '@/app/actions/guides'
+import CityClusterNav from '@/components/CityClusterNav'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -47,10 +49,13 @@ export default async function HousingMarketGeoPage({ params }: { params: Promise
   const level = communityName ? 'subdivision' : 'city'
   const geoSlug = communityName ? (slug[1] ?? '') : (slug[0] ?? '')
   const geoName = communityName ?? cityName
-  const [stats, pulse] = await Promise.all([
+  const [stats, pulse, cityGuides] = await Promise.all([
     getCachedStats({ geoType: level, geoSlug, periodType: 'monthly' }),
     getLiveMarketPulse({ geoType: level, geoSlug }),
+    getGuidesByCity(cityName),
   ])
+  const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
+  const citySlug = slug[0] ?? ''
   const canonicalUrl = `${siteUrl}/housing-market/${slug.map((part) => encodeURIComponent(part)).join('/')}`
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -114,6 +119,14 @@ export default async function HousingMarketGeoPage({ params }: { params: Promise
             {pulse?.active_count != null ? Math.round(Number(pulse.active_count)).toLocaleString() : 'Not available'}
           </p>
         </div>
+      </div>
+      <div className="mt-8">
+        <CityClusterNav
+          cityName={cityName}
+          citySlug={citySlug}
+          activePage="housing-market"
+          guideSlug={cityGuideSlug}
+        />
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href={`/housing-market/reports/${communityName ? 'community' : 'city'}/${encodeURIComponent(geoName)}`} className="rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted">
