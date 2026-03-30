@@ -104,7 +104,7 @@
     {
       "id": "tier-2",
       "name": "Competitive Baseline — Must-Have for Launch",
-      "status": "open",
+      "status": "complete",
       "goal": "Features required to match Zillow/Redfin baseline and pass all critical user journeys.",
       "tasks": [
         {
@@ -135,7 +135,7 @@
         {
           "id": "T2-002",
           "title": "Walk Score / Transit Score / Bike Score integration",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "engagement",
           "files": [
@@ -156,7 +156,7 @@
         {
           "id": "T2-003",
           "title": "School information with ratings",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "engagement",
           "files": [
@@ -197,7 +197,7 @@
         {
           "id": "T2-005",
           "title": "Integrate AI chat with property search",
-          "status": "open",
+          "status": "complete",
           "priority": "high",
           "owner": "engagement",
           "files": [
