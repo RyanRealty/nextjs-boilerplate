@@ -286,3 +286,59 @@
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Print styles — clean listing printout
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Hide non-essential elements */
+  header, footer, nav,
+  [data-print-hide],
+  .no-print,
+  [role="banner"],
+  [role="navigation"],
+  [role="contentinfo"],
+  button:not([data-print-show]),
+  .sticky,
+  [data-radix-popper-content-wrapper],
+  iframe {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for printing */
+  body, main {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure content fills page width */
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Image handling */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Prevent page breaks inside key sections */
+  .card, section, article {
+    page-break-inside: avoid;
+  }
+
+  /* Show URLs for links */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Clean up listing detail for print */
+  .listing-hero {
+    max-height: 400px !important;
+    overflow: hidden;
+  }
+}
