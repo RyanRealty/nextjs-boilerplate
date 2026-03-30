@@ -305,3 +305,48 @@ Always idempotent: use `IF NOT EXISTS`, `IF EXISTS`, `ON CONFLICT DO NOTHING`.
 - **Design System**: `CLAUDE.md` — component mapping and color tokens
 - **Cursor Rules**: `.cursor/rules/` — enforced coding standards
 - **Continuous Improvement**: `docs/plans/continuous-improvement.md` — auto-generated progress report
+
+---
+
+## Cursor Cloud specific instructions
+
+### Environment overview
+
+Ryan Realty is a Next.js 16 app (React 19, TypeScript 5) deployed on Vercel. All external services (Supabase, Spark MLS, Google Maps, etc.) are cloud-hosted; there is no Docker or local database to manage. The only truly required external service is **Supabase** (PostgreSQL + Auth). All other integrations degrade gracefully when their env vars are absent.
+
+### Supabase credentials
+
+The app requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`. Without real values, the app still builds and renders pages, but all data-fetching from Supabase returns empty results. If these secrets are not injected as environment variables, create a `.env.local` with placeholder values to unblock the build:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
+SUPABASE_SERVICE_ROLE_KEY=placeholder-service-role-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+### Running the dev server
+
+Use `npm run dev:unix` (not `npm run dev`, which uses a PowerShell script for Windows). The dev server starts on port 3000 with Turbopack.
+
+### Pre-commit / pre-push hooks
+
+- **Pre-commit**: runs `npm test` (Vitest). Bypass with `SKIP_LOCAL_GATES=1`.
+- **Pre-push**: runs design-token lint + tests + build. Bypass with `SKIP_LOCAL_GATES=1`.
+- For cloud agent commits where you haven't changed source code, use `SKIP_LOCAL_GATES=1 git push` to avoid the full quality gate.
+
+### Playwright E2E tests
+
+Requires `npx playwright install chromium --with-deps` before first run. E2E tests need a production build (`npm run build`) and then use `npm run test:e2e`.
+
+### Key commands reference
+
+See the "Running Locally" section above for the full list. The most common commands:
+- `npm run test` — Vitest unit tests
+- `npm run lint` — ESLint
+- `npm run build` — production build
+- `npm run dev:unix` — dev server (Linux/macOS)
+
+### Lint pre-existing issues
+
+The repo has 12 pre-existing ESLint errors (mostly `@typescript-eslint/no-explicit-any` in `types/supabase-ssr.d.ts`) and ~180 warnings. These are not blocking and exist in the base branch.
