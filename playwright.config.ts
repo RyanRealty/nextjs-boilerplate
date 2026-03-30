@@ -1,4 +1,10 @@
+import { existsSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
+
+const HAS_AUTH_CREDENTIALS = Boolean(
+  process.env.E2E_SIGNED_IN_EMAIL?.trim() && process.env.E2E_SIGNED_IN_PASSWORD?.trim()
+)
+const AUTH_STATE_FILE = 'e2e/.auth/user.json'
 
 /**
  * Playwright configuration for E2E and visual regression testing.
@@ -45,17 +51,55 @@ export default defineConfig({
     },
   },
 
-  /* Projects — chromium only for speed in CI, add more for full coverage */
+  /* Projects — setup → authenticated → anonymous (chromium + mobile)
+   *
+   * When E2E_SIGNED_IN_EMAIL + E2E_SIGNED_IN_PASSWORD are set:
+   *   1. "setup" logs in and saves cookies to e2e/.auth/user.json
+   *   2. "authenticated" reuses those cookies for signed-in user tests
+   *   3. "chromium" + "mobile" run everything else anonymously
+   *
+   * When env vars are NOT set:
+   *   - "setup" and "authenticated" are omitted entirely
+   *   - Signed-in tests in chromium/mobile skip via HAS_SIGNED_IN_CREDENTIALS guard
+   */
   projects: [
+    /* Auth setup + authenticated — only included when credentials exist */
+    ...(HAS_AUTH_CREDENTIALS
+      ? [
+          {
+            name: 'setup',
+            testMatch: /auth\.setup\.ts/,
+            use: {
+              ...devices['Desktop Chrome'],
+            },
+          },
+          {
+            name: 'authenticated',
+            dependencies: ['setup'],
+            testMatch: /user-journeys\.spec\.ts/,
+            use: {
+              ...devices['Desktop Chrome'],
+              viewport: { width: 1280, height: 720 },
+              storageState: AUTH_STATE_FILE,
+            },
+          },
+        ]
+      : []),
+
+    /* Anonymous desktop tests */
     {
       name: 'chromium',
+      testIgnore: /auth\.setup\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
       },
     },
+
+    /* Mobile tests */
     {
       name: 'mobile',
+      testIgnore: /auth\.setup\.ts/,
       use: {
         ...devices['iPhone 14'],
       },

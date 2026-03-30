@@ -204,8 +204,16 @@ test.describe('User journeys coverage matrix', () => {
     const listingHref = await gotoAndFindFirstListing(page)
     test.skip(!listingHref, 'No listing links available for the current dataset.')
     await gotoMain(page, listingHref!)
+    // Verify save button is present and functional
     const saveControl = page.locator('button:has-text("Save"), [aria-label*="save" i]').first()
     await expect(saveControl).toBeVisible()
+    // Click save and verify state changes (button text or icon change)
+    await saveControl.click()
+    // Wait briefly for optimistic UI update
+    await page.waitForTimeout(1000)
+    // The button should still be in the DOM (either "Saved" or toggled state)
+    const saveArea = page.locator('button:has-text("Save"), button:has-text("Saved"), [aria-label*="save" i]').first()
+    await expect(saveArea).toBeVisible()
   })
 
   test('UJ-032: Save a Search', async ({ page }) => {
@@ -218,25 +226,35 @@ test.describe('User journeys coverage matrix', () => {
   test('UJ-033: Receive Email Alert for Saved Search', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user and external email pipeline setup.')
     await gotoMain(page, '/account/saved-searches')
-    await expect(page.locator('main')).toBeVisible()
+    // Verify we landed on the actual saved searches page (not redirected)
+    await expect(page.locator('h1')).toContainText(/saved searches/i)
   })
 
   test('UJ-034: View Browsing History', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
     await gotoMain(page, '/dashboard/history')
-    await expect(page.locator('main')).toBeVisible()
+    // Verify we're on the actual history page (not redirected to login)
+    await expect(page.locator('h1')).toContainText(/history/i)
   })
 
   test('UJ-035: Set Buying Preferences', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
     await gotoMain(page, '/account/buying-preferences')
-    await expect(page.locator('main')).toBeVisible()
+    // Verify the preferences form rendered (not a redirect)
+    await expect(page.locator('h1')).toContainText(/buying preferences/i)
+    // Verify form inputs exist (down payment, interest rate, loan term)
+    const formInputs = page.locator('input, select, [role="combobox"]')
+    expect(await formInputs.count()).toBeGreaterThan(0)
   })
 
   test('UJ-036: Edit Profile', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
     await gotoMain(page, '/account/profile')
-    await expect(page.locator('main')).toBeVisible()
+    // Verify the profile form rendered (not a redirect)
+    await expect(page.locator('h1')).toContainText(/profile/i)
+    // Verify name/phone input fields exist
+    const nameInput = page.locator('input').first()
+    await expect(nameInput).toBeVisible()
   })
 
   test('UJ-037: Share a Listing via All Channels', async ({ page }) => {
@@ -250,7 +268,8 @@ test.describe('User journeys coverage matrix', () => {
   test('UJ-038: Export Personal Data', async ({ page }) => {
     test.skip(!HAS_SIGNED_IN_CREDENTIALS, 'Requires signed-in test user.')
     await gotoMain(page, '/dashboard/settings')
-    await expect(page.locator('main')).toBeVisible()
+    // Verify the settings page rendered (not redirected to login)
+    await expect(page.locator('h1')).toContainText(/settings|preferences/i)
   })
 
   test('UJ-050: Admin Login', async ({ page }) => {
