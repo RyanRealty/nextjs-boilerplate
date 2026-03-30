@@ -1,0 +1,64 @@
+---
+description: Supabase data layer rules — querying, migrations, and the reporting cache
+globs: ["app/actions/**/*.ts", "supabase/migrations/**/*.sql", "lib/**/*.ts"]
+alwaysApply: true
+---
+
+# Supabase Data Layer Rules
+
+## Single source of truth for market stats
+**Always** use the pre-computed reporting cache functions. Never compute stats on the fly in a component or action:
+
+```ts
+// CORRECT
+import { getCachedStats, getLiveMarketPulse } from '@/app/actions/market-stats'
+
+// WRONG — old function, do not use
+import { getCityMarketStats } from '@/app/actions/market-stats'
+```
+
+## Writing migrations
+- File naming: `YYYYMMDDHHMMSS_description_snake_case.sql` (match existing pattern)
+- Run via: `npm run db:migration` to scaffold, then fill in the SQL
+- Always write **idempotent** migrations: use `IF NOT EXISTS`, `IF EXISTS`, `ON CONFLICT DO NOTHING`
+- Never drop columns or tables in the same migration that removes data — use a two-step approach
+- After writing a migration, run `npm run db:push` to apply it
+
+## Column naming
+Follow existing RESO/Spark conventions for listing fields (PascalCase: `ListingKey`, `ListPrice`, `BedroomsTotal`).
+Use `snake_case` for all custom platform columns (e.g. `hero_photo_url`, `sync_state`, `updated_at`).
+
+## Querying patterns
+```ts
+// Select only the columns you need — never select(*)
+const { data, error } = await supabase
+  .from('listings')
+  .select('ListingKey, ListPrice, BedroomsTotal, City')
+  .eq('StandardStatus', 'Active')
+  .order('ListPrice', { ascending: false })
+  .limit(20)
+
+if (error) {
+  console.error('[getListings]', error)
+  return { data: null, error: error.message }
+}
+```
+
+## Status filtering
+Use these pre-defined OR filters for listing status — do not write your own:
+
+```ts
+// Defined in app/actions/listings.ts — import and reuse
+const ACTIVE_STATUS_OR = 'StandardStatus.is.null,StandardStatus.ilike.%Active%,...'
+const ACTIVE_OR_PENDING_OR = '...'
+```
+
+## RLS (Row Level Security)
+- User-facing reads: use the server client (`createClient` from `@/lib/supabase/server`) — RLS applies
+- Admin/cron writes: use the service role client — RLS bypassed
+- Never use the service role client in a path reachable by end users
+
+## Do NOT
+- Run raw SQL in server actions — use the Supabase JS client
+- Call Supabase directly from client components — always go through server actions
+- Use `.single()` without handling the case where no row exists (it throws on 0 rows)

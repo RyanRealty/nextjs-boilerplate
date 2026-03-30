@@ -1,0 +1,65 @@
+---
+description: Patterns for writing server actions in this codebase
+globs: ["app/actions/**/*.ts", "app/**/actions.ts"]
+alwaysApply: true
+---
+
+# Server Actions — Required Patterns
+
+## File header
+Every server action file must start with `'use server'` as the first line.
+
+## Supabase client selection
+Use the correct client for the context — never mix them:
+
+| Client | When to use | Import |
+|--------|-------------|--------|
+| `createClient()` from `@/lib/supabase/server` | Any action that reads session/auth (user-facing) | `import { createClient } from '@/lib/supabase/server'` |
+| Service role client | Admin-only operations, cron jobs, background tasks | `createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY)` from `@supabase/supabase-js` |
+| Anon client | Public read-only queries with no user context | `createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)` from `@supabase/supabase-js` |
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client. Service role clients are server-only.
+
+## Return shape
+Return a typed result — never throw raw errors to the client:
+
+```ts
+// CORRECT
+export async function doThing(): Promise<{ data: Foo | null; error: string | null }> {
+  try {
+    const result = await ...
+    return { data: result, error: null }
+  } catch (err) {
+    console.error('[doThing]', err)
+    return { data: null, error: 'Something went wrong' }
+  }
+}
+
+// WRONG — throws expose stack traces and crash the UI
+export async function doThing() {
+  const result = await ... // throws on failure
+  return result
+}
+```
+
+## Null-guard env vars
+Always check env vars before using them. Return null/error if missing:
+
+```ts
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url?.trim() || !key?.trim()) return null
+  return createClient(url, key)
+}
+```
+
+## Naming conventions
+- Files: `app/actions/{domain}.ts` (e.g. `listings.ts`, `auth.ts`, `brokers.ts`)
+- Functions: `camelCase`, verb-first (e.g. `getListings`, `saveListing`, `deleteBanner`)
+- Export types alongside actions in the same file
+
+## Do NOT
+- Import server actions into client components directly — use them via `useTransition` / `startTransition` or form `action=`
+- Use `fetch()` inside server actions to call your own API routes — call the action function directly
+- Put business logic in API routes when it belongs in a server action

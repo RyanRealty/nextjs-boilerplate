@@ -1,0 +1,56 @@
+---
+description: Git commit message format and workflow rules for this project
+alwaysApply: true
+---
+
+# Git Commit Rules
+
+## Commit message format
+Use conventional commits — always:
+
+```
+<type>: <short description in lowercase>
+```
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature or user-facing capability |
+| `fix` | Bug fix |
+| `chore` | Maintenance, deps, config (no production code change) |
+| `refactor` | Code restructuring with no behavior change |
+| `style` | UI-only changes (layout, spacing, colors) |
+| `perf` | Performance improvement |
+| `docs` | Documentation only |
+| `test` | Adding or fixing tests |
+
+Examples:
+```
+feat: add saved search alert emails
+fix: restore listing hero photo on mobile
+style: tighten broker card spacing on team page
+chore: update supabase-js to 2.98.0
+```
+
+## Workflow
+1. Make changes
+2. `git add -A`
+3. `git commit -m "type: description"`
+4. `git push`
+
+Pre-commit runs `npm test`. Pre-push runs the full quality gate.
+
+## Bypass hooks (sparingly)
+```bash
+SKIP_LOCAL_GATES=1 git push      # skip all quality gates
+SKIP_DB_GUARD=1 git push         # skip migration drift check only
+```
+
+## Branch strategy
+- `optimizer-swarm` — active development branch
+- `main` — production; only merge when build is green and tested
+- Feature branches: `feat/short-description` (optional for large isolated features)
+
+## Do NOT
+- Commit `.env.local` or any file containing secrets
+- Force push to `main`
+- Leave the working tree dirty before switching tasks — always commit or stash

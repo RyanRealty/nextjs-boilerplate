@@ -1,0 +1,73 @@
+---
+description: Supabase auth patterns for server components, actions, and middleware
+globs: ["app/**/*.tsx", "app/actions/**/*.ts", "middleware.ts", "lib/supabase/**/*"]
+alwaysApply: true
+---
+
+# Auth Patterns
+
+## Getting the current user
+Always use `getSession()` from `@/app/actions/auth` — never call Supabase auth directly in components:
+
+```ts
+// In server components / server actions
+import { getSession } from '@/app/actions/auth'
+
+const session = await getSession()
+if (!session) redirect('/sign-in')
+const { user } = session
+```
+
+## Supabase client in server context
+```ts
+import { createClient } from '@/lib/supabase/server'
+
+// This reads the session cookie automatically
+const supabase = await createClient()
+const { data: { user } } = await supabase.auth.getUser()
+```
+
+## Avatar URLs
+Always use `normalizeAvatarUrl()` — never access `user_metadata.avatar_url` directly.
+Google OAuth stores the avatar in different fields depending on the sign-in method.
+The normalize helper handles all cases.
+
+## Protected routes
+Gate server components at the top — do not render then redirect:
+
+```tsx
+// CORRECT — redirect before rendering
+export default async function AccountPage() {
+  const session = await getSession()
+  if (!session) redirect('/sign-in')
+  return <AccountUI user={session.user} />
+}
+
+// WRONG — renders then redirects (flashes content)
+export default async function AccountPage() {
+  const session = await getSession()
+  return session ? <AccountUI /> : redirect('/sign-in')
+}
+```
+
+## Admin-only routes
+Check for admin role before any admin action or page render:
+
+```ts
+import { getSession } from '@/app/actions/auth'
+import { getUserRole } from '@/app/actions/admin-roles'
+
+const session = await getSession()
+if (!session) redirect('/sign-in')
+const role = await getUserRole(session.user.id)
+if (role !== 'admin' && role !== 'superuser') redirect('/admin/access-denied')
+```
+
+## Auth redirect cookie
+Use `AUTH_NEXT_COOKIE` (set in `app/actions/auth.ts`) to redirect users back after OAuth sign-in.
+Do not invent a new cookie for this purpose.
+
+## Do NOT
+- Use `supabase.auth.getSession()` — use `supabase.auth.getUser()` (getSession can return stale data)
+- Store user info in localStorage or client state — always re-fetch from the server on navigation
+- Use the service role client to check auth — it bypasses RLS and will return the wrong data

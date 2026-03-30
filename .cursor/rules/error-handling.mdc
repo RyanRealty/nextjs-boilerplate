@@ -1,0 +1,77 @@
+---
+description: Consistent error handling for server actions, components, and API routes
+alwaysApply: true
+---
+
+# Error Handling
+
+## Server actions — always return, never throw
+
+```ts
+// CORRECT
+export async function saveItem(id: string): Promise<{ error: string | null }> {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.from('saved_listings').insert({ listing_key: id })
+    if (error) return { error: error.message }
+    return { error: null }
+  } catch (err) {
+    console.error('[saveItem]', err)
+    return { error: 'Failed to save item' }
+  }
+}
+```
+
+## Client components — use sonner for toasts
+
+```tsx
+import { toast } from 'sonner'
+
+const { error } = await saveItem(id)
+if (error) {
+  toast.error(error)
+} else {
+  toast.success('Saved!')
+}
+```
+
+Never use `alert()`, `console.error` in client code, or custom toast divs.
+
+## Loading states
+Use React `useTransition` for pending states on server action calls:
+
+```tsx
+const [isPending, startTransition] = useTransition()
+
+startTransition(async () => {
+  const { error } = await saveItem(id)
+  if (error) toast.error(error)
+})
+```
+
+Show `<Skeleton>` from `@/components/ui/skeleton` while loading — not spinners or custom placeholders.
+
+## Not found pages
+Use Next.js `notFound()` in server components — not a redirect or custom 404 UI:
+
+```ts
+import { notFound } from 'next/navigation'
+
+const listing = await getListing(key)
+if (!listing) notFound()
+```
+
+## Error boundaries
+Use Next.js `error.tsx` files for route-level error boundaries — not try/catch in page components.
+Each major route segment that could fail independently should have its own `error.tsx`.
+
+## Logging
+- Server errors: `console.error('[actionName]', err)` — include the action name for traceability
+- Never log sensitive data (passwords, tokens, full user objects)
+- Client components: no `console.error` — surface errors via toast only
+
+## Do NOT
+- Swallow errors silently with empty catch blocks
+- Show raw error messages from Supabase or the DB to end users
+- Use `throw` in server actions (crashes the entire request)
+- Use `window.alert()` for any error state
