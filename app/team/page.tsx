@@ -8,6 +8,7 @@ import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 import { listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.vercel.app').replace(/\/$/, '')}/api/og?type=default`
 
 export const revalidate = 60
 
@@ -24,6 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
       url: `${siteUrl}/team`,
       siteName: name,
       type: 'website',
+      images: [{ url: defaultOgImage, width: 1200, height: 630, alt: `Our Team | ${name}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [defaultOgImage],
     },
   }
 }

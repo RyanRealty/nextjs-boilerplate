@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import CompareClient, { type CompareListingData } from '@/components/compare/CompareClient'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+const defaultOgImage = `${(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.vercel.app').replace(/\/$/, '')}/api/og?type=default`
 
 export const metadata: Metadata = {
   title: 'Compare Properties',
@@ -15,11 +16,13 @@ export const metadata: Metadata = {
     url: `${siteUrl}/compare`,
     type: 'website',
     siteName: 'Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Compare properties | Ryan Realty' }],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Compare Properties | Ryan Realty',
     description: 'Compare up to 4 Central Oregon homes side by side — price, size, features, and more.',
+    images: [defaultOgImage],
   },
 }
 

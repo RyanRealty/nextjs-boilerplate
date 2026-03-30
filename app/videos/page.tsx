@@ -2,11 +2,19 @@ import type { Metadata } from 'next'
 import { getListingsWithVideos } from '@/app/actions/videos'
 import VideosClient from '@/components/videos/VideosClient'
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryanrealty.vercel.app').replace(/\/$/, '')
+const defaultOgImage = `${siteUrl}/api/og?type=default`
+
 export const metadata: Metadata = {
   title: 'Video Tours — Central Oregon Homes | Ryan Realty',
   description: 'Watch video tours of homes for sale in Bend, Redmond, Sisters and Central Oregon.',
   openGraph: {
     title: 'Video Tours — Central Oregon Homes | Ryan Realty',
+    images: [{ url: defaultOgImage, width: 1200, height: 630, alt: 'Video tours — Central Oregon homes | Ryan Realty' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [defaultOgImage],
   },
 }
 
