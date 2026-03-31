@@ -184,8 +184,8 @@ export default async function ListingDetailPage({ params }: PageProps) {
   const city = property?.city ?? null
   const listingAgent = agents[0] ?? null
 
-  const heroVideoUrl =
-    videos.length > 0 && videos[0]?.Uri && directVideoExt.test(videos[0].Uri) ? videos[0].Uri : null
+  // Video is the FIRST thing users see when a listing has one — always show it in hero
+  const heroVideoUrl = videos.length > 0 && videos[0]?.Uri ? videos[0].Uri : null
 
   const shareUrl = `${getCanonicalSiteUrl()}${listingDetailPath(
     listing.listing_key,
