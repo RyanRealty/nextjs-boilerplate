@@ -21,8 +21,8 @@ export const CONTENT_HERO_IMAGES = {
   listings: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=80',
   /** Join: career, growth, team */
   join: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80',
-  /** Reports: data, market, insight */
-  reports: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1920&q=80',
+  /** Reports: Central Oregon landscape — authority and local expertise */
+  reports: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
   /** Area guides: place, community, lifestyle */
   areaGuides: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1920&q=80',
 } as const
