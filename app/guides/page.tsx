@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getPublishedGuides } from '@/app/actions/guides'
 import { generateBreadcrumbSchema } from '@/lib/structured-data'
+import ContentPageHero from '@/components/layout/ContentPageHero'
+import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 
 export const metadata: Metadata = {
   title: 'Real Estate Guides',
@@ -38,7 +40,17 @@ export default async function GuidesIndexPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-background">
+      <ContentPageHero
+        title="Real Estate Guides"
+        subtitle="Local market explainers and step-by-step playbooks for buyers and sellers in Central Oregon."
+        imageUrl={CONTENT_HERO_IMAGES.areaGuides}
+        ctas={[
+          { label: 'Browse Listings', href: '/homes-for-sale', primary: true },
+          { label: 'Area Guides', href: '/area-guides', primary: false },
+        ]}
+      />
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
@@ -54,8 +66,6 @@ export default async function GuidesIndexPage() {
           ),
         }}
       />
-      <h1 className="text-3xl font-semibold text-foreground">Guides</h1>
-      <p className="mt-2 text-muted-foreground">Local market explainers and step by step playbooks for buyers and sellers.</p>
       <div className="mt-8 space-y-8">
         {[...grouped.entries()].map(([category, rows]) => (
           <section key={category}>
@@ -70,6 +80,7 @@ export default async function GuidesIndexPage() {
             </div>
           </section>
         ))}
+      </div>
       </div>
     </main>
   )

@@ -3,7 +3,6 @@ import ActivityFeedCard from '@/components/activity/ActivityFeedCard'
 import { getActivityFeed } from '@/app/actions/activity-feed'
 import AdUnit from '@/components/AdUnit'
 import HomeValuationCta from '@/components/HomeValuationCta'
-import ContentPageHero from '@/components/layout/ContentPageHero'
 import { listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
