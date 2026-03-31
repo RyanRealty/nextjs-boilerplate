@@ -75,9 +75,14 @@ jobs:
           fi
 
           if should_run year && [ "${minute_mod_20}" -eq 0 ]; then
-            call_endpoint "year-sync" "/api/cron/sync-year-by-year"
+            call_endpoint "year-sync-1" "/api/cron/sync-year-by-year"
+            call_endpoint "year-sync-2" "/api/cron/sync-year-by-year"
+            call_endpoint "year-sync-3" "/api/cron/sync-year-by-year"
           fi
 
           if should_run terminal && [ "${minute_mod_20}" -eq 0 ]; then
-            call_endpoint "terminal-history-sync" "/api/cron/sync-history-terminal?limit=40"
+            call_endpoint "terminal-history-worker-1" "/api/cron/sync-history-terminal?limit=60&worker_count=4&worker_index=0"
+            call_endpoint "terminal-history-worker-2" "/api/cron/sync-history-terminal?limit=60&worker_count=4&worker_index=1"
+            call_endpoint "terminal-history-worker-3" "/api/cron/sync-history-terminal?limit=60&worker_count=4&worker_index=2"
+            call_endpoint "terminal-history-worker-4" "/api/cron/sync-history-terminal?limit=60&worker_count=4&worker_index=3"
           fi

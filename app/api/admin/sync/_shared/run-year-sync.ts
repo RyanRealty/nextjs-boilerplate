@@ -534,8 +534,26 @@ export async function runYearSyncChunk(options: {
       (await supabase.from('sync_state').select('year_sync_matrix_cache').eq('id', 'default').maybeSingle())
         .data?.year_sync_matrix_cache
     ).rows[String(targetYear)]
-    const hadProgress = hasPartialHistoryProgress(cachedRow) && cachedRow?.cancelRequested !== true
+    const hadProgress = hasPartialHistoryProgress(cachedRow)
     if (hadProgress) {
+      if (cachedRow?.cancelRequested === true) {
+        const refreshedCache = parseYearCache(
+          (await supabase.from('sync_state').select('year_sync_matrix_cache').eq('id', 'default').maybeSingle())
+            .data?.year_sync_matrix_cache
+        )
+        refreshedCache.rows[String(targetYear)] = {
+          ...(refreshedCache.rows[String(targetYear)] ?? {}),
+          cancelRequested: false,
+          runStatus: 'idle',
+          runPhase: null,
+          lastError: null,
+          runUpdatedAt: nowIso,
+        }
+        refreshedCache.updatedAt = nowIso
+        await supabase
+          .from('sync_state')
+          .upsert({ id: 'default', year_sync_matrix_cache: refreshedCache, updated_at: nowIso }, { onConflict: 'id' })
+      }
       phase = 'history'
       currentYearVal = targetYear
       nextHistoryOffset = cachedRow.processedListings ?? 0
