@@ -937,7 +937,26 @@ export async function getSimilarListingsForDetailPage(
   if (bedsMin != null) query = query.gte('BedroomsTotal', bedsMin)
   if (bedsMax != null) query = query.lte('BedroomsTotal', bedsMax)
 
-  const { data } = await query
+  let { data } = await query
+
+  // Fallback: if community-specific query returns too few, try city-wide without community filter
+  if ((!data || data.length < 4) && communityName?.trim() && city?.trim()) {
+    let fallbackQuery = supabase
+      .from('listings')
+      .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, StreetNumber, StreetName, City, State, PostalCode, PhotoURL')
+      .neq('ListingKey', key)
+      .not('PhotoURL', 'is', null)
+      .or('StandardStatus.ilike.%Active%,StandardStatus.is.null')
+      .ilike('City', city.trim())
+      .limit(12)
+    if (priceMin != null) fallbackQuery = fallbackQuery.gte('ListPrice', priceMin)
+    if (priceMax != null) fallbackQuery = fallbackQuery.lte('ListPrice', priceMax)
+    const { data: fallbackData } = await fallbackQuery
+    if (fallbackData && fallbackData.length > (data?.length ?? 0)) {
+      data = fallbackData
+    }
+  }
+
   const rows = (data ?? []) as Array<{
     ListingKey: string
     ListNumber?: string | null
