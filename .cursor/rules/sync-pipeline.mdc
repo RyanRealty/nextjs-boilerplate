@@ -27,10 +27,15 @@ The listing sync has TWO mechanisms. Both are critical. Do not disable either.
 - Every upsert MUST map `PhotoURL` from the first photo.
 - If a listing is upserted without a PhotoURL, immediately fetch the photo separately.
 
-### Finalization is permanent
+### Finalization is permanent and requires ALL conditions
 - Once `is_finalized=true`, that listing is DONE. No sync touches it again.
-- Only set `is_finalized=true` when BOTH conditions are met: StandardStatus contains "Closed" AND CloseDate is not null.
-- Never un-finalize a listing.
+- **ALL THREE conditions** must be met before setting `is_finalized=true`:
+  1. StandardStatus contains "Closed"
+  2. CloseDate is not null
+  3. `history_finalized=true` (historical listing data has been captured)
+- **NEVER** set `is_finalized=true` without `history_finalized=true`. The history data is required for accurate market reports and analytics.
+- `media_finalized=true` can be set when a listing closes (media doesn't change after closing).
+- Never un-finalize a listing once properly finalized.
 
 ### Activity events
 - Every status change, price change, and new listing MUST emit an activity_event.

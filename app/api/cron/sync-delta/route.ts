@@ -157,10 +157,12 @@ function mapSparkToRow(fields: SparkStandardFields) {
       Photos: photos,
       OpenHouses: fields.OpenHouses ?? [],
     },
-    // Finalization: closed listings with a close date are done forever
-    is_finalized: isClosed && fields.CloseDate ? true : undefined,
-    history_finalized: isClosed && fields.CloseDate ? true : undefined,
+    // Media finalization: closed listings don't need media re-synced
     media_finalized: isClosed ? true : undefined,
+    // NOTE: is_finalized is NOT set here. A listing is only fully finalized
+    // when history_finalized=true (set by the history sync pipeline after
+    // all historical listing data has been captured for accurate reports).
+    // Setting is_finalized prematurely would skip history data collection.
   }
 }
 
