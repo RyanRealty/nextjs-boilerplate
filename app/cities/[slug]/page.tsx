@@ -28,6 +28,7 @@ import { homesForSalePath, subdivisionEntityKey } from '@/lib/slug'
 import { slugify } from '@/lib/slug'
 import { getLiveMarketPulse } from '@/app/actions/market-stats'
 import { getOpenHousesWithListings } from '@/app/actions/open-houses'
+import { getPlaceContent } from '@/app/actions/place-content'
 import CityHero from '@/components/city/CityHero'
 import CityOverview from '@/components/city/CityOverview'
 import CityMarketStats from '@/components/city/CityMarketStats'
@@ -48,6 +49,7 @@ import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import VideoToursRow from '@/components/videos/VideoToursRow'
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/structured-data'
 import CityClusterNav from '@/components/CityClusterNav'
+import PlaceContentSection from '@/components/geo-page/PlaceContentSection'
 import { getGuidesByCity } from '@/app/actions/guides'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
@@ -181,6 +183,7 @@ export default async function CityDetailPage({ params }: Props) {
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
   const cityPulse = await getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) })
   const cityOpenHouses = await getOpenHousesWithListings({ city: city.name })
+  const placeContent = await getPlaceContent('city', slugify(city.name))
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -325,6 +328,10 @@ export default async function CityDetailPage({ params }: Props) {
                   ? `${city.name} has ${city.communityCount} communities and subdivisions with homes for sale.`
                   : `Explore ${city.name} neighborhoods and communities on our city page.`,
               },
+              ...(placeContent?.faqs ?? []).map((faq) => ({
+                question: faq.question,
+                answer: faq.answer,
+              })),
             ])
           ),
         }}
@@ -380,6 +387,14 @@ export default async function CityDetailPage({ params }: Props) {
           guideSlug={cityGuideSlug}
         />
       </div>
+
+      {placeContent && (
+        <PlaceContentSection
+          content={placeContent}
+          placeName={city.name}
+          placeType="city"
+        />
+      )}
 
       <CityMarketStats
         cityName={city.name}

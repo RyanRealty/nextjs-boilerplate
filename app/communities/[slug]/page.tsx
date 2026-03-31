@@ -27,6 +27,7 @@ import { slugify } from '@/lib/slug'
 import { getResortCommunityContent, buildDataDrivenCommunityAbout } from '@/lib/community-content'
 import { getLiveMarketPulse } from '@/app/actions/market-stats'
 import { getOpenHousesWithListings } from '@/app/actions/open-houses'
+import { getPlaceContent } from '@/app/actions/place-content'
 import CommunityHero from '@/components/community/CommunityHero'
 import CommunityOverview from '@/components/community/CommunityOverview'
 import CommunityMarketStats from '@/components/community/CommunityMarketStats'
@@ -46,6 +47,7 @@ import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import VideoToursRow from '@/components/videos/VideoToursRow'
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/structured-data'
 import CityClusterNav from '@/components/CityClusterNav'
+import PlaceContentSection from '@/components/geo-page/PlaceContentSection'
 import { getGuidesByCity } from '@/app/actions/guides'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
@@ -120,6 +122,8 @@ export default async function CommunityDetailPage({ params }: Props) {
     city: community.city,
     community: [community.subdivision],
   })
+  const entityKey = `${slugify(community.city)}:${slugify(community.subdivision)}`
+  const placeContent = await getPlaceContent('community', entityKey)
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
@@ -291,6 +295,10 @@ export default async function CommunityDetailPage({ params }: Props) {
                   ? `The current median home price in ${community.name} is $${community.medianPrice.toLocaleString()}.`
                   : `Contact Ryan Realty for current pricing in ${community.name}.`,
               },
+              ...(placeContent?.faqs ?? []).map((faq) => ({
+                question: faq.question,
+                answer: faq.answer,
+              })),
             ])
           ),
         }}
@@ -355,6 +363,14 @@ export default async function CommunityDetailPage({ params }: Props) {
           guideSlug={cityGuideSlug}
         />
       </div>
+
+      {placeContent && (
+        <PlaceContentSection
+          content={placeContent}
+          placeName={community.name}
+          placeType="community"
+        />
+      )}
 
       <CommunityMarketStats
         communityName={community.name}
