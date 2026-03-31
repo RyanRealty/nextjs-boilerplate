@@ -95,8 +95,11 @@ export default async function CommunityDetailPage({ params }: Props) {
   const pageTitle = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
   const citySlug = community.city.toLowerCase().replace(/\s+/g, '-')
-  const [listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides] =
+  const [placePhotoUrl, listings, soldListings, priceHistory, marketStats, savedKeys, likedKeys, prefs, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides] =
     await Promise.all([
+      !community.heroImageUrl
+        ? fetchPlacePhoto(`${community.subdivision} ${community.city} Oregon`).then((r) => r?.url ?? null).catch(() => null)
+        : Promise.resolve(null),
       getCommunityListings(community.city, community.subdivision, 24),
       getCommunitySoldListings(community.city, community.subdivision, 6),
       getCommunityPriceHistory(community.city, community.subdivision),
@@ -313,7 +316,7 @@ export default async function CommunityDetailPage({ params }: Props) {
       <CommunityHero
         name={community.name}
         city={community.city}
-        heroImageUrl={community.heroImageUrl}
+        heroImageUrl={community.heroImageUrl ?? placePhotoUrl}
         activeCount={community.activeCount}
         medianPrice={community.medianPrice}
         avgDom={community.avgDom}

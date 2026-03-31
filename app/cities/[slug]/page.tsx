@@ -146,10 +146,8 @@ export default async function CityDetailPage({ params }: Props) {
   const pageUrl = `${siteUrl}/cities/${slug}`
   const pageTitle = `Homes for Sale in ${city.name}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
-  const heroImageUrl =
-    city.heroImageUrl ?? null
-
   const [
+    placePhotoUrl,
     listings,
     soldListings,
     communities,
@@ -165,6 +163,9 @@ export default async function CityDetailPage({ params }: Props) {
     likedCommunityKeys,
     cityGuides,
   ] = await Promise.all([
+    !city.heroImageUrl
+      ? fetchPlacePhoto(`${city.name} Oregon`).then((r) => r?.url ?? null).catch(() => null)
+      : Promise.resolve(null),
     getCityListings(city.name, 24),
     getCitySoldListings(city.name, 6),
     getCommunitiesInCity(city.name),
@@ -184,6 +185,7 @@ export default async function CityDetailPage({ params }: Props) {
   const cityPulse = await getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) })
   const cityOpenHouses = await getOpenHousesWithListings({ city: city.name })
   const placeContent = await getPlaceContent('city', slugify(city.name))
+  const heroImageUrl = city.heroImageUrl ?? placePhotoUrl ?? null
 
   const displayPrefs = prefs ?? {
     downPaymentPercent: DEFAULT_DISPLAY_DOWN_PCT,
