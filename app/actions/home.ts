@@ -64,7 +64,7 @@ async function _getFeaturedListingsUncached(city?: string): Promise<HomeTileRow[
 export const getFeaturedListings = unstable_cache(
   _getFeaturedListingsUncached,
   ['featured-listings'],
-  { revalidate: 60, tags: ['featured-listings'] }
+  { revalidate: 300, tags: ['featured-listings'] }
 )
 
 /** Just listed: 8 newest Active by OnMarketDate (or ModificationTimestamp fallback) for the given city. */
@@ -235,7 +235,7 @@ async function _getMarketSnapshotUncached(): Promise<CityMarketStats & { avgDom?
 export const getMarketSnapshot = unstable_cache(
   _getMarketSnapshotUncached,
   ['market-snapshot'],
-  { revalidate: 60, tags: ['market-snapshot'] }
+  { revalidate: 300, tags: ['market-snapshot'] }
 )
 
 const TRENDING_MIN_COUNT = 5
