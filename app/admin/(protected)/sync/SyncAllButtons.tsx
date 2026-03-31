@@ -308,7 +308,7 @@ export default function SyncAllButtons() {
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Listings sync</p>
           <p className="mt-1 font-mono text-sm text-foreground">
-            {listingsState === 'idle' && 'â€”'}
+            {listingsState === 'idle' && '—'}
             {listingsRunning && `${listingsPagesDone} pages Â· ${listingsUpserted.toLocaleString()} upserted`}
             {(listingsState === 'done' || listingsState === 'error') && (
               <>{(listingsStart != null ? formatElapsed(listingsElapsed) : '')} Â· {listingsUpserted.toLocaleString()} upserted</>
@@ -322,7 +322,7 @@ export default function SyncAllButtons() {
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">History sync</p>
           <p className="mt-1 font-mono text-sm text-foreground">
-            {historyState === 'idle' && 'â€”'}
+            {historyState === 'idle' && '—'}
             {historyRunning && `${historyListingsProcessed.toLocaleString()} listings Â· ${historyRows.toLocaleString()} rows`}
             {(historyState === 'done' || historyState === 'error') && (
               <>{(historyStart != null ? formatElapsed(historyElapsed) : '')} Â· {historyRows.toLocaleString()} rows</>
@@ -336,7 +336,7 @@ export default function SyncAllButtons() {
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Photos sync</p>
           <p className="mt-1 font-mono text-sm text-foreground">
-            {photosState === 'idle' && 'â€”'}
+            {photosState === 'idle' && '—'}
             {photosRunning && `${photosPagesDone} pages Â· ${photosUpdated.toLocaleString()} updated`}
             {(photosState === 'done' || photosState === 'error') && (
               <>{(photosStart != null ? formatElapsed(photosElapsed) : '')} Â· {photosUpdated.toLocaleString()} updated</>

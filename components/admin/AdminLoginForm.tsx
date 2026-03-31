@@ -75,7 +75,7 @@ export default function AdminLoginForm() {
         {forgotSent ? (
           <>
             <p className="text-sm text-muted-foreground">
-              Check your email for a reset link. Use it to set a new password; youâ€™ll then be signed in and sent to the admin.
+              Check your email for a reset link. Use it to set a new password; you’ll then be signed in and sent to the admin.
             </p>
             <Button
               type="button"
@@ -87,7 +87,7 @@ export default function AdminLoginForm() {
           </>
         ) : (
           <form onSubmit={handleForgotSubmit} className="space-y-4">
-            <p className="text-sm text-muted-foreground">Enter your admin email and weâ€™ll send a password reset link.</p>
+            <p className="text-sm text-muted-foreground">Enter your admin email and we’ll send a password reset link.</p>
             <div>
               <Label htmlFor="admin-forgot-email" className="block text-sm font-medium text-muted-foreground">
                 Email

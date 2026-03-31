@@ -37,12 +37,12 @@ export type CompareListingData = {
 }
 
 function fmt(n: number | null | undefined): string {
-  if (n == null) return 'â€”'
+  if (n == null) return '—'
   return n.toLocaleString()
 }
 
 function fmtPrice(n: number | null | undefined): string {
-  if (n == null) return 'â€”'
+  if (n == null) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -54,15 +54,15 @@ const rows: RowDef[] = [
   { label: 'Baths', key: 'baths', format: (v) => fmt(v as number), best: 'high' },
   { label: 'Sq Ft', key: 'sqft', format: (v) => fmt(v as number), best: 'high' },
   { label: 'Price/Sq Ft', key: 'price', format: () => '', best: 'low' }, // computed below
-  { label: 'Lot (acres)', key: 'lotSizeAcres', format: (v) => (v != null ? (v as number).toFixed(2) : 'â€”'), best: 'high' },
-  { label: 'Year Built', key: 'yearBuilt', format: (v) => (v != null ? String(v) : 'â€”'), best: 'high' },
+  { label: 'Lot (acres)', key: 'lotSizeAcres', format: (v) => (v != null ? (v as number).toFixed(2) : '—'), best: 'high' },
+  { label: 'Year Built', key: 'yearBuilt', format: (v) => (v != null ? String(v) : '—'), best: 'high' },
   { label: 'Garage', key: 'garageSpaces', format: (v) => fmt(v as number) },
   { label: 'HOA/mo', key: 'hoa', format: (v) => fmtPrice(v as number), best: 'low' },
   { label: 'Taxes/yr', key: 'taxes', format: (v) => fmtPrice(v as number), best: 'low' },
   { label: 'Days on Market', key: 'dom', format: (v) => fmt(v as number), best: 'low' },
-  { label: 'Status', key: 'status', format: (v) => (v as string) ?? 'â€”' },
-  { label: 'Type', key: 'propertyType', format: (v) => (v as string) ?? 'â€”' },
-  { label: 'Community', key: 'subdivision', format: (v) => (v as string) ?? 'â€”' },
+  { label: 'Status', key: 'status', format: (v) => (v as string) ?? '—' },
+  { label: 'Type', key: 'propertyType', format: (v) => (v as string) ?? '—' },
+  { label: 'Community', key: 'subdivision', format: (v) => (v as string) ?? '—' },
 ]
 
 function bestIndex(listings: CompareListingData[], key: keyof CompareListingData, direction: 'low' | 'high'): number | null {
@@ -106,7 +106,7 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
       a.click()
       URL.revokeObjectURL(a.href)
     } catch {
-      // Silent fail â€” user can retry
+      // Silent fail — user can retry
     } finally {
       setPdfLoading(false)
     }
@@ -214,7 +214,7 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
 
                     if (isPricePerSqft) {
                       const ppsf = l.price && l.sqft ? Math.round(l.price / l.sqft) : null
-                      value = ppsf != null ? `$${ppsf.toLocaleString()}` : 'â€”'
+                      value = ppsf != null ? `$${ppsf.toLocaleString()}` : '—'
                       // Compute best for price/sqft separately
                       const ppsfValues = listings.map((ll) => (ll.price && ll.sqft ? ll.price / ll.sqft : null))
                       const validPpsf = ppsfValues.filter((v): v is number => v != null)
@@ -223,7 +223,7 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
                         isBest = ppsf === minPpsf
                       }
                     } else {
-                      value = row.format ? row.format(l[row.key]) : String(l[row.key] ?? 'â€”')
+                      value = row.format ? row.format(l[row.key]) : String(l[row.key] ?? '—')
                       isBest = best === i && listings.filter((ll) => ll[row.key] != null).length > 1
                     }
 
@@ -266,7 +266,7 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
               />
             ) : (
               <div className="flex h-full items-center justify-center bg-muted text-muted-foreground text-sm">
-                Map unavailable â€” configure Google Maps API key
+                Map unavailable — configure Google Maps API key
               </div>
             )}
           </div>

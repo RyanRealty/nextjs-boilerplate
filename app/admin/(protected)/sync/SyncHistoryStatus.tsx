@@ -113,7 +113,7 @@ const SyncHistoryStatus = forwardRef<SyncHistoryStatusHandle>(function SyncHisto
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold text-foreground">Listing history</h2>
       <p className="mb-4 text-sm text-muted-foreground">
-        Backfill price/status history from Spark into Supabase so listing pages and reports (CMAs, market analytics) donâ€™t call the API. Run after listing sync.
+        Backfill price/status history from Spark into Supabase so listing pages and reports (CMAs, market analytics) don’t call the API. Run after listing sync.
       </p>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button
@@ -142,7 +142,7 @@ const SyncHistoryStatus = forwardRef<SyncHistoryStatusHandle>(function SyncHisto
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Elapsed</p>
           <p className="mt-1 font-mono font-semibold text-foreground">
-            {startTime != null ? formatElapsed(elapsedMs) : 'â€”'}
+            {startTime != null ? formatElapsed(elapsedMs) : '—'}
           </p>
         </div>
         <div className="rounded-lg bg-muted p-3">

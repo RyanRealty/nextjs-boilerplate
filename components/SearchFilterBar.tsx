@@ -193,7 +193,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
 
   return (
     <div ref={barRef} className="flex flex-wrap items-center gap-2">
-      {/* Location search bar â€” shows current area and keeps map/search in sync (like reference: "Bend OR" at top) */}
+      {/* Location search bar — shows current area and keeps map/search in sync (like reference: "Bend OR" at top) */}
       {props.locationLabel != null && props.locationLabel !== '' && (
         <div className="flex items-center gap-2">
           <Link

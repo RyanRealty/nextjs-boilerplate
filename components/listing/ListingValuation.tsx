@@ -79,7 +79,7 @@ export default function ListingValuation({ listingKey, propertyId, valuation, si
         {formatPrice(valuation.estimatedValue)}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Range: {formatPrice(valuation.valueLow)} â€” {formatPrice(valuation.valueHigh)}
+        Range: {formatPrice(valuation.valueLow)} — {formatPrice(valuation.valueHigh)}
       </p>
       <span
         className={`mt-2 inline-block rounded-full px-3 py-1 text-sm font-medium ${confidenceColor}`}

@@ -33,7 +33,7 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
         <div className="absolute inset-0">
           <Image
             src={imageUrl}
-            alt={`${title} â€” hero image`}
+            alt={`${title} — hero image`}
             fill
             className="object-cover object-center"
             sizes="100vw"
@@ -43,7 +43,7 @@ export default function ContentPageHero({ title, subtitle, imageUrl, ctas }: Con
       )}
       {/* Overlay for readability; stronger when no image */}
       <div
-        className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/70 to-primary/50"
+        className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/50 to-primary/30"
         aria-hidden
       />
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>

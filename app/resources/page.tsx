@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import AdUnit from '@/components/AdUnit'
 import HomeValuationCta from '@/components/HomeValuationCta'
+import ContentPageHero from '@/components/layout/ContentPageHero'
+import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
+import { listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -66,12 +69,18 @@ export default function ResourcesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-background">
+      <ContentPageHero
+        title="Buyer and Seller Resources"
+        subtitle="Tools, market data, and guides to help you make confident decisions in Central Oregon real estate."
+        imageUrl={CONTENT_HERO_IMAGES.reports}
+        ctas={[
+          { label: 'View Market Reports', href: '/housing-market/reports', primary: true },
+          { label: 'Search Listings', href: listingsBrowsePath(), primary: false },
+        ]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <h1 className="text-3xl font-semibold text-foreground">Buyer and seller resources</h1>
-      <p className="mt-2 text-muted-foreground">
-        Use these tools and reports to plan your next move with local market context.
-      </p>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {resources.map((resource) => (
           <Card key={resource.href}>
@@ -92,6 +101,7 @@ export default function ResourcesPage() {
       </div>
       <div className="mt-8">
         <HomeValuationCta />
+      </div>
       </div>
     </main>
   )

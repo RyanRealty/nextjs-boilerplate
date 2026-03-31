@@ -574,7 +574,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
             <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-warning border-t-transparent" aria-hidden />
             <div>
               <p className="text-sm font-medium text-foreground">Generating professional headshotâ€¦</p>
-              <p className="text-xs text-warning">This usually takes 1â€“2 minutes. Please wait â€” do not leave or refresh.</p>
+              <p className="text-xs text-warning">This usually takes 1â€“2 minutes. Please wait — do not leave or refresh.</p>
             </div>
           </div>
         )}
@@ -600,7 +600,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
         )}
         {generatedPreviewUrl && (
           <div ref={generatedPreviewRef} className="mt-4 rounded-lg border-2 border-success/40 bg-success/10/80 p-4">
-            <p className="text-sm font-medium text-success">Your new headshot â€” review and choose an action</p>
+            <p className="text-sm font-medium text-success">Your new headshot — review and choose an action</p>
             <div className="mt-3 flex flex-wrap items-start gap-4">
               <Button
                 type="button"
@@ -611,7 +611,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                 {/* eslint-disable-next-line @next/next/no-img-element -- Generated headshot blob URL; next/image not used in admin form */}
                 <img
                   src={generatedPreviewUrl}
-                  alt="Generated headshot â€” review before saving or setting as default"
+                  alt="Generated headshot — review before saving or setting as default"
                   className="h-full w-full object-contain"
                 />
               </Button>
@@ -642,7 +642,7 @@ export default function AdminBrokerForm({ broker, initialGeneratedMedia = [], cl
                   onClick={() => { setGeneratedPreviewUrl(null); setMessage(null); }}
                   className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
-                  Disregard (donâ€™t save)
+                  Disregard (don’t save)
                 </Button>
               </div>
             </div>

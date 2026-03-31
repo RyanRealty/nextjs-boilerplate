@@ -204,7 +204,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
               >
                 <div className="relative aspect-[4/3] bg-muted">
                   {oh.photo_url ? (
-                    <Image src={oh.photo_url} alt={`${address(oh)} â€” open house`} fill className="object-cover" sizes="(max-width:640px) 100vw, 320px" />
+                    <Image src={oh.photo_url} alt={`${address(oh)} — open house`} fill className="object-cover" sizes="(max-width:640px) 100vw, 320px" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-muted-foreground">No photo</div>
                   )}
@@ -218,7 +218,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">{address(oh)}</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {oh.beds_total ?? 'â€”'} bed Â· {oh.baths_full ?? 'â€”'} bath
+                    {oh.beds_total ?? '—'} bed Â· {oh.baths_full ?? '—'} bath
                     {oh.living_area != null && ` Â· ${Number(oh.living_area).toLocaleString()} sq ft`}
                   </p>
                 </div>

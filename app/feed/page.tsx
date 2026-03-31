@@ -6,6 +6,7 @@ import { getLikedListingKeys } from '../actions/likes'
 import FeedInfiniteList from '@/components/FeedInfiniteList'
 import Breadcrumb from '@/components/Breadcrumb'
 import ShareButton from '@/components/ShareButton'
+import { listingsBrowsePath } from '@/lib/slug'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const defaultOgImage = `${siteUrl}/api/og?type=default`
@@ -42,7 +43,32 @@ export default async function FeedPage() {
       : [[], [] as string[]]
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <main className="min-h-screen bg-background">
+      <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-7xl text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
+            Latest Listings
+          </h1>
+          <p className="mt-3 text-lg text-muted">
+            Browse the newest homes for sale across Central Oregon. Scroll for more.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+            <a
+              href={listingsBrowsePath()}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-primary shadow-md hover:bg-accent/90"
+            >
+              View All Listings
+            </a>
+            <a
+              href="/homes-for-sale"
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-primary-foreground/40 bg-card/10 px-5 py-3 text-sm font-semibold text-primary-foreground backdrop-blur-sm hover:bg-card/20"
+            >
+              Search on Map
+            </a>
+          </div>
+        </div>
+      </section>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <Breadcrumb
         items={[
           { label: 'Ryan Realty', href: siteUrl },
@@ -50,7 +76,7 @@ export default async function FeedPage() {
         ]}
       />
       <div className="mt-4 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-foreground">Latest listings</h1>
+        <h2 className="text-2xl font-semibold text-foreground">Newest first</h2>
         <ShareButton
           url={`${siteUrl}/feed`}
           title="Latest listings in Central Oregon"
@@ -59,7 +85,6 @@ export default async function FeedPage() {
           variant="compact"
         />
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">Scroll for more. Newest first.</p>
       <div className="mt-6">
         <FeedInfiniteList
           initialListings={initialListings}
@@ -69,6 +94,7 @@ export default async function FeedPage() {
           signedIn={!!session?.user}
           userEmail={session?.user?.email ?? null}
         />
+      </div>
       </div>
     </main>
   )

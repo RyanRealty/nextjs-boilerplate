@@ -6,7 +6,7 @@ import { TESTIMONIALS, GOOGLE_REVIEWS_URL } from '@/lib/testimonials'
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
 export const metadata: Metadata = {
-  title: 'Client Reviews | Ryan Realty | Ryan Realty',
+  title: 'Client Reviews | Ryan Realty',
   description:
     'See what buyers and sellers say about working with Ryan Realty. Real testimonials from clients across Central Oregon.',
   alternates: { canonical: `${siteUrl}/reviews` },

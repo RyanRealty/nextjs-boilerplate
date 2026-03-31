@@ -248,7 +248,7 @@ export default function SyncSmart({ initialStatus, sparkConfigured = true, compa
                 : 'Sync in progress'}
             </span>
             <span className="text-sm text-success" suppressHydrationWarning>
-              Elapsed: {mounted && status?.cursor?.runStartedAt ? formatElapsed(status.cursor.runStartedAt) : syncing ? 'â€¦' : 'â€”'}
+              Elapsed: {mounted && status?.cursor?.runStartedAt ? formatElapsed(status.cursor.runStartedAt) : syncing ? 'â€¦' : '—'}
             </span>
             <span className="text-sm text-success" title={status?.cursor?.phase === 'refresh_active_pending' ? 'Listings refreshed so far (active & pending only).' : 'Listings upserted in this run (Listings phase only).'}>
               {status?.cursor?.phase === 'refresh_active_pending' ? 'Listings refreshed: ' : 'Listings this run: '}

@@ -60,7 +60,7 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
     <section className="mb-8 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="estimated-monthly-cost-heading">
       <h2 id="estimated-monthly-cost-heading" className="mb-3 text-lg font-semibold text-foreground">Estimated monthly cost</h2>
       <p className="text-2xl font-semibold text-foreground">
-        {monthlyPayment != null && monthlyPayment > 0 ? `Est. ${formatMonthlyPayment(monthlyPayment)}/mo` : 'â€”'}
+        {monthlyPayment != null && monthlyPayment > 0 ? `Est. ${formatMonthlyPayment(monthlyPayment)}/mo` : '—'}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">Principal & interest. Adjust below or use the calculator.</p>
 
@@ -129,7 +129,7 @@ export default function ListingEstimatedMonthlyCost({ listPrice, initialPrefs, s
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Est. payment: <strong className="text-foreground">{monthlyPayment != null ? formatMonthlyPayment(monthlyPayment) : 'â€”'}</strong>/mo (principal & interest)
+              Est. payment: <strong className="text-foreground">{monthlyPayment != null ? formatMonthlyPayment(monthlyPayment) : '—'}</strong>/mo (principal & interest)
             </p>
             {signedIn && (
               <div className="flex items-center gap-3">

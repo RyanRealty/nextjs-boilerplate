@@ -391,7 +391,7 @@ export default function CustomReportBuilder({ cities }: Props) {
                           <TableRow><TableCell className="border border-border bg-card px-3 py-2 font-medium">Median $/sqft</TableCell><TableCell className="border border-border px-3 py-2">${Number(seg.metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</TableCell></TableRow>
                           <TableRow><TableCell className="border border-border bg-card px-3 py-2 font-medium">Current listings</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.current_listings}</TableCell></TableRow>
                           <TableRow><TableCell className="border border-border bg-card px-3 py-2 font-medium">Sales (prior 12 mo)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.sales_12mo}</TableCell></TableRow>
-                          <TableRow><TableCell className="border border-border bg-card px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.inventory_months ?? 'â€”'}</TableCell></TableRow>
+                          <TableRow><TableCell className="border border-border bg-card px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{seg.metrics.inventory_months ?? '—'}</TableCell></TableRow>
                         </TableBody>
                       </Table>
                     </div>
@@ -438,7 +438,7 @@ export default function CustomReportBuilder({ cities }: Props) {
                               <TableCell className="border border-border px-3 py-2">{row.month_label}</TableCell>
                               <TableCell className="border border-border px-3 py-2 text-right">{row.sold_count}</TableCell>
                               <TableCell className="border border-border px-3 py-2 text-right">
-                                {row.median_price != null ? `$${Number(row.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'â€”'}
+                                {row.median_price != null ? `$${Number(row.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '—'}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -461,7 +461,7 @@ export default function CustomReportBuilder({ cities }: Props) {
                     <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Median $/sqft</TableCell><TableCell className="border border-border px-3 py-2">${Number(result.metrics.median_ppsf).toLocaleString('en-US', { maximumFractionDigits: 2 })}</TableCell></TableRow>
                     <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Current listings</TableCell><TableCell className="border border-border px-3 py-2">{result.metrics.current_listings}</TableCell></TableRow>
                     <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Sales (prior 12 mo)</TableCell><TableCell className="border border-border px-3 py-2">{result.metrics.sales_12mo}</TableCell></TableRow>
-                    <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{result.metrics.inventory_months ?? 'â€”'}</TableCell></TableRow>
+                    <TableRow><TableCell className="border border-border bg-muted px-3 py-2 font-medium">Inventory (months)</TableCell><TableCell className="border border-border px-3 py-2">{result.metrics.inventory_months ?? '—'}</TableCell></TableRow>
                   </TableBody>
                 </Table>
               </div>
@@ -513,7 +513,7 @@ export default function CustomReportBuilder({ cities }: Props) {
                         <TableCell className="border border-border px-3 py-2">{row.month_label}</TableCell>
                         <TableCell className="border border-border px-3 py-2 text-right">{row.sold_count}</TableCell>
                         <TableCell className="border border-border px-3 py-2 text-right">
-                          {row.median_price != null ? `$${Number(row.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : 'â€”'}
+                          {row.median_price != null ? `$${Number(row.median_price).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '—'}
                         </TableCell>
                       </TableRow>
                     ))}

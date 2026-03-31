@@ -128,7 +128,7 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
             disabled={status === 'running'}
             className="rounded border-border"
           />
-          <span className="text-sm text-muted-foreground">New only (faster â€” skip updating existing rows)</span>
+          <span className="text-sm text-muted-foreground">New only (faster — skip updating existing rows)</span>
         </Label>
         <Label className="flex cursor-pointer items-center gap-2">
           <Input
@@ -167,7 +167,7 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Elapsed</p>
           <p className="mt-1 font-mono font-semibold text-foreground">
-            {startTime != null ? formatElapsed(elapsedMs) : 'â€”'}
+            {startTime != null ? formatElapsed(elapsedMs) : '—'}
           </p>
         </div>
         <div className="rounded-lg bg-muted p-3">
@@ -187,7 +187,7 @@ export default function SyncStatus({ syncAction, onListingSyncComplete }: SyncSt
             ? `Pages ${currentPageStart}â€“${Math.min(currentPageStart + CHUNK_PAGES - 1, totalPagesFromSpark)} of ${totalPagesFromSpark.toLocaleString()}`
             : status === 'running'
               ? `Startingâ€¦ (page ${currentPageStart})`
-              : 'â€”'}
+              : '—'}
         </p>
       </div>
 

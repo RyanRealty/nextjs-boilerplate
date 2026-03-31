@@ -11,7 +11,7 @@ import type { SearchFiltersInitial } from '@/components/search/SearchFilters'
 const PAGE_SIZE = 24
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null) return 'â€”'
+  if (n == null) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -150,7 +150,7 @@ export default function SearchResults({
                   {photoUrl ? (
                     <Image
                       src={photoUrl}
-                      alt={`${formatAddress(listing)} â€” property photo`}
+                      alt={`${formatAddress(listing)} — property photo`}
                       fill
                       className="object-cover"
                       sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 33vw"
@@ -169,7 +169,7 @@ export default function SearchResults({
                     {formatAddress(listing)}
                   </p>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    {listing.BedroomsTotal ?? 'â€”'} Beds Â· {listing.BathroomsTotal ?? 'â€”'} Baths
+                    {listing.BedroomsTotal ?? '—'} Beds Â· {listing.BathroomsTotal ?? '—'} Baths
                     {listing.SubdivisionName && ` Â· ${listing.SubdivisionName}`}
                   </p>
                 </div>

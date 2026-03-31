@@ -130,7 +130,7 @@ export default function ChatWidget() {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-primary-foreground">Chat With Us</h2>
-                <p className="text-xs text-primary-foreground/70">Ryan Realty â€¢ Central Oregon</p>
+                <p className="text-xs text-primary-foreground/70">Ryan Realty • Central Oregon</p>
               </div>
             </div>
             <Button
@@ -201,7 +201,7 @@ export default function ChatWidget() {
               </Button>
             </div>
             <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-              AI assistant â€¢ May not always be accurate
+              AI assistant • May not always be accurate
             </p>
           </div>
         </div>

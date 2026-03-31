@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 type Props = { cursor: SyncCursor | null }
 
 function formatTime(iso: string | null): string {
-  if (!iso) return 'â€”'
+  if (!iso) return '—'
   try {
     const d = new Date(iso)
     return d.toLocaleString()
