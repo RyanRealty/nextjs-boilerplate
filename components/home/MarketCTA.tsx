@@ -15,7 +15,7 @@ type Props = {
 }
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return 'â€”'
+  if (n == null || !Number.isFinite(n)) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -37,7 +37,7 @@ export default function MarketCTA({ stats }: Props) {
           </div>
           <div className="rounded-lg bg-primary-foreground/10 p-4 text-primary-foreground">
             <p className="text-2xl font-bold sm:text-3xl">
-              {stats.avgDom != null && stats.avgDom > 0 ? Math.round(stats.avgDom) : 'â€”'}
+              {stats.avgDom != null && stats.avgDom > 0 ? Math.round(stats.avgDom) : '—'}
             </p>
             <p className="mt-1 text-sm text-primary-foreground/90">Avg Days on Market</p>
           </div>

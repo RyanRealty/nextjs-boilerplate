@@ -118,11 +118,11 @@ export default function CookieConsentBanner() {
         </DialogHeader>
         <Label className="flex items-center gap-3">
           <Checkbox checked={analytics} onCheckedChange={(checked) => setAnalytics(!!checked)} />
-          <span className="text-sm">Analytics (GA4) â€” understand how the site is used</span>
+          <span className="text-sm">Analytics (GA4) — understand how the site is used</span>
         </Label>
         <Label className="flex items-center gap-3">
           <Checkbox checked={marketing} onCheckedChange={(checked) => setMarketing(!!checked)} />
-          <span className="text-sm">Marketing (Meta Pixel) â€” relevant ads</span>
+          <span className="text-sm">Marketing (Meta Pixel) — relevant ads</span>
         </Label>
         <DialogFooter>
           <Button type="button" onClick={savePreferences}>Save</Button>

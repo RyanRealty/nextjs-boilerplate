@@ -96,7 +96,7 @@ export default async function ContactPage({ searchParams }: PageProps) {
               Central Oregon
             </p>
             <p className="mt-4 text-sm text-muted-foreground">
-              Hours and full address can be updated in your site settings or Google Business Profile for NAP consistency.
+              Serving Bend, Redmond, Sisters, Sunriver, La Pine, Prineville, and surrounding communities across Central Oregon.
             </p>
             <div className="mt-6">
               <Link href="/team" className="font-medium text-primary hover:underline">

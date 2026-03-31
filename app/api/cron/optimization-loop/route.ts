@@ -249,10 +249,16 @@ async function checkLeadPipelineHealth(supabase: ServiceSupabase): Promise<Healt
   return checks
 }
 
-export async function GET(request: Request) {
-  const auth = request.headers.get('authorization')
+function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET
-  if (!secret || auth !== `Bearer ${secret}`) {
+  if (secret?.trim()) {
+    return request.headers.get('authorization') === `Bearer ${secret}`
+  }
+  return true // No secret = allow (dev)
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

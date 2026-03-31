@@ -34,7 +34,7 @@ export type CommunityCardProps = {
 }
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return 'â€”'
+  if (n == null || !Number.isFinite(n)) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -170,7 +170,7 @@ export default function CommunityCard({
         <div className="p-3">
           <p className="text-sm text-muted-foreground">
             {activeCount} homes for sale
-            {medianPrice != null && ` Â· ${formatPrice(medianPrice)}`}
+            {medianPrice != null && ` · ${formatPrice(medianPrice)}`}
           </p>
         </div>
       )}

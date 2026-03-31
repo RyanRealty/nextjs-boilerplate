@@ -47,9 +47,9 @@ export const metadata: Metadata = {
 function defaultSellBody(): string {
   return `<p>Get a data-driven estimate of your home's value and a plan that gets it sold.</p>
 <ul>
-<li><strong>Marketing plan</strong> â€” Professional photography, listing placement, and targeted outreach.</li>
-<li><strong>Data-driven pricing</strong> â€” We use local comps and market trends to price for a strong offer.</li>
-<li><strong>Local expertise</strong> â€” Central Oregon is our backyard. We know the neighborhoods and buyers.</li>
+<li><strong>Marketing plan</strong> — Professional photography, listing placement, and targeted outreach.</li>
+<li><strong>Data-driven pricing</strong> — We use local comps and market trends to price for a strong offer.</li>
+<li><strong>Local expertise</strong> — Central Oregon is our backyard. We know the neighborhoods and buyers.</li>
 </ul>
 <p><a href="/contact?inquiry=Selling">Contact us</a> for a free consultation.</p>`
 }

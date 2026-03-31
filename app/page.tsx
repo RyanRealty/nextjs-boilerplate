@@ -203,42 +203,54 @@ export default async function Home(props: HomeProps) {
         likedKeys={activityLikedKeys}
       />
 
-      <section className="px-4 py-12 sm:px-6">
+      <section className="border-b border-border bg-card px-4 py-12 sm:px-6 sm:py-14">
         <div className="mx-auto max-w-7xl">
-          <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">Discover by lifestyle</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/search/bend/waterfront" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Waterfront homes
-            </Link>
-            <Link href="/search/bend/on-golf-course" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Golf course homes
-            </Link>
-            <Link href="/search/bend/new-listings" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              New listings
-            </Link>
-            <Link href="/search/bend/luxury" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Luxury homes
-            </Link>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Discover by lifestyle</h2>
+          <p className="mt-2 text-muted-foreground">Find homes that match how you want to live.</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: '/search/bend/waterfront', label: 'Waterfront Homes', icon: '🌊' },
+              { href: '/search/bend/on-golf-course', label: 'Golf Course Homes', icon: '⛳' },
+              { href: '/search/bend/new-listings', label: 'New Listings', icon: '✨' },
+              { href: '/search/bend/luxury', label: 'Luxury Homes', icon: '🏔️' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex items-center gap-3 rounded-xl border border-border bg-background p-5 shadow-sm transition hover:border-primary/30 hover:shadow-md"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg" aria-hidden>
+                  {item.icon}
+                </span>
+                <span className="text-sm font-semibold text-foreground group-hover:text-primary">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-12 sm:px-6">
+      <section className="px-4 py-12 sm:px-6 sm:py-14">
         <div className="mx-auto max-w-7xl">
-          <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">Browse by price range</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/search/bend/under-500k" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Under $500K
-            </Link>
-            <Link href="/search/bend/under-750k" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Under $750K
-            </Link>
-            <Link href="/search/bend/under-1m" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              Under $1M
-            </Link>
-            <Link href="/search/bend/luxury" className="rounded-lg border border-border bg-card p-4 text-sm font-medium text-foreground hover:bg-muted">
-              $1M and up
-            </Link>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Browse by price range</h2>
+          <p className="mt-2 text-muted-foreground">Quickly find homes within your budget.</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: '/search/bend/under-500k', label: 'Under $500K', sub: 'Starter homes and condos' },
+              { href: '/search/bend/under-750k', label: 'Under $750K', sub: 'Move-up homes' },
+              { href: '/search/bend/under-1m', label: 'Under $1M', sub: 'Premium properties' },
+              { href: '/search/bend/luxury', label: '$1M and up', sub: 'Luxury and estate homes' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group rounded-xl border border-border bg-card p-5 shadow-sm transition hover:border-primary/30 hover:shadow-md"
+              >
+                <span className="text-lg font-bold text-primary">{item.label}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">{item.sub}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -282,28 +294,52 @@ export default async function Home(props: HomeProps) {
         <HomeCitiesBlock session={session} />
       </Suspense>
 
-      <section className="px-4 py-12 sm:px-6">
-        <div className="mx-auto max-w-7xl rounded-lg border border-border bg-card p-6">
-          <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">Find your perfect match</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Save a search and get alerts when matching homes hit the market.</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/account/saved-searches" className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-              Get notified
-            </Link>
-            <Link href={listingsBrowsePath()} className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
-              Browse listings
-            </Link>
+      <section className="border-b border-border bg-card px-4 py-14 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm sm:p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </div>
+              <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Never miss a new listing</h2>
+              <p className="mt-2 text-muted-foreground">
+                Save a search and get instant alerts when matching homes hit the market. Set your criteria once and we handle the rest.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/account/saved-searches" className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                  Set Up Alerts
+                </Link>
+                <Link href={listingsBrowsePath()} className="rounded-lg border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted">
+                  Browse Listings
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-background p-6 shadow-sm sm:p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Your local team</h2>
+              <p className="mt-2 text-muted-foreground">
+                Brokers who live and work across Central Oregon neighborhoods. Local knowledge, honest guidance, and a team approach to every transaction.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/team" className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                  Meet the Team
+                </Link>
+                <Link href="/contact" className="rounded-lg border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted">
+                  Contact Us
+                </Link>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="px-4 pb-12 sm:px-6">
-        <div className="mx-auto max-w-7xl rounded-lg border border-border bg-muted p-6">
-          <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">Your local team</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Meet brokers who live and work across Central Oregon neighborhoods.</p>
-          <Link href="/team" className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            Meet the team
-          </Link>
         </div>
       </section>
 

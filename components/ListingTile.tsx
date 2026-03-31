@@ -230,7 +230,7 @@ function ListingTile({
 
   const shareTitle =
     price > 0
-      ? `$${price.toLocaleString()}${listing.City ? ` Â· ${listing.City}` : ''}`
+      ? `$${price.toLocaleString()}${listing.City ? ` · ${listing.City}` : ''}`
       : address || undefined
 
   const shareUrl = `${getCanonicalSiteUrl()}${href}`
@@ -350,7 +350,7 @@ function ListingTile({
           <HugeiconsIcon icon={ArrowLeftRightIcon} className="h-4 w-4" />
         </Button>
 
-        {/* Smart badges: top-left â€” max 3, no wrap */}
+        {/* Smart badges: top-left — max 3, no wrap */}
         <CardBadges
           position="top-left"
           max={3}
@@ -364,7 +364,7 @@ function ListingTile({
           ]}
         />
 
-        {/* Badges on image: bottom-left â€” Watch video (engagement), Virtual tour, Floor plan */}
+        {/* Badges on image: bottom-left — Watch video (engagement), Virtual tour, Floor plan */}
         <CardBadges
           position="bottom-left"
           max={3}
@@ -404,7 +404,7 @@ function ListingTile({
         <div className="flex flex-nowrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-xl font-semibold text-foreground">
-              ${price > 0 ? price.toLocaleString() : 'â€”'}
+              ${price > 0 ? price.toLocaleString() : '—'}
             </p>
             {monthlyPayment && (
               <p className="mt-0.5 text-sm text-muted-foreground">Est. {monthlyPayment}/mo</p>
@@ -418,7 +418,7 @@ function ListingTile({
             <span>{Number(listing.TotalLivingAreaSqFt).toLocaleString()} sq ft</span>
           )}
           <span>
-            Days on market: {dom != null && dom >= 0 ? (dom === 0 ? 'New' : `${dom} day${dom !== 1 ? 's' : ''}`) : 'â€”'}
+            Days on market: {dom != null && dom >= 0 ? (dom === 0 ? 'New' : `${dom} day${dom !== 1 ? 's' : ''}`) : '—'}
           </span>
           <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColor(listing.StandardStatus)}`}>
             {statusLabel(listing.StandardStatus)}
