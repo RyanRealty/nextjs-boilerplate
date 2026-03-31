@@ -183,7 +183,7 @@ export default function FullSync() {
             disabled={isRunning}
             className="rounded border-border"
           />
-          <span className="text-sm text-muted-foreground">New only (faster â€” skip updating existing listing rows)</span>
+          <span className="text-sm text-muted-foreground">New only (faster — skip updating existing listing rows)</span>
         </Label>
         <Button
           type="button"
@@ -191,7 +191,7 @@ export default function FullSync() {
           disabled={isRunning}
           className="rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-success-foreground hover:bg-success/75 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isRunning ? (phase === 'listings' ? 'Syncing listingsâ€¦' : 'Syncing historyâ€¦') : 'Start full sync'}
+          {isRunning ? (phase === 'listings' ? 'Syncing listings…' : 'Syncing history…') : 'Start full sync'}
         </Button>
         {isRunning && (
           <Button
@@ -213,13 +213,13 @@ export default function FullSync() {
             {phase === 'complete' && 'Complete'}
             {phase === 'stopped' && 'Stopped'}
             {phase === 'error' && 'Error'}
-            {phase === 'idle' && 'â€”'}
+            {phase === 'idle' && '—'}
           </p>
         </div>
         <div className="rounded-lg bg-muted p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Elapsed</p>
           <p className="mt-1 font-mono font-semibold text-foreground">
-            {startTime != null ? formatElapsed(elapsedMs) : 'â€”'}
+            {startTime != null ? formatElapsed(elapsedMs) : '—'}
           </p>
         </div>
         <div className="rounded-lg bg-muted p-3">

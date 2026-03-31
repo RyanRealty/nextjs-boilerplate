@@ -171,7 +171,7 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
 
   return (
     <form onSubmit={applyFilters} className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-      {/* Quick filters â€” always visible */}
+      {/* Quick filters — always visible */}
       <div className="p-4 flex flex-wrap items-end gap-3">
         <Label className="flex flex-col gap-1">
           <span className={labelClass}>Min price</span>
@@ -273,7 +273,7 @@ export default function AdvancedSearchFilters(props: AdvancedSearchFiltersProps)
         </Button>
       </div>
 
-      {/* Advanced filters â€” collapsible */}
+      {/* Advanced filters — collapsible */}
       {advancedOpen && (
         <div className="border-t border-border bg-muted p-4 flex flex-wrap items-end gap-4">
           <span className="w-full text-xs font-semibold text-muted-foreground uppercase tracking-wider">More filters</span>

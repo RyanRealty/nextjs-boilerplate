@@ -331,7 +331,7 @@ export default function ListingHero({ photos, videos }: Props) {
           </Button>
           <img
             src={photoSrc}
-            alt={`Property photo â€” full size view`}
+            alt={`Property photo — full size view`}
             className="max-h-full max-w-full object-contain"
             onClick={(e) => e.stopPropagation()}
             width={1200}

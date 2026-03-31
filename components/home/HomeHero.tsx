@@ -10,7 +10,7 @@ import { communityPagePath } from '@/lib/community-slug'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-// No stock photography â€” fallback is empty; hero renders a navy gradient when no brokerage image is set.
+// No stock photography — fallback is empty; hero renders a navy gradient when no brokerage image is set.
 const DEFAULT_HERO_IMAGE = ''
 
 type MarketSnapshot = {

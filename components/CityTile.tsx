@@ -10,7 +10,7 @@ import { toggleSavedCity } from '@/app/actions/saved-cities'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return 'â€”'
+  if (n == null || !Number.isFinite(n)) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -75,7 +75,7 @@ export default function CityTile({ city, signedIn = false, saved = false, engage
           {city.heroImageUrl ? (
             <Image
               src={city.heroImageUrl}
-              alt={`${city.name}, Oregon â€” city overview`}
+              alt={`${city.name}, Oregon — city overview`}
               fill
               className="object-cover transition hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 400px"
@@ -88,7 +88,7 @@ export default function CityTile({ city, signedIn = false, saved = false, engage
             <h3 className="text-xl font-bold drop-shadow-md">{city.name}</h3>
             <p className="mt-0.5 text-sm text-primary-foreground/90">{countLabel}</p>
             <p className="mt-0.5 text-xs text-primary-foreground/80">
-              Median {formatPrice(city.medianPrice)} Â· {city.communityCount} communities
+              Median {formatPrice(city.medianPrice)} · {city.communityCount} communities
             </p>
           </div>
         </Link>

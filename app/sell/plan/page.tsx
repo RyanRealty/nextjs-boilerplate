@@ -43,7 +43,7 @@ export default function SellPlanPage() {
             Our Plan
           </p>
           <h1 className="mt-4 text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl">
-            Is Saving the Commission Actually Costing You Your Equity
+            Is Saving the Commission Actually Costing You Your Equity?
           </h1>
           <p className="mt-6 text-lg text-primary-foreground/90">
             Most Bend homeowners try FSBO to maximize profit. But data shows that self-listed homes in
@@ -64,7 +64,7 @@ export default function SellPlanPage() {
       <section className="border-b border-border bg-card px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="plan-heading">
         <div className="mx-auto max-w-4xl">
           <h2 id="plan-heading" className="text-center text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            We Get It Why Pay a Fee If You Can Do It Yourself
+            We Get It, Why Pay a Fee If You Can Do It Yourself?
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-center text-muted-foreground">
             It is the right mindset. You want to protect your equity. But in today&apos;s complex market,

@@ -8,6 +8,8 @@ import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { shouldNoIndexBlogIndex } from '@/lib/seo-routing'
 import ShareButton from '@/components/ShareButton'
 import { generateBreadcrumbSchema } from '@/lib/structured-data'
+import ContentPageHero from '@/components/layout/ContentPageHero'
+import { CONTENT_HERO_IMAGES } from '@/lib/content-page-hero-images'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const defaultOgImage = `${siteUrl}/api/og?type=default`
@@ -79,7 +81,16 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main className="min-h-screen bg-background">
+      <ContentPageHero
+        title="Real Estate Blog"
+        subtitle="Market insights, community guides, and tips for buying and selling in Central Oregon."
+        imageUrl={CONTENT_HERO_IMAGES.reports}
+        ctas={[
+          { label: 'View Market Reports', href: '/housing-market/reports', primary: true },
+          { label: 'Browse Guides', href: '/guides', primary: false },
+        ]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script
         type="application/ld+json"
@@ -92,8 +103,9 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
           ),
         }}
       />
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold text-foreground">Blog</h1>
+        <h2 className="text-2xl font-bold text-foreground">Latest Posts</h2>
         <ShareButton
           url={`${siteUrl}/blog`}
           title="Central Oregon real estate blog"
@@ -102,9 +114,6 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
           variant="compact"
         />
       </div>
-      <p className="mt-2 text-muted-foreground">
-        Market insights, community guides, and tips for buying and selling in Central Oregon.
-      </p>
 
       <nav className="mt-6 flex flex-wrap gap-2" aria-label="Categories">
         {categories.map((cat) => (
@@ -184,15 +193,21 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
       <aside className="mt-12 border-t border-border pt-8">
         <h3 className="text-sm font-semibold text-foreground">Popular posts</h3>
         <ul className="mt-2 space-y-2">
-          {popularSlugs.slice(0, 5).map((slug) => (
-            <li key={slug}>
-              <Link href={`/blog/${slug}`} className="text-sm text-primary hover:underline">
-                {slug.replace(/-/g, ' ')}
-              </Link>
-            </li>
-          ))}
+          {popularSlugs.slice(0, 5).map((slug) => {
+            const title = slug
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, (c) => c.toUpperCase())
+            return (
+              <li key={slug}>
+                <Link href={`/blog/${slug}`} className="text-sm text-primary hover:underline">
+                  {title}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </aside>
+      </div>
     </main>
   )
 }
