@@ -117,6 +117,22 @@ export async function runOneFullSyncChunk(): Promise<RunOneChunkResult> {
     refresh_next_url?: string | null
   } | null
 
+  const isStaleIdlePause =
+    row?.phase === 'idle' &&
+    row?.paused === true &&
+    !row?.run_started_at
+
+  if (isStaleIdlePause) {
+    await supabase.from('sync_cursor').upsert(
+      {
+        id: CURSOR_ID,
+        paused: false,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    )
+  }
+
   if (row?.abort_requested) {
     await supabase.from('sync_cursor').upsert(
       {
@@ -135,7 +151,7 @@ export async function runOneFullSyncChunk(): Promise<RunOneChunkResult> {
     )
     return { ok: true, phase: 'listings', done: true, message: 'Stopped by user.' }
   }
-  if (row?.paused) {
+  if (row?.paused && !isStaleIdlePause) {
     await supabase.from('sync_cursor').upsert(
       {
         id: CURSOR_ID,

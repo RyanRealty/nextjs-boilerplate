@@ -57,7 +57,7 @@ export default function SyncRunLog({ deltaRows, fullRows, limit = 60 }: Props) {
       <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Sync run log</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          No sync runs yet. Delta (2-min) runs appear when Inngest is active; full runs appear when Smart Sync or cron completes.
+          No sync runs yet. Delta runs appear after `/api/cron/sync-delta` completes; full runs appear when Smart Sync or `/api/cron/sync-full` completes.
         </p>
       </div>
     )
@@ -67,7 +67,7 @@ export default function SyncRunLog({ deltaRows, fullRows, limit = 60 }: Props) {
     <div className="mt-6 rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Sync run log</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        {fullRows.length === 0 ? 'Delta (2‑min Inngest) runs only.' : 'When each sync ran and what was updated. Delta = 2‑min Inngest; Full = Smart Sync / cron.'}
+        {fullRows.length === 0 ? 'Recent delta runs only.' : 'When each sync ran and what was updated. Delta = incremental cron/manual ingest; Full = Smart Sync or full cron.'}
       </p>
       <div className="mt-4 overflow-x-auto">
         <Table className="text-sm">

@@ -97,7 +97,7 @@ export default function CronSyncStatus({ cursor }: Props) {
           {running ? 'Running…' : 'Run one chunk now'}
         </Button>
         <span className="text-xs text-muted-foreground">
-          {isIdle ? 'Next cron run will start a new full cycle (listings then history).' : 'Runs automatically every 15 min.'}
+          {isIdle ? 'Next scheduled full-sync run starts a new listings and history cycle.' : 'Runs automatically on the configured scheduler cadence.'}
         </span>
       </div>
 

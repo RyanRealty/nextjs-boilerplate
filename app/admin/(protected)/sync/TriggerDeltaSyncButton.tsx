@@ -17,7 +17,7 @@ export default function TriggerDeltaSyncButton() {
         setMessage({ type: 'error', text: (data.error as string) || `HTTP ${res.status}` })
         return
       }
-      setMessage({ type: 'success', text: 'Delta sync triggered. It may take a minute to appear in the log.' })
+      setMessage({ type: 'success', text: 'Delta sync finished. The run log will update after the page refreshes.' })
     } catch (e) {
       setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Request failed' })
     } finally {

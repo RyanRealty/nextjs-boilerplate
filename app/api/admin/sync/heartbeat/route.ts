@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const HEARTBEAT_TICK_MS = 5000
 const HEARTBEAT_MAX_CHUNKS = Math.max(1, Math.min(12, Number(process.env.SYNC_HEARTBEAT_MAX_CHUNKS ?? 6)))
-const TERMINAL_ONLY_FLAG = (process.env.SYNC_TERMINAL_ONLY_MODE ?? '1').toLowerCase()
+const TERMINAL_ONLY_FLAG = (process.env.SYNC_TERMINAL_ONLY_MODE ?? '0').toLowerCase()
 const SYNC_TERMINAL_ONLY_MODE =
   TERMINAL_ONLY_FLAG === '1' ||
   TERMINAL_ONLY_FLAG === 'true'
@@ -80,7 +80,7 @@ export async function POST() {
               phase: result.nextOffset == null ? 'idle' : 'history',
               run_started_at: result.nextOffset == null ? null : (cursor.runStartedAt ?? now),
               run_history_rows: (cursor.runHistoryRows ?? 0) + historyRows,
-              paused: result.nextOffset == null ? true : false,
+              paused: false,
               error: null,
               updated_at: now,
             },

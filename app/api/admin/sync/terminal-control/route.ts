@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           id: 'default',
           phase: 'idle',
           run_started_at: null,
-          paused: true,
+          paused: false,
           updated_at: now,
         },
         { onConflict: 'id' }

@@ -1,11 +1,11 @@
 /**
- * POST: manually trigger a delta sync (super_admin only).
+ * POST: manually run one delta sync (super_admin only).
  */
 
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
-import { inngest } from '@/lib/inngest'
 import { isSuperuserAdmin } from '@/lib/admin'
+import { syncSparkListingsDelta } from '@/app/actions/sync-spark'
 
 export async function POST() {
   try {
@@ -17,11 +17,26 @@ export async function POST() {
     if (!isSuperuserAdmin(user.email)) {
       return NextResponse.json({ error: 'Forbidden: super_admin only' }, { status: 403 })
     }
-    await inngest.send({
-      name: 'sync/delta-sync',
-      data: {},
+
+    const result = await syncSparkListingsDelta({ maxPages: 200 })
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          error: result.error ?? result.message ?? 'Delta sync failed',
+          checkpointId: result.checkpointId ?? null,
+        },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      ok: true,
+      message: result.message,
+      checkpointId: result.checkpointId ?? null,
+      totalFetched: result.totalFetched ?? 0,
+      totalUpserted: result.totalUpserted ?? 0,
+      eventsEmitted: result.eventsEmitted ?? 0,
     })
-    return NextResponse.json({ ok: true, message: 'Delta sync triggered' })
   } catch (e) {
     console.error('POST /api/admin/sync/delta', e)
     return NextResponse.json({ error: e instanceof Error ? e.message : 'Internal error' }, { status: 500 })

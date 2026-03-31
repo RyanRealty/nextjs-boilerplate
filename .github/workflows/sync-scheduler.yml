@@ -1,0 +1,83 @@
+name: Sync Scheduler
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+    - cron: "*/15 * * * *"
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Optional task override (delta|full|year|terminal|all)"
+        required: false
+        default: "all"
+
+jobs:
+  run-sync-jobs:
+    runs-on: ubuntu-latest
+    if: github.repository == 'RyanRealty/RyanRealty'
+    permissions:
+      contents: read
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      TASK_OVERRIDE: ${{ github.event.inputs.task || 'all' }}
+    steps:
+      - name: Validate scheduler configuration
+        run: |
+          if [ -z "${SITE_URL}" ]; then
+            echo "::error::SITE_URL is not configured. Set repository variable SITE_URL or expose NEXT_PUBLIC_SITE_URL as a secret."
+            exit 1
+          fi
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET is not configured in GitHub Actions secrets."
+            exit 1
+          fi
+          echo "Using site ${SITE_URL}"
+
+      - name: Run scheduled sync endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_url="${SITE_URL%/}"
+          now_minute="$(date -u +%M)"
+          minute_mod_20=$((10#${now_minute} % 20))
+          minute_mod_15=$((10#${now_minute} % 15))
+          minute_mod_10=$((10#${now_minute} % 10))
+
+          should_run() {
+            local task="$1"
+            case "${TASK_OVERRIDE}" in
+              all|"") return 0 ;;
+              "${task}") return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          call_endpoint() {
+            local label="$1"
+            local path="$2"
+            echo "::group::${label}"
+            response=$(curl --silent --show-error --fail-with-body \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${base_url}${path}")
+            echo "${response}"
+            echo "::endgroup::"
+          }
+
+          if should_run delta && [ "${minute_mod_10}" -eq 0 ]; then
+            call_endpoint "delta-sync" "/api/cron/sync-delta"
+          fi
+
+          if should_run full && [ "${minute_mod_15}" -eq 0 ]; then
+            call_endpoint "full-sync" "/api/cron/sync-full"
+          fi
+
+          if should_run year && [ "${minute_mod_20}" -eq 0 ]; then
+            call_endpoint "year-sync" "/api/cron/sync-year-by-year"
+          fi
+
+          if should_run terminal && [ "${minute_mod_20}" -eq 0 ]; then
+            call_endpoint "terminal-history-sync" "/api/cron/sync-history-terminal?limit=40"
+          fi

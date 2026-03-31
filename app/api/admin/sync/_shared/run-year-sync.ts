@@ -2,7 +2,6 @@
  * Core year sync logic. Runs in-process (background). Checks cancelRequested before each chunk.
  */
 
-import { createClient } from '@supabase/supabase-js'
 import {
   fetchSparkListingHistory,
   fetchSparkListingsPage,
@@ -161,7 +160,7 @@ async function fetchSupabaseYearListingsBatch(
   year: number,
   offset: number,
   limit: number
-): Promise<YearListingRow[]> {
+): Promise<{ rows: YearListingRow[]; error?: string }> {
   const { fromIso, toIsoExclusive } = yearBounds(year)
   const { data, error } = await supabase
     .from('listings')
@@ -170,7 +169,7 @@ async function fetchSupabaseYearListingsBatch(
     .lt('OnMarketDate', toIsoExclusive)
     .order('ListNumber', { ascending: true, nullsFirst: false })
     .range(offset, offset + limit - 1)
-  if (error) return []
+  if (error) return { rows: [], error: error.message }
   const rows = (data ?? []) as YearListingRow[]
   const seen = new Set<string>()
   const deduped: YearListingRow[] = []
@@ -180,7 +179,7 @@ async function fetchSupabaseYearListingsBatch(
     seen.add(key)
     deduped.push(row)
   }
-  return deduped
+  return { rows: deduped }
 }
 
 async function checkCancelRequested(
@@ -559,6 +558,21 @@ export async function runYearSyncChunk(options: {
     .maybeSingle()
   const cache = parseYearCache((stateRow as { year_sync_matrix_cache?: unknown } | null)?.year_sync_matrix_cache)
 
+  async function persistYearPatch(year: number, patch: Partial<YearCacheRow>) {
+    const yearKey = String(year)
+    const updatedAt = new Date().toISOString()
+    const existing = cache.rows[yearKey] ?? {}
+    cache.rows[yearKey] = {
+      ...existing,
+      ...patch,
+      runUpdatedAt: updatedAt,
+    }
+    cache.updatedAt = updatedAt
+    await supabase
+      .from('sync_state')
+      .upsert({ id: 'default', year_sync_matrix_cache: cache, updated_at: updatedAt }, { onConflict: 'id' })
+  }
+
   async function updateCursor(patch: {
     current_year?: number | null
     phase?: string
@@ -614,6 +628,22 @@ export async function runYearSyncChunk(options: {
     }
 
     currentYearVal = pickedYear
+    if (await checkCancelRequested(supabase, pickedYear)) {
+      await persistYearPatch(pickedYear, {
+        runStatus: 'cancelled',
+        runPhase: null,
+        lastError: 'Cancelled by user',
+        cancelRequested: false,
+      })
+      await updateCursor({ phase: 'idle', current_year: null, next_listing_page: 1, next_history_offset: 0, total_listings: null })
+      return {
+        ok: true,
+        done: true,
+        year: pickedYear,
+        phase: 'idle',
+        message: `Year ${pickedYear} cancelled before starting.`,
+      }
+    }
     const yearKey = String(pickedYear)
     const [sparkCountCheck, supabaseCountCheck] = await Promise.all([
       getSparkListingsCountForYear(token, pickedYear),
@@ -667,6 +697,7 @@ export async function runYearSyncChunk(options: {
         processedListings: 0,
         historyInserted: 0,
         listingsFinalized: 0,
+        cancelRequested: false,
         runUpdatedAt: nowIso,
       }
       cache.updatedAt = nowIso
@@ -691,6 +722,7 @@ export async function runYearSyncChunk(options: {
         listingsUpserted: 0,
         historyInserted: 0,
         listingsFinalized: 0,
+        cancelRequested: false,
         runUpdatedAt: nowIso,
       }
       cache.updatedAt = nowIso
@@ -701,6 +733,23 @@ export async function runYearSyncChunk(options: {
   if (phase === 'listings' && currentYearVal != null) {
     const year = currentYearVal
     const yearKey = String(year)
+
+    if (await checkCancelRequested(supabase, year)) {
+      await persistYearPatch(year, {
+        runStatus: 'cancelled',
+        runPhase: null,
+        lastError: 'Cancelled by user',
+        cancelRequested: false,
+      })
+      await updateCursor({ phase: 'idle', current_year: null, next_listing_page: 1, next_history_offset: 0, total_listings: null })
+      return {
+        ok: true,
+        done: true,
+        year,
+        phase: 'idle',
+        message: `Year ${year} cancelled.`,
+      }
+    }
 
     const [sparkCountCheck, supabaseCountCheck] = await Promise.all([
       getSparkListingsCountForYear(token, year),
@@ -728,6 +777,7 @@ export async function runYearSyncChunk(options: {
         processedListings: 0,
         historyInserted: existing.historyInserted ?? 0,
         listingsFinalized: existing.listingsFinalized ?? 0,
+        cancelRequested: false,
         runUpdatedAt: nowIso,
       }
       cache.updatedAt = nowIso
@@ -778,6 +828,7 @@ export async function runYearSyncChunk(options: {
       sparkListings,
       totalListings: sparkListings,
       listingsUpserted: prevUpserted + listingsUpserted,
+      cancelRequested: false,
       runUpdatedAt: nowIso,
     }
     cache.updatedAt = nowIso
@@ -808,6 +859,7 @@ export async function runYearSyncChunk(options: {
         processedListings: 0,
         historyInserted: 0,
         listingsFinalized: 0,
+        cancelRequested: false,
         runUpdatedAt: nowIso,
       }
       cache.updatedAt = nowIso
@@ -843,12 +895,46 @@ export async function runYearSyncChunk(options: {
     const year = currentYearVal
     const { fromIso, toIsoExclusive } = yearBounds(year)
 
+    if (await checkCancelRequested(supabase, year)) {
+      await persistYearPatch(year, {
+        runStatus: 'cancelled',
+        runPhase: null,
+        lastError: 'Cancelled by user',
+        cancelRequested: false,
+      })
+      await updateCursor({ phase: 'idle', current_year: null, next_listing_page: 1, next_history_offset: 0, total_listings: null })
+      return {
+        ok: true,
+        done: true,
+        year,
+        phase: 'idle',
+        message: `Year ${year} cancelled.`,
+      }
+    }
+
     if (totalListings == null) {
       totalListings = await countSupabaseListingsForYear(supabase, year)
       await updateCursor({ total_listings: totalListings })
     }
 
-    const batch = await fetchSupabaseYearListingsBatch(supabase, year, nextHistoryOffset, HISTORY_CHUNK_SIZE)
+    const batchResult = await fetchSupabaseYearListingsBatch(supabase, year, nextHistoryOffset, HISTORY_CHUNK_SIZE)
+    if (batchResult.error) {
+      await persistYearPatch(year, {
+        runStatus: 'failed',
+        runPhase: 'Syncing history',
+        lastError: batchResult.error,
+      })
+      await updateCursor({ phase: 'idle', current_year: null, next_listing_page: 1, next_history_offset: 0, total_listings: totalListings })
+      return {
+        ok: false,
+        done: true,
+        year,
+        phase: 'history',
+        message: `Year ${year} history failed while loading listings.`,
+        error: batchResult.error,
+      }
+    }
+    const batch = batchResult.rows
     const historyConcurrency = Math.max(1, Math.min(8, Number(process.env.SYNC_HISTORY_CONCURRENCY ?? 3)))
     let sparkHistoryRows = 0
     let listingsFinalized = 0
@@ -936,6 +1022,48 @@ export async function runYearSyncChunk(options: {
     await supabase.from('sync_state').upsert({ id: 'default', year_sync_matrix_cache: cache, updated_at: nowIso }, { onConflict: 'id' })
 
     const effectiveTotal = totalListings ?? 0
+    if (batch.length === 0) {
+      const [supabaseListings, finalizedListings] = await Promise.all([
+        countSupabaseListingsForYear(supabase, year),
+        countFinalizedClosedForYear(supabase, year),
+      ])
+      cache.rows[yearKey] = {
+        ...existing,
+        runStatus: 'completed',
+        runPhase: null,
+        supabaseListings,
+        finalizedListings,
+        lastSyncedAt: nowIso,
+        lastError: null,
+        processedListings: Math.max(prevProcessed, effectiveTotal),
+        historyInserted: prevHistory,
+        listingsFinalized: prevFinalized,
+        cancelRequested: false,
+        runUpdatedAt: nowIso,
+      }
+      cache.updatedAt = nowIso
+      await supabase.from('sync_state').upsert({ id: 'default', year_sync_matrix_cache: cache, updated_at: nowIso }, { onConflict: 'id' })
+      await supabase.from('year_sync_log').insert({
+        year,
+        status: 'completed',
+        listings_upserted: existing.listingsUpserted ?? 0,
+        history_inserted: prevHistory,
+        listings_finalized: prevFinalized,
+        completed_at: nowIso,
+      })
+      await updateCursor({ phase: 'idle', current_year: null, next_listing_page: 1, next_history_offset: 0, total_listings: null })
+      return {
+        ok: true,
+        done: true,
+        year,
+        phase: 'idle',
+        message: `Year ${year} history complete. No remaining listings in batch.`,
+        historyInserted: 0,
+        listingsFinalized: 0,
+        processedListings: Math.max(prevProcessed, effectiveTotal),
+        totalListings: effectiveTotal,
+      }
+    }
     const historyDone =
       effectiveTotal > 0 &&
       newProcessed > 0 &&
@@ -957,6 +1085,7 @@ export async function runYearSyncChunk(options: {
         processedListings: newProcessed,
         historyInserted: newHistory,
         listingsFinalized: newFinalized,
+        cancelRequested: false,
         runUpdatedAt: nowIso,
       }
       cache.updatedAt = nowIso

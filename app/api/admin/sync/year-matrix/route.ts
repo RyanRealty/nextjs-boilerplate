@@ -173,9 +173,7 @@ export async function GET(request: Request) {
       const isCursorYear = cursorActive && cursor?.current_year === year
       const runStatus = isCursorYear
         ? ('running' as const)
-        : cursorActive && cursor?.current_year !== year
-          ? ('idle' as const)
-          : (cached?.runStatus ?? 'idle')
+        : (cached?.runStatus ?? 'idle')
       const runPhase = isCursorYear ? (cursor?.phase ?? cached?.runPhase ?? null) : (cached?.runPhase ?? null)
       const processedListings = isCursorYear ? Number(cursor?.next_history_offset ?? cached?.processedListings ?? 0) : Number(cached?.processedListings ?? 0)
       const totalListings = isCursorYear ? Number(cursor?.total_listings ?? cached?.totalListings ?? 0) : Number(cached?.totalListings ?? 0)

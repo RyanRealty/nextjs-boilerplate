@@ -21,6 +21,10 @@ export type SyncDeltaResult = {
   totalUpserted?: number
   eventsEmitted?: number
   pagesProcessed?: number
+  checkpointId?: string
+  listingsCreated?: string[]
+  listingsUpdated?: string[]
+  listingsClosed?: string[]
   error?: string
 }
 
@@ -34,6 +38,77 @@ const ACTIVITY_NEW_LISTING = 'new_listing'
 const ACTIVITY_PRICE_DROP = 'price_drop'
 const ACTIVITY_STATUS_PENDING = 'status_pending'
 const ACTIVITY_STATUS_CLOSED = 'status_closed'
+const ACTIVITY_STATUS_EXPIRED = 'status_expired'
+const ACTIVITY_BACK_ON_MARKET = 'back_on_market'
+
+type DeltaCheckpointMetadata = {
+  listingsCreated: string[]
+  listingsUpdated: string[]
+  listingsClosed: string[]
+}
+
+function normalizeDeltaStatus(status: string | null | undefined): 'closed' | 'expired' | 'pending' | 'active' | 'other' {
+  const value = String(status ?? '').toLowerCase()
+  if (value.includes('closed')) return 'closed'
+  if (value.includes('expired') || value.includes('withdrawn') || value.includes('cancel')) return 'expired'
+  if (value.includes('pending') || value.includes('under contract') || value.includes('undercontract')) return 'pending'
+  if (value.includes('active') || value.includes('for sale') || value.includes('coming soon') || value.includes('back on market')) return 'active'
+  return 'other'
+}
+
+async function createDeltaCheckpoint(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  sinceIso: string
+): Promise<string | null> {
+  const startedAt = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('sync_checkpoints')
+    .insert({
+      sync_type: 'delta',
+      status: 'running',
+      started_at: startedAt,
+      updated_at: startedAt,
+      metadata: { sinceIso },
+    })
+    .select('id')
+    .single()
+  if (error) {
+    console.error('[sync-delta] checkpoint insert error:', error.message)
+    return null
+  }
+  const row = data as { id?: string } | null
+  return row?.id ?? null
+}
+
+async function finalizeDeltaCheckpoint(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  checkpointId: string | null,
+  input: {
+    status: 'completed' | 'failed'
+    totalCount: number
+    processedCount: number
+    metadata: DeltaCheckpointMetadata
+    error?: string | null
+  }
+): Promise<void> {
+  if (!checkpointId) return
+  const completedAt = new Date().toISOString()
+  const payload = {
+    status: input.status,
+    total_count: input.totalCount,
+    processed_count: input.processedCount,
+    metadata: input.metadata,
+    updated_at: completedAt,
+    completed_at: input.status === 'completed' ? completedAt : null,
+    error_log: input.error ? [{ message: input.error, at: completedAt }] : [],
+  }
+  const { error } = await supabase.from('sync_checkpoints').update(payload).eq('id', checkpointId)
+  if (error) {
+    console.error('[sync-delta] checkpoint update error:', error.message)
+  }
+}
 
 function isLikelyVideoUrl(url: string): boolean {
   const u = url.toLowerCase()
@@ -164,7 +239,7 @@ export async function syncSparkListings(options?: {
       })
 
       const D = response.D
-      if (!D?.Success || !D.Results?.length) {
+      if (!D?.Results?.length) {
         if (pagesProcessed === 0) {
           return {
             success: true,
@@ -646,6 +721,10 @@ export async function syncSparkListingsDelta(options?: {
   let pagesProcessed = 0
   let currentPage = 1
   let totalPages = 1
+  const createdListings = new Set<string>()
+  const updatedListings = new Set<string>()
+  const closedListings = new Set<string>()
+  const checkpointId = await createDeltaCheckpoint(supabase, sinceIso)
 
   try {
     while (currentPage <= totalPages && pagesProcessed < maxPages) {
@@ -663,6 +742,16 @@ export async function syncSparkListingsDelta(options?: {
             { id: 'default', last_delta_sync_at: new Date().toISOString(), updated_at: new Date().toISOString() },
             { onConflict: 'id' }
           )
+          await finalizeDeltaCheckpoint(supabase, checkpointId, {
+            status: 'completed',
+            totalCount: 0,
+            processedCount: 0,
+            metadata: {
+              listingsCreated: [],
+              listingsUpdated: [],
+              listingsClosed: [],
+            },
+          })
           return {
             success: true,
             message: 'Delta sync: no changes since last run.',
@@ -670,6 +759,10 @@ export async function syncSparkListingsDelta(options?: {
             totalUpserted: 0,
             eventsEmitted: 0,
             pagesProcessed: 0,
+            checkpointId: checkpointId ?? undefined,
+            listingsCreated: [],
+            listingsUpdated: [],
+            listingsClosed: [],
           }
         }
         break
@@ -685,12 +778,16 @@ export async function syncSparkListingsDelta(options?: {
       const listNumbers = rows.map((r) => r.ListNumber).filter(Boolean) as string[]
       const { data: existingRows } = await supabase
         .from('listings')
-        .select('ListNumber, StandardStatus, ListPrice')
+        .select('ListNumber, StandardStatus, ListPrice, is_finalized')
         .in('ListNumber', listNumbers)
-      const existingByNum = new Map<string, { StandardStatus?: string | null; ListPrice?: number | null }>()
+      const existingByNum = new Map<string, { StandardStatus?: string | null; ListPrice?: number | null; is_finalized?: boolean }>()
       for (const r of existingRows ?? []) {
-        const row = r as { ListNumber?: string; StandardStatus?: string | null; ListPrice?: number | null }
-        if (row.ListNumber) existingByNum.set(row.ListNumber, { StandardStatus: row.StandardStatus, ListPrice: row.ListPrice })
+        const row = r as { ListNumber?: string; StandardStatus?: string | null; ListPrice?: number | null; is_finalized?: boolean }
+        if (row.ListNumber) existingByNum.set(row.ListNumber, {
+          StandardStatus: row.StandardStatus,
+          ListPrice: row.ListPrice,
+          is_finalized: row.is_finalized,
+        })
       }
 
       for (let i = 0; i < rows.length; i += UPSERT_CHUNK_SIZE) {
@@ -706,8 +803,9 @@ export async function syncSparkListingsDelta(options?: {
         if (!listNumber) continue
         const existing = existingByNum.get(listNumber)
         const status = (row.StandardStatus ?? '').toString().toLowerCase()
-        const isPending = /pending/i.test(status)
-        const isClosed = /closed/i.test(status)
+        const normalizedStatus = normalizeDeltaStatus(status)
+        const isPending = normalizedStatus === 'pending'
+        const isClosed = normalizedStatus === 'closed'
         const newPrice = typeof row.ListPrice === 'number' && !Number.isNaN(row.ListPrice) ? row.ListPrice : null
 
         if (!existing) {
@@ -718,17 +816,38 @@ export async function syncSparkListingsDelta(options?: {
             payload: { ListNumber: listNumber, City: row.City, SubdivisionName: row.SubdivisionName },
           })
           if (!evErr) eventsEmitted++
+          if (listingKey) createdListings.add(listingKey)
         } else {
           const oldStatus = (existing.StandardStatus ?? '').toString().toLowerCase()
-          const oldPending = /pending/i.test(oldStatus)
-          const oldClosed = /closed/i.test(oldStatus)
+          const oldNormalizedStatus = normalizeDeltaStatus(oldStatus)
+          const oldPending = oldNormalizedStatus === 'pending'
+          const oldClosed = oldNormalizedStatus === 'closed'
           const oldPrice = existing.ListPrice != null && !Number.isNaN(Number(existing.ListPrice)) ? Number(existing.ListPrice) : null
+          if (listingKey) updatedListings.add(listingKey)
+          if (
+            existing.is_finalized &&
+            (normalizedStatus === 'active' || normalizedStatus === 'pending')
+          ) {
+            await supabase
+              .from('listings')
+              .update({ history_finalized: false, is_finalized: false, media_finalized: false })
+              .eq('ListNumber', listNumber)
+          }
           if (!oldPending && isPending) {
             const { error: evErr } = await supabase.from('activity_events').insert({
               listing_key: listingKey,
               event_type: ACTIVITY_STATUS_PENDING,
               event_at: nowIso,
               payload: { ListNumber: listNumber },
+            })
+            if (!evErr) eventsEmitted++
+          }
+          if (oldNormalizedStatus === 'expired' && normalizedStatus === 'active') {
+            const { error: evErr } = await supabase.from('activity_events').insert({
+              listing_key: listingKey,
+              event_type: ACTIVITY_BACK_ON_MARKET,
+              event_at: nowIso,
+              payload: { ListNumber: listNumber, previousStatus: existing.StandardStatus },
             })
             if (!evErr) eventsEmitted++
           }
@@ -741,6 +860,16 @@ export async function syncSparkListingsDelta(options?: {
             })
             if (!evErr) eventsEmitted++
             await supabase.from('listings').update({ media_finalized: true }).eq('ListNumber', listNumber)
+            if (listingKey) closedListings.add(listingKey)
+          }
+          if (oldNormalizedStatus !== 'expired' && normalizedStatus === 'expired') {
+            const { error: evErr } = await supabase.from('activity_events').insert({
+              listing_key: listingKey,
+              event_type: ACTIVITY_STATUS_EXPIRED,
+              event_at: nowIso,
+              payload: { ListNumber: listNumber, previousStatus: existing.StandardStatus, newStatus: row.StandardStatus },
+            })
+            if (!evErr) eventsEmitted++
           }
           if (newPrice != null && oldPrice != null && newPrice < oldPrice) {
             const { error: evErr } = await supabase.from('activity_events').insert({
@@ -763,6 +892,17 @@ export async function syncSparkListingsDelta(options?: {
       { id: 'default', last_delta_sync_at: new Date().toISOString(), updated_at: new Date().toISOString() },
       { onConflict: 'id' }
     )
+    const checkpointMetadata = {
+      listingsCreated: Array.from(createdListings),
+      listingsUpdated: Array.from(updatedListings),
+      listingsClosed: Array.from(closedListings),
+    }
+    await finalizeDeltaCheckpoint(supabase, checkpointId, {
+      status: 'completed',
+      totalCount: totalFetched,
+      processedCount: totalUpserted,
+      metadata: checkpointMetadata,
+    })
     return {
       success: true,
       message: `Delta sync done. ${totalUpserted} updated, ${eventsEmitted} events.`,
@@ -770,9 +910,24 @@ export async function syncSparkListingsDelta(options?: {
       totalUpserted,
       eventsEmitted,
       pagesProcessed,
+      checkpointId: checkpointId ?? undefined,
+      listingsCreated: checkpointMetadata.listingsCreated,
+      listingsUpdated: checkpointMetadata.listingsUpdated,
+      listingsClosed: checkpointMetadata.listingsClosed,
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    await finalizeDeltaCheckpoint(supabase, checkpointId, {
+      status: 'failed',
+      totalCount: totalFetched,
+      processedCount: totalUpserted,
+      metadata: {
+        listingsCreated: Array.from(createdListings),
+        listingsUpdated: Array.from(updatedListings),
+        listingsClosed: Array.from(closedListings),
+      },
+      error: message,
+    })
     return {
       success: false,
       message: `Delta sync failed: ${message}`,
@@ -780,6 +935,10 @@ export async function syncSparkListingsDelta(options?: {
       totalUpserted,
       eventsEmitted,
       pagesProcessed,
+      checkpointId: checkpointId ?? undefined,
+      listingsCreated: Array.from(createdListings),
+      listingsUpdated: Array.from(updatedListings),
+      listingsClosed: Array.from(closedListings),
       error: message,
     }
   }
