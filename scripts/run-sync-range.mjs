@@ -10,15 +10,12 @@
 
 import { spawn } from 'child_process'
 
-const args = process.argv.slice(2).map(Number).filter(n => Number.isFinite(n) && n >= 1990)
+const rawArgs = process.argv.slice(2)
+const descending = rawArgs.includes('--desc')
+const args = rawArgs.filter(a => a !== '--desc').map(Number).filter(n => Number.isFinite(n) && n >= 1990)
 const currentYear = new Date().getUTCFullYear()
 const fromYear = args[0] ?? currentYear
 const toYear = args[1] ?? currentYear
-
-if (fromYear > toYear) {
-  console.error(`Start year (${fromYear}) must be <= end year (${toYear})`)
-  process.exit(1)
-}
 
 function syncYear(year) {
   return new Promise((resolve, reject) => {
@@ -46,9 +43,13 @@ function syncYear(year) {
 
 async function main() {
   const years = []
-  for (let y = fromYear; y <= toYear; y++) years.push(y)
+  if (descending) {
+    for (let y = Math.max(fromYear, toYear); y >= Math.min(fromYear, toYear); y--) years.push(y)
+  } else {
+    for (let y = fromYear; y <= toYear; y++) years.push(y)
+  }
 
-  console.log(`Syncing years ${fromYear} → ${toYear} (${years.length} year${years.length === 1 ? '' : 's'}) in order.`)
+  console.log(`Syncing years ${years[0]} → ${years[years.length - 1]} (${years.length} year${years.length === 1 ? '' : 's'}) ${descending ? 'descending' : 'ascending'}.`)
   console.log('Each year must complete before the next starts.\n')
 
   for (const year of years) {
