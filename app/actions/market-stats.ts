@@ -1,6 +1,8 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/service'
+import { slugify, subdivisionEntityKey } from '@/lib/slug'
+import type { CityMarketStats } from '@/app/actions/listings'
 
 export type MarketGeoType = 'region' | 'city' | 'subdivision'
 export type MarketPeriodType = 'monthly' | 'quarterly' | 'yearly' | 'custom'
@@ -75,4 +77,54 @@ export async function getLiveMarketPulse(input: {
     .eq('geo_slug', input.geoSlug)
     .maybeSingle()
   return (data as MarketPulseRow | null) ?? null
+}
+
+function pulseToMarketStats(
+  pulse: MarketPulseRow,
+  cached: CachedStatRow | null
+): CityMarketStats {
+  return {
+    count: pulse.active_count,
+    avgPrice: pulse.avg_list_price,
+    medianPrice: pulse.median_list_price,
+    avgDom: cached?.median_dom ?? null,
+    newListingsLast30Days: pulse.new_count_30d,
+    pendingCount: pulse.pending_count,
+    closedLast12Months: cached?.sold_count ?? 0,
+  }
+}
+
+/**
+ * Market stats for a city via cached pulse + stats tables.
+ * Falls back to the legacy getCityMarketStats when pulse data is unavailable.
+ */
+export async function getMarketStatsForCity(
+  cityName: string
+): Promise<CityMarketStats> {
+  const geoSlug = slugify(cityName)
+  const [pulse, cached] = await Promise.all([
+    getLiveMarketPulse({ geoType: 'city', geoSlug }),
+    getCachedStats({ geoType: 'city', geoSlug }),
+  ])
+  if (pulse) return pulseToMarketStats(pulse, cached)
+  const { getCityMarketStats } = await import('@/app/actions/listings')
+  return getCityMarketStats({ city: cityName })
+}
+
+/**
+ * Market stats for a subdivision via cached pulse + stats tables.
+ * Falls back to the legacy getCityMarketStats when pulse data is unavailable.
+ */
+export async function getMarketStatsForSubdivision(
+  city: string,
+  subdivision: string
+): Promise<CityMarketStats> {
+  const geoSlug = subdivisionEntityKey(city, subdivision)
+  const [pulse, cached] = await Promise.all([
+    getLiveMarketPulse({ geoType: 'subdivision', geoSlug }),
+    getCachedStats({ geoType: 'subdivision', geoSlug }),
+  ])
+  if (pulse) return pulseToMarketStats(pulse, cached)
+  const { getCityMarketStats } = await import('@/app/actions/listings')
+  return getCityMarketStats({ city, subdivision })
 }

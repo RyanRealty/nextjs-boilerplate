@@ -6,7 +6,6 @@ import { Suspense } from 'react'
 import {
   getListingsWithAdvanced,
   getListingsForMap,
-  getCityMarketStats,
   getCityStatusCounts,
   getSubdivisionsInCity,
   getHotCommunitiesInCity,
@@ -16,6 +15,7 @@ import {
   getSubdivisionNameFromSlug,
   type AdvancedSort,
 } from '../../actions/listings'
+import { getMarketStatsForCity, getMarketStatsForSubdivision } from '../../actions/market-stats'
 import { getSession } from '../../actions/auth'
 import { getBannerUrl, getOrCreatePlaceBanner, getBannerSearchQuery } from '../../actions/banners'
 import { shareDescription, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '../../../lib/share-metadata'
@@ -298,7 +298,11 @@ export default async function SearchPage({
 
   const [listingsResult, marketStats, statusCounts, subdivisions, hotCommunities, priceChangeKeys, session, resortEntityKeys] = await Promise.all([
     getListingsWithAdvanced({ ...filterOpts, limit: pageSize, offset }),
-    getCityMarketStats({ city: city || undefined, subdivision: decodedSubdivision }),
+    decodedSubdivision && city
+      ? getMarketStatsForSubdivision(city, decodedSubdivision)
+      : city
+        ? getMarketStatsForCity(city)
+        : import('../../actions/listings').then((m) => m.getCityMarketStats({})),
     city ? getCityStatusCounts({ city, subdivision: decodedSubdivision ?? null }) : Promise.resolve({ active: 0, pending: 0, closed: 0, other: 0 }),
     city && !subdivision ? getSubdivisionsInCity(city) : Promise.resolve([]),
     city && !subdivision ? getHotCommunitiesInCity(city) : Promise.resolve([]),

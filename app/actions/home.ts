@@ -5,9 +5,9 @@ import { unstable_cache } from 'next/cache'
 import {
   getListingsForHomeTiles,
   getHomeTileRowsByKeys,
-  getCityMarketStats,
   getHotCommunitiesInCity,
 } from '@/app/actions/listings'
+import { getMarketStatsForCity } from '@/app/actions/market-stats'
 import { getTrendingListingKeys } from '@/app/actions/listing-views'
 import { sendEvent } from '@/lib/followupboss'
 import type { HomeTileRow } from '@/app/actions/listings'
@@ -227,9 +227,9 @@ async function _getMarketSnapshotUncached(): Promise<CityMarketStats & { avgDom?
   } catch {
     // Fall through to legacy path
   }
-  // Fallback to legacy multi-query path
-  const stats = await getCityMarketStats({ city: 'Bend' })
-  return { ...stats, avgDom: null }
+  // Fallback to cached pulse/stats path
+  const stats = await getMarketStatsForCity('Bend')
+  return { ...stats, avgDom: stats.avgDom ?? null }
 }
 
 export const getMarketSnapshot = unstable_cache(

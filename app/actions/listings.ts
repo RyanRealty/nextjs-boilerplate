@@ -1430,8 +1430,10 @@ export type CityMarketStats = {
 }
 
 /**
- * Market snapshot: active listings only for count and prices. Pending and closed (last 12 months) as separate stats.
- * Uses proper count queries and CloseDate for sold count so numbers are accurate.
+ * @deprecated Use `getMarketStatsForCity` or `getMarketStatsForSubdivision` from
+ * `@/app/actions/market-stats` instead. This legacy function makes 5+ separate
+ * Supabase queries per call. The replacements use pre-computed cache tables.
+ * Kept temporarily as a fallback for when pulse cache data is unavailable.
  */
 export async function getCityMarketStats(options: {
   city?: string

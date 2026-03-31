@@ -7,9 +7,9 @@ import type { CityForIndex, CityDetail } from '@/lib/cities'
 import { getBannerUrl, getBannersBatch } from '@/app/actions/banners'
 import {
   getBrowseCities,
-  getCityMarketStats,
   getCityFromSlug,
 } from '@/app/actions/listings'
+import { getMarketStatsForCity } from '@/app/actions/market-stats'
 import { getHotCommunitiesInCity } from '@/app/actions/listings'
 import { entityKeyToSlug } from '@/lib/community-slug'
 import type { CommunityForIndex } from '@/lib/communities'
@@ -173,7 +173,7 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
   const cityName = await getCityFromSlug(slug)
   if (!cityName) return null
   const [stats, countRes, cityRow, subRows] = await Promise.all([
-    getCityMarketStats({ city: cityName }),
+    getMarketStatsForCity(cityName),
     supabase()
       .from('listings')
       .select('ListPrice', { count: 'exact', head: true })

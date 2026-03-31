@@ -9,7 +9,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getBrowseCities } from './listings'
 import { getSubdivisionsInCity } from './listings'
-import { getCityMarketStats } from './listings'
+import { getMarketStatsForCity } from './market-stats'
 import { getNeighborhoodBySlug } from './cities'
 import { subdivisionEntityKey } from '@/lib/slug'
 import { generateGrokText } from '@/lib/grok-text'
@@ -106,7 +106,7 @@ async function generateAndWriteCityContent(
   cityName: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const stats = await getCityMarketStats({ city: cityName })
+    const stats = await getMarketStatsForCity(cityName)
     const priceStr =
       stats.medianPrice != null && Number.isFinite(stats.medianPrice)
         ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(

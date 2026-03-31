@@ -6,7 +6,7 @@ import { subdivisionEntityKey, slugify } from '@/lib/slug'
 import { getSubdivisionMatchNames } from '@/lib/subdivision-aliases'
 import { parseCommunitySlug } from '@/lib/community-slug'
 import { getBannerUrl, getBannersBatch, getOrCreatePlaceBanner, getBannerSearchQuery } from '@/app/actions/banners'
-import { getCityMarketStats } from '@/app/actions/listings'
+import { getMarketStatsForCity, getMarketStatsForSubdivision } from '@/app/actions/market-stats'
 import type { CityMarketStats } from '@/app/actions/listings'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
 import type { CommunityForIndex, CommunityDetail } from '@/lib/communities'
@@ -109,7 +109,7 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
   const entityKey = subdivisionEntityKey(city, subdivision)
   const sb = supabase()
   const [stats, communityRow] = await Promise.all([
-    getCityMarketStats({ city, subdivision }),
+    getMarketStatsForSubdivision(city, subdivision),
     sb.from('communities').select('id, name, slug, description, hero_image_url, boundary_geojson, is_resort, resort_content, neighborhood_id, neighborhoods(name, slug)').ilike('name', subdivision).maybeSingle(),
   ])
   const activeCount = stats.count
@@ -310,10 +310,10 @@ export async function getCommunityPriceHistory(
   return fallback.length >= 2 ? fallback : fromCache
 }
 
-/** Market stats for community (reuse getCityMarketStats with subdivision). */
+/** Market stats for community via cached pulse data (falls back to legacy queries). */
 export async function getCommunityMarketStats(
   city: string,
   subdivision: string
 ): Promise<CityMarketStats> {
-  return getCityMarketStats({ city, subdivision })
+  return getMarketStatsForSubdivision(city, subdivision)
 }
