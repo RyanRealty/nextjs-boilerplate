@@ -5,6 +5,7 @@ import {
   getDashboardSyncData,
   getDashboardLeadData,
   getDashboardDataQuality,
+  getDashboardContentStatus,
 } from '@/app/actions/dashboard'
 import DashboardPanel from '@/components/admin/DashboardPanel'
 import DashboardSyncPanel from '@/components/admin/DashboardSyncPanel'
@@ -13,7 +14,7 @@ import DashboardGA4Panel from '@/components/admin/DashboardGA4Panel'
 import DashboardNotificationsPanel from '@/components/admin/DashboardNotificationsPanel'
 import DashboardSitePerformancePanel from '@/components/admin/DashboardSitePerformancePanel'
 import DashboardRevenuePanel from '@/components/admin/DashboardRevenuePanel'
-import { Button } from "@/components/ui/button"
+import DashboardContentStatusPanel from '@/components/admin/DashboardContentStatusPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,10 +22,11 @@ export default async function AdminDashboardPage() {
   const setupComplete = await getSetupComplete()
   if (!setupComplete) redirect('/admin/setup')
 
-  const [syncData, leadData, dataQuality] = await Promise.all([
+  const [syncData, leadData, dataQuality, contentStatus] = await Promise.all([
     getDashboardSyncData(),
     getDashboardLeadData(),
     getDashboardDataQuality(),
+    getDashboardContentStatus(),
   ])
 
   return (
@@ -33,23 +35,6 @@ export default async function AdminDashboardPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         Single view of system health, sync, leads, and observability. Panel state is saved in your browser.
       </p>
-
-      <div className="mt-6 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card px-4 py-3">
-        <span className="text-sm font-medium text-muted-foreground">Date range</span>
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Last 30 days</span>
-          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
-            Last 7 days
-          </Button>
-          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
-            Today
-          </Button>
-          <Button type="button" className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-border">
-            Custom
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">GA4 and report panels will use this range when wired.</p>
-      </div>
 
       <div className="mt-8 space-y-6">
         <DashboardPanel id="sync" title="Sync operations and database health" defaultOpen={true}>
@@ -75,11 +60,8 @@ export default async function AdminDashboardPage() {
           <DashboardNotificationsPanel />
         </DashboardPanel>
 
-        <DashboardPanel id="content" title="Content engine performance" defaultOpen={false}>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Social content pipeline, content performance, and queue health will appear here when the content engine is implemented.</p>
-            <p className="text-xs text-muted-foreground">Planned: events detected, items generated, pending review, scheduled, published, reach and engagement by platform.</p>
-          </div>
+        <DashboardPanel id="content" title="Content Status" defaultOpen={false}>
+          <DashboardContentStatusPanel data={contentStatus.data} error={contentStatus.error} />
         </DashboardPanel>
 
         <DashboardPanel id="siteperf" title="Site performance and technical health" defaultOpen={false}>

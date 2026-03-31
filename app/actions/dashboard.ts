@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/service'
 import {
   getAdminSyncCounts,
   getListingsBreakdown,
@@ -104,4 +105,62 @@ export async function getDashboardDataQuality(): Promise<DashboardDataQuality> {
   const classifiedPhotos = classifiedRes.count ?? 0
 
   return { totalListings, missingPrimaryPhoto, classifiedPhotos }
+}
+
+export type DashboardContentStatus = {
+  publishedGuides: number
+  publishedBlogPosts: number
+  communitiesWithDescription: number
+}
+
+export async function getDashboardContentStatus(): Promise<{
+  data: DashboardContentStatus | null
+  error: string | null
+}> {
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url?.trim() || !key?.trim()) {
+      return {
+        data: {
+          publishedGuides: 0,
+          publishedBlogPosts: 0,
+          communitiesWithDescription: 0,
+        },
+        error: null,
+      }
+    }
+
+    const supabase = createServiceClient()
+    const [guidesRes, blogRes, commRes] = await Promise.all([
+      supabase.from('guides').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+      supabase.from('blog_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+      supabase.from('communities').select('id', { count: 'exact', head: true }).not('description', 'is', null),
+    ])
+
+    if (guidesRes.error) {
+      console.error('[getDashboardContentStatus] guides', guidesRes.error)
+      return { data: null, error: 'Failed to load content status' }
+    }
+    if (blogRes.error) {
+      console.error('[getDashboardContentStatus] blog_posts', blogRes.error)
+      return { data: null, error: 'Failed to load content status' }
+    }
+    if (commRes.error) {
+      console.error('[getDashboardContentStatus] communities', commRes.error)
+      return { data: null, error: 'Failed to load content status' }
+    }
+
+    return {
+      data: {
+        publishedGuides: guidesRes.count ?? 0,
+        publishedBlogPosts: blogRes.count ?? 0,
+        communitiesWithDescription: commRes.count ?? 0,
+      },
+      error: null,
+    }
+  } catch (err) {
+    console.error('[getDashboardContentStatus]', err)
+    return { data: null, error: 'Failed to load content status' }
+  }
 }
