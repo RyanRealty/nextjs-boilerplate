@@ -4,7 +4,7 @@ import { cityEntityKey, listingDetailPath, listingsBrowsePath, slugify, teamPath
 import { getAllPresetSlugs } from '../lib/search-presets'
 
 const ACTIVE_STATUS_OR =
-  'standard_status.is.null,standard_status.ilike.%Active%,standard_status.ilike.%For Sale%,standard_status.ilike.%Coming Soon%'
+  'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 
 /**
  * Dynamic sitemap — generates at request time so it always has fresh data.
@@ -163,29 +163,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Listings
     const { data: listings } = await supabase
       .from('listings')
-      .select('listing_key, list_number, subdivision_name, city, state, postal_code, street_number, street_name, updated_at')
+      .select('ListingKey, ListNumber, SubdivisionName, City, State, PostalCode, StreetNumber, StreetName, ModificationTimestamp')
       .or(ACTIVE_STATUS_OR)
       .limit(50000)
 
     for (const r of (listings ?? []) as Array<{
-      listing_key: string
-      list_number?: string | null
-      subdivision_name?: string | null
-      city?: string | null
-      state?: string | null
-      postal_code?: string | null
-      street_number?: string | null
-      street_name?: string | null
-      updated_at?: string
+      ListingKey: string
+      ListNumber?: string | null
+      SubdivisionName?: string | null
+      City?: string | null
+      State?: string | null
+      PostalCode?: string | null
+      StreetNumber?: string | null
+      StreetName?: string | null
+      ModificationTimestamp?: string | null
     }>) {
       dynamicPages.push({
         url: `${baseUrl}${listingDetailPath(
-          r.listing_key,
-          { streetNumber: r.street_number ?? null, streetName: r.street_name ?? null, city: r.city ?? null, state: r.state ?? null, postalCode: r.postal_code ?? null },
-          { city: r.city ?? null, subdivision: r.subdivision_name ?? null },
-          { mlsNumber: r.list_number ?? null }
+          r.ListingKey,
+          { streetNumber: r.StreetNumber ?? null, streetName: r.StreetName ?? null, city: r.City ?? null, state: r.State ?? null, postalCode: r.PostalCode ?? null },
+          { city: r.City ?? null, subdivision: r.SubdivisionName ?? null },
+          { mlsNumber: r.ListNumber ?? null }
         )}`,
-        lastModified: r.updated_at ? new Date(r.updated_at) : now,
+        lastModified: r.ModificationTimestamp ? new Date(r.ModificationTimestamp) : now,
         changeFrequency: 'daily',
         priority: 0.7,
       })
