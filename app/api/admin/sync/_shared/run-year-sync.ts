@@ -52,6 +52,12 @@ export function parseYearCache(raw: unknown): YearCachePayload {
   return { version: obj.version, rows: obj.rows as Record<string, YearCacheRow>, updatedAt: obj.updatedAt ?? new Date().toISOString() }
 }
 
+function hasPartialHistoryProgress(row: YearCacheRow | undefined): boolean {
+  const processed = Number(row?.processedListings ?? 0)
+  const total = Number(row?.totalListings ?? 0)
+  return processed > 0 && total > processed
+}
+
 function yearBounds(year: number) {
   const fromIso = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)).toISOString()
   const toIsoExclusive = new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0, 0)).toISOString()
@@ -528,7 +534,7 @@ export async function runYearSyncChunk(options: {
       (await supabase.from('sync_state').select('year_sync_matrix_cache').eq('id', 'default').maybeSingle())
         .data?.year_sync_matrix_cache
     ).rows[String(targetYear)]
-    const hadProgress = (cachedRow?.processedListings ?? 0) > 0 && cachedRow?.runStatus === 'running'
+    const hadProgress = hasPartialHistoryProgress(cachedRow) && cachedRow?.cancelRequested !== true
     if (hadProgress) {
       phase = 'history'
       currentYearVal = targetYear
@@ -645,6 +651,37 @@ export async function runYearSyncChunk(options: {
       }
     }
     const yearKey = String(pickedYear)
+    const cachedProgress = cache.rows[yearKey]
+    if (hasPartialHistoryProgress(cachedProgress) && cachedProgress?.cancelRequested !== true) {
+      totalListings = cachedProgress?.totalListings ?? null
+      nextHistoryOffset = cachedProgress?.processedListings ?? 0
+      phase = 'history'
+      await updateCursor({
+        current_year: pickedYear,
+        phase: 'history',
+        next_listing_page: 1,
+        next_history_offset: nextHistoryOffset,
+        total_listings: totalListings,
+      })
+      cache.rows[yearKey] = {
+        ...cachedProgress,
+        runStatus: 'running',
+        runPhase: 'Syncing history',
+        cancelRequested: false,
+        runUpdatedAt: nowIso,
+      }
+      cache.updatedAt = nowIso
+      await supabase.from('sync_state').upsert({ id: 'default', year_sync_matrix_cache: cache, updated_at: nowIso }, { onConflict: 'id' })
+      return {
+        ok: true,
+        done: false,
+        year: pickedYear,
+        phase: 'history',
+        message: `Year ${pickedYear} resuming history at ${nextHistoryOffset}/${totalListings ?? '?'}.`,
+        processedListings: nextHistoryOffset,
+        totalListings: totalListings ?? undefined,
+      }
+    }
     const [sparkCountCheck, supabaseCountCheck] = await Promise.all([
       getSparkListingsCountForYear(token, pickedYear),
       countSupabaseListingsForYear(supabase, pickedYear),
