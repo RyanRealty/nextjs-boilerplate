@@ -108,11 +108,7 @@ export default function GeoMarketOverview({
               </ResponsiveContainer>
             </div>
           </div>
-        ) : (
-          <p className="mt-6 text-sm text-muted-foreground">
-            Market data building — check back soon for price trends and sales volume.
-          </p>
-        )}
+        ) : null}
         <div className="mt-6 flex flex-wrap gap-3">
           {showYtd && (
             <Button

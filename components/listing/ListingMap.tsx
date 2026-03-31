@@ -108,7 +108,7 @@ export default function ListingMap({ latitude, longitude, price, address }: Prop
         className="rounded-lg overflow-hidden bg-border aspect-video min-h-[200px]"
         aria-label="Property map"
       />
-      <p className="text-sm text-muted-foreground">What&apos;s Nearby: schools, walkability — data added later.</p>
+      {/* What's Nearby section hidden until data is available */}
     </section>
   )
 }

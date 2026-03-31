@@ -20,7 +20,7 @@ function formatVolume(n: number): string {
 }
 
 function StarRating({ rating, count }: { rating: number | null; count: number }) {
-  if (count === 0) return <span className="text-sm text-muted-foreground">No reviews yet</span>
+  if (count === 0) return null
   const r = rating ?? 0
   const full = Math.floor(r)
   const half = r - full >= 0.5 ? 1 : 0
@@ -92,11 +92,13 @@ export default function BrokerCard({ agent, basePath = 'team' }: Props) {
             {agent.license_number && (
               <p className="mt-1 text-xs text-muted-foreground">License #{agent.license_number}</p>
             )}
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span>{agent.activeCount} Active Listings</span>
-              <span>{agent.soldCount24Mo} Sold (24mo)</span>
-              <span>{formatVolume(agent.soldVolume24Mo)} Volume</span>
-            </div>
+            {(agent.activeCount > 0 || agent.soldCount24Mo > 0 || agent.soldVolume24Mo > 0) && (
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                {agent.activeCount > 0 && <span>{agent.activeCount} Active Listings</span>}
+                {agent.soldCount24Mo > 0 && <span>{agent.soldCount24Mo} Sold (24mo)</span>}
+                {agent.soldVolume24Mo > 0 && <span>{formatVolume(agent.soldVolume24Mo)} Volume</span>}
+              </div>
+            )}
             {specialties.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1">
                 {specialties.slice(0, 3).map((s) => (

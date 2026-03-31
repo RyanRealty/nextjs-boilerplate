@@ -547,11 +547,10 @@ export async function getListings(options: {
   if (options.minBaths != null && options.minBaths > 0) query = query.gte('BathroomsTotal', options.minBaths)
   if (options.minSqFt != null && options.minSqFt > 0) query = query.gte('TotalLivingAreaSqFt', options.minSqFt)
 
-  const pt = options.propertyType
-  const usePropertyFilter = pt !== '' && pt !== 'all'
-  const propertyType = usePropertyFilter ? (pt ?? 'Residential') : null
-  if (propertyType) {
-    query = query.or(`PropertyType.ilike.%${propertyType}%,PropertyType.is.null`)
+  // Only filter by propertyType when explicitly set — default is ALL types
+  const pt = options.propertyType?.trim()
+  if (pt && pt !== '' && pt !== 'all') {
+    query = query.or(`PropertyType.ilike.%${pt}%,PropertyType.is.null`)
   }
 
   const sort = options.sort ?? 'newest'
@@ -969,11 +968,10 @@ export async function getActiveListingsCount(options: {
   if (options.minBeds != null && options.minBeds > 0) query = query.gte('BedroomsTotal', options.minBeds)
   if (options.minBaths != null && options.minBaths > 0) query = query.gte('BathroomsTotal', options.minBaths)
   if (options.minSqFt != null && options.minSqFt > 0) query = query.gte('TotalLivingAreaSqFt', options.minSqFt)
-  const pt = options.propertyType
-  const usePropertyFilter = pt !== '' && pt !== 'all'
-  const propertyType = usePropertyFilter ? (pt ?? 'Residential') : null
-  if (propertyType) {
-    query = query.or(`PropertyType.ilike.%${propertyType}%,PropertyType.is.null`)
+  // Only filter by propertyType when explicitly set — default is ALL types
+  const pt = options.propertyType?.trim()
+  if (pt && pt !== '' && pt !== 'all') {
+    query = query.or(`PropertyType.ilike.%${pt}%,PropertyType.is.null`)
   }
   const { count } = await query.limit(1)
   return count ?? 0

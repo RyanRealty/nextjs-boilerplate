@@ -36,6 +36,10 @@ export default function AreaMarketContext({
       ? ((listingPrice - medianAreaPrice) / medianAreaPrice) * 100
       : null
 
+  // Hide entire section when no area market data is available
+  const hasAnyData = medianAreaPrice != null || medianAreaPpsf != null || avgSaleToListRatio != null || activeInventory != null
+  if (!hasAnyData) return null
+
   return (
     <Card>
       <CardContent className="p-6">

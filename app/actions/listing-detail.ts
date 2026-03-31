@@ -917,11 +917,12 @@ export async function getSimilarListingsForDetailPage(
   const bedsMin = beds != null ? Math.max(1, beds - 1) : null
   const bedsMax = beds != null ? beds + 1 : null
 
-  // Query using actual PascalCase columns
+  // Query using actual PascalCase columns — only listings with photos
   let query = supabase
     .from('listings')
     .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, StreetNumber, StreetName, City, State, PostalCode, PhotoURL')
     .neq('ListingKey', key)
+    .not('PhotoURL', 'is', null)
     .or('StandardStatus.ilike.%Active%,StandardStatus.is.null')
     .limit(12)
 

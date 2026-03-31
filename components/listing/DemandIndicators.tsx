@@ -51,8 +51,13 @@ export default function DemandIndicators({ listingKey, viewCount, saveCount, lik
   }, [listingKey])
 
   const activityScore = Math.max(0, counts.viewCount) + Math.max(0, counts.saveCount) * 3 + Math.max(0, counts.likeCount) * 2
+
+  // Hide demand indicators entirely when there's minimal engagement — showing "0 views, 0 saves" looks bad
+  const hasEngagement = activityScore >= 5 || (daysOnMarket != null && daysOnMarket > 0)
+  if (!hasEngagement) return null
+
   const demandLabel =
-    activityScore >= 120 ? 'Very high demand' : activityScore >= 50 ? 'High demand' : activityScore >= 20 ? 'Moderate demand' : 'Early demand'
+    activityScore >= 120 ? 'Very high demand' : activityScore >= 50 ? 'High demand' : activityScore >= 20 ? 'Moderate demand' : null
 
   return (
     <Card>
@@ -60,12 +65,12 @@ export default function DemandIndicators({ listingKey, viewCount, saveCount, lik
         <h2 className="text-lg font-semibold text-foreground">Demand indicators</h2>
         <Separator className="my-4" />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Metric label="Views" value={counts.viewCount.toLocaleString()} />
-          <Metric label="Saves" value={counts.saveCount.toLocaleString()} />
-          <Metric label="Likes" value={counts.likeCount.toLocaleString()} />
-          <Metric label="Days on market" value={daysOnMarket == null ? '—' : String(daysOnMarket)} />
+          {counts.viewCount > 0 && <Metric label="Views" value={counts.viewCount.toLocaleString()} />}
+          {counts.saveCount > 0 && <Metric label="Saves" value={counts.saveCount.toLocaleString()} />}
+          {counts.likeCount > 0 && <Metric label="Likes" value={counts.likeCount.toLocaleString()} />}
+          {daysOnMarket != null && daysOnMarket > 0 && <Metric label="Days on market" value={String(daysOnMarket)} />}
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">{demandLabel}</p>
+        {demandLabel && <p className="mt-4 text-sm text-muted-foreground">{demandLabel}</p>}
       </CardContent>
     </Card>
   )
