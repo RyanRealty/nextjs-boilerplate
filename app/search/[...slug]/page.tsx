@@ -296,7 +296,8 @@ export default async function SearchPage({
       }
     : filterOptsBase
 
-  const [listingsResult, marketStats, statusCounts, subdivisions, hotCommunities, priceChangeKeys, session, resortEntityKeys] = await Promise.all([
+  // Fetch ALL independent data in a single parallel batch (was 3 sequential waterfalls)
+  const [listingsResult, marketStats, statusCounts, subdivisions, hotCommunities, priceChangeKeys, session, resortEntityKeys, searchPulse, searchActivityFeed, searchRecentlySold, cityPriceHistory, cityGuidesForCluster] = await Promise.all([
     getListingsWithAdvanced({ ...filterOpts, limit: pageSize, offset }),
     decodedSubdivision && city
       ? getMarketStatsForSubdivision(city, decodedSubdivision)
@@ -309,22 +310,7 @@ export default async function SearchPage({
     getListingKeysWithRecentPriceChange(),
     getSession(),
     getResortEntityKeys(),
-  ])
-  const hotCommunitiesSlice = city && !subdivision ? hotCommunities.slice(0, 10) : []
-  const [hotCommunityBannerUrls, savedCommunityKeys, cityPriceHistory, cityGuidesForCluster] = await Promise.all([
-    city && !subdivision && hotCommunitiesSlice.length > 0
-      ? Promise.all(
-          hotCommunitiesSlice.map((c) =>
-            getBannerUrl('subdivision', subdivisionEntityKey(city, c.subdivisionName))
-          )
-        )
-      : Promise.resolve([]),
-    session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
-    city ? getCityPriceHistory(city) : Promise.resolve([]),
-    city && !subdivision ? getGuidesByCity(city) : Promise.resolve([]),
-  ])
-  const cityGuideSlug = cityGuidesForCluster.length > 0 ? cityGuidesForCluster[0]!.slug : null
-  const [searchPulse, searchActivityFeed, searchRecentlySold] = await Promise.all([
+    // These were in sequential block 3 — now parallel
     city
       ? getLiveMarketPulse({
           geoType: subdivision && decodedSubdivision ? 'subdivision' : 'city',
@@ -342,6 +328,22 @@ export default async function SearchPage({
     city
       ? getRecentlySold({ city, subdivision: decodedSubdivision ?? undefined, limit: 12 })
       : Promise.resolve([]),
+    // These were in sequential block 2 — now parallel
+    city ? getCityPriceHistory(city) : Promise.resolve([]),
+    city && !subdivision ? getGuidesByCity(city) : Promise.resolve([]),
+  ])
+  const hotCommunitiesSlice = city && !subdivision ? hotCommunities.slice(0, 10) : []
+  const cityGuideSlug = (cityGuidesForCluster as Array<{ slug: string }>).length > 0 ? (cityGuidesForCluster as Array<{ slug: string }>)[0]!.slug : null
+  // Second batch: depends on results from first batch (session, hotCommunities)
+  const [hotCommunityBannerUrls, savedCommunityKeys] = await Promise.all([
+    city && !subdivision && hotCommunitiesSlice.length > 0
+      ? Promise.all(
+          hotCommunitiesSlice.map((c) =>
+            getBannerUrl('subdivision', subdivisionEntityKey(city, c.subdivisionName))
+          )
+        )
+      : Promise.resolve([]),
+    session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
   ])
   const { listings, totalCount } = listingsResult
   const effectiveStatusFilter = (filterOpts.statusFilter && ['active', 'active_and_pending', 'pending', 'closed', 'all'].includes(filterOpts.statusFilter))
