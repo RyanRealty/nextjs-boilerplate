@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getReportCities } from '@/app/actions/reports'
+import { getBrowseCities } from '@/app/actions/listings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import ContentPageHero from '@/components/layout/ContentPageHero'
@@ -28,8 +28,12 @@ export const metadata: Metadata = {
 }
 
 export default async function HousingMarketHubPage() {
-  const { cities } = await getReportCities()
-  const topCities = (cities ?? []).slice(0, 12)
+  const browseCities = await getBrowseCities()
+  const topCities = browseCities
+    .filter((c) => c.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .map((c) => c.City)
+    .slice(0, 12)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
