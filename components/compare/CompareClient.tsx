@@ -8,7 +8,6 @@ import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { LinkSquare01Icon, Cancel01Icon, Download01Icon, CheckmarkCircle01Icon } from '@hugeicons/core-free-icons'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from '@/components/ui/card'
 import { listingDetailPath } from '@/lib/slug'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -80,7 +79,7 @@ function bestIndex(listings: CompareListingData[], key: keyof CompareListingData
 }
 
 export default function CompareClient({ listings }: { listings: CompareListingData[] }) {
-  const { removeFromComparison, clearComparison } = useComparison()
+  const { removeFromComparison } = useComparison()
   const [pdfLoading, setPdfLoading] = useState(false)
 
   const handleShare = () => {

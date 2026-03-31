@@ -142,8 +142,6 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
   }, [])
 
   let itemIndex = 0
-  const linkClass = (isHighlight: boolean) =>
-    `block w-full px-4 py-2.5 text-left text-sm transition ${isHighlight ? 'bg-card/20 text-primary-foreground' : 'text-primary-foreground/90 hover:bg-card/10'}`
 
   return (
     <div className="relative w-full max-w-2xl" ref={panelRef}>

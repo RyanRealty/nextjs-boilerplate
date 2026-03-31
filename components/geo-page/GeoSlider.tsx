@@ -40,8 +40,8 @@ export default function GeoSlider({
   titleSrOnly = false,
 }: GeoSliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
+  const [, setCanScrollLeft] = useState(false)
+  const [, setCanScrollRight] = useState(true)
   const [hasOverflow, setHasOverflow] = useState(true)
 
   function updateScrollState() {

@@ -12,7 +12,7 @@ type Props = {
   priceHistory: { month: string; medianPrice: number }[]
 }
 
-export default function CommunityMarketStats({ communityName, city, subdivision, slug, stats, priceHistory }: Props) {
+export default function CommunityMarketStats({ communityName, city, subdivision, stats, priceHistory }: Props) {
   return (
     <GeoMarketOverview
       placeName={communityName}

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import type { ListingRow } from '@/app/actions/communities'
 import {
   MAP_DEFAULT_CENTER,
-  MAP_COLOR_LISTING,
   getListingMarkerIcon,
   getCityPinIcon,
   MAP_LABEL_LISTING,

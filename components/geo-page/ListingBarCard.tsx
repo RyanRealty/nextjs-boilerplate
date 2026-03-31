@@ -116,14 +116,17 @@ export default function ListingBarCard({
       <Link href={href} className="block">
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-muted">
           {listing.PhotoURL ? (
-            <img
-              src={listing.PhotoURL}
-              alt={`${addressOneLine(listing) || 'Property'} photo`}
-              className="h-full w-full object-cover object-top"
-              width={160}
-              height={120}
-              decoding="async"
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={listing.PhotoURL}
+                alt={`${addressOneLine(listing) || 'Property'} photo`}
+                className="h-full w-full object-cover object-top"
+                width={160}
+                height={120}
+                decoding="async"
+              />
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <HugeiconsIcon icon={Camera01Icon} className="h-5 w-5" />

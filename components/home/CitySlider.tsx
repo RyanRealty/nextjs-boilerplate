@@ -13,8 +13,6 @@ type Props = {
   ctaCard?: { name: string; href: string }
 }
 
-const PLACEHOLDER_GRADIENT = 'linear-gradient(135deg, var(--primary) 0%, var(--primary / 0.1) 100%)'
-
 /** Ken Burns: slow pan/zoom on the image so the card feels more engaging. */
 const CARD_IMAGE_CLASS = 'object-cover transition-transform duration-500 hover:scale-105 animate-hero-ken-burns'
 

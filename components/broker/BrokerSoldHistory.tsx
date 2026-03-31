@@ -25,7 +25,7 @@ function formatDate(s: string | null | undefined): string {
   return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
-export default function BrokerSoldHistory({ brokerFirstName, soldListings }: Props) {
+export default function BrokerSoldHistory({ soldListings }: Props) {
   const displayList = soldListings.slice(0, 12)
 
   if (displayList.length === 0) {

@@ -48,6 +48,7 @@ export default function TrustSection() {
               >
                 Meet the Team
               </Link>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="https://www.hud.gov/sites/dfiles/OEO/images/EHO-Logo-White-Bg.png"
                 alt="Equal Housing Opportunity"

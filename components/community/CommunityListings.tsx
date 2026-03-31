@@ -12,8 +12,6 @@ import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from '@/components/ui/card'
 
-const LISTING_PAGE_SIZE = 24
-
 type SoldListing = ListingRow & { ClosePrice?: number | null; CloseDate?: string | null }
 
 type DisplayPrefs = {
@@ -49,7 +47,6 @@ function formatDate(s: string | null | undefined): string {
 
 export default function CommunityListings({
   communityName,
-  slug,
   city,
   subdivision,
   listings,

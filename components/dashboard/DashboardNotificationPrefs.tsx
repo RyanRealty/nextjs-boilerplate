@@ -4,7 +4,6 @@ import { useTransition, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateProfile } from '@/app/actions/profile'
 import type { NotificationPreferences } from '@/app/actions/profile'
-import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'

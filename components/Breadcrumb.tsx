@@ -7,7 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { cn, sanitizeBreadcrumbLabel } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 export type BreadcrumbItem = { label: string; href?: string }
 
