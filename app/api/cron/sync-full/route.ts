@@ -3,7 +3,7 @@ import { getSyncCursor, runOneFullSyncChunk } from '../../../actions/sync-full-c
 import { createServiceClient } from '@/lib/supabase/service'
 
 const MAX_CHUNKS_PER_REQUEST = Math.max(1, Math.min(24, Number(process.env.SYNC_MAX_CHUNKS_PER_REQUEST ?? 12)))
-const TERMINAL_ONLY_FLAG = (process.env.SYNC_TERMINAL_ONLY_MODE ?? '1').toLowerCase()
+const TERMINAL_ONLY_FLAG = (process.env.SYNC_TERMINAL_ONLY_MODE ?? '0').toLowerCase()
 const SYNC_TERMINAL_ONLY_MODE =
   TERMINAL_ONLY_FLAG === '1' ||
   TERMINAL_ONLY_FLAG === 'true'
