@@ -327,7 +327,7 @@ export default function ListingHero({ photos, videos }: Props) {
             className="absolute right-4 top-4 text-primary-foreground/80 hover:text-primary-foreground"
             onClick={() => setLightboxOpen(false)}
           >
-            âœ•
+            ✕
           </Button>
           <img
             src={photoSrc}

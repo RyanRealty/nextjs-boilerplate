@@ -28,7 +28,7 @@ async function run() {
   const photoUrls = {};
   for (const hs of headshots) {
     const fileData = fs.readFileSync(hs.file);
-    const { data, error } = await sb.storage.from('brokers').upload(hs.path, fileData, {
+    const { error } = await sb.storage.from('brokers').upload(hs.path, fileData, {
       contentType: hs.type,
       upsert: true,
     });

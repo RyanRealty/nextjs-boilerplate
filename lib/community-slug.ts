@@ -1,4 +1,4 @@
-import { homesForSalePath, subdivisionEntityKey } from './slug'
+import { homesForSalePath } from './slug'
 
 /** Convert entity_key (e.g. "bend:sunriver") to URL slug "bend-sunriver". */
 export function entityKeyToSlug(entityKey: string): string {

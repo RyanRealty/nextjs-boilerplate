@@ -169,8 +169,8 @@ export default function SearchResults({
                     {formatAddress(listing)}
                   </p>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    {listing.BedroomsTotal ?? '—'} Beds · {listing.BathroomsTotal ?? '—'} Baths
-                    {listing.SubdivisionName && ` · ${listing.SubdivisionName}`}
+                    {listing.BedroomsTotal ?? '—'} Beds Â· {listing.BathroomsTotal ?? '—'} Baths
+                    {listing.SubdivisionName && ` Â· ${listing.SubdivisionName}`}
                   </p>
                 </div>
               </article>

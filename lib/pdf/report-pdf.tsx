@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text -- react-pdf Image does not support alt prop */
 /**
  * Market report PDF. @react-pdf/renderer.
  * Branded with brokerage logo (or name), brand fonts (Amboqia display, AzoSans body), and brand colors.
@@ -21,7 +22,7 @@ Font.register({
 
 const BRAND_NAVY = '#102742'
 const BRAND_CREAM = '#F0EEEC'
-const BRAND_ACCENT = '#D4A853'
+const _BRAND_ACCENT = '#D4A853' // reserved for future use
 const TEXT_SECONDARY = '#6B6058'
 const TEXT_PRIMARY = '#1A1410'
 

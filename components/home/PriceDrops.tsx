@@ -96,7 +96,7 @@ export default function PriceDrops({
                         {' †’ '}
                         <span className="font-semibold">{formatPrice(listing.ListPrice)}</span>
                         {pct != null && pct > 0 && (
-                          <span className="ml-1 text-success">âˆ’{pct}%</span>
+                          <span className="ml-1 text-success">↓{pct}%</span>
                         )}
                       </div>
                     )}

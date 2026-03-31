@@ -25,25 +25,20 @@ export default function ListingGallery({ photos }: Props) {
   const touchStartX = useRef<number | null>(null)
   const touchEndX = useRef<number | null>(null)
 
-  if (!photos.length) {
-    return (
-      <div className="flex aspect-[16/10] items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
-        No photos
-      </div>
-    )
-  }
-
-  const primary = photos.find((p) => p.Primary) ?? photos[0]
-  const displayList = [primary, ...photos.filter((p) => p !== primary)]
-  const current = displayList[selectedIndex] ?? displayList[0]
-  const src = current.Uri1600 ?? current.Uri1280 ?? current.Uri1024 ?? current.Uri800 ?? current.Uri640 ?? current.UriLarge ?? current.Uri300
+  const hasPhotos = photos.length > 0
+  const primary = hasPhotos ? (photos.find((p) => p.Primary) ?? photos[0]) : null
+  const displayList = hasPhotos && primary ? [primary, ...photos.filter((p) => p !== primary)] : []
+  const current = displayList[selectedIndex] ?? displayList[0] ?? null
+  const src = current
+    ? (current.Uri1600 ?? current.Uri1280 ?? current.Uri1024 ?? current.Uri800 ?? current.Uri640 ?? current.UriLarge ?? current.Uri300)
+    : null
 
   const goNext = useCallback(() => {
-    setSelectedIndex((prev) => (prev + 1) % displayList.length)
+    setSelectedIndex((prev) => (prev + 1) % (displayList.length || 1))
   }, [displayList.length])
 
   const goPrev = useCallback(() => {
-    setSelectedIndex((prev) => (prev - 1 + displayList.length) % displayList.length)
+    setSelectedIndex((prev) => (prev - 1 + (displayList.length || 1)) % (displayList.length || 1))
   }, [displayList.length])
 
   // Keyboard navigation
@@ -81,6 +76,14 @@ export default function ListingGallery({ photos }: Props) {
     touchStartX.current = null
     touchEndX.current = null
   }, [goNext, goPrev])
+
+  if (!hasPhotos) {
+    return (
+      <div className="flex aspect-[16/10] items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
+        No photos
+      </div>
+    )
+  }
 
   return (
     <>

@@ -75,7 +75,7 @@ export default function SitePageEditor({ page, onClose }: Props) {
             rel="noopener noreferrer"
             className="text-sm text-success hover:underline"
           >
-            View page †’
+            View page →
           </a>
           <Button
             type="button"

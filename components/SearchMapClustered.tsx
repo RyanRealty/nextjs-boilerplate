@@ -298,7 +298,7 @@ export default function SearchMapClustered({
       const label = priceLabel(price)
       const isSaved = savedSet.has(listingKey)
       const hasVideo = Boolean(l.hasVideo)
-      const markerLabel = [label, hasVideo ? 'video' : null, isSaved ? '♥' : null].filter(Boolean).join(' · ')
+      const markerLabel = [label, hasVideo ? 'video' : null, isSaved ? '♥' : null].filter(Boolean).join(' Â· ')
 
       const marker = new google.maps.Marker({
         position: { lat: l.Latitude, lng: l.Longitude },
@@ -503,7 +503,7 @@ export default function SearchMapClustered({
                 <div className="text-xs text-muted-foreground">
                   {[openListing.BedroomsTotal != null ? `${openListing.BedroomsTotal} bed` : null, openListing.BathroomsTotal != null ? `${openListing.BathroomsTotal} bath` : null]
                     .filter(Boolean)
-                    .join(' · ')}
+                    .join(' Â· ')}
                 </div>
               )}
               <Button
@@ -516,7 +516,7 @@ export default function SearchMapClustered({
                   { mlsNumber: openListing.ListNumber != null ? String(openListing.ListNumber) : null }
                 ))}
               >
-                View listing †’
+                View listing →
               </Button>
             </div>
           </InfoWindow>

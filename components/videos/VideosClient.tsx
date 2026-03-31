@@ -30,18 +30,11 @@ export default function VideosClient({ initialListings }: Props) {
   const selected = selectedKey ? filtered.find((l) => l.listing_key === selectedKey) : null
 
   return (
-    <div>
-      <section className="bg-primary px-4 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-7xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
-            Video Tours
-          </h1>
-          <p className="mt-3 text-lg text-muted">
-            Watch video walkthroughs of homes for sale across Central Oregon.
-          </p>
-        </div>
-      </section>
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <h1 className="text-3xl font-bold text-primary">Video Tours</h1>
+      <p className="mt-2 text-muted-foreground">
+        Browse video tours of Central Oregon homes. Click to play in a lightbox.
+      </p>
 
       <div className="mt-6 flex flex-wrap gap-4">
         <Select value={filterCommunity || '__all__'} onValueChange={(v) => setFilterCommunity(v === '__all__' ? '' : v)}>
@@ -114,8 +107,8 @@ export default function VideosClient({ initialListings }: Props) {
                 </div>
                 <p className="text-sm text-muted-foreground">{listing.unparsed_address}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {listing.beds_total ?? '—'} bed · {listing.baths_full ?? '—'} bath
-                  {listing.living_area != null && ` · ${Number(listing.living_area).toLocaleString()} sq ft`}
+                  {listing.beds_total ?? '—'} bed Â· {listing.baths_full ?? '—'} bath
+                  {listing.living_area != null && ` Â· ${Number(listing.living_area).toLocaleString()} sq ft`}
                 </p>
                 <Link
                   href={listingDetailPath(
@@ -149,8 +142,8 @@ export default function VideosClient({ initialListings }: Props) {
                   <p className="font-semibold">${(listing.list_price ?? 0).toLocaleString()}</p>
                   <p className="text-sm">{listing.unparsed_address}</p>
                   <p className="text-xs opacity-90">
-                    {listing.beds_total ?? '—'} bed · {listing.baths_full ?? '—'} bath
-                    {listing.living_area != null && ` · ${Number(listing.living_area).toLocaleString()} sq ft`}
+                    {listing.beds_total ?? '—'} bed Â· {listing.baths_full ?? '—'} bath
+                    {listing.living_area != null && ` Â· ${Number(listing.living_area).toLocaleString()} sq ft`}
                   </p>
                 </div>
                 <Link
@@ -202,8 +195,8 @@ export default function VideosClient({ initialListings }: Props) {
               </div>
               <p className="text-muted-foreground">{selected.unparsed_address}</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {selected.beds_total ?? '—'} bed · {selected.baths_full ?? '—'} bath
-                {selected.living_area != null && ` · ${Number(selected.living_area).toLocaleString()} sq ft`}
+                {selected.beds_total ?? '—'} bed Â· {selected.baths_full ?? '—'} bath
+                {selected.living_area != null && ` Â· ${Number(selected.living_area).toLocaleString()} sq ft`}
               </p>
               <Link
                 href={listingDetailPath(
@@ -223,7 +216,6 @@ export default function VideosClient({ initialListings }: Props) {
       {filtered.length === 0 && (
         <p className="mt-8 text-muted-foreground">No video tours match your filters.</p>
       )}
-      </div>
     </div>
   )
 }

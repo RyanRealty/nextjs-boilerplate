@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text -- react-pdf Image does not support alt prop */
 /**
  * Comparison PDF (side-by-side 2–4 homes). @react-pdf/renderer.
  */

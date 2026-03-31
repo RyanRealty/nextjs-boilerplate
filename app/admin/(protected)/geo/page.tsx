@@ -32,11 +32,11 @@ export default async function AdminGeoPage({
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-bold text-foreground">Geography &amp; Neighborhoods</h1>
       <p className="mt-2 text-muted-foreground">
-        Country †’ State †’ City †’ Neighborhood (optional) †’ Community. Create neighborhoods and assign communities. No auto-inference from SPARK.
+        Country → State → City → Neighborhood (optional) → Community. Create neighborhoods and assign communities. No auto-inference from SPARK.
       </p>
       <p className="mt-2 text-sm text-muted-foreground">
-        <Link href="/admin" className="underline">† Admin</Link>
-        {' · '}
+        <Link href="/admin" className="underline">← Admin</Link>
+        {' Â· '}
         <Link href="/admin/geo/area-guide-upload" className="underline">Area Guide media upload</Link>
       </p>
 

@@ -56,7 +56,7 @@ export default function CronSyncStatus({ cursor }: Props) {
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-foreground">Cron sync status</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Progress of the 15‘minute cron job. Use <strong>Run one chunk now</strong> to trigger a step immediately.
+        Progress of the 15‑minute cron job. Use <strong>Run one chunk now</strong> to trigger a step immediately.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

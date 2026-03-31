@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js')
+const { createClient } = require('@supabase/supabase-js') // eslint-disable-line @typescript-eslint/no-require-imports
 
 function cityEntityKey(city) {
   return city.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
