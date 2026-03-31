@@ -34,7 +34,7 @@ describe('getCanonicalUrl', () => {
   })
 
   it('strips view and ref params', () => {
-    const result = getCanonicalUrl('/listings?view=map&ref=home')
+    const result = getCanonicalUrl('/homes-for-sale?view=map&ref=home')
     expect(result).not.toContain('view=')
     expect(result).not.toContain('ref=')
   })

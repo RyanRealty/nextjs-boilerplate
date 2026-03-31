@@ -3,8 +3,8 @@
  * One-time script: replace remaining theme violations (text-white, bg-black, border-white)
  * with semantic tokens. Run from repo root: node scripts/fix-theme-violations.js
  */
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs'); // eslint-disable-line @typescript-eslint/no-require-imports
+const path = require('path'); // eslint-disable-line @typescript-eslint/no-require-imports
 
 const dirs = ['app', 'components'];
 const excludeDir = new Set(['node_modules', '.next', 'components/ui']);

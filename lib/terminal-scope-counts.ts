@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-const TERMINAL_STATUS_OR =
-  'StandardStatus.ilike.%Closed%,StandardStatus.ilike.%Expired%,StandardStatus.ilike.%Withdrawn%,StandardStatus.ilike.%Cancel%'
+// Replaced by buildTerminalScopedStatusOr() below which adds date-range scoping
+// const TERMINAL_STATUS_OR = 'StandardStatus.ilike.%Closed%,...'
 
 function buildTerminalScopedStatusOr(params: {
   fromIso: string

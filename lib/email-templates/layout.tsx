@@ -1,4 +1,4 @@
-import { Html, Head, Body, Container, Section, Text, Hr, Link } from '@react-email/components'
+import { Html, Head, Body, Container, Section, Text, Link } from '@react-email/components'
 import * as React from 'react'
 
 const footerStyle: React.CSSProperties = {

@@ -3,11 +3,13 @@ declare module '@supabase/ssr' {
     url: string,
     key: string,
     options?: { cookies?: { getAll?(): { name: string; value: string }[] | Promise<{ name: string; value: string }[]>; setAll?(cookies: { name: string; value: string; options?: Record<string, unknown> }[]): void } }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): any
 
   export function createServerClient(
     url: string,
     key: string,
     options: { cookies: { getAll(): { name: string; value: string }[] | Promise<{ name: string; value: string }[]>; setAll(cookies: { name: string; value: string; options?: Record<string, unknown> }[]): void } }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): any
 }

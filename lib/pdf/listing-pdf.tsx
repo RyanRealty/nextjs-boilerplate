@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text -- react-pdf Image does not support alt prop */
 /**
  * Listing sheet PDF (3-page branded). @react-pdf/renderer.
  */
