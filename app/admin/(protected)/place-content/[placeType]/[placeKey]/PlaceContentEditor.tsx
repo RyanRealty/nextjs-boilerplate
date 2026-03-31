@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { updatePlaceContentField } from '@/app/actions/place-content'
+import { generatePlaceContentSingle } from '@/app/actions/generate-place-content-single'
 import type { PlaceContentRow } from '@/app/actions/place-content'
 
 type Props = {
@@ -115,11 +116,37 @@ export default function PlaceContentEditor({ content, userId }: Props) {
             </Badge>
           )}
         </div>
-        {dirty.size > 0 && (
-          <Button onClick={handleSaveAll} disabled={isPending} size="sm">
-            {isPending ? 'Saving...' : `Save ${dirty.size} change${dirty.size > 1 ? 's' : ''}`}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={() => {
+              startTransition(async () => {
+                toast.info('Regenerating all content...')
+                const { error } = await generatePlaceContentSingle({
+                  placeType: content.place_type,
+                  placeKey: content.place_key,
+                  placeName: content.place_name,
+                  cityName: content.city_name,
+                })
+                if (error) {
+                  toast.error(`Failed: ${error}`)
+                } else {
+                  toast.success('Content regenerated')
+                  window.location.reload()
+                }
+              })
+            }}
+          >
+            {isPending ? 'Working...' : 'Regenerate all'}
           </Button>
-        )}
+          {dirty.size > 0 && (
+            <Button onClick={handleSaveAll} disabled={isPending} size="sm">
+              {isPending ? 'Saving...' : `Save ${dirty.size} change${dirty.size > 1 ? 's' : ''}`}
+            </Button>
+          )}
+        </div>
       </div>
 
       <Separator />

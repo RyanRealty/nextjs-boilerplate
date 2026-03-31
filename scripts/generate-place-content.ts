@@ -486,19 +486,37 @@ function slugify(str: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+async function paginatedSelect(
+  sb: SbClient,
+  table: string,
+  columns: string,
+  filters?: (q: ReturnType<SbClient['from']>) => ReturnType<SbClient['from']>
+): Promise<Record<string, unknown>[]> {
+  const PAGE_SIZE = 1000
+  const results: Record<string, unknown>[] = []
+  let page = 0
+  while (true) {
+    let query = sb.from(table).select(columns).range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+    if (filters) query = filters(query) as typeof query
+    const { data, error } = await query
+    if (error || !data || data.length === 0) break
+    results.push(...(data as Record<string, unknown>[]))
+    if (data.length < PAGE_SIZE) break
+    page++
+    if (page > 1000) break
+  }
+  return results
+}
+
 async function getAllPlaces(sb: SbClient): Promise<PlaceInfo[]> {
   const places: PlaceInfo[] = []
 
-  // Get all cities from listings
+  // Get all cities from listings (paginated to get all)
   console.log('📊 Fetching cities from listings...')
-  const { data: cityRows } = await sb
-    .from('listings')
-    .select('"City"')
-    .not('"City"', 'is', null)
-    .not('"StandardStatus"', 'is', null)
+  const cityRows = await paginatedSelect(sb, 'listings', '"City"')
 
   const cityNames = new Set<string>()
-  for (const row of cityRows ?? []) {
+  for (const row of cityRows) {
     const city = (row as { City?: string }).City
     if (city?.trim()) cityNames.add(city.trim())
   }
@@ -513,17 +531,12 @@ async function getAllPlaces(sb: SbClient): Promise<PlaceInfo[]> {
   }
   console.log(`  Found ${cityNames.size} cities`)
 
-  // Get all communities (subdivisions) from listings
+  // Get all communities (subdivisions) from listings (paginated)
   console.log('📊 Fetching communities from listings...')
-  const { data: communityRows } = await sb
-    .from('listings')
-    .select('"City", "SubdivisionName"')
-    .not('"SubdivisionName"', 'is', null)
-    .not('"SubdivisionName"', 'eq', '')
-    .not('"City"', 'is', null)
+  const communityRows = await paginatedSelect(sb, 'listings', '"City", "SubdivisionName"')
 
   const communitySet = new Set<string>()
-  for (const row of communityRows ?? []) {
+  for (const row of communityRows) {
     const r = row as { City?: string; SubdivisionName?: string }
     const city = r.City?.trim()
     const sub = r.SubdivisionName?.trim()
