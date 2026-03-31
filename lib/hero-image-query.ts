@@ -134,12 +134,12 @@ export function buildCommunityHeroQuery(traits: CommunityHeroTraits): string {
     return `${city} Oregon resort community lodge mountain`
   }
 
-  if (hasWaterfront || isRiverCommunity(subdivision)) {
-    return `${city} Oregon river waterfront homes scenic`
-  }
-
   if (isRanchCommunity(subdivision)) {
     return `${city} Oregon ranch property fence rural landscape`
+  }
+
+  if (hasWaterfront || isRiverCommunity(subdivision)) {
+    return `${city} Oregon river waterfront homes scenic`
   }
 
   if (isMountainCommunity(subdivision)) {
