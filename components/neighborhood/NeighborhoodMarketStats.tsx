@@ -23,7 +23,6 @@ type Props = {
 export default function NeighborhoodMarketStats({
   neighborhoodName,
   cityName,
-  citySlug,
   stats,
   priceHistory,
 }: Props) {

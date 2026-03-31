@@ -7,15 +7,12 @@ import {
   MAP_DEFAULT_CENTER,
   MAP_DEFAULT_ZOOM_REGION,
   MAP_DEFAULT_ZOOM_CITY,
-  PRIMARY_CITY_PINS,
   getListingMarkerIcon,
   getCityPinIcon,
   MAP_LABEL_CITY,
 } from '@/lib/map-constants'
 import { Button } from "@/components/ui/button"
 import { listingDetailPath } from '@/lib/slug'
-
-const BEND_CENTER = { ...MAP_DEFAULT_CENTER, zoom: MAP_DEFAULT_ZOOM_CITY } as const
 
 export type MapCenter = { latitude: number; longitude: number; zoom?: number }
 

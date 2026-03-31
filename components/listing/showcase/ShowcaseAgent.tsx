@@ -36,7 +36,7 @@ function initials(name: string | null): string {
  * Shows who listed the property (name + office) for transparency.
  * All CTAs route to the site owner (Ryan Realty) — never to the listing agent.
  */
-export default function ShowcaseAgent({ listingKey, address, agent, shareUrl }: Props) {
+export default function ShowcaseAgent({ listingKey, agent, shareUrl }: Props) {
   if (!agent) return null
 
   const contactUrl = `/contact?listing=${encodeURIComponent(listingKey)}&reason=inquiry`

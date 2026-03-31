@@ -295,14 +295,17 @@ export default function ListingHero({ photos, videos }: Props) {
                     className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 ${thumbBorder(sel)}`}
                   >
                     {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={`Photo ${i + 1} of property`}
-                        width={80}
-                        height={56}
-                        className="h-full w-full object-cover"
-                        decoding="async"
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={thumb}
+                          alt={`Photo ${i + 1} of property`}
+                          width={80}
+                          height={56}
+                          className="h-full w-full object-cover"
+                          decoding="async"
+                        />
+                      </>
                     ) : (
                       <div className={`h-full w-full ${thumbPlaceholder}`} />
                     )}
@@ -329,6 +332,7 @@ export default function ListingHero({ photos, videos }: Props) {
           >
             ✕
           </Button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photoSrc}
             alt={`Property photo — full size view`}

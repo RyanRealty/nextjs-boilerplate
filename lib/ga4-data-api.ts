@@ -11,10 +11,13 @@ export type GA4DateRange = { startDate: string; endDate: string }
  * Run a GA4 report. Requires GOOGLE_APPLICATION_CREDENTIALS or service account key in env.
  */
 export async function runGA4Report(
-  _dimensions: string[],
-  _metrics: string[],
-  _dateRange: GA4DateRange
+  dimensions: string[],
+  metrics: string[],
+  dateRange: GA4DateRange
 ): Promise<{ rows?: Record<string, string>[]; error?: string }> {
+  void dimensions
+  void metrics
+  void dateRange
   if (!PROPERTY_ID) return { error: 'GOOGLE_GA4_PROPERTY_ID not set' }
   // Stub: real implementation would use @google-analytics/data and service account.
   return { rows: [] }

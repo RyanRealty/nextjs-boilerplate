@@ -20,7 +20,7 @@ type SiteHeaderProps = {
   brokerageLogoUrl?: string | null
 }
 
-export default function SiteHeader({ totalListings, user = null, brokerageName = 'Ryan Realty', brokerageLogoUrl = null }: SiteHeaderProps) {
+export default function SiteHeader({ user = null, brokerageName = 'Ryan Realty', brokerageLogoUrl = null }: SiteHeaderProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)

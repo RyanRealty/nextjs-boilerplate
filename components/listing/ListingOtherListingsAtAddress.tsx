@@ -55,17 +55,6 @@ export default function ListingOtherListingsAtAddress({
     return formatDate(closeDate)
   }
 
-  function getSoldPrice(l: ListingTileRow): number | null {
-    const close = (l as { ClosePrice?: number | null }).ClosePrice
-    if (close != null && Number.isFinite(close)) return Number(close)
-    const status = (l.StandardStatus ?? '').toLowerCase()
-    if (status.includes('closed')) {
-      const lp = Number(l.ListPrice ?? 0)
-      return Number.isFinite(lp) && lp > 0 ? lp : null
-    }
-    return null
-  }
-
   function getDomForSold(l: ListingTileRow): number | null {
     const start = parseDate(l.OnMarketDate ?? null)
     const end = parseDate((l as { CloseDate?: string | null }).CloseDate ?? null)

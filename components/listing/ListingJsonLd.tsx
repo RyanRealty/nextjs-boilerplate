@@ -95,7 +95,6 @@ export default function ListingJsonLd({ listingKey, fields, imageUrl }: Props) {
   }
 
   const beds = fields.BedroomsTotal ?? fields.BedsTotal
-  const baths = fields.BathroomsTotal ?? fields.BathsTotal
   const realEstateListing: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',

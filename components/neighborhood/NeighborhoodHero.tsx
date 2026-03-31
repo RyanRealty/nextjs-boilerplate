@@ -24,7 +24,6 @@ function formatPrice(n: number | null | undefined): string {
 export default function NeighborhoodHero({
   name,
   cityName,
-  citySlug,
   heroImageUrl,
   activeCount,
   medianPrice,

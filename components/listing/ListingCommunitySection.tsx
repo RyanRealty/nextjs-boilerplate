@@ -44,6 +44,7 @@ export default function ListingCommunitySection({
       </h2>
       {bannerUrl && (
         <div className="relative h-32 sm:h-40 w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={bannerUrl}
             alt={`${getSubdivisionDisplayName(subdivisionName)} community in ${city}`}

@@ -32,10 +32,10 @@ type Props = {
   shareText?: string
 }
 
-export default function ListingActions({ listingKey, address, price, isSaved, isLiked = false, mlsNumber, city, beds, baths, shareUrl: shareUrlProp, shareTitle: shareTitleProp, shareText }: Props) {
+export default function ListingActions({ listingKey, address, price, isSaved, isLiked = false, shareUrl: shareUrlProp, shareTitle: shareTitleProp, shareText }: Props) {
   const router = useRouter()
   const [liked, setLiked] = useState(isLiked)
-  const [likePending, setLikePending] = useState(false)
+  const likePending = false
   const { isInComparison, addToComparison, removeFromComparison, comparisonItems } = useComparison()
   const inCompare = isInComparison(listingKey)
   useEffect(() => {
@@ -47,7 +47,6 @@ export default function ListingActions({ listingKey, address, price, isSaved, is
       ? window.location.href
       : `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com'}${listingDetailPath(listingKey)}`)
   const shareTitleForButton = shareTitleProp ?? [address, price != null ? `$${price.toLocaleString()}` : ''].filter(Boolean).join(' | ')
-  const property = { street: address, city: city ?? undefined, mlsNumber, price, bedrooms: beds ?? undefined, bathrooms: baths ?? undefined }
 
   const handleScheduleTour = () => {
     trackEvent('schedule_tour_click', { listing_key: listingKey, listing_url: listingUrl })

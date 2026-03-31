@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { VideoListingRow } from '@/app/actions/videos'
@@ -18,7 +18,6 @@ export default function VideosClient({ initialListings }: Props) {
   const [filterCity, setFilterCity] = useState('')
   const [sort, setSort] = useState<'newest' | 'most_viewed'>('newest')
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
-  const [muted, setMuted] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const filtered = initialListings.filter((l) => {

@@ -126,7 +126,7 @@ export default function UnifiedMapListingsView({
   const [totalCount, setTotalCount] = useState(() => initialTotalCount ?? 0)
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [page, setPage] = useState(1)
+  const [, setPage] = useState(1)
   const [sort, setSort] = useState<'newest' | 'oldest' | 'price_asc' | 'price_desc'>('newest')
   const listRef = useRef<HTMLDivElement>(null)
 

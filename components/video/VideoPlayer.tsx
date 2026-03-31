@@ -71,11 +71,14 @@ export default function VideoPlayer({ videoUrl, type, listingId, posterUrl, clas
             allowFullScreen
           />
         ) : (
-          <img
-            src={posterUrl ?? `https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
-            alt="Video thumbnail"
-            className="h-full w-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={posterUrl ?? `https://img.youtube.com/vi/${id}/maxresdefault.jpg`}
+              alt="Video thumbnail"
+              className="h-full w-full object-cover"
+            />
+          </>
         )}
       </div>
     )

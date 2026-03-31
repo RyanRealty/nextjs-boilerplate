@@ -43,7 +43,7 @@ function formatCurrency(value: number | null): string {
  * Only shown for properties where investment analysis is relevant
  * (not primary residences in HOA-restricted areas).
  */
-export default function InvestmentAnalysis({ metrics, listPrice, className }: Props) {
+export default function InvestmentAnalysis({ metrics, className }: Props) {
   if (!metrics) return null
   if (!metrics.estimatedMonthlyRent && !metrics.fiveYearAppreciation) return null
 

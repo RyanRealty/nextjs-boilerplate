@@ -42,7 +42,6 @@ export default function ListingFilters({
   propertyType: initPropertyType,
   sort: initSort,
   includeClosed: initIncludeClosed,
-  page: _initPage,
   view: initView,
   perPage: initPerPage,
 }: Props) {

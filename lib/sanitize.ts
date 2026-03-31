@@ -6,15 +6,11 @@
  *
  * For admin-authored content from our own database, the risk is low. The sanitizer
  * strips dangerous tags (script, style, event handlers) while preserving safe formatting.
+ *
+ * Reference allowlist (documentation only; sanitizer uses pattern removal): p, br, strong, em, b, i, u, s, a,
+ * ul, ol, li, h1–h6, blockquote, pre, code, img, span, div, table, thead, tbody, tr, th, td, figure, figcaption,
+ * sup, sub, hr.
  */
-
-// Reference allowlist for documentation — sanitizer uses pattern removal instead
-const _ALLOWED_TAGS = new Set([
-  'p', 'br', 'strong', 'em', 'b', 'i', 'u', 's', 'a', 'ul', 'ol', 'li',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'code',
-  'img', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'figure', 'figcaption', 'sup', 'sub', 'hr',
-])
 
 const DANGEROUS_PATTERNS = [
   /<script[\s>]/gi,

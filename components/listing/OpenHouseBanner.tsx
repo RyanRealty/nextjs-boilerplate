@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import type { ListingDetailOpenHouse } from '@/app/actions/listing-detail'
 import { Button } from '@/components/ui/button'
 import { trackEvent } from '@/lib/tracking'
@@ -24,35 +23,12 @@ function formatDate(d: string): string {
   return `${day}, ${monthDay}`
 }
 
-function toIcsDate(d: string): string {
-  return d.replace(/-/g, '')
-}
-
-function buildIcsBlob(oh: ListingDetailOpenHouse): string {
-  const start = oh.event_date
-  const startTime = oh.start_time ?? '09:00:00'
-  const endTime = oh.end_time ?? '12:00:00'
-  const dtStart = `${toIcsDate(start)}T${startTime.replace(/(\d{2}):(\d{2}).*/, '$1$2')}00`
-  const dtEnd = `${toIcsDate(start)}T${endTime.replace(/(\d{2}):(\d{2}).*/, '$1$2')}00`
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'BEGIN:VEVENT',
-    `DTSTART:${dtStart}`,
-    `DTEND:${dtEnd}`,
-    `SUMMARY:Open House`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n')
-}
-
 type Props = {
   openHouses: ListingDetailOpenHouse[]
   listingKey: string
 }
 
 export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
-  const [rsvpOpen, setRsvpOpen] = useState(false)
   if (openHouses.length === 0) return null
 
   const oh = openHouses[0]!
@@ -79,7 +55,6 @@ export default function OpenHouseBanner({ openHouses, listingKey }: Props) {
       window.location.href = `/account?signin=1&returnUrl=${returnUrl}`
       return
     }
-    if (res.ok) setRsvpOpen(true)
   }
 
   return (

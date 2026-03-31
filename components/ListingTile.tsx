@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState, useMemo, memo, useRef, useCallback, useEffect } from 'react'
+import { useState, useMemo, memo } from 'react'
 import type { HomeTileRow, ListingTileRow } from '@/app/actions/listings'
 import { isResortCommunity } from '@/lib/resort-communities'
 import { toggleSavedListing } from '@/app/actions/saved-listings'
@@ -19,7 +19,7 @@ import { trackListingTileClick } from '@/app/actions/track-listing-click'
 import { trackListingClick } from '@/lib/tracking'
 import { listingDetailPath, listingsBrowsePath } from '@/lib/slug'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { ArrowLeftRightIcon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { ArrowLeftRightIcon } from '@hugeicons/core-free-icons'
 
 const LISTING_PROVIDED_BY = 'Oregon Data Share'
 
@@ -96,11 +96,6 @@ function getVideoUrls(listing: ListingTileListing): string[] {
   return videos
     .map((v) => (v?.ObjectHtml ?? v?.Uri ?? '').trim())
     .filter((uri) => uri.length > 0)
-}
-
-/** Check if a URL is an embeddable video tour (not a direct .mp4) */
-function isEmbedVideoUrl(url: string): boolean {
-  return !isDirectVideoUrl(url) && url.length > 0
 }
 
 function hasVirtualTour(listing: ListingTileListing): boolean {
@@ -203,7 +198,6 @@ function ListingTile({
     : listingsBrowsePath()
   const videoUrls = useMemo(() => getVideoUrls(listing), [listing.details])
   const primaryPhoto = listing.PhotoURL?.trim() || null
-  const showVideoFirst = videoUrls.length > 0
   const hasVideo = videoUrls.length > 0
   const hasVirtTour = hasVirtualTour(listing)
   const hasPlans = hasFloorPlans(listing)
@@ -433,102 +427,6 @@ function ListingTile({
         </div>
       </div>
     </Link>
-  )
-}
-
-const TILE_VIDEO_PREVIEW_SECONDS = 3
-
-function VideoSlider({ urls, address, previewSeconds = 0 }: { urls: string[]; address: string; previewSeconds?: number }) {
-  const [index, setIndex] = useState(0)
-  const url = urls[index] ?? urls[0]
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [previewEnded, setPreviewEnded] = useState(false)
-
-  useEffect(() => {
-    setPreviewEnded(false)
-  }, [url])
-
-  const handleTimeUpdate = useCallback(() => {
-    if (previewSeconds <= 0 || !videoRef.current) return
-    if (videoRef.current.currentTime >= previewSeconds) {
-      videoRef.current.pause()
-      setPreviewEnded(true)
-    }
-  }, [previewSeconds])
-
-  if (!url) return null
-
-  return (
-    <div className="relative h-full w-full">
-      <video
-        ref={videoRef}
-        key={url}
-        src={url}
-        className="h-full w-full object-cover object-top"
-        playsInline
-        muted
-        loop={previewSeconds <= 0}
-        autoPlay
-        poster=""
-        onTimeUpdate={handleTimeUpdate}
-      />
-      {previewSeconds > 0 && previewEnded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-foreground/20" aria-hidden>
-          <span className="rounded-full bg-card/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm flex items-center gap-1.5">
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-            Watch video
-          </span>
-        </div>
-      )}
-      {address && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/70 to-transparent px-2 py-2">
-          <p className="text-sm font-medium text-primary-foreground drop-shadow">{address}</p>
-        </div>
-      )}
-      {urls.length > 1 && (
-        <>
-          <Button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIndex((i) => (i - 1 + urls.length) % urls.length)
-            }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-1.5 shadow-shadow-subtle"
-            aria-label="Previous video"
-          >
-            <HugeiconsIcon icon={ArrowLeft01Icon} className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIndex((i) => (i + 1) % urls.length)
-            }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-1.5 shadow-shadow-subtle"
-            aria-label="Next video"
-          >
-            <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
-          </Button>
-          <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
-            {urls.map((_, i) => (
-              <Button
-                key={i}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setIndex(i)
-                }}
-                className={`h-1.5 w-1.5 rounded-full ${i === index ? 'bg-card' : 'bg-card/50'}`}
-                aria-label={`Video ${i + 1}`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
   )
 }
 

@@ -42,7 +42,6 @@ export default function PlaceAboutTabs({
   aboutText,
   attractionsText,
   attractionsList = [],
-  bannerUrl,
   displayName,
   city,
   subdivisionName,

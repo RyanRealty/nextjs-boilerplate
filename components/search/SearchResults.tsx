@@ -8,8 +8,6 @@ import { getSearchListings } from '@/app/actions/search'
 import { listingDetailPath } from '@/lib/slug'
 import type { SearchFiltersInitial } from '@/components/search/SearchFilters'
 
-const PAGE_SIZE = 24
-
 function formatPrice(n: number | null | undefined): string {
   if (n == null) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -40,7 +38,6 @@ export default function SearchResults({
   totalCount,
   initialPage,
   filters,
-  view,
   hasActiveFilters = false,
 }: Props) {
   const [listings, setListings] = useState(initialListings)

@@ -30,9 +30,6 @@ function addressOneLine(listing: AdjacentListingThumb): string {
   return parts || listing.City || ''
 }
 
-const arrowBtnClass =
-  'flex shrink-0 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-sm transition hover:border-border hover:bg-muted hover:text-muted-foreground disabled:opacity-40 disabled:pointer-events-none'
-
 function PrevNextCard({
   listing,
   label,
@@ -52,14 +49,17 @@ function PrevNextCard({
     <>
       <div className="relative h-12 w-16 shrink-0 overflow-hidden bg-muted">
         {listing.PhotoURL ? (
-          <img
-            src={listing.PhotoURL}
-            alt={`${addressOneLine(listing) || 'Property'} photo`}
-            className="h-full w-full object-cover"
-            width={64}
-            height={48}
-            decoding="async"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={listing.PhotoURL}
+              alt={`${addressOneLine(listing) || 'Property'} photo`}
+              className="h-full w-full object-cover"
+              width={64}
+              height={48}
+              decoding="async"
+            />
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <HugeiconsIcon icon={Camera01Icon} className="h-6 w-6" />
@@ -94,14 +94,17 @@ function PrevNextCard({
         </div>
         <div className="relative h-12 w-16 shrink-0 overflow-hidden bg-muted">
           {listing.PhotoURL ? (
-            <img
-              src={listing.PhotoURL}
-              alt={`${addressOneLine(listing) || 'Property'} photo`}
-              className="h-full w-full object-cover"
-              width={64}
-              height={48}
-              decoding="async"
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={listing.PhotoURL}
+                alt={`${addressOneLine(listing) || 'Property'} photo`}
+                className="h-full w-full object-cover"
+                width={64}
+                height={48}
+                decoding="async"
+              />
+            </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <HugeiconsIcon icon={Camera01Icon} className="h-6 w-6" />
@@ -131,8 +134,6 @@ export default function ListingNav({
   currentThumb,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(false)
   const [hasOverflow, setHasOverflow] = useState(false)
 
   const hasSlice =
@@ -153,8 +154,6 @@ export default function ListingNav({
     if (!el) return
     const overflow = el.scrollWidth > el.clientWidth
     setHasOverflow(overflow)
-    setCanScrollLeft(el.scrollLeft > 4)
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
   }
 
   const THRESHOLD = 4
@@ -242,14 +241,17 @@ export default function ListingNav({
                 >
                   <div className="relative h-10 w-14 shrink-0 overflow-hidden bg-muted">
                     {item.PhotoURL ? (
-                      <img
-                        src={item.PhotoURL}
-                        alt={`${addressOneLine(item) || 'Property'} photo`}
-                        className="h-full w-full object-cover"
-                        width={56}
-                        height={40}
-                        decoding="async"
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.PhotoURL}
+                          alt={`${addressOneLine(item) || 'Property'} photo`}
+                          className="h-full w-full object-cover"
+                          width={56}
+                          height={40}
+                          decoding="async"
+                        />
+                      </>
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                         <HugeiconsIcon icon={Camera01Icon} className="h-5 w-5" />

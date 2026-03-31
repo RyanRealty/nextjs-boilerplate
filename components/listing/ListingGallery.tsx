@@ -146,6 +146,7 @@ export default function ListingGallery({ photos }: Props) {
                   selectedIndex === i ? 'border-primary ring-1 ring-primary' : 'border-transparent opacity-70 hover:opacity-100'
                 )}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={thumb ?? ''}
                   alt={`Photo ${i + 1} of property`}
@@ -188,6 +189,7 @@ export default function ListingGallery({ photos }: Props) {
 
           {/* Main image area */}
           <div className="flex-1 flex items-center justify-center w-full px-4 py-16">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
               alt={current.Caption ?? `Property photo ${selectedIndex + 1}`}

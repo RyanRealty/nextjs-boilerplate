@@ -22,7 +22,6 @@ Font.register({
 
 const BRAND_NAVY = '#102742'
 const BRAND_CREAM = '#F0EEEC'
-const _BRAND_ACCENT = '#D4A853' // reserved for future use
 const TEXT_SECONDARY = '#6B6058'
 const TEXT_PRIMARY = '#1A1410'
 

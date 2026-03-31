@@ -177,18 +177,6 @@ export default function SearchMapClustered({
 
   const boundaryPaths = useMemo(() => geojsonToPaths(boundaryGeojson), [boundaryGeojson])
 
-  const placeViewportPath = useMemo(() => {
-    if (!placeViewport) return null
-    const ne = placeViewport.getNorthEast()
-    const sw = placeViewport.getSouthWest()
-    return [
-      { lat: sw.lat(), lng: sw.lng() },
-      { lat: sw.lat(), lng: ne.lng() },
-      { lat: ne.lat(), lng: ne.lng() },
-      { lat: ne.lat(), lng: sw.lng() },
-    ]
-  }, [placeViewport])
-
   const reportBounds = useCallback(() => {
     const map = mapRef.current
     if (!map || !onBoundsChanged) return
