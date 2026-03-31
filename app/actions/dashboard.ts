@@ -98,7 +98,6 @@ export async function getDashboardDataQuality(): Promise<DashboardDataQuality> {
     supabase.from('listings').select('*', { count: 'exact', head: true }).or(activeOrPending).is('PhotoURL', null),
     supabase.from('listing_photo_classifications').select('*', { count: 'exact', head: true }),
   ])
-  const missingDescription = 0
 
   const totalListings = listingsRes.count ?? 0
   const missingPrimaryPhoto = missingPhotoRes.count ?? 0

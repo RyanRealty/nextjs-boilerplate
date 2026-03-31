@@ -90,8 +90,9 @@ export async function getBannerAttribution(
 export async function getOrCreatePlaceBanner(
   entityType: 'city' | 'subdivision',
   entityKey: string,
-  _searchQuery?: string
+  searchQuery?: string
 ): Promise<{ url: string | null; attribution: string | null }> {
+  void searchQuery
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!supabaseUrl?.trim() || !key?.trim()) return { url: null, attribution: null }

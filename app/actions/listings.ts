@@ -672,7 +672,8 @@ export async function getListingsAdvanced(options: {
       ? (first as Record<string, unknown>).full_count as number
       : rows.length
   const listings = rows.map((r) => {
-    const { full_count: _fc, ...rest } = r as ListingTileRow & { full_count?: number }
+    const { full_count, ...rest } = r as ListingTileRow & { full_count?: number }
+    void full_count
     return rest as ListingTileRow
   })
   return { listings, totalCount }
@@ -1009,10 +1010,6 @@ export async function getListingHistoryCount(): Promise<number> {
   const { count } = await supabase.from('listing_history').select('listing_key', { count: 'exact', head: true })
   return count ?? 0
 }
-
-/** Supabase .or() for terminal statuses: closed, expired, withdrawn, canceled. We do not re-fetch listing data; we can backfill history. */
-const TERMINAL_STATUS_OR =
-  'StandardStatus.ilike.%Closed%,StandardStatus.ilike.%Expired%,StandardStatus.ilike.%Withdrawn%,StandardStatus.ilike.%Cancel%'
 
 export type AdminSyncCounts = {
   activeCount: number
@@ -2096,7 +2093,13 @@ export async function getListingsSliceInSubdivision(
       .limit(limitAfter * 2),
   ])
   const filterActive = (rows: (AdjacentListingThumb & { StandardStatus?: string | null })[]): AdjacentListingThumb[] =>
-    rows.filter((r) => isActiveStatus(r.StandardStatus)).map(({ StandardStatus: _, ...t }) => t)
+    rows
+      .filter((r) => isActiveStatus(r.StandardStatus))
+      .map((r) => {
+        const { StandardStatus, ...t } = r
+        void StandardStatus
+        return t
+      })
   const prevList = filterActive((prevRes.data ?? []) as (AdjacentListingThumb & { StandardStatus?: string | null })[]).slice(0, limitBefore)
   const nextList = filterActive((nextRes.data ?? []) as (AdjacentListingThumb & { StandardStatus?: string | null })[]).slice(0, limitAfter)
   return { prevList, nextList }

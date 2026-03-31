@@ -1,8 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { incrementListingLikeCount, decrementListingLikeCount } from '@/app/actions/engagement'
+import { decrementListingLikeCount } from '@/app/actions/engagement'
 
 export async function getLikedListingKeys(): Promise<string[]> {
   const supabase = await createClient()

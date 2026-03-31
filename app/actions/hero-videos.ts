@@ -1,9 +1,8 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
-import { cityEntityKey } from '../../lib/slug'
 import { generateFlyoverVideo, generateImageToVideo } from '../../lib/grok-video'
-import { refreshPlaceBanner, getBannerUrl } from './banners'
+import { refreshPlaceBanner } from './banners'
 
 const BUCKET = 'banners'
 const VIDEO_PREFIX = 'videos'

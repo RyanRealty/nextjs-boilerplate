@@ -2,7 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { slugify, cityEntityKey } from '@/lib/slug'
+import { slugify } from '@/lib/slug'
 import type { CityForIndex, CityDetail } from '@/lib/cities'
 import { getBannerUrl, getBannersBatch } from '@/app/actions/banners'
 import {
@@ -10,7 +10,6 @@ import {
   getCityMarketStats,
   getCityFromSlug,
 } from '@/app/actions/listings'
-import type { CityMarketStats } from '@/app/actions/listings'
 import { getHotCommunitiesInCity } from '@/app/actions/listings'
 import { entityKeyToSlug } from '@/lib/community-slug'
 import type { CommunityForIndex } from '@/lib/communities'

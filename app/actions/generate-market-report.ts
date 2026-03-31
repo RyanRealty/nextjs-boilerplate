@@ -100,8 +100,6 @@ export async function generateWeeklyMarketReport(): Promise<
 
   const { start, end } = getLastWeekRange()
   const data = await getMarketReportData(start, end)
-  const totalPending = data.reduce((s, d) => s + d.pending.length, 0)
-  const totalClosed = data.reduce((s, d) => s + d.closed.length, 0)
 
   const slug = `weekly-${start.toISOString().slice(0, 10)}`
   const title = `Central Oregon Market Report: ${formatDate(start)} – ${formatDate(end)}`

@@ -4,7 +4,6 @@ import {
   getReportMetrics,
   getReportPriceBands,
   getReportMetricsTimeSeries,
-  type ReportMetrics,
 } from '@/app/actions/reports'
 import {
   MARKET_REPORT_DEFAULT_CITIES,

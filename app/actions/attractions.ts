@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
-import { cityEntityKey, subdivisionEntityKey } from '../../lib/slug'
 
 export type PlaceAttraction = {
   id: string
