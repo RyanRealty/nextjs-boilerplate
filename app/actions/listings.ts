@@ -525,7 +525,8 @@ export async function getListings(options: {
 } & ListingsFilters = {}): Promise<ListingTileRow[]> {
   const supabase = getAnonSupabase()
   if (!supabase) return []
-  const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, details'
+  // Exclude heavy `details` JSONB from basic listing queries — only needed for advanced RPC path
+  const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, OnMarketDate'
   let query = supabase.from('listings').select(select)
 
   if (options.city) query = query.ilike('City', options.city)
