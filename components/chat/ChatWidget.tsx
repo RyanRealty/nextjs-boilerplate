@@ -130,7 +130,7 @@ export default function ChatWidget() {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-primary-foreground">Chat With Us</h2>
-                <p className="text-xs text-primary-foreground/70">Ryan Realty â€¢ Central Oregon</p>
+                <p className="text-xs text-primary-foreground/70">Ryan Realty • Central Oregon</p>
               </div>
             </div>
             <Button
@@ -184,7 +184,7 @@ export default function ChatWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about Central Oregon real estateâ€¦"
+                placeholder="Ask about Central Oregon real estate…"
                 rows={1}
                 className="flex-1 resize-none rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 style={{ maxHeight: '80px' }}
@@ -201,7 +201,7 @@ export default function ChatWidget() {
               </Button>
             </div>
             <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-              AI assistant â€¢ May not always be accurate
+              AI assistant • May not always be accurate
             </p>
           </div>
         </div>

@@ -81,7 +81,7 @@ export default function VideosClient({ initialListings }: Props) {
                 className="relative block aspect-video w-full bg-foreground"
               >
                 {listing.photo_url ? (
-                  <Image src={listing.photo_url} alt={`${listing.unparsed_address || listing.subdivision_name || 'Property'} â€” video thumbnail`} fill className="object-cover" sizes="400px" />
+                  <Image src={listing.photo_url} alt={`${listing.unparsed_address || listing.subdivision_name || 'Property'} — video thumbnail`} fill className="object-cover" sizes="400px" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-primary-foreground">No image</div>
                 )}
@@ -107,7 +107,7 @@ export default function VideosClient({ initialListings }: Props) {
                 </div>
                 <p className="text-sm text-muted-foreground">{listing.unparsed_address}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {listing.beds_total ?? 'â€”'} bed Â· {listing.baths_full ?? 'â€”'} bath
+                  {listing.beds_total ?? '—'} bed Â· {listing.baths_full ?? '—'} bath
                   {listing.living_area != null && ` Â· ${Number(listing.living_area).toLocaleString()} sq ft`}
                 </p>
                 <Link
@@ -142,7 +142,7 @@ export default function VideosClient({ initialListings }: Props) {
                   <p className="font-semibold">${(listing.list_price ?? 0).toLocaleString()}</p>
                   <p className="text-sm">{listing.unparsed_address}</p>
                   <p className="text-xs opacity-90">
-                    {listing.beds_total ?? 'â€”'} bed Â· {listing.baths_full ?? 'â€”'} bath
+                    {listing.beds_total ?? '—'} bed Â· {listing.baths_full ?? '—'} bath
                     {listing.living_area != null && ` Â· ${Number(listing.living_area).toLocaleString()} sq ft`}
                   </p>
                 </div>
@@ -183,7 +183,7 @@ export default function VideosClient({ initialListings }: Props) {
                 className="aspect-video w-full"
               />
               {selected.video_source === 'virtual_tour' && (
-                <p className="mt-2 text-center text-sm text-primary-foreground/90">Virtual tour â€” opens in player or new tab</p>
+                <p className="mt-2 text-center text-sm text-primary-foreground/90">Virtual tour — opens in player or new tab</p>
               )}
             </div>
             <div className="w-full bg-card p-4 md:w-80">
@@ -195,7 +195,7 @@ export default function VideosClient({ initialListings }: Props) {
               </div>
               <p className="text-muted-foreground">{selected.unparsed_address}</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {selected.beds_total ?? 'â€”'} bed Â· {selected.baths_full ?? 'â€”'} bath
+                {selected.beds_total ?? '—'} bed Â· {selected.baths_full ?? '—'} bath
                 {selected.living_area != null && ` Â· ${Number(selected.living_area).toLocaleString()} sq ft`}
               </p>
               <Link

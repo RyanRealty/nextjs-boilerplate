@@ -159,7 +159,7 @@ export default function ListingHero({ photos, videos }: Props) {
             rel="noopener noreferrer"
             className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground"
           >
-            <span className="rounded-lg bg-card/10 px-4 py-2">Watch video â†’</span>
+            <span className="rounded-lg bg-card/10 px-4 py-2">Watch video →</span>
           </a>
         )
       }
@@ -327,11 +327,11 @@ export default function ListingHero({ photos, videos }: Props) {
             className="absolute right-4 top-4 text-primary-foreground/80 hover:text-primary-foreground"
             onClick={() => setLightboxOpen(false)}
           >
-            âœ•
+            ✕
           </Button>
           <img
             src={photoSrc}
-            alt={`Property photo â€” full size view`}
+            alt={`Property photo — full size view`}
             className="max-h-full max-w-full object-contain"
             onClick={(e) => e.stopPropagation()}
             width={1200}

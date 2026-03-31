@@ -13,7 +13,7 @@ export type CityCardProps = {
 }
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return 'â€”'
+  if (n == null || !Number.isFinite(n)) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -35,7 +35,7 @@ export default function CityCard({
           {heroImageUrl ? (
             <Image
               src={heroImageUrl}
-              alt={`${name}, Oregon â€” real estate overview`}
+              alt={`${name}, Oregon — real estate overview`}
               fill
               className="object-cover transition group-hover:scale-[1.02]"
               sizes="(max-width: 768px) 100vw, 50vw"

@@ -9,7 +9,7 @@ import { cityEntityKey } from '@/lib/slug'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 
 function formatPrice(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return 'â€”'
+  if (n == null || !Number.isFinite(n)) return '—'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
@@ -18,7 +18,7 @@ function formatDateRange(startStr: string, endStr: string): string {
   const end = new Date(endStr.includes('Z') || /[+-]\d{2}/.test(endStr) ? endStr : endStr + 'Z')
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return ''
   const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }
-  return `${start.toLocaleDateString('en-US', opts)} â€“ ${end.toLocaleDateString('en-US', opts)}`
+  return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`
 }
 
 type Props = { card: SalesReportCardData }
@@ -43,7 +43,7 @@ export default function SalesReportCard({ card }: Props) {
   const hasEngagement = likeCount > 0 || saveCount > 0 || shareCount > 0
 
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${href}` : undefined
-  const shareTitle = `${card.city} â€” ${card.periodLabel} | Ryan Realty`
+  const shareTitle = `${card.city} — ${card.periodLabel} | Ryan Realty`
 
   return (
     <div
@@ -55,7 +55,7 @@ export default function SalesReportCard({ card }: Props) {
           {card.featuredImageUrl ? (
             <Image
               src={card.featuredImageUrl}
-              alt={`${card.city} market report â€” ${card.periodLabel}`}
+              alt={`${card.city} market report — ${card.periodLabel}`}
               fill
               className="object-cover transition duration-300 group-hover:scale-105"
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -100,7 +100,7 @@ export default function SalesReportCard({ card }: Props) {
           <span className="text-sm font-semibold text-primary group-hover:text-accent-foreground group-hover:underline">
             View full report
           </span>
-          <span className="ml-1.5 text-sm text-muted-foreground" aria-hidden>â†’</span>
+          <span className="ml-1.5 text-sm text-muted-foreground" aria-hidden>→</span>
         </Link>
         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
           {hasData ? 'Addresses, sold dates, days on market, property types. Charts and PDF download.' : 'New sales data is added as listings close.'}

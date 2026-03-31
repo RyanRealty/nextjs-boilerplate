@@ -28,7 +28,7 @@ export default function HomeValuationPage() {
     <main className="min-h-screen bg-background">
       <ContentPageHero
         title="What's your home worth?"
-        subtitle="Get a free, no-obligation valuation. We'll use recent sales and market data to give you a clear estimateâ€”and send you a CMA you can keep."
+        subtitle="Get a free, no-obligation valuation. We'll use recent sales and market data to give you a clear estimate—and send you a CMA you can keep."
         imageUrl={heroImage}
       />
 
