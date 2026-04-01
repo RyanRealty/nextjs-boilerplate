@@ -24,7 +24,8 @@ export default function CityHero({
   communityCount,
   actions,
 }: CityHeroProps) {
-  const src = heroImageUrl ?? getCityHeroImage(name)
+  // Prefer curated Central Oregon image when available
+  const src = getCityHeroImage(name)
 
   return (
     <section className="relative min-h-[40vh] sm:min-h-[50vh] overflow-hidden w-full" aria-label="City hero">
