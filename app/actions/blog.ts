@@ -9,6 +9,13 @@ function getSupabase() {
   return createClient(url, key)
 }
 
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url?.trim() || !key?.trim()) return null
+  return createClient(url, key)
+}
+
 export type BlogPostRow = {
   id: string
   title: string
@@ -31,7 +38,21 @@ export type BlogPostWithAuthor = BlogPostRow & {
 }
 
 const PAGE_SIZE = 12
-const CATEGORIES = ['All', 'Market Reports', 'Community Guides', 'Buying Tips', 'Selling Tips', 'Lifestyle'] as const
+
+const CATEGORIES = [
+  'All',
+  'Market Updates',
+  'Market Analysis',
+  'Buying Guides',
+  'Selling Guides',
+  'Community Spotlights',
+  'Lifestyle & Living',
+  'Investment & Finance',
+  'First-Time Buyers',
+  'Relocation Guides',
+  'Home Improvement',
+  'Local News',
+] as const
 
 export async function getPublishedBlogPosts(options: {
   category?: string | null
@@ -118,3 +139,120 @@ export async function getPopularBlogSlugs(limit: number = 5): Promise<string[]> 
   return (data ?? []).map((r: { slug: string }) => r.slug)
 }
 
+export async function getRelatedBlogPosts(
+  currentSlug: string,
+  category: string | null,
+  limit: number = 3
+): Promise<BlogPostWithAuthor[]> {
+  const supabase = getSupabase()
+  if (!supabase) return []
+
+  let query = supabase
+    .from('blog_posts')
+    .select('id, title, slug, excerpt, category, hero_image_url, published_at, author_broker_id, seo_title, seo_description')
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .neq('slug', currentSlug)
+    .order('published_at', { ascending: false })
+    .limit(limit)
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  const { data: rows, error } = await query
+  if (error || !rows) return []
+
+  // If category filter returned fewer than limit, backfill from other categories
+  let posts = rows as BlogPostRow[]
+  if (posts.length < limit && category) {
+    const { data: backfill } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, excerpt, category, hero_image_url, published_at, author_broker_id, seo_title, seo_description')
+      .eq('status', 'published')
+      .not('published_at', 'is', null)
+      .neq('slug', currentSlug)
+      .neq('category', category)
+      .order('published_at', { ascending: false })
+      .limit(limit - posts.length)
+    if (backfill) posts = [...posts, ...(backfill as BlogPostRow[])]
+  }
+
+  return posts.map((p) => ({
+    ...p,
+    author_name: null,
+    author_slug: null,
+    author_photo_url: null,
+  }))
+}
+
+// ─── Admin actions ────────────────────────────────────────────────
+
+export async function getAdminBlogPosts(): Promise<BlogPostWithAuthor[]> {
+  const supabase = getServiceSupabase()
+  if (!supabase) return []
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('id, title, slug, excerpt, category, hero_image_url, published_at, author_broker_id, seo_title, seo_description')
+    .order('published_at', { ascending: false, nullsFirst: true })
+    .limit(500)
+  return ((data ?? []) as BlogPostRow[]).map((p) => ({
+    ...p,
+    author_name: null,
+    author_slug: null,
+    author_photo_url: null,
+  }))
+}
+
+export async function saveBlogPost(input: {
+  id?: string
+  slug: string
+  title: string
+  content?: string
+  excerpt?: string
+  category?: string
+  tags?: string[]
+  heroImageUrl?: string
+  seoTitle?: string
+  seoDescription?: string
+  status: 'draft' | 'published'
+  publishedAt?: string
+  authorBrokerId?: string
+}): Promise<{ ok: boolean; error?: string }> {
+  const supabase = getServiceSupabase()
+  if (!supabase) return { ok: false, error: 'Database not configured' }
+
+  const payload: Record<string, unknown> = {
+    slug: input.slug.trim().toLowerCase(),
+    title: input.title.trim(),
+    content: input.content?.trim() || null,
+    excerpt: input.excerpt?.trim() || null,
+    category: input.category?.trim() || null,
+    tags: input.tags ?? [],
+    hero_image_url: input.heroImageUrl?.trim() || null,
+    seo_title: input.seoTitle?.trim() || null,
+    seo_description: input.seoDescription?.trim() || null,
+    status: input.status,
+    published_at: input.publishedAt || (input.status === 'published' ? new Date().toISOString() : null),
+    author_broker_id: input.authorBrokerId || null,
+  }
+  if (input.id) payload.id = input.id
+
+  const { error } = await supabase.from('blog_posts').upsert(payload, { onConflict: 'slug' })
+  if (error) {
+    console.error('[saveBlogPost]', error)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
+
+export async function deleteBlogPost(id: string): Promise<{ ok: boolean; error?: string }> {
+  const supabase = getServiceSupabase()
+  if (!supabase) return { ok: false, error: 'Database not configured' }
+  const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+  if (error) {
+    console.error('[deleteBlogPost]', error)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}
