@@ -115,12 +115,14 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
         <div className="flex flex-wrap gap-2">
           <Input
             type="date"
+            aria-label="Start date"
             value={initialFilters?.dateFrom ?? ''}
             onChange={(e) => updateFilters({ dateFrom: e.target.value || undefined })}
             className="rounded-lg border border-border px-3 py-2 text-sm"
           />
           <Input
             type="date"
+            aria-label="End date"
             value={initialFilters?.dateTo ?? ''}
             onChange={(e) => updateFilters({ dateTo: e.target.value || undefined })}
             className="rounded-lg border border-border px-3 py-2 text-sm"
@@ -147,7 +149,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
             className="w-28 rounded-lg border border-border px-3 py-2 text-sm"
           />
           <Select value={String(initialFilters?.beds ?? '') || '__all__'} onValueChange={(v) => updateFilters({ beds: v === '__all__' ? undefined : v })}>
-            <SelectTrigger className="rounded-lg px-3 py-2 text-sm">
+            <SelectTrigger className="rounded-lg px-3 py-2 text-sm" aria-label="Minimum bedrooms">
               <SelectValue placeholder="Beds" />
             </SelectTrigger>
             <SelectContent>
@@ -158,7 +160,7 @@ export default function OpenHousesClient({ initialOpenHouses, initialFilters }: 
             </SelectContent>
           </Select>
           <Select value={String(initialFilters?.baths ?? '') || '__all__'} onValueChange={(v) => updateFilters({ baths: v === '__all__' ? undefined : v })}>
-            <SelectTrigger className="rounded-lg px-3 py-2 text-sm">
+            <SelectTrigger className="rounded-lg px-3 py-2 text-sm" aria-label="Minimum bathrooms">
               <SelectValue placeholder="Baths" />
             </SelectTrigger>
             <SelectContent>
