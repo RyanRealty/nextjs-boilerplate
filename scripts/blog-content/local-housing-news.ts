@@ -8,7 +8,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['HB 2001', 'middle housing', 'bend', 'zoning', 'housing policy'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1920&q=80',
+      'https://images.unsplash.com/photo-1653930796811-84d446f9e221?w=1920&q=80',
     published_at: '2023-06-15T09:00:00Z',
     status: 'published',
     seo_title: 'Oregon HB 2001 Middle Housing in Bend What It Means',
@@ -87,7 +87,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['SDC', 'system development charges', 'bend', 'housing costs', 'development'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80',
+      'https://images.unsplash.com/photo-1573111651542-961c4080bc18?w=1920&q=80',
     published_at: '2023-12-08T10:00:00Z',
     status: 'published',
     seo_title: 'Bend SDC Overhaul Tiered Fees and Housing Cost Impact',
@@ -170,7 +170,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['affordable housing', 'bend', 'housing goals', 'housing policy'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=80',
+      'https://images.unsplash.com/photo-1724533687925-aa205b97e60e?w=1920&q=80',
     published_at: '2023-10-20T09:00:00Z',
     status: 'published',
     seo_title: 'Bend Affordable Housing Goal Progress 1000 Units Review',
@@ -251,7 +251,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['caraway', 'pahlisch homes', 'northwest bend', 'development', 'new construction'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80',
+      'https://images.unsplash.com/photo-1564640612809-5a775ce2bc91?w=1920&q=80',
     published_at: '2023-10-10T09:00:00Z',
     status: 'published',
     seo_title: 'Caraway Development Approved 510 Homes Northwest Bend',
@@ -335,7 +335,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['ADU', 'accessory dwelling unit', 'bend', 'housing policy', 'zoning'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c0?w=1920&q=80',
+      'https://images.unsplash.com/photo-1652972756751-4de8e9ef9e77?w=1920&q=80',
     published_at: '2023-08-22T09:00:00Z',
     status: 'published',
     seo_title: 'Bend ADU Rules Updated to Allow Two Units Per Property',
@@ -505,7 +505,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['SDC', 'city council', 'bend', 'infrastructure', 'development costs'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=1920&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80',
     published_at: '2024-05-15T09:00:00Z',
     status: 'published',
     seo_title: 'Bend City Council Approves Tiered SDC Methodology 2024',
@@ -595,7 +595,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['juniper ridge', 'homelessness', 'bend', 'housing policy', 'community'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&q=80',
+      'https://images.unsplash.com/photo-1609041210494-1a8008ea12b3?w=1920&q=80',
     published_at: '2024-10-15T09:00:00Z',
     status: 'published',
     seo_title: 'Bend Juniper Ridge Homelessness and Housing Strategy',
@@ -678,7 +678,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['caldera ranch', 'UGB expansion', 'bend', 'affordable housing', 'development'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1920&q=80',
+      'https://images.unsplash.com/photo-1568666062525-111347cc88e4?w=1920&q=80',
     published_at: '2024-12-10T09:00:00Z',
     status: 'published',
     seo_title: 'Caldera Ranch Selected for Bend UGB Expansion 716 Homes',
@@ -764,7 +764,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['habitat for humanity', 'pahlisch', 'affordable housing', 'bend', 'partnership'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1920&q=80',
+      'https://images.unsplash.com/photo-1654541696506-b71d8fbc8766?w=1920&q=80',
     published_at: '2024-04-18T09:00:00Z',
     status: 'published',
     seo_title: 'Habitat and Pahlisch Build Affordable Townhomes SE Bend',
@@ -931,7 +931,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['building permits', 'construction', 'bend', 'deschutes county', 'timeline'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80',
+      'https://images.unsplash.com/photo-1693719205045-dc0f15254790?w=1920&q=80',
     published_at: '2024-07-08T09:00:00Z',
     status: 'published',
     seo_title: 'Bend and Deschutes County Building Permit Timeline Guide',
@@ -1124,7 +1124,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['middle housing', 'bend', 'neighborhoods', 'density', 'HB 2001'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1920&q=80',
+      'https://images.unsplash.com/photo-1619626484761-e0ac2b597aad?w=1920&q=80',
     published_at: '2025-12-18T09:00:00Z',
     status: 'published',
     seo_title: 'Middle Housing Is Slowly Reshaping Bend Neighborhoods',
@@ -1199,7 +1199,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['homelessness', 'central oregon', 'point-in-time', 'housing', 'community'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&q=80',
+      'https://images.unsplash.com/photo-1645493754114-50cb7af6f8b9?w=1920&q=80',
     published_at: '2025-05-22T09:00:00Z',
     status: 'published',
     seo_title: 'Central Oregon 2025 Homelessness Point-in-Time Results',
@@ -1289,7 +1289,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['infrastructure', 'bend', 'water', 'sewer', 'transportation', 'growth'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1460472178825-e5240623afd5?w=1920&q=80',
+      'https://images.unsplash.com/photo-1750045850708-8e650d8ab71d?w=1920&q=80',
     published_at: '2025-08-10T09:00:00Z',
     status: 'published',
     seo_title: 'Bend Infrastructure Challenge for Water Sewer and Roads',
@@ -1381,7 +1381,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['construction costs', 'central oregon', 'new construction', 'building', 'affordability'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80',
+      'https://images.unsplash.com/photo-1635126039432-1742dbb90506?w=1920&q=80',
     published_at: '2025-06-05T09:00:00Z',
     status: 'published',
     seo_title: 'Central Oregon Construction Costs Now $300 Per Sqft',
@@ -1459,7 +1459,7 @@ export const posts: BlogPostSeed[] = [
     category: 'Local Housing News',
     tags: ['caldera ranch', 'bend', 'development', 'UGB', 'new homes'],
     hero_image_url:
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=80',
+      'https://images.unsplash.com/photo-1724536523240-1cfdf382f590?w=1920&q=80',
     published_at: '2026-02-15T09:00:00Z',
     status: 'published',
     seo_title: 'Caldera Ranch Development Update and Status Early 2026',
