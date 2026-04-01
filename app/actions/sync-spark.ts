@@ -25,6 +25,11 @@ export type SyncDeltaResult = {
   listingsCreated?: string[]
   listingsUpdated?: string[]
   listingsClosed?: string[]
+  statusPendingCount?: number
+  statusClosedCount?: number
+  statusExpiredCount?: number
+  backOnMarketCount?: number
+  priceDropCount?: number
   error?: string
 }
 
@@ -45,6 +50,19 @@ type DeltaCheckpointMetadata = {
   listingsCreated: string[]
   listingsUpdated: string[]
   listingsClosed: string[]
+  listingsPending: string[]
+  listingsExpired: string[]
+  listingsBackOnMarket: string[]
+  listingsPriceDropped: string[]
+  summary: {
+    created: number
+    updated: number
+    closed: number
+    pending: number
+    expired: number
+    backOnMarket: number
+    priceDropped: number
+  }
 }
 
 function normalizeDeltaStatus(status: string | null | undefined): 'closed' | 'expired' | 'pending' | 'active' | 'other' {
@@ -724,6 +742,10 @@ export async function syncSparkListingsDelta(options?: {
   const createdListings = new Set<string>()
   const updatedListings = new Set<string>()
   const closedListings = new Set<string>()
+  const pendingListings = new Set<string>()
+  const expiredListings = new Set<string>()
+  const backOnMarketListings = new Set<string>()
+  const priceDropListings = new Set<string>()
   const checkpointId = await createDeltaCheckpoint(supabase, sinceIso)
 
   try {
@@ -750,6 +772,19 @@ export async function syncSparkListingsDelta(options?: {
               listingsCreated: [],
               listingsUpdated: [],
               listingsClosed: [],
+              listingsPending: [],
+              listingsExpired: [],
+              listingsBackOnMarket: [],
+              listingsPriceDropped: [],
+              summary: {
+                created: 0,
+                updated: 0,
+                closed: 0,
+                pending: 0,
+                expired: 0,
+                backOnMarket: 0,
+                priceDropped: 0,
+              },
             },
           })
           return {
@@ -763,6 +798,11 @@ export async function syncSparkListingsDelta(options?: {
             listingsCreated: [],
             listingsUpdated: [],
             listingsClosed: [],
+            statusPendingCount: 0,
+            statusClosedCount: 0,
+            statusExpiredCount: 0,
+            backOnMarketCount: 0,
+            priceDropCount: 0,
           }
         }
         break
@@ -841,6 +881,7 @@ export async function syncSparkListingsDelta(options?: {
               payload: { ListNumber: listNumber },
             })
             if (!evErr) eventsEmitted++
+            if (listingKey) pendingListings.add(listingKey)
           }
           if (oldNormalizedStatus === 'expired' && normalizedStatus === 'active') {
             const { error: evErr } = await supabase.from('activity_events').insert({
@@ -850,6 +891,7 @@ export async function syncSparkListingsDelta(options?: {
               payload: { ListNumber: listNumber, previousStatus: existing.StandardStatus },
             })
             if (!evErr) eventsEmitted++
+            if (listingKey) backOnMarketListings.add(listingKey)
           }
           if (!oldClosed && isClosed) {
             const { error: evErr } = await supabase.from('activity_events').insert({
@@ -870,6 +912,7 @@ export async function syncSparkListingsDelta(options?: {
               payload: { ListNumber: listNumber, previousStatus: existing.StandardStatus, newStatus: row.StandardStatus },
             })
             if (!evErr) eventsEmitted++
+            if (listingKey) expiredListings.add(listingKey)
           }
           if (newPrice != null && oldPrice != null && newPrice < oldPrice) {
             const { error: evErr } = await supabase.from('activity_events').insert({
@@ -879,6 +922,7 @@ export async function syncSparkListingsDelta(options?: {
               payload: { ListNumber: listNumber, previous_price: oldPrice, new_price: newPrice },
             })
             if (!evErr) eventsEmitted++
+            if (listingKey) priceDropListings.add(listingKey)
           }
         }
       }
@@ -896,6 +940,19 @@ export async function syncSparkListingsDelta(options?: {
       listingsCreated: Array.from(createdListings),
       listingsUpdated: Array.from(updatedListings),
       listingsClosed: Array.from(closedListings),
+      listingsPending: Array.from(pendingListings),
+      listingsExpired: Array.from(expiredListings),
+      listingsBackOnMarket: Array.from(backOnMarketListings),
+      listingsPriceDropped: Array.from(priceDropListings),
+      summary: {
+        created: createdListings.size,
+        updated: updatedListings.size,
+        closed: closedListings.size,
+        pending: pendingListings.size,
+        expired: expiredListings.size,
+        backOnMarket: backOnMarketListings.size,
+        priceDropped: priceDropListings.size,
+      },
     }
     await finalizeDeltaCheckpoint(supabase, checkpointId, {
       status: 'completed',
@@ -914,6 +971,11 @@ export async function syncSparkListingsDelta(options?: {
       listingsCreated: checkpointMetadata.listingsCreated,
       listingsUpdated: checkpointMetadata.listingsUpdated,
       listingsClosed: checkpointMetadata.listingsClosed,
+      statusPendingCount: checkpointMetadata.summary.pending,
+      statusClosedCount: checkpointMetadata.summary.closed,
+      statusExpiredCount: checkpointMetadata.summary.expired,
+      backOnMarketCount: checkpointMetadata.summary.backOnMarket,
+      priceDropCount: checkpointMetadata.summary.priceDropped,
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -925,6 +987,19 @@ export async function syncSparkListingsDelta(options?: {
         listingsCreated: Array.from(createdListings),
         listingsUpdated: Array.from(updatedListings),
         listingsClosed: Array.from(closedListings),
+        listingsPending: Array.from(pendingListings),
+        listingsExpired: Array.from(expiredListings),
+        listingsBackOnMarket: Array.from(backOnMarketListings),
+        listingsPriceDropped: Array.from(priceDropListings),
+        summary: {
+          created: createdListings.size,
+          updated: updatedListings.size,
+          closed: closedListings.size,
+          pending: pendingListings.size,
+          expired: expiredListings.size,
+          backOnMarket: backOnMarketListings.size,
+          priceDropped: priceDropListings.size,
+        },
       },
       error: message,
     })
@@ -939,6 +1014,11 @@ export async function syncSparkListingsDelta(options?: {
       listingsCreated: Array.from(createdListings),
       listingsUpdated: Array.from(updatedListings),
       listingsClosed: Array.from(closedListings),
+      statusPendingCount: pendingListings.size,
+      statusClosedCount: closedListings.size,
+      statusExpiredCount: expiredListings.size,
+      backOnMarketCount: backOnMarketListings.size,
+      priceDropCount: priceDropListings.size,
       error: message,
     }
   }

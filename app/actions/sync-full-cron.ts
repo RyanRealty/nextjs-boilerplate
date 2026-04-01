@@ -521,7 +521,24 @@ export type DeltaCheckpointRow = {
   completed_at: string
   total_count: number
   processed_count: number
-  metadata: { listingsCreated?: string[]; listingsUpdated?: string[]; listingsClosed?: string[] } | null
+  metadata: {
+    listingsCreated?: string[]
+    listingsUpdated?: string[]
+    listingsClosed?: string[]
+    listingsPending?: string[]
+    listingsExpired?: string[]
+    listingsBackOnMarket?: string[]
+    listingsPriceDropped?: string[]
+    summary?: {
+      created?: number
+      updated?: number
+      closed?: number
+      pending?: number
+      expired?: number
+      backOnMarket?: number
+      priceDropped?: number
+    }
+  } | null
 }
 
 /** Recent delta sync runs (Inngest 2-min) for the sync run log. */
