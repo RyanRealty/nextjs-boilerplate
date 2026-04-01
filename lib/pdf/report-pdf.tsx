@@ -10,14 +10,17 @@ import { Document, Page, View, Text, Image, StyleSheet, Font } from '@react-pdf/
 const siteUrlRaw = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_SITE_URL : undefined
 const baseUrl = (typeof siteUrlRaw === 'string' ? siteUrlRaw.replace(/\/$/, '') : '') || 'https://ryan-realty.com'
 
+// Use Helvetica (built-in @react-pdf font) as fallback since custom fonts
+// (Amboqia, AzoSans) are not bundled. Font aliases keep style references working.
 Font.register({
   family: 'Amboqia',
-  src: `${baseUrl}/fonts/Amboqia_Boriango.otf`,
+  src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff',
+  fontWeight: 700,
 })
 Font.register({
   family: 'AzoSans',
-  src: `${baseUrl}/fonts/AzoSans-Medium.ttf`,
-  fontWeight: 500,
+  src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff',
+  fontWeight: 400,
 })
 
 const BRAND_NAVY = '#102742'
