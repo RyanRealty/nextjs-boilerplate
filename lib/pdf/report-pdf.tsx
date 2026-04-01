@@ -10,17 +10,21 @@ import { Document, Page, View, Text, Image, StyleSheet, Font } from '@react-pdf/
 const siteUrlRaw = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_SITE_URL : undefined
 const baseUrl = (typeof siteUrlRaw === 'string' ? siteUrlRaw.replace(/\/$/, '') : '') || 'https://ryan-realty.com'
 
-// Use Helvetica (built-in @react-pdf font) as fallback since custom fonts
-// (Amboqia, AzoSans) are not bundled. Font aliases keep style references working.
+// Use Inter from CDN as a fallback since custom fonts (Amboqia, AzoSans) are not bundled.
 Font.register({
   family: 'Amboqia',
-  src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff',
-  fontWeight: 700,
+  fonts: [
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff', fontWeight: 400, fontStyle: 'normal' },
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff', fontWeight: 700, fontStyle: 'normal' },
+  ],
 })
 Font.register({
   family: 'AzoSans',
-  src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff',
-  fontWeight: 400,
+  fonts: [
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff', fontWeight: 400, fontStyle: 'normal' },
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-500-normal.woff', fontWeight: 500, fontStyle: 'normal' },
+    { src: 'https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-700-normal.woff', fontWeight: 700, fontStyle: 'normal' },
+  ],
 })
 
 const BRAND_NAVY = '#102742'

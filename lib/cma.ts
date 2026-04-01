@@ -259,22 +259,31 @@ async function getCompCandidates(
   return rows.slice(0, 10)
 }
 
-/** Filter comps by similarity: beds ±1, sqft ±25%, year ±15. */
+/** Filter comps by similarity. When subject data is unknown, skip that filter. */
 function filterComps(subject: CMASubject, rows: CMACompRow[]): CMACompRow[] {
-  const subBeds = subject.beds ?? 0
-  const subSqft = subject.sqft ?? 0
-  const subYear = subject.yearBuilt ?? 0
+  const subBeds = subject.beds
+  const subSqft = subject.sqft
+  const subYear = subject.yearBuilt
   return rows.filter((r) => {
     if (r.close_price == null || r.close_price <= 0) return false
-    const beds = r.beds_total ?? 0
-    const sqft = r.living_area ?? 0
-    const year = r.year_built ?? 0
-    if (Math.abs(beds - subBeds) > 1) return false
-    if (subSqft > 0 && sqft > 0) {
-      const pct = Math.abs(sqft - subSqft) / subSqft
-      if (pct > 0.25) return false
+    // Only filter by beds if we know the subject's bed count
+    if (subBeds != null && subBeds > 0) {
+      const beds = r.beds_total ?? 0
+      if (beds > 0 && Math.abs(beds - subBeds) > 1) return false
     }
-    if (subYear > 0 && year > 0 && Math.abs(year - subYear) > 15) return false
+    // Only filter by sqft if we know both
+    if (subSqft != null && subSqft > 0) {
+      const sqft = r.living_area ?? 0
+      if (sqft > 0) {
+        const pct = Math.abs(sqft - subSqft) / subSqft
+        if (pct > 0.25) return false
+      }
+    }
+    // Only filter by year if we know both
+    if (subYear != null && subYear > 0) {
+      const year = r.year_built ?? 0
+      if (year > 0 && Math.abs(year - subYear) > 15) return false
+    }
     return true
   })
 }
