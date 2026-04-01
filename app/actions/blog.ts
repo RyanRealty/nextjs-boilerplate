@@ -51,7 +51,7 @@ const CATEGORIES = [
   'First-Time Buyers',
   'Relocation Guides',
   'Home Improvement',
-  'Local News',
+  'Local Housing News',
 ] as const
 
 export async function getPublishedBlogPosts(options: {

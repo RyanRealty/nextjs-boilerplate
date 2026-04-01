@@ -770,8 +770,8 @@ export const posts: BlogPostSeed[] = [
   {
     title: 'Preparing Your Home for Sale, The Pre Listing Checklist',
     slug: 'preparing-home-for-sale-checklist',
-    category: 'Home Improvement',
-    tags: ['pre-listing', 'home improvement', 'selling guide', 'checklist'],
+    category: 'Selling Guides',
+    tags: ['pre-listing', 'selling guide', 'checklist', 'home selling'],
     hero_image_url:
       'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1920&q=80',
     published_at: '2025-11-12T09:00:00Z',
