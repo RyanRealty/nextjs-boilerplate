@@ -175,8 +175,13 @@ export default async function SearchPage({
     postalCode: sp.postalCode ?? '',
   }
 
+  const h1Text = [filters.subdivision, filters.city ? `${filters.city}` : null, 'Homes for Sale']
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div className="min-h-screen w-full bg-muted">
+      <h1 className="sr-only">{h1Text}</h1>
       <TrackSearchView
         city={filters.city ?? undefined}
         subdivision={filters.subdivision ?? undefined}
