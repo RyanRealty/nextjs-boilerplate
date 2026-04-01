@@ -77,7 +77,7 @@ function FooterColumn({
           <li key={`${href}-${label}-${index}`}>
             <Link
               href={href}
-              className="text-sm text-muted-foreground hover:text-primary-foreground transition-colors"
+              className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
             >
               {label}
             </Link>
@@ -112,7 +112,7 @@ export default function Footer({
   const hasSocial = !!(SOCIAL_FACEBOOK || SOCIAL_INSTAGRAM || SOCIAL_LINKEDIN)
 
   return (
-    <footer className="bg-primary text-muted-foreground">
+    <footer className="bg-primary text-primary-foreground/70">
       <div className="border-b border-primary-foreground/10 bg-primary/90">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-primary-foreground/90">
@@ -152,7 +152,7 @@ export default function Footer({
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-primary-foreground">
                   Contact
                 </h3>
-                <address className="mt-3 not-italic text-sm text-muted-foreground">
+                <address className="mt-3 not-italic text-sm text-primary-foreground/70">
                   {address ? <p className="mb-1">{address}</p> : null}
                   {phone ? (
                     <p>
@@ -188,7 +188,7 @@ export default function Footer({
                       href={SOCIAL_FACEBOOK}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-muted-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-primary-foreground/70 hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
                       aria-label="Facebook"
                     >
                       <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -201,7 +201,7 @@ export default function Footer({
                       href={SOCIAL_INSTAGRAM}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-muted-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-primary-foreground/70 hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
                       aria-label="Instagram"
                     >
                       <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -214,7 +214,7 @@ export default function Footer({
                       href={SOCIAL_LINKEDIN}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-muted-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground/10 text-primary-foreground/70 hover:bg-primary-foreground/20 hover:text-primary-foreground transition-colors"
                       aria-label="LinkedIn"
                     >
                       <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -232,7 +232,7 @@ export default function Footer({
 
         <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-left">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-            <EqualHousing className="text-muted-foreground" />
+            <EqualHousing className="text-primary-foreground/70" />
             <MLSAttribution compact />
           </div>
           <div className="flex flex-col items-center gap-4 sm:items-end">
@@ -244,7 +244,7 @@ export default function Footer({
                 <Link
                   key={href}
                   href={href}
-                  className="text-sm text-muted-foreground hover:text-primary-foreground transition-colors"
+                  className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
                 >
                   {label}
                 </Link>
@@ -253,7 +253,7 @@ export default function Footer({
                 href={OREGON_REA_LOOKUP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary-foreground transition-colors"
+                className="text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
               >
                 Oregon license lookup
               </a>
