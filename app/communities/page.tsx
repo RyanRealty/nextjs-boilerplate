@@ -27,6 +27,11 @@ export const metadata: Metadata = {
     url: `${siteUrl}/communities`,
     siteName: 'Ryan Realty',
     type: 'website',
+    images: [{ url: `${siteUrl}/api/og?type=default`, width: 1200, height: 630, alt: 'Communities in Central Oregon' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [`${siteUrl}/api/og?type=default`],
   },
 }
 

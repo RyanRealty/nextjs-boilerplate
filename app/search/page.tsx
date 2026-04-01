@@ -94,12 +94,13 @@ export async function generateMetadata({
   Object.entries(sp).forEach(([k, v]) => {
     if (v != null && v !== '') canonical.searchParams.set(k, String(v))
   })
+  const ogImage = `${siteUrl}/api/og?type=default`
   return {
     title,
     description,
     alternates: { canonical: canonical.toString() },
-    openGraph: { title, description, url: canonical.toString() },
-    twitter: { card: 'summary_large_image', title, description },
+    openGraph: { title, description, url: canonical.toString(), images: [{ url: ogImage, width: 1200, height: 630 }] },
+    twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
   }
 }
 
