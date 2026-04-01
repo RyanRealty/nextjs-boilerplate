@@ -189,11 +189,19 @@ export default function ShowcaseHero({ listingKey, heroVideoUrl, photos }: Props
     active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }, [activeIndex, hasVideo])
 
-  // No media at all
+  // No media at all — show a beautiful Central Oregon fallback instead of empty gray
   if (!hasVideo && totalPhotos === 0) {
     return (
-      <section className="aspect-video w-full bg-muted" aria-label="Listing media">
-        <div className="flex h-full w-full items-center justify-center text-muted-foreground">No media available</div>
+      <section className="relative aspect-video w-full overflow-hidden" aria-label="Listing media">
+        <img
+          src="https://images.unsplash.com/photo-1653930796811-84d446f9e221?w=1920&q=80"
+          alt="Central Oregon landscape"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
+        <div className="absolute bottom-4 left-4 text-sm text-primary-foreground/80">
+          Photos coming soon
+        </div>
       </section>
     )
   }
