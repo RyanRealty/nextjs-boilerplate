@@ -65,7 +65,41 @@ export const viewport: Viewport = {
   themeColor: "#102742",
 };
 
-export default async function RootLayout({
+/* Async components that fetch their own data — layout doesn't block on them */
+async function HeaderAsync() {
+  const [session, brokerage] = await Promise.all([
+    getSession(),
+    getBrokerageSettings(),
+  ])
+  const brokerageName = brokerage?.name ?? 'Ryan Realty'
+  const headerLogoUrl = brokerage?.logo_url?.trim() || '/logo-header-white.png'
+  return <Header user={session?.user} brokerageName={brokerageName} headerLogoUrl={headerLogoUrl} />
+}
+
+async function FooterAsync() {
+  const brokerage = await getBrokerageSettings()
+  const brokerageName = brokerage?.name ?? 'Ryan Realty'
+  const brokerageLogoUrl = brokerage?.logo_url?.trim() || null
+  const brokerageAddress =
+    brokerage?.address_line1 || brokerage?.city
+      ? [brokerage?.address_line1, brokerage?.address_line2, brokerage?.city, brokerage?.state, brokerage?.postal_code]
+          .filter(Boolean)
+          .join(', ')
+      : null
+  return <Footer brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
+}
+
+async function SignInPromptAsync() {
+  const session = await getSession()
+  return <SignInPrompt user={session?.user ?? null} />
+}
+
+async function VisitTrackerAsync() {
+  const session = await getSession()
+  return <VisitTracker userId={session?.user?.id ?? null} userEmail={session?.user?.email ?? null} />
+}
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -74,23 +108,6 @@ export default async function RootLayout({
   if (!envCheck.ok) {
     console.error('[env] Missing required build vars:', envCheck.missing.join(', '));
   }
-  logOptionalEnv();
-
-  const [session, brokerage] = await Promise.all([
-    getSession(),
-    getBrokerageSettings(),
-  ]);
-
-  const brokerageName = brokerage?.name ?? 'Ryan Realty'
-  const brokerageLogoUrl = brokerage?.logo_url?.trim() || null
-  // Header logo: prefer brokerage logo from settings; fall back to white logo (relative path so it always loads).
-  const headerLogoUrl = brokerageLogoUrl || '/logo-header-white.png'
-  const brokerageAddress =
-    brokerage?.address_line1 || brokerage?.city
-      ? [brokerage?.address_line1, brokerage?.address_line2, brokerage?.city, brokerage?.state, brokerage?.postal_code]
-          .filter(Boolean)
-          .join(', ')
-      : null
 
   return (
     <html lang="en" className={cn("font-sans", GeistSans.variable, GeistMono.variable)}>
@@ -109,17 +126,24 @@ export default async function RootLayout({
           <GoogleAnalytics />
           <MetaPixel />
           <JsonLd />
-          <Header user={session?.user} brokerageName={brokerageName} headerLogoUrl={headerLogoUrl} />
+          {/* Header streams in independently — doesn't block page content */}
+          <Suspense fallback={<div className="h-16 bg-primary" />}>
+            <HeaderAsync />
+          </Suspense>
           <Suspense fallback={<div className="min-h-[calc(100vh-64px)]" aria-hidden />}>
             <div id="main-content" tabIndex={-1} className="min-h-[calc(100vh-64px)]">{children}</div>
           </Suspense>
-          <Footer brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
+          <Suspense fallback={<div className="min-h-[200px] bg-primary" />}>
+            <FooterAsync />
+          </Suspense>
           <CookieConsentBanner />
         <Suspense fallback={null}>
-          <SignInPrompt user={session?.user ?? null} />
+          <SignInPromptAsync />
         </Suspense>
         <InstallPrompt />
-        <VisitTracker userId={session?.user?.id ?? null} userEmail={session?.user?.email ?? null} />
+        <Suspense fallback={null}>
+          <VisitTrackerAsync />
+        </Suspense>
         <Suspense fallback={null}>
           <FubIdentityBridge />
           <AgentAttributionBridge />

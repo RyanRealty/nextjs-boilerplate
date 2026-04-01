@@ -1,10 +1,7 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
-
-export const metadata = {
-  title: 'Offline',
-  description: 'You are offline.',
-}
 
 export default function OfflinePage() {
   return (
