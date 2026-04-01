@@ -70,6 +70,50 @@ Two imagery tiers across the site:
 | **Sell** | **Luxury home staging, professional photography** |
 | **Buy** | **Aspirational — luxury home tour, smart home tech** |
 
+## Priority 5: Community Pages — Deep Research & Beautiful Imagery
+
+### Strategy
+Every community/subdivision page must be researched and built out individually:
+
+1. **Research each community** — Find real information about amenities, lifestyle, price points, lot sizes, HOA details, history
+2. **Tier the communities**:
+   - **Resort communities** (Tetherow, Pronghorn, Sunriver Resort, etc.) — premium treatment with resort amenities, golf, spa
+   - **Luxury non-resort** (Broken Top, Awbrey Butte, etc.) — high-end treatment even if not flagged as resort
+   - **Standard subdivisions** — clean, professional but simpler layout
+3. **Real photos when possible** — search Unsplash for actual community/subdivision images. Owner has uploaded some already.
+4. **Fallback hierarchy for hero images**:
+   - First: actual community photo (from DB or Unsplash search for community name)
+   - Second: a DIFFERENT Central Oregon lifestyle image (not the same as the parent city hero — keep things fresh)
+   - Third: parent city image as last resort
+5. **Outdoor activity variety** — rotate through mountain biking, fly fishing, hiking, skiing, camping, kayaking, etc.
+
+### Content for each community page
+- What makes this community unique
+- Amenities (pool, golf, trails, clubhouse, etc.)
+- Price range and typical lot sizes
+- HOA information if available
+- Lifestyle description (who lives here, what's the vibe)
+- Nearby attractions and activities
+
+## Priority 6: Every City & Subdivision Must Have an Image
+
+### Requirements
+- **Every city page** must have a hero image — even non-Central Oregon cities
+- **Every subdivision/community page** must have a hero image
+- **No generic "No media" or placeholder gray boxes anywhere**
+
+### Implementation approach
+Think about this smartly — there could be hundreds of cities and thousands of subdivisions:
+- **Option A: Background process** — Script that iterates through all cities/subdivisions, searches Unsplash for relevant images, and stores the URLs in the DB
+- **Option B: On-demand generation** — When a page loads and has no image, fetch one from Unsplash and cache it
+- **Option C: Batch script** — Run once to populate all missing images
+- The `getOrCreatePlaceBanner` function already does on-demand Unsplash fetching — may need to ensure it works for ALL entities, not just Central Oregon
+
+### Image animation
+- Apply a subtle Ken Burns effect (zoom/pan) to hero images — already implemented as `animate-hero-ken-burns` in `globals.css`
+- Verify it's applied consistently on ALL hero sections (city, community, search, listing)
+- Ensure animation doesn't cause CLS or performance issues
+
 ## What Was Already Done (Don't Redo)
 - Homepage Performance 66 → 85, LCP 14s → 2.5s desktop
 - Layout made non-blocking (header/footer stream independently)
