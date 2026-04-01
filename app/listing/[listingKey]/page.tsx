@@ -45,6 +45,8 @@ import AdUnit from '@/components/AdUnit'
 import ListingJsonLd from '@/components/listing/ListingJsonLd'
 import { generateBreadcrumbSchema } from '@/lib/structured-data'
 import { getVacationRentalPotential } from '@/lib/vacation-rental-potential'
+import { Suspense } from 'react'
+import ListingValuationSection from '@/components/listing/ListingValuationSection'
 
 type PageProps = { params: Promise<{ listingKey: string }> }
 
@@ -371,6 +373,12 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 likeCount={engagement.like_count}
                 daysOnMarket={listing.days_on_market ?? listing.cumulative_days_on_market ?? null}
               />
+              <Suspense fallback={null}>
+                <ListingValuationSection
+                  listingKey={listing.listing_key}
+                  signedIn={!!session?.user}
+                />
+              </Suspense>
               <ShowcaseDescription
                 publicRemarks={listing.public_remarks ?? null}
                 directions={listing.directions ?? null}
