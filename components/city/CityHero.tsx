@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { getCityHeroImage } from '@/lib/central-oregon-images'
 
 export type CityHeroProps = {
   name: string
@@ -9,9 +10,6 @@ export type CityHeroProps = {
   /** Optional: Save/Share actions rendered in hero top-right (overlay). */
   actions?: React.ReactNode
 }
-
-const PLACEHOLDER_HERO =
-  'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1920&q=80'
 
 function formatPrice(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—'
@@ -26,7 +24,7 @@ export default function CityHero({
   communityCount,
   actions,
 }: CityHeroProps) {
-  const src = heroImageUrl ?? PLACEHOLDER_HERO
+  const src = heroImageUrl ?? getCityHeroImage(name)
 
   return (
     <section className="relative min-h-[40vh] sm:min-h-[50vh] overflow-hidden w-full" aria-label="City hero">

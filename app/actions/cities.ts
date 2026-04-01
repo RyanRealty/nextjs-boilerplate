@@ -191,7 +191,9 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
       .or(ACTIVE_OR)
       .limit(5000),
   ])
-  const activeCount = countRes.count ?? 0
+  // Use count from query; if it returns 0 but market stats show listings, use stats count as fallback
+  let activeCount = countRes.count ?? 0
+  if (activeCount === 0 && stats.count > 0) activeCount = stats.count
   const subs = (subRows.data ?? []) as { SubdivisionName?: string }[]
   const communityCount = new Set(subs.map((r) => (r.SubdivisionName ?? '').trim()).filter((s) => s && s.toLowerCase() !== 'n/a')).size
   const db = cityRow.data as { name?: string; description?: string | null; hero_image_url?: string | null } | null
