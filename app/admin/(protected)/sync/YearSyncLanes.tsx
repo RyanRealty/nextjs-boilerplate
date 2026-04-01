@@ -84,6 +84,13 @@ function progressPercent(processed: number, total: number): number {
   return Math.max(0, Math.min(100, Math.round((processed / total) * 100)))
 }
 
+function isStalled(status: LaneStatus, updatedAt: string | null): boolean {
+  if (status !== 'running' || !updatedAt) return false
+  const updatedAtMs = new Date(updatedAt).getTime()
+  if (!Number.isFinite(updatedAtMs)) return false
+  return Date.now() - updatedAtMs > 15 * 60 * 1000
+}
+
 export default function YearSyncLanes() {
   const [payload, setPayload] = useState<YearLanesPayload | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -132,6 +139,7 @@ export default function YearSyncLanes() {
         <div className="grid gap-4 lg:grid-cols-2">
           {lanes.map((lane) => {
             const pct = progressPercent(lane.processedListings, lane.totalListings)
+            const stalled = isStalled(lane.status, lane.updatedAt)
             return (
               <div
                 key={lane.id}
@@ -214,6 +222,11 @@ export default function YearSyncLanes() {
 
                 {lane.lastError && (
                   <p className="mt-3 text-sm text-destructive">{lane.lastError}</p>
+                )}
+                {!lane.lastError && stalled && (
+                  <p className="mt-3 text-sm text-warning">
+                    This lane looks stalled. No progress heartbeat has been recorded for more than 15 minutes.
+                  </p>
                 )}
               </div>
             )

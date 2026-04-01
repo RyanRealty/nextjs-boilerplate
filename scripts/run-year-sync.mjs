@@ -38,14 +38,29 @@ function loadEnvLocal() {
 }
 
 const env = loadEnvLocal()
+const currentYear = new Date().getUTCFullYear()
 
 let targetYear = null
 let baseUrlArg = null
-for (const arg of process.argv.slice(2)) {
+let laneArg = null
+for (let i = 0; i < process.argv.slice(2).length; i++) {
+  const arg = process.argv.slice(2)[i]
+  if (arg === '--lane') {
+    const next = process.argv.slice(2)[i + 1]
+    if (next) {
+      laneArg = next
+      i += 1
+      continue
+    }
+  }
+  if (arg?.startsWith('--lane=')) {
+    laneArg = arg.slice('--lane='.length)
+    continue
+  }
   const num = Number(arg)
-  if (Number.isFinite(num) && num >= 1990 && num <= new Date().getUTCFullYear()) {
+  if (Number.isFinite(num) && num >= 1990 && num <= currentYear) {
     targetYear = Math.floor(num)
-  } else if (!baseUrlArg) {
+  } else if (!baseUrlArg && /^https?:\/\//i.test(arg)) {
     baseUrlArg = arg
   }
 }
@@ -58,7 +73,7 @@ if (!secret?.trim()) {
   process.exit(1)
 }
 
-const lane = (process.env.SYNC_YEAR_LANE ?? 'default').trim() || 'default'
+const lane = (laneArg || process.env.SYNC_YEAR_LANE || 'default').trim() || 'default'
 const params = new URLSearchParams()
 if (targetYear) params.set('year', String(targetYear))
 if (lane !== 'default') params.set('lane', lane)

@@ -9,11 +9,44 @@
  */
 
 import { spawn } from 'child_process'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 
 const args = process.argv.slice(2).map(Number).filter(n => Number.isFinite(n) && n >= 1990)
 const currentYear = new Date().getUTCFullYear()
 const fromYear = args[0] ?? currentYear
 const toYear = args[1] ?? currentYear
+
+function loadEnvLocal() {
+  const path = resolve(process.cwd(), '.env.local')
+  try {
+    const raw = readFileSync(path, 'utf8')
+    const env = {}
+    for (const line of raw.split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      const eq = trimmed.indexOf('=')
+      if (eq <= 0) continue
+      const key = trimmed.slice(0, eq).trim()
+      let val = trimmed.slice(eq + 1).trim()
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1)
+      }
+      env[key] = val
+    }
+    return env
+  } catch {
+    return {}
+  }
+}
+
+const envLocal = loadEnvLocal()
+const baseUrl = (
+  process.env.SYNC_YEAR_BASE_URL ||
+  process.env.SITE_URL ||
+  envLocal.NEXT_PUBLIC_SITE_URL ||
+  'http://localhost:3001'
+).replace(/\/$/, '')
 
 if (fromYear > toYear) {
   console.error(`Start year (${fromYear}) must be <= end year (${toYear})`)
@@ -26,9 +59,14 @@ function syncYear(year) {
     console.log(`  Starting sync for ${year}`)
     console.log(`${'='.repeat(50)}\n`)
 
-    const child = spawn('node', ['scripts/run-year-sync.mjs', String(year), '--lane=historical-backfill'], {
+    const child = spawn('node', ['scripts/run-year-sync.mjs', String(year), baseUrl], {
       stdio: 'inherit',
       cwd: process.cwd(),
+      env: {
+        ...process.env,
+        SYNC_YEAR_LANE: 'default',
+        SYNC_YEAR_BASE_URL: baseUrl,
+      },
     })
 
     child.on('close', code => {
