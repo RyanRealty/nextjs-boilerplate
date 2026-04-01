@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getBlogPostBySlug } from '@/app/actions/blog'
+import { getBlogPostBySlug, getRelatedBlogPosts } from '@/app/actions/blog'
 import { getSession } from '@/app/actions/auth'
 import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { generateBlogSchema, generateBreadcrumbSchema } from '@/lib/structured-data'
+import ShareButton from '@/components/ShareButton'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -31,6 +32,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = post.seo_title?.trim() || `${post.title} | Ryan Realty Blog`
   const description = post.seo_description?.trim() || post.excerpt?.trim() || 'Central Oregon real estate insights from Ryan Realty.'
   const canonical = `${siteUrl}/blog/${encodeURIComponent(post.slug)}`
+  const ogImageUrl = post.hero_image_url
+    ? `${siteUrl}/api/og?type=blog&id=${encodeURIComponent(post.slug)}`
+    : `${siteUrl}/api/og?type=default`
   return {
     title,
     description,
@@ -41,13 +45,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: canonical,
       type: 'article',
       siteName: 'Ryan Realty',
-      ...(post.hero_image_url ? { images: [{ url: post.hero_image_url, alt: post.title }] } : {}),
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: post.title }],
+      ...(post.published_at ? { publishedTime: post.published_at } : {}),
     },
     twitter: {
-      card: post.hero_image_url ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      ...(post.hero_image_url ? { images: [post.hero_image_url] } : {}),
+      images: [ogImageUrl],
     },
   }
 }
@@ -60,6 +65,8 @@ export default async function BlogPostPage({ params }: PageProps) {
     getFubPersonIdFromCookie(),
   ])
   if (!post) notFound()
+
+  const relatedPosts = await getRelatedBlogPosts(post.slug, post.category, 3)
 
   const pageUrl = `${siteUrl}/blog/${encodeURIComponent(post.slug)}`
   const pageTitle = `${post.title} | Ryan Realty Blog`
@@ -100,17 +107,37 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <article className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         {post.category ? (
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{post.category}</p>
+          <Link
+            href={`/blog?category=${encodeURIComponent(post.category)}`}
+            className="text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
+          >
+            {post.category}
+          </Link>
         ) : null}
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{post.title}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          {post.author_name ? <span>{post.author_name}</span> : null}
+          {post.author_name ? (
+            post.author_slug ? (
+              <Link href={`/team/${post.author_slug}`} className="hover:text-foreground">
+                {post.author_name}
+              </Link>
+            ) : (
+              <span>{post.author_name}</span>
+            )
+          ) : null}
           {post.published_at ? (
             <time dateTime={post.published_at}>
-              {new Date(post.published_at).toLocaleDateString('en-US')}
+              {new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </time>
           ) : null}
           <span>{readMinutes} min read</span>
+          <ShareButton
+            url={pageUrl}
+            title={post.title}
+            text={post.excerpt ?? undefined}
+            trackContext="blog_post"
+            variant="compact"
+          />
         </div>
 
         {post.hero_image_url ? (
@@ -127,13 +154,107 @@ export default async function BlogPostPage({ params }: PageProps) {
         ) : null}
 
         {articleBody ? (
-          <div className="prose prose-neutral mt-8 max-w-none text-foreground">
-            <div className="whitespace-pre-line">{articleBody}</div>
-          </div>
+          <div
+            className="prose prose-neutral mt-8 max-w-none text-foreground prose-headings:text-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-foreground"
+            dangerouslySetInnerHTML={{ __html: articleBody }}
+          />
         ) : (
           <p className="mt-8 text-muted-foreground">This article is being updated.</p>
         )}
+
+        {/* Tags */}
+        {post.tags && post.tags.length > 0 ? (
+          <div className="mt-8 flex flex-wrap gap-2 border-t border-border pt-6">
+            {post.tags.map((tag) => (
+              <span key={tag} className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Bottom share */}
+        <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
+          <p className="text-sm text-muted-foreground">Found this helpful? Share it with someone who could use it.</p>
+          <ShareButton
+            url={pageUrl}
+            title={post.title}
+            text={post.excerpt ?? undefined}
+            trackContext="blog_post_bottom"
+            variant="default"
+          />
+        </div>
       </article>
+
+      {/* Author bio */}
+      {post.author_name ? (
+        <section className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            {post.author_photo_url ? (
+              <Image
+                src={post.author_photo_url}
+                alt={post.author_name}
+                width={64}
+                height={64}
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
+                {post.author_name.charAt(0)}
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">About the author</p>
+              {post.author_slug ? (
+                <Link href={`/team/${post.author_slug}`} className="text-lg font-semibold text-foreground hover:text-primary">
+                  {post.author_name}
+                </Link>
+              ) : (
+                <p className="text-lg font-semibold text-foreground">{post.author_name}</p>
+              )}
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ryan Realty team member sharing local market insights and expertise for Central Oregon home buyers and sellers.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Related posts */}
+      {relatedPosts.length > 0 ? (
+        <section className="mt-8">
+          <h2 className="text-xl font-semibold text-foreground">Related Posts</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            {relatedPosts.map((related) => (
+              <Link
+                key={related.id}
+                href={`/blog/${related.slug}`}
+                className="group overflow-hidden rounded-lg border border-border bg-card shadow-sm transition hover:shadow-md"
+              >
+                {related.hero_image_url ? (
+                  <div className="relative aspect-[16/10] w-full">
+                    <Image
+                      src={related.hero_image_url}
+                      alt={related.title || 'Related post'}
+                      fill
+                      className="object-cover transition group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, 33vw"
+                    />
+                  </div>
+                ) : null}
+                <div className="p-4">
+                  <p className="text-sm font-semibold text-foreground line-clamp-2">{related.title}</p>
+                  {related.published_at ? (
+                    <time className="mt-1 block text-xs text-muted-foreground" dateTime={related.published_at}>
+                      {new Date(related.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </time>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }

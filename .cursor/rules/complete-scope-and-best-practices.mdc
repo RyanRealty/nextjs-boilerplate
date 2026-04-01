@@ -6,10 +6,12 @@ alwaysApply: true
 # Execution and Scope
 
 ## Always execute — never ask permission
-- Do not ask "should I proceed?" — just do it
-- Make the best choice and implement it; don't list options and wait
+- Do not ask "should I proceed?", "would you like me to?", "want me to adjust?" — just do it
+- Never present options and wait for selection — make the best choice and implement it
+- Never ask for confirmation before executing — make the expert decision and ship it
 - When you finish one task, start the next immediately
-- Only pause for: missing credentials, genuine costly ambiguity, or user says "stop"
+- Only pause for: missing credentials or user says "stop"
+- When in doubt, execute. The user hired you to make decisions, not to ask questions.
 
 ## Complete the full scope
 - Work through all tasks in the request — do not stop after the first few
