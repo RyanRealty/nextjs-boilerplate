@@ -13,7 +13,7 @@ export const posts: BlogPostSeed[] = [
     status: 'published',
     seo_title: 'Moving to Bend Oregon: Realistic Relocation Guide 2025',
     seo_description:
-      'Honest guide to moving to Bend, Oregon. Covers cost of living, neighborhoods, jobs, weather, schools, healthcare, and common mistakes newcomers make.',
+      'Honest guide to moving to Bend, Oregon. Covers cost of living, neighborhoods, jobs, weather, schools, healthcare, and the common mistakes newcomers make.',
     excerpt:
       'An honest look at what moving to Bend, Oregon actually involves, from neighborhood breakdowns and cost realities to weather surprises and the job market.',
     content: `
@@ -183,7 +183,7 @@ export const posts: BlogPostSeed[] = [
     status: 'published',
     seo_title: 'Moving to Redmond Oregon: Practical Relocation Guide',
     seo_description:
-      'Practical guide to moving to Redmond, Oregon. Covers housing costs, neighborhoods, employment, schools, and why Redmond is Central Oregon\'s fastest-growing city.',
+      'Practical guide to relocating to Redmond, Oregon. Covers housing costs vs Bend, neighborhoods, employment, schools, commute times, and community character.',
     excerpt:
       'Redmond is Central Oregon\'s fastest-growing city with a strong price advantage over Bend. Here\'s what you actually need to know before making the move.',
     content: `
@@ -360,9 +360,9 @@ export const posts: BlogPostSeed[] = [
       'https://images.unsplash.com/photo-1568666062525-111347cc88e4?w=1920&q=80',
     published_at: '2025-09-20T09:00:00Z',
     status: 'published',
-    seo_title: 'Moving to Sisters Oregon: What to Expect in 2025',
+    seo_title: 'Moving to Sisters Oregon: What to Expect When You Move',
     seo_description:
-      'Guide to moving to Sisters, Oregon. Covers small-town living, home prices, limited inventory, community events, schools, and the trade-offs of mountain town life.',
+      'Guide to moving to Sisters, Oregon. Covers small-town living, home prices, limited inventory, community events, schools, and mountain town trade-offs.',
     excerpt:
       'Sisters is a small mountain town with big Cascade views and a community that runs on volunteerism and outdoor access. Here\'s what living there honestly looks like.',
     content: `
@@ -542,9 +542,9 @@ export const posts: BlogPostSeed[] = [
       'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1920&q=80',
     published_at: '2025-07-15T09:00:00Z',
     status: 'published',
-    seo_title: 'Real Cost of Living in Bend Oregon 2025 Breakdown',
+    seo_title: 'The Real Cost of Living in Bend Oregon 2025 Breakdown',
     seo_description:
-      'Detailed cost of living breakdown for Bend, Oregon. Covers housing, taxes, utilities, groceries, healthcare, childcare, and metro area comparisons with real numbers.',
+      'Detailed cost of living breakdown for Bend, Oregon. Covers housing, taxes, utilities, groceries, healthcare, childcare, and comparisons with real numbers.',
     excerpt:
       'A line-item breakdown of what it actually costs to live in Bend, Oregon, with real numbers for housing, taxes, utilities, healthcare, and comparison to other West Coast cities.',
     content: `
@@ -813,7 +813,7 @@ export const posts: BlogPostSeed[] = [
     status: 'published',
     seo_title: 'Working Remote from Central Oregon: Practical Guide',
     seo_description:
-      'Guide to remote work from Central Oregon. Covers internet speeds, coworking spaces, timezone advantages, cost comparison to major metros, and best neighborhoods.',
+      'Guide to remote work from Central Oregon. Covers internet speeds, coworking spaces, timezone advantages, cost comparisons to major metros, and neighborhoods.',
     excerpt:
       'Central Oregon has become a magnet for remote workers. Here\'s the practical reality of internet speeds, coworking options, timezone logistics, and cost savings.',
     content: `
