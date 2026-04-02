@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.3 (2026-04-02)
+
+### Bug Fixes
+- fix: mark admin leads page as force-dynamic to prevent prerender crash
+
+---
+
+
 ## v1.0.2 (2026-04-02)
 
 ### Maintenance
