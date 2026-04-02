@@ -68,7 +68,7 @@ export const getFeaturedListings = unstable_cache(
 )
 
 /** Just listed: 8 newest Active by OnMarketDate (or ModificationTimestamp fallback) for the given city. */
-export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[]> {
+async function _getJustListedUncached(city: string = 'Bend'): Promise<HomeTileRow[]> {
   const cityName = city.trim() || 'Bend'
   try {
     const sb = supabase()
@@ -76,7 +76,7 @@ export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[
       .from('listings')
       .select(HOME_TILE_SELECT)
       .or(ACTIVE_OR)
-      .ilike('City', cityName)
+      .eq('City', cityName)
       .order('OnMarketDate', { ascending: false, nullsFirst: false })
       .limit(32)
     const { data } = await query
@@ -97,6 +97,12 @@ export async function getJustListed(city: string = 'Bend'): Promise<HomeTileRow[
     }
   }
 }
+
+export const getJustListed = unstable_cache(
+  _getJustListedUncached,
+  ['just-listed'],
+  { revalidate: 120, tags: ['just-listed'] }
+)
 
 /** Recently sold: 4 newest Closed with close price/date, optional city filter. */
 async function _getRecentlySoldUncached(city?: string): Promise<(HomeTileRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {

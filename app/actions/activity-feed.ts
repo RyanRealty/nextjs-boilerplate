@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 import type { ActivityFeedItem } from './activity-feed-shared'
 import { slugify } from '@/lib/slug'
 
@@ -208,7 +209,7 @@ const ACTIVE_OR_PENDING_OR =
  * Activity feed for multiple cities: events first, then fill with newest listings in those cities.
  * Used by the homepage/reusable slider with default cities and optional additional cities from dropdown.
  */
-export async function getActivityFeedWithFallbackMulti(options: {
+async function _getActivityFeedWithFallbackMultiUncached(options: {
   cities: string[]
   limit?: number
 }): Promise<ActivityFeedItem[]> {
@@ -262,3 +263,9 @@ export async function getActivityFeedWithFallbackMulti(options: {
   }
   return [...events, ...fallback]
 }
+
+export const getActivityFeedWithFallbackMulti = unstable_cache(
+  _getActivityFeedWithFallbackMultiUncached,
+  ['activity-feed-multi'],
+  { revalidate: 120, tags: ['activity-feed'] }
+)

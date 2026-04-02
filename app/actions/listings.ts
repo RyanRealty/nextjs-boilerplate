@@ -2247,8 +2247,9 @@ const BROKERAGE_TILE_SELECT =
  *
  * Uses service role client because the ListOfficeName ILIKE query on 586K rows
  * exceeds the anon client's statement timeout. This is a public read-only query.
+ * Cached for 5 minutes — brokerage listings change infrequently.
  */
-export async function getBrokerageListings(
+async function _getBrokerageListingsUncached(
   officeName: string = 'Ryan Realty'
 ): Promise<HomeTileRow[]> {
   const supabase = getServiceSupabase()
@@ -2281,3 +2282,9 @@ export async function getBrokerageListings(
     return order(a.StandardStatus) - order(b.StandardStatus)
   })
 }
+
+export const getBrokerageListings = unstable_cache(
+  _getBrokerageListingsUncached,
+  ['brokerage-listings'],
+  { revalidate: 300, tags: ['brokerage-listings'] }
+)

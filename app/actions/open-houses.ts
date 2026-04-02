@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -76,7 +77,7 @@ function getThisWeekend(): { dateFrom: string; dateTo: string } {
   }
 }
 
-export async function getOpenHousesWithListings(filters: OpenHousesFilters = {}): Promise<OpenHouseWithListing[]> {
+async function _getOpenHousesWithListingsUncached(filters: OpenHousesFilters = {}): Promise<OpenHouseWithListing[]> {
   const supabase = getSupabase()
   const today = new Date().toISOString().slice(0, 10)
   const defaultRange = getThisWeekend()
@@ -185,4 +186,10 @@ export async function getOpenHousesWithListings(filters: OpenHousesFilters = {})
   }
   return result
 }
+
+export const getOpenHousesWithListings = unstable_cache(
+  _getOpenHousesWithListingsUncached,
+  ['open-houses-with-listings'],
+  { revalidate: 900, tags: ['open-houses'] }
+)
 
