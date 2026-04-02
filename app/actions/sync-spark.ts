@@ -651,7 +651,7 @@ export async function syncSparkListingsDelta(options?: {
   let pagesProcessed = 0
   let currentPage = 1
   let totalPages = 1
-  const deltaListingKeys: string[] = []
+  const deltaListings: Array<{ key: string; status: string | null }> = []
 
   try {
     while (currentPage <= totalPages && pagesProcessed < maxPages) {
@@ -705,10 +705,10 @@ export async function syncSparkListingsDelta(options?: {
         if (!error) totalUpserted += chunk.length
       }
 
-      // Collect listing keys for history refresh after all pages
+      // Collect listing keys + status for history refresh after all pages
       for (const row of rows) {
         const key = (row.ListingKey ?? row.ListNumber ?? '').toString().trim()
-        if (key) deltaListingKeys.push(key)
+        if (key) deltaListings.push({ key, status: row.StandardStatus ?? null })
       }
 
       const nowIso = new Date().toISOString()
@@ -774,9 +774,11 @@ export async function syncSparkListingsDelta(options?: {
     // --- History refresh for delta-synced listings ---
     // Fetch history for each listing that was just updated, so listing_history stays current.
     // This ensures the listing detail page always has timeline data for active listings.
-    if (deltaListingKeys.length > 0 && accessToken) {
+    if (deltaListings.length > 0 && accessToken) {
       const HISTORY_CONCURRENCY = 5
-      const uniqueKeys = [...new Set(deltaListingKeys)]
+      // Deduplicate by key, keep last status
+      const byKey = new Map(deltaListings.map(d => [d.key, d.status]))
+      const uniqueKeys = [...byKey.keys()]
       let keyIndex = 0
 
       const historyWorker = async () => {
@@ -809,11 +811,15 @@ export async function syncSparkListingsDelta(options?: {
                 .insert(historyRows)
               if (!insertErr) historyRowsUpserted += historyRows.length
             }
-            // Mark history as finalized for this listing
-            await supabase
-              .from('listings')
-              .update({ history_finalized: true })
-              .eq('ListingKey', key)
+            // Only finalize terminal listings (Closed/Expired/Withdrawn/Canceled)
+            // Active/Pending listings should NEVER be finalized — they need ongoing history refresh
+            const listingStatus = byKey.get(key)
+            if (listingStatus && isTerminalStatus(listingStatus)) {
+              await supabase
+                .from('listings')
+                .update({ history_finalized: true, is_finalized: true })
+                .eq('ListingKey', key)
+            }
           } catch {
             // Don't fail the delta sync if history fetch fails for one listing
           }
