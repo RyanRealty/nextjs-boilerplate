@@ -12,8 +12,7 @@
 - [ ] `npm run test`
 - [ ] `npm run build`
 - [ ] If UI changed, `npm run lint:design-tokens`
-- [ ] If route UX changed, `npm run ci:lighthouse`
-- [ ] If route UX changed, `npm run ci:a11y`
+- [ ] If route UX changed, quality checks (Lighthouse + a11y) run nightly — trigger manually via Actions > "Quality checks" if needed before merge
 
 ## UX Heuristics Checklist
 
