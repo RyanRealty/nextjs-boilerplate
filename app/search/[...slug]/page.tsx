@@ -947,6 +947,7 @@ export default async function SearchPage({
             title={subdivision ? `What is happening in ${displayName}` : `What is happening in ${city ?? 'Central Oregon'}`}
             items={searchActivityFeed}
             signedIn={!!session?.user}
+            userEmail={session?.user?.email ?? undefined}
             savedKeys={savedKeys}
             likedKeys={likedKeys}
           />
@@ -958,6 +959,10 @@ export default async function SearchPage({
           <RecentlySoldRow
             title={subdivision ? `Recently sold in ${displayName}` : `Recently sold in ${city ?? 'Central Oregon'}`}
             listings={searchRecentlySold}
+            signedIn={!!session?.user}
+            userEmail={session?.user?.email ?? undefined}
+            savedKeys={savedKeys}
+            likedKeys={likedKeys}
           />
         </section>
       )}

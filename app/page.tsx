@@ -108,6 +108,7 @@ async function ActivityFeedAsync({ session }: { session: Awaited<ReturnType<type
       signedIn={!!session?.user}
       savedKeys={savedKeys}
       likedKeys={likedKeys}
+      userEmail={session?.user?.email ?? null}
     />
   )
 }

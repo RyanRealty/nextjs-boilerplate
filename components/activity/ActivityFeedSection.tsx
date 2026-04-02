@@ -4,7 +4,8 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
-import ActivityFeedCard from '@/components/activity/ActivityFeedCard'
+import ListingTile from '@/components/ListingTile'
+import type { ListingTileListing } from '@/components/ListingTile'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -38,6 +39,31 @@ export type ActivityFeedSectionProps = {
   savedKeys?: string[]
   /** User's liked listing keys (for activity cards). */
   likedKeys?: string[]
+  /** User email for tile tracking. */
+  userEmail?: string | null
+}
+
+/** Map an ActivityFeedItem to ListingTileListing for consistent tile rendering. */
+function mapFeedItemToTile(item: ActivityFeedItem): ListingTileListing {
+  return {
+    ListingKey: item.listing_key,
+    ListNumber: item.ListNumber ?? null,
+    ListPrice: item.ListPrice ?? null,
+    BedroomsTotal: item.BedroomsTotal ?? null,
+    BathroomsTotal: item.BathroomsTotal ?? null,
+    TotalLivingAreaSqFt: null,
+    StreetNumber: item.StreetNumber ?? null,
+    StreetName: item.StreetName ?? null,
+    City: item.City ?? null,
+    State: item.State ?? null,
+    PostalCode: item.PostalCode ?? null,
+    SubdivisionName: item.SubdivisionName ?? null,
+    PhotoURL: item.PhotoURL ?? null,
+    Latitude: null,
+    Longitude: null,
+    StandardStatus: item.StandardStatus ?? null,
+    OnMarketDate: null,
+  }
 }
 
 /** Union of default cities and allCities for the selector list, default first then rest alphabetically. */
@@ -62,6 +88,7 @@ export default function ActivityFeedSection({
   signedIn = false,
   savedKeys = [],
   likedKeys = [],
+  userEmail,
 }: ActivityFeedSectionProps) {
   const [selectedCities, setSelectedCities] = useState<string[]>(() => defaultCities)
   const [items, setItems] = useState<ActivityFeedItem[]>(initialItems)
@@ -224,31 +251,26 @@ export default function ActivityFeedSection({
             )}
             style={{ scrollSnapType: 'x mandatory' }}
           >
-            {loading ? (
-              <p className="text-sm text-muted-foreground py-4">Updating…</p>
-            ) : items.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">No activity in selected cities yet. Try selecting more cities above.</p>
-            ) : (
-              items.map((item, i) => (
-                <div
-                  key={item.id}
-                  className="shrink-0 snap-start w-[85vw] min-w-[260px] max-w-[320px] sm:w-[50vw] sm:min-w-[280px] sm:max-w-[360px] lg:w-[33.333vw] lg:min-w-[300px] lg:max-w-[420px]"
-                  style={{ scrollSnapAlign: 'start' }}
-                >
-                  <ActivityFeedCard
-                    item={item}
-                    priority={i < 3}
-                    signedIn={signedIn}
-                    saved={savedKeys.includes(item.listing_key)}
-                    liked={likedKeys.includes(item.listing_key)}
-                    viewCount={engagementMap[item.listing_key]?.view_count ?? 0}
-                    likeCount={engagementMap[item.listing_key]?.like_count ?? 0}
-                    saveCount={engagementMap[item.listing_key]?.save_count ?? 0}
-                    shareCount={engagementMap[item.listing_key]?.share_count ?? 0}
-                  />
-                </div>
-              ))
-            )}
+            {loading && <p className="text-sm text-muted-foreground py-4">Updating...</p>}
+            {!loading && items.length === 0 && <p className="text-sm text-muted-foreground py-4">No activity in selected cities yet. Try selecting more cities above.</p>}
+            {!loading && items.map((item, i) => (
+              <div
+                key={item.id}
+                className="shrink-0 snap-start w-[280px] sm:w-[320px]"
+                style={{ scrollSnapAlign: 'start' }}
+              >
+                <ListingTile
+                  listing={mapFeedItemToTile(item)}
+                  listingKey={item.listing_key}
+                  signedIn={signedIn}
+                  userEmail={userEmail}
+                  saved={savedKeys.includes(item.listing_key)}
+                  liked={likedKeys.includes(item.listing_key)}
+                  hasRecentPriceChange={item.event_type === 'price_drop'}
+                  priority={i < 3}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>

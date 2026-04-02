@@ -1105,6 +1105,10 @@ export type SimilarListingForDetail = {
   postal_code?: string | null
 }
 
+// PascalCase select for similar listings — returns ListingTileRow-compatible data
+const SIMILAR_TILE_SELECT =
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, StreetNumber, StreetName, City, State, PostalCode, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, OnMarketDate, ClosePrice, CloseDate'
+
 /** Similar listings: same community or city, ±20% price, ±1 beds, Active, exclude current, limit 6. */
 export async function getSimilarListingsForDetailPage(
   excludeListingKey: string,

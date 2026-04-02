@@ -344,12 +344,20 @@ export default async function ListingDetailPage({ params }: PageProps) {
               title="What is happening nearby"
               items={nearbyActivity}
               signedIn={!!session?.user}
+              userEmail={session?.user?.email ?? undefined}
               savedKeys={nearbySavedKeys}
               likedKeys={nearbyLikedKeys}
             />
           </div>
           <div className="mt-8">
-            <RecentlySoldRow title="Recently sold nearby" listings={nearbySold} />
+            <RecentlySoldRow
+              title="Recently sold nearby"
+              listings={nearbySold}
+              signedIn={!!session?.user}
+              userEmail={session?.user?.email ?? undefined}
+              savedKeys={nearbySavedKeys}
+              likedKeys={nearbyLikedKeys}
+            />
           </div>
         </div>
       </div>

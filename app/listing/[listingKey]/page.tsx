@@ -463,21 +463,40 @@ export default async function ListingDetailPage({ params }: PageProps) {
                 listingKey={listing.listing_key}
                 listings={subdivisionListings}
                 title={`Other homes in ${subdivisionName}`}
+                signedIn={!!session?.user}
+                userEmail={session?.user?.email ?? undefined}
+                savedKeys={nearbySavedKeys}
+                likedKeys={nearbyLikedKeys}
               />
             </div>
           )}
-          <ShowcaseSimilar listingKey={listing.listing_key} listings={similarListings} />
+          <ShowcaseSimilar
+            listingKey={listing.listing_key}
+            listings={similarListings}
+            signedIn={!!session?.user}
+            userEmail={session?.user?.email ?? undefined}
+            savedKeys={nearbySavedKeys}
+            likedKeys={nearbyLikedKeys}
+          />
           <div className="mt-8">
             <ActivityFeedSlider
               title="What is happening nearby"
               items={nearbyActivity}
               signedIn={!!session?.user}
+              userEmail={session?.user?.email ?? undefined}
               savedKeys={nearbySavedKeys}
               likedKeys={nearbyLikedKeys}
             />
           </div>
           <div className="mt-8">
-            <RecentlySoldRow title="Recently sold nearby" listings={nearbySold} />
+            <RecentlySoldRow
+              title="Recently sold nearby"
+              listings={nearbySold}
+              signedIn={!!session?.user}
+              userEmail={session?.user?.email ?? undefined}
+              savedKeys={nearbySavedKeys}
+              likedKeys={nearbyLikedKeys}
+            />
           </div>
         </div>
       </div>
