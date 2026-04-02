@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.12 (2026-04-02)
+
+### Bug Fixes
+- fix: restore full ci.yml with self-contained e2e build
+
+---
+
+
 ## v1.0.11 (2026-04-02)
 
 ### Bug Fixes
