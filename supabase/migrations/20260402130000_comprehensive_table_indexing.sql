@@ -426,8 +426,7 @@ END $$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'expired_listings') THEN
-    CREATE INDEX IF NOT EXISTS idx_expired_listings_listing_key
-      ON expired_listings (listing_key);
+    -- listing_key already has a UNIQUE constraint (implicit index); skip explicit index.
     CREATE INDEX IF NOT EXISTS idx_expired_listings_expired_at
       ON expired_listings (expired_at DESC);
   END IF;
