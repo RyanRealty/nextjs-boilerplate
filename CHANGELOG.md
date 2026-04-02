@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.10 (2026-04-02)
+
+### Maintenance
+- docs: update PR template — quality checks now run nightly
+
+---
+
+
 ## v1.0.9 (2026-04-02)
 
 ### Other
