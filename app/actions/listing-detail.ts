@@ -798,15 +798,62 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
 
   const virtualTours = extractVirtualToursFromRow(listingRow)
 
-  // Price history & status history from DB tables (may be empty)
-  const [priceRes, statusRes, engagementRes] = await Promise.all([
+  // Price/status history: try dedicated tables first, fall back to listing_history
+  const [priceRes, statusRes, historyRes, engagementRes] = await Promise.all([
     supabase.from('price_history').select('*').eq('listing_key', canonicalKey).order('changed_at', { ascending: false }),
     supabase.from('status_history').select('*').eq('listing_key', canonicalKey).order('changed_at', { ascending: false }),
+    supabase.from('listing_history').select('*').eq('listing_key', canonicalKey).order('event_date', { ascending: false }).limit(50),
     supabase.from('engagement_metrics').select('*').eq('listing_key', canonicalKey).maybeSingle(),
   ])
 
-  const priceHistory = (priceRes.data ?? []) as ListingDetailPriceHistory[]
-  const statusHistory = (statusRes.data ?? []) as ListingDetailStatusHistory[]
+  // Use dedicated price_history if available; otherwise derive from listing_history
+  let priceHistory = (priceRes.data ?? []) as ListingDetailPriceHistory[]
+  if (priceHistory.length === 0 && (historyRes.data ?? []).length > 0) {
+    const histRows = (historyRes.data ?? []) as Array<{
+      event_date?: string | null
+      event?: string | null
+      description?: string | null
+      price?: number | null
+      price_change?: number | null
+    }>
+    // Extract price-related events from listing_history
+    priceHistory = histRows
+      .filter((h) => h.price != null && h.price > 0)
+      .map((h) => ({
+        id: '',
+        listing_key: canonicalKey,
+        changed_at: h.event_date ?? '',
+        old_price: null,
+        new_price: h.price ?? null,
+        change_amount: h.price_change ?? null,
+        change_pct: null,
+        source: h.event ?? 'MLS',
+      }))
+      // Deduplicate by date+price
+      .filter((item, idx, arr) => arr.findIndex((a) => a.changed_at === item.changed_at && a.new_price === item.new_price) === idx)
+  }
+
+  let statusHistory = (statusRes.data ?? []) as ListingDetailStatusHistory[]
+  if (statusHistory.length === 0 && (historyRes.data ?? []).length > 0) {
+    const histRows = (historyRes.data ?? []) as Array<{
+      event_date?: string | null
+      event?: string | null
+      description?: string | null
+    }>
+    // Extract status-related events from listing_history
+    statusHistory = histRows
+      .filter((h) => h.event === 'StatusChange' || h.event === 'FieldChange' || (h.description ?? '').toLowerCase().includes('status'))
+      .map((h) => ({
+        id: '',
+        listing_key: canonicalKey,
+        changed_at: h.event_date ?? '',
+        old_status: null,
+        new_status: h.description ?? h.event ?? '',
+        source: 'MLS',
+      }))
+      .filter((item, idx, arr) => arr.findIndex((a) => a.changed_at === item.changed_at && a.new_status === item.new_status) === idx)
+  }
+
   const engagement = (engagementRes.data ?? null) as ListingDetailEngagement | null
 
   // Resolve community from SubdivisionName, including neighborhood if assigned
