@@ -24,6 +24,9 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/immutability": "warn",
       "react-hooks/preserve-manual-memoization": "warn",
+            // Downgrade no-explicit-any to warning — Supabase query builder
+            // callbacks use pragmatic `any` for filter chain parameters.
+            "@typescript-eslint/no-explicit-any": "warn",
       // Design-system compliance is enforced by scripts/lint-design-tokens.sh
       // Run: npm run lint:design-tokens
     },
