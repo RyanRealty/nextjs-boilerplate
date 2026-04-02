@@ -9,7 +9,7 @@ import {
   sparkListingToSupabaseRow,
   type SparkListingHistoryItem,
 } from '../../lib/spark'
-import { fetchListings, SPARK_SELECT_FIELDS } from '@/lib/spark-odata'
+import { fetchListings } from '@/lib/spark-odata'
 import type { SparkListing } from '@/lib/spark-odata'
 import { processSparkListing } from '@/lib/listing-processor'
 import * as Sentry from '@sentry/nextjs'
@@ -362,8 +362,8 @@ export async function runOnePageActivePendingSync(state: {
       const result = await fetchListings({
         top: REFRESH_ACTIVE_PENDING_PAGE_SIZE,
         filter: ACTIVE_PENDING_ODATA_FILTER,
-        select: SPARK_SELECT_FIELDS,
-        expand: 'Media',
+        // No $select — pull ALL available fields so details JSONB is complete
+        expand: SYNC_EXPAND, // Photos,FloorPlans,Videos,VirtualTours,OpenHouses,Documents
         orderby: 'ModificationTimestamp asc',
       })
       const records = result.records
@@ -400,6 +400,7 @@ export async function runOnePageActivePendingSync(state: {
         limit: Math.min(REFRESH_ACTIVE_PENDING_PAGE_SIZE, 100),
         filter: ACTIVE_PENDING_ODATA_FILTER,
         orderby: 'ModificationTimestamp',
+        expand: SYNC_EXPAND,
       })
       const D = response.D
       const results = D?.Results ?? []
@@ -453,6 +454,7 @@ export async function runOnePageActivePendingSync(state: {
       limit: Math.min(REFRESH_ACTIVE_PENDING_PAGE_SIZE, 100),
       filter: ACTIVE_PENDING_ODATA_FILTER,
       orderby: 'ModificationTimestamp',
+      expand: SYNC_EXPAND,
     })
     const D = response.D
     const results = D?.Results ?? []
@@ -524,8 +526,8 @@ export async function syncSparkListingsActiveAndPending(): Promise<SyncActivePen
     let result = await fetchListings({
       top: REFRESH_ACTIVE_PENDING_PAGE_SIZE,
       filter: ACTIVE_PENDING_ODATA_FILTER,
-      select: SPARK_SELECT_FIELDS,
-      expand: 'Media',
+      // No $select — pull ALL available fields so details JSONB is complete
+      expand: SYNC_EXPAND, // Photos,FloorPlans,Videos,VirtualTours,OpenHouses,Documents
       orderby: 'ModificationTimestamp asc',
     })
 
@@ -551,6 +553,7 @@ export async function syncSparkListingsActiveAndPending(): Promise<SyncActivePen
           limit: v1PageSize,
           filter: ACTIVE_PENDING_ODATA_FILTER,
           orderby: 'ModificationTimestamp',
+          expand: SYNC_EXPAND,
         })
         const D = response.D
         const results = D?.Results ?? []
