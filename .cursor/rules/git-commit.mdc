@@ -46,9 +46,9 @@ SKIP_DB_GUARD=1 git push         # skip migration drift check only
 ```
 
 ## Branch strategy
-- `optimizer-swarm` — active development branch
-- `main` — production; only merge when build is green and tested
+- `main` — production; push to main = live deploy via Vercel
 - Feature branches: `feat/short-description` (optional for large isolated features)
+- No other long-lived branches. `optimizer-swarm` has been merged and deleted.
 
 ## Do NOT
 - Commit `.env.local` or any file containing secrets
