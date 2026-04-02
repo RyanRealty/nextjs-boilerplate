@@ -182,12 +182,12 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
       .select('name, slug, description, hero_image_url')
       .ilike('name', cityName)
       .maybeSingle(),
-    supabase()
-      .from('listings')
-      .select('SubdivisionName')
-      .ilike('City', cityName)
-      .or(ACTIVE_OR)
-      .limit(5000),
+    import('@/lib/supabase/paginate').then((m) =>
+      m.fetchAllRows<{ SubdivisionName?: string | null }>(
+        supabase(), 'listings', 'SubdivisionName',
+        (q: any) => q.ilike('City', cityName).or(ACTIVE_OR),
+      ).then((rows) => ({ data: rows, error: null }))
+    ),
   ])
   // Use count from query; if it returns 0 but market stats show listings, use stats count as fallback
   let activeCount = countRes.count ?? 0
@@ -245,13 +245,12 @@ export async function getCommunitiesInCity(cityName: string): Promise<CommunityF
   const [hot, flags, listingRows] = await Promise.all([
     getHotCommunitiesInCity(cityName),
     listSubdivisionsWithFlags(),
-    supabase()
-      .from('listings')
-      .select('SubdivisionName, ListPrice, StandardStatus')
-      .ilike('City', cityName)
-      .or(ACTIVE_OR)
-      .limit(5000)
-      .then((r) => (r.data ?? []) as { SubdivisionName?: string; ListPrice?: number | null }[]),
+    import('@/lib/supabase/paginate').then((m) =>
+      m.fetchAllRows<{ SubdivisionName?: string; ListPrice?: number | null }>(
+        supabase(), 'listings', 'SubdivisionName, ListPrice, StandardStatus',
+        (q: any) => q.ilike('City', cityName).or(ACTIVE_OR),
+      )
+    ),
   ])
   const bySub = new Map<string, number[]>()
   for (const row of listingRows) {
