@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.13 (2026-04-02)
+
+### Bug Fixes
+- fix: resolve E2E test failures — footer selector and page timeouts
+
+---
+
+
 ## v1.0.12 (2026-04-02)
 
 ### Bug Fixes
