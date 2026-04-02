@@ -24,6 +24,14 @@
 
 7. **The owner has spent $1,000+ on agents who keep finding problems they should have caught the first time.** Don't be that agent. Do it right the first time or don't do it at all.
 
+8. **Be efficient. Don't waste tokens.** Build the server ONCE at the start. Don't start 16 servers across a session. Don't do shallow passes that require re-doing the same work 4 times. Go deep the FIRST time — check every page, every query, every table, every route. One thorough pass beats four lazy passes, and costs 1/4 as much.
+
+9. **See things end to end.** Don't just check that a component exists — trace the entire path: Does the data query return correct results? Does the component receive the data? Does it render? Does it show REAL data, not zeros or empty arrays? Does it look right on desktop AND mobile? Does the user interaction work (click, submit, save)? If any link in the chain is broken, the feature is broken. Period.
+
+10. **Think like a competitor.** Before calling any page done, ask: "If I were a homebuyer comparing this to Zillow, would this page make me stay or leave?" If the answer is leave, it's not done. This is a real business. Every page either wins or loses customers.
+
+11. **Check table row counts FIRST.** Before writing any code, run `select count(*) from every relevant table`. Know what data actually exists. Don't build features on empty tables and then say "it works." It doesn't work if there's no data. Flag empty tables immediately so the owner knows what's a code problem vs a data pipeline problem.
+
 ---
 
 ## WHAT'S BEEN DONE (PR #15)
