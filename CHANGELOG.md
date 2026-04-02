@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.9 (2026-04-02)
+
+### Other
+- ci: add nightly quality checks workflow for Lighthouse and pa11y
+
+---
+
+
 ## v1.0.8 (2026-04-02)
 
 ### Other
