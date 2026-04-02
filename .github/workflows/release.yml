@@ -11,7 +11,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     # Only run on actual merges, not direct pushes of CI artifacts
-    if: github.event.head_commit.message != 'chore: update changelog'
+        if: "github.event.head_commit.message != 'chore: update changelog'"
 
     steps:
       - uses: actions/checkout@v4
