@@ -1,3 +1,4 @@
+/* Blog post detail — HTML rendering, ShareButton, related posts, author bio */
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
