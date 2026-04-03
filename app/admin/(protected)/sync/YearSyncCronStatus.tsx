@@ -58,7 +58,7 @@ export default function YearSyncCronStatus() {
 
   useEffect(() => {
     void load()
-    const interval = setInterval(load, isRunning ? 3000 : 10000)
+    const interval = setInterval(load, isRunning ? 5000 : 15000)
     return () => clearInterval(interval)
   }, [isRunning])
 

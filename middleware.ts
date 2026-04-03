@@ -14,7 +14,8 @@ import { Redis } from '@upstash/redis'
  *   /api/cma/*        → strict (10 req/min)  — compute-heavy valuations
  *   /api/auth/*       → auth   (5 req/min)   — brute-force protection
  *   /api/open-houses/* → auth  (5 req/min)   — form spam protection
- *   /api/*            → general (60 req/min) — catch-all API protection
+ *   /api/admin/sync/* → admin   (300 req/min) — high-frequency admin polling
+ *   /api/*            → general (60 req/min)  — catch-all API protection
  */
 
 // Build limiters at module scope (Edge runtime caches across invocations)
@@ -32,6 +33,7 @@ function buildLimiter(prefix: string, tokens: number, window: string): Ratelimit
 
 const strict = buildLimiter('strict', 10, '60 s')
 const auth = buildLimiter('auth', 5, '60 s')
+const admin = buildLimiter('admin', 300, '60 s')
 const general = buildLimiter('general', 60, '60 s')
 
 function getIp(request: NextRequest): string {
@@ -49,6 +51,7 @@ function pickLimiter(pathname: string): Ratelimit | null {
   if (pathname.startsWith('/api/cma/')) return strict
   if (pathname.startsWith('/api/auth/')) return auth
   if (pathname.startsWith('/api/open-houses/')) return auth
+  if (pathname.startsWith('/api/admin/sync/')) return admin ?? general
   if (pathname.startsWith('/api/')) return general
   return null
 }

@@ -56,7 +56,14 @@ export async function GET() {
     ])
 
     const cursor = cursorRow as SyncYearCursor | null
-    const log = (logRows ?? []) as YearSyncLogRow[]
+    const logRaw = (logRows ?? []) as YearSyncLogRow[]
+    const seenYears = new Set<number>()
+    const log: YearSyncLogRow[] = []
+    for (const row of logRaw) {
+      if (seenYears.has(row.year)) continue
+      seenYears.add(row.year)
+      log.push(row)
+    }
 
     return NextResponse.json({
       ok: true,

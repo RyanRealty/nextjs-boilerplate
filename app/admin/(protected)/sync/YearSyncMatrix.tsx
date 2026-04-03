@@ -100,7 +100,7 @@ export default function YearSyncMatrix() {
   const syncInProgress = runningRow != null
 
   useEffect(() => {
-    const interval = syncInProgress ? 1000 : 5000
+    const interval = syncInProgress ? 5000 : 15000
     const poll = setInterval(() => void load({ clearError: false, bust: true }), interval)
     return () => clearInterval(poll)
   }, [load, syncInProgress])
@@ -155,7 +155,7 @@ export default function YearSyncMatrix() {
       }
     }
     void poll()
-    const timer = setInterval(poll, 1500)
+    const timer = setInterval(poll, 5000)
     return () => {
       cancelled = true
       clearInterval(timer)
