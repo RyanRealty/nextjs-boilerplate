@@ -10,8 +10,8 @@ import { test, expect } from '@playwright/test'
  * timeout because SSR + Supabase queries can be slow on CI cold starts.
  */
 
-// Longer timeout for pages that do SSR with database queries
-const DATA_PAGE_TIMEOUT = 60_000
+// Longer timeout for pages that do SSR with database queries (CI cold starts can exceed 60s)
+const DATA_PAGE_TIMEOUT = 120_000
 
 test.describe('Homepage', () => {
   test('loads and shows hero section', async ({ page }) => {
@@ -59,9 +59,8 @@ test.describe('Search', () => {
     await page.goto('/homes-for-sale/bend', { timeout: DATA_PAGE_TIMEOUT })
 
     // Should have some form of listing grid or results
-    await page.waitForLoadState('networkidle', { timeout: DATA_PAGE_TIMEOUT })
     const main = page.locator('main')
-    await expect(main).toBeVisible()
+    await expect(main).toBeVisible({ timeout: DATA_PAGE_TIMEOUT })
   })
 })
 
@@ -71,7 +70,7 @@ test.describe('Listing Detail', () => {
   test('listing page structure loads correctly', async ({ page }) => {
     // Navigate to search first, then click a listing
     await page.goto('/homes-for-sale/bend', { timeout: DATA_PAGE_TIMEOUT })
-    await page.waitForLoadState('networkidle', { timeout: DATA_PAGE_TIMEOUT })
+    await expect(page.locator('main')).toBeVisible({ timeout: DATA_PAGE_TIMEOUT })
 
     // Try to find a listing link
     const listingLink = page.locator('a[href*="/listing/"]').first()
@@ -79,7 +78,7 @@ test.describe('Listing Detail', () => {
 
     if (hasListings) {
       await listingLink.click()
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState('domcontentloaded')
 
       // Listing detail page should have key sections
       await expect(page.locator('main')).toBeVisible()
@@ -133,7 +132,7 @@ test.describe('Mobile Responsive', () => {
 
   test('homepage has no horizontal overflow on mobile', async ({ page }) => {
     await page.goto('/', { timeout: DATA_PAGE_TIMEOUT })
-    await page.waitForLoadState('networkidle', { timeout: DATA_PAGE_TIMEOUT })
+    await expect(page.locator('main')).toBeVisible({ timeout: DATA_PAGE_TIMEOUT })
 
     // Check that the page doesn't overflow horizontally
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
