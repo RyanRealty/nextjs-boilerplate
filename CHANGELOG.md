@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.14 (2026-04-03)
+
+### Bug Fixes
+- fix: increase E2E timeout to 120s and remove networkidle waits
+
+---
+
+
 ## v1.0.13 (2026-04-02)
 
 ### Bug Fixes
