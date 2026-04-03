@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.0 (2026-04-03)
+
+### Features
+- feat: add smart Spark hydration for missing listing facets
+
+---
+
+
 ## v1.0.26 (2026-04-03)
 
 ### Bug Fixes
