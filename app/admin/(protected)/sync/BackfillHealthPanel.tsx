@@ -195,7 +195,7 @@ export default function BackfillHealthPanel() {
                 <p className="font-mono text-sm text-foreground">{formatNumber(payload.totals.terminalRemainingListings)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Already finalized</p>
+                <p className="text-xs text-muted-foreground">History finalized</p>
                 <p className="font-mono text-sm text-foreground">{formatNumber(payload.totals.finalizedTerminalListings)}</p>
               </div>
               <div>

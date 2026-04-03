@@ -293,13 +293,17 @@ export default function YearSyncMatrix() {
       )}
 
       {!initialLoading && !bootstrapping && hasRows && (
-        <Table>
+        <>
+          <p className="mb-2 text-xs text-muted-foreground">
+            History finalized means listing history is present for that listing. It does not yet guarantee all media, agents, open houses, and normalized history tables are complete.
+          </p>
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Year</TableHead>
               <TableHead>Spark listings</TableHead>
               <TableHead>Supabase listings</TableHead>
-              <TableHead>Finalized listings</TableHead>
+              <TableHead>History finalized listings</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -339,7 +343,8 @@ export default function YearSyncMatrix() {
               </TableRow>
             )})}
           </TableBody>
-        </Table>
+          </Table>
+        </>
       )}
     </section>
   )
