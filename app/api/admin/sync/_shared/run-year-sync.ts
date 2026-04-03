@@ -9,6 +9,7 @@ import {
   sparkListingToSupabaseRow,
   type SparkListingHistoryItem,
 } from '@/lib/spark'
+import { syncAuxiliaryTablesForFinalization } from './listing-completeness'
 import {
   countSupabaseListingsForYear,
   countFinalizedClosedForYear,
@@ -114,7 +115,17 @@ async function upsertListingsInChunks(
   return totalUpserted
 }
 
-type YearListingRow = { ListingKey?: string | null; ListNumber?: string | null; StandardStatus?: string | null }
+type YearListingRow = {
+  ListingKey?: string | null
+  ListNumber?: string | null
+  StandardStatus?: string | null
+  PhotoURL?: string | null
+  details?: unknown
+  ListAgentName?: string | null
+  ListAgentFirstName?: string | null
+  ListAgentLastName?: string | null
+  ListOfficeName?: string | null
+}
 
 async function fetchSupabaseYearListings(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,7 +141,7 @@ async function fetchSupabaseYearListings(
   while (keepGoing) {
     const { data, error } = await supabase
       .from('listings')
-      .select('ListingKey, ListNumber, StandardStatus')
+      .select('ListingKey, ListNumber, StandardStatus, PhotoURL, details, ListAgentName, ListAgentFirstName, ListAgentLastName, ListOfficeName')
       .gte('OnMarketDate', fromIso)
       .lt('OnMarketDate', toIsoExclusive)
       .order('ListNumber', { ascending: true, nullsFirst: false })
@@ -164,7 +175,7 @@ async function fetchSupabaseYearListingsBatch(
   const { fromIso, toIsoExclusive } = yearBounds(year)
   const { data, error } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, StandardStatus')
+    .select('ListingKey, ListNumber, StandardStatus, PhotoURL, details, ListAgentName, ListAgentFirstName, ListAgentLastName, ListOfficeName')
     .gte('OnMarketDate', fromIso)
     .lt('OnMarketDate', toIsoExclusive)
     .order('ListNumber', { ascending: true, nullsFirst: false })
@@ -352,7 +363,7 @@ export async function runYearSync(
   let processedListings = 0
   let listingsFinalized = 0
 
-  async function processListing(row: { ListingKey?: string | null; ListNumber?: string | null; StandardStatus?: string | null }) {
+  async function processListing(row: YearListingRow) {
     const key1 = String(row.ListingKey ?? '').trim()
     const key2 = String(row.ListNumber ?? '').trim()
     const keys = [...new Set([key1, key2].filter(Boolean))]
@@ -393,8 +404,20 @@ export async function runYearSync(
         if (!error) sparkHistoryRows += rows.length
       }
     }
-    const isPastYear = year < currentYear
-    const shouldFinalize = row.ListNumber && (isPastYear || (hadSuccessfulFetch && isTerminalStatus(row.StandardStatus)))
+    const auxSync = await syncAuxiliaryTablesForFinalization(
+      supabase,
+      {
+        listingKey,
+        photoUrl: row.PhotoURL ?? null,
+        details: row.details ?? null,
+        listAgentName: row.ListAgentName ?? null,
+        listAgentFirstName: row.ListAgentFirstName ?? null,
+        listAgentLastName: row.ListAgentLastName ?? null,
+        listOfficeName: row.ListOfficeName ?? null,
+      },
+      items
+    )
+    const shouldFinalize = row.ListNumber && hadSuccessfulFetch && isTerminalStatus(row.StandardStatus) && auxSync.ok
     if (shouldFinalize) {
       await supabase
         .from('listings')
@@ -893,8 +916,20 @@ export async function runYearSyncChunk(options: {
           if (!error) sparkHistoryRows += rows.length
         }
       }
-      const isPastYear = year < currentYear
-      const shouldFinalize = row.ListNumber && (isPastYear || (hadSuccessfulFetch && isTerminalStatus(row.StandardStatus)))
+      const auxSync = await syncAuxiliaryTablesForFinalization(
+        supabase,
+        {
+          listingKey,
+          photoUrl: row.PhotoURL ?? null,
+          details: row.details ?? null,
+          listAgentName: row.ListAgentName ?? null,
+          listAgentFirstName: row.ListAgentFirstName ?? null,
+          listAgentLastName: row.ListAgentLastName ?? null,
+          listOfficeName: row.ListOfficeName ?? null,
+        },
+        items
+      )
+      const shouldFinalize = row.ListNumber && hadSuccessfulFetch && isTerminalStatus(row.StandardStatus) && auxSync.ok
       if (shouldFinalize) {
         await supabase
           .from('listings')

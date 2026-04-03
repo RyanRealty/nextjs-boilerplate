@@ -12,6 +12,7 @@ import {
 import { fetchListings } from '@/lib/spark-odata'
 import type { SparkListing } from '@/lib/spark-odata'
 import { processSparkListing } from '@/lib/listing-processor'
+import { syncAuxiliaryTablesForFinalization } from '@/app/api/admin/sync/_shared/listing-completeness'
 import * as Sentry from '@sentry/nextjs'
 
 export type SyncDeltaResult = {
@@ -811,10 +812,29 @@ export async function syncSparkListingsDelta(options?: {
                 .insert(historyRows)
               if (!insertErr) historyRowsUpserted += historyRows.length
             }
+            const { data: listingContext } = await supabase
+              .from('listings')
+              .select('ListingKey, PhotoURL, details, ListAgentName, ListAgentFirstName, ListAgentLastName, ListOfficeName')
+              .eq('ListingKey', key)
+              .maybeSingle()
+            const auxSync = await syncAuxiliaryTablesForFinalization(
+              supabase,
+              {
+                listingKey: key,
+                photoUrl: (listingContext as { PhotoURL?: string | null } | null)?.PhotoURL ?? null,
+                details: (listingContext as { details?: unknown } | null)?.details ?? null,
+                listAgentName: (listingContext as { ListAgentName?: string | null } | null)?.ListAgentName ?? null,
+                listAgentFirstName: (listingContext as { ListAgentFirstName?: string | null } | null)?.ListAgentFirstName ?? null,
+                listAgentLastName: (listingContext as { ListAgentLastName?: string | null } | null)?.ListAgentLastName ?? null,
+                listOfficeName: (listingContext as { ListOfficeName?: string | null } | null)?.ListOfficeName ?? null,
+              },
+              historyItems.items
+            )
             // Only finalize terminal listings (Closed/Expired/Withdrawn/Canceled)
-            // Active/Pending listings should NEVER be finalized — they need ongoing history refresh
+            // Active/Pending listings should NEVER be finalized — they need ongoing history refresh.
+            // Terminal listings finalize only when history fetch succeeded and all auxiliary tables synced.
             const listingStatus = byKey.get(key)
-            if (listingStatus && isTerminalStatus(listingStatus)) {
+            if (listingStatus && isTerminalStatus(listingStatus) && historyItems.ok && auxSync.ok) {
               await supabase
                 .from('listings')
                 .update({ history_finalized: true, is_finalized: true })
@@ -1223,7 +1243,7 @@ export async function syncListingHistory(options?: {
       : limit
     let dataQuery = supabase
       .from('listings')
-      .select('ListingKey, ListNumber, StandardStatus, CloseDate, ListDate, OnMarketDate, ModificationTimestamp')
+      .select('ListingKey, ListNumber, StandardStatus, CloseDate, ListDate, OnMarketDate, ModificationTimestamp, PhotoURL, details, ListAgentName, ListAgentFirstName, ListAgentLastName, ListOfficeName')
       .eq('history_finalized', false)
       .range(effectiveOffset, effectiveOffset + rangeLimit - 1)
     if (activeAndPendingOnly) {
@@ -1281,7 +1301,7 @@ export async function syncListingHistory(options?: {
       const fallbackLimit = Math.max(rangeLimit * 5, 300)
       const { data: fallbackRows, error: fallbackError } = await supabase
         .from('listings')
-        .select('ListingKey, ListNumber, StandardStatus, CloseDate, ListDate, OnMarketDate, ModificationTimestamp')
+      .select('ListingKey, ListNumber, StandardStatus, CloseDate, ListDate, OnMarketDate, ModificationTimestamp, PhotoURL, details, ListAgentName, ListAgentFirstName, ListAgentLastName, ListOfficeName')
         .eq('history_finalized', false)
         .or(TERMINAL_STATUS_OR)
         .limit(fallbackLimit)
@@ -1307,6 +1327,12 @@ export async function syncListingHistory(options?: {
       ListingKey?: string | null
       ListNumber?: string | null
       StandardStatus?: string | null
+      PhotoURL?: string | null
+      details?: unknown
+      ListAgentName?: string | null
+      ListAgentFirstName?: string | null
+      ListAgentLastName?: string | null
+      ListOfficeName?: string | null
     }[]
     const shardedRows = useWorkerShard
       ? rawListingRows.filter((row) => {
@@ -1339,7 +1365,17 @@ export async function syncListingHistory(options?: {
       listingsWithHistory: number
       insertError?: string
     }
-    const processOneListing = async (row: { ListingKey?: string | null; ListNumber?: string | null; StandardStatus?: string | null }): Promise<ListingWorkResult> => {
+    const processOneListing = async (row: {
+      ListingKey?: string | null
+      ListNumber?: string | null
+      StandardStatus?: string | null
+      PhotoURL?: string | null
+      details?: unknown
+      ListAgentName?: string | null
+      ListAgentFirstName?: string | null
+      ListAgentLastName?: string | null
+      ListOfficeName?: string | null
+    }): Promise<ListingWorkResult> => {
       const key1 = (row.ListingKey ?? '').toString().trim()
       const key2 = (row.ListNumber ?? '').toString().trim()
       const keysToTry = [...new Set([key1, key2].filter((k) => k.length > 0))]
@@ -1388,7 +1424,20 @@ export async function syncListingHistory(options?: {
       if (items.length === 0 && hadSuccessfulHistoryFetch) {
         shouldFinalizeTerminal = true
       }
-      if (shouldFinalizeTerminal && isTerminalStatus(row.StandardStatus) && row.ListNumber) {
+      const auxSync = await syncAuxiliaryTablesForFinalization(
+        supabase,
+        {
+          listingKey,
+          photoUrl: row.PhotoURL ?? null,
+          details: row.details ?? null,
+          listAgentName: row.ListAgentName ?? null,
+          listAgentFirstName: row.ListAgentFirstName ?? null,
+          listAgentLastName: row.ListAgentLastName ?? null,
+          listOfficeName: row.ListOfficeName ?? null,
+        },
+        items
+      )
+      if (shouldFinalizeTerminal && auxSync.ok && isTerminalStatus(row.StandardStatus) && row.ListNumber) {
         await supabase
           .from('listings')
           .update({ history_finalized: true, is_finalized: true })

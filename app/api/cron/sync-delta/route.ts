@@ -5,6 +5,7 @@ import {
   fetchSparkPriceHistory,
   type SparkListingHistoryItem,
 } from '@/lib/spark'
+import { syncAuxiliaryTablesForFinalization } from '@/app/api/admin/sync/_shared/listing-completeness'
 
 /**
  * Delta Sync Cron — runs every 15 minutes.
@@ -215,7 +216,7 @@ async function fetchAndInsertHistory(
   supabase: SupabaseClient,
   accessToken: string,
   listingKey: string
-): Promise<{ inserted: number; ok: boolean }> {
+): Promise<{ inserted: number; ok: boolean; items: SparkListingHistoryItem[] }> {
   // Try /history endpoint first
   let response = await fetchSparkListingHistory(accessToken, listingKey)
 
@@ -237,12 +238,12 @@ async function fetchAndInsertHistory(
     const { error } = await supabase.from('listing_history').insert(rows)
     if (error) {
       console.error(`[sync-delta] listing_history insert error for ${listingKey}:`, error.message)
-      return { inserted: 0, ok: hadSuccessfulFetch }
+      return { inserted: 0, ok: hadSuccessfulFetch, items: response.items }
     }
-    return { inserted: rows.length, ok: hadSuccessfulFetch }
+    return { inserted: rows.length, ok: hadSuccessfulFetch, items: response.items }
   }
 
-  return { inserted: 0, ok: hadSuccessfulFetch }
+  return { inserted: 0, ok: hadSuccessfulFetch, items: response.items }
 }
 
 export async function GET(request: Request) {
@@ -471,19 +472,38 @@ export async function GET(request: Request) {
 
       // 5. Finalize terminal listings — fetch full history, then mark finalized
       const finalizeSlice = toFinalize.slice(0, MAX_FINALIZE_PER_RUN - listingsFinalized)
+      const rowByListNumber = new Map<string, Record<string, unknown>>(
+        rowsToUpsert
+          .filter((row): row is Record<string, unknown> & { ListNumber: string } => typeof row.ListNumber === 'string')
+          .map((row) => [row.ListNumber, row])
+      )
       for (const { listingKey, listNumber } of finalizeSlice) {
         if (listingsFinalized >= MAX_FINALIZE_PER_RUN) break
 
-        const { inserted, ok: hadSuccessfulFetch } = await fetchAndInsertHistory(
+        const { inserted, ok: hadSuccessfulFetch, items } = await fetchAndInsertHistory(
           supabase,
           accessToken,
           listingKey
         )
         historyRowsInserted += inserted
 
-        // Finalize: we have a terminal listing AND we successfully fetched from Spark
-        // (even if Spark returned 0 history items, we still finalize — the listing is terminal)
-        if (hadSuccessfulFetch) {
+        const sourceRow = rowByListNumber.get(listNumber)
+        const auxSync = await syncAuxiliaryTablesForFinalization(
+          supabase,
+          {
+            listingKey,
+            photoUrl: typeof sourceRow?.PhotoURL === 'string' ? sourceRow.PhotoURL : null,
+            details: sourceRow?.details ?? null,
+            listAgentName: typeof sourceRow?.ListAgentName === 'string' ? sourceRow.ListAgentName : null,
+            listAgentFirstName: typeof sourceRow?.ListAgentFirstName === 'string' ? sourceRow.ListAgentFirstName : null,
+            listAgentLastName: typeof sourceRow?.ListAgentLastName === 'string' ? sourceRow.ListAgentLastName : null,
+            listOfficeName: typeof sourceRow?.ListOfficeName === 'string' ? sourceRow.ListOfficeName : null,
+          },
+          items
+        )
+
+        // Strict finalization: only finalize when history fetch succeeded and auxiliary tables are synced.
+        if (hadSuccessfulFetch && auxSync.ok) {
           const { error } = await supabase
             .from('listings')
             .update({ history_finalized: true, is_finalized: true })
