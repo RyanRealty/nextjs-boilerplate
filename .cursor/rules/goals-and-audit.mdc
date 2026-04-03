@@ -1,11 +1,11 @@
 ---
-description: Run audit from GOALS_AND_UI_AUDIT.md, fix issues, iterate until passing. Applies on audit/review requests.
+description: Run audit from GOALS_AND_UI_AUDIT.md, fix issues, iterate until passing. Applies on audit requests.
 alwaysApply: true
 ---
 
 # Goals and Audit
 
-## When the user asks to review, audit, or fix the site:
+## When the user asks to audit or fix the site:
 1. Work through `docs/GOALS_AND_UI_AUDIT.md` checklist
 2. For each failure: **fix it**, don't just report it
 3. Run `npm run build` — must pass

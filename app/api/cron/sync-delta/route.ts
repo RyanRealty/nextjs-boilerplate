@@ -171,8 +171,9 @@ function mapSparkToRow(fields: SparkStandardFields) {
       Photos: photos,
       OpenHouses: fields.OpenHouses ?? [],
     },
-    // Media finalization: closed listings don't need media re-synced
-    media_finalized: isClosed ? true : undefined,
+    // Keep this explicit for inserts; column is NOT NULL.
+    // Closed listings can be marked finalized for media, active ones remain false.
+    media_finalized: isClosed,
   }
 }
 
