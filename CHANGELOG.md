@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.23 (2026-04-03)
+
+### Bug Fixes
+- fix: unblock deploys and run sync every 15 minutes via actions
+
+---
+
+
 ## v1.0.22 (2026-04-03)
 
 ### Bug Fixes
