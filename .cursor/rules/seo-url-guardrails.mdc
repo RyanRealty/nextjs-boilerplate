@@ -39,10 +39,10 @@ When editing routes, links, metadata, sitemap, or structured data, follow these 
 - If a legacy URL still exists for compatibility, keep a permanent redirect to the canonical URL.
 - Do not remove existing SEO redirects without replacing with an equivalent canonical redirect.
 
-## PR review checklist (SEO routing)
+## Implementation checks (SEO routing)
 
-- [ ] No new hardcoded legacy SEO URLs
-- [ ] Canonical tags align with route contract
-- [ ] Structured data URLs align with canonical
-- [ ] Sitemap contains canonical URLs only
-- [ ] Pagination/filter indexation behavior reviewed
+- No new hardcoded legacy SEO URLs
+- Canonical tags align with route contract
+- Structured data URLs align with canonical
+- Sitemap contains canonical URLs only
+- Pagination/filter indexation behavior validated

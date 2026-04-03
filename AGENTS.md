@@ -168,7 +168,7 @@ On PR to `main`:
 11. **Visual regression** — Screenshot comparison against baselines
 12. **Security scan** — npm audit + secret leak detection
 13. **PR auto-labeling** — Labels by area and type
-14. **PR review checklist** — Context-aware review comment
+14. **PR metadata labeling** — Labels by area and change type
 
 On merge to `main`:
 15. **Automated release** — Changelog generated, version tag created, GitHub Release published
