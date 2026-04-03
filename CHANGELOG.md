@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.24 (2026-04-03)
+
+### Bug Fixes
+- fix: restore native Vercel sync cron on pro plan
+
+---
+
+
 ## v1.0.23 (2026-04-03)
 
 ### Bug Fixes
