@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.22 (2026-04-03)
+
+### Bug Fixes
+- fix: harden delta sync inserts and remove review wording
+
+---
+
+
 ## v1.0.21 (2026-04-03)
 
 ### Maintenance
