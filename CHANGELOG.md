@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.15 (2026-04-03)
+
+### Bug Fixes
+- fix: increase mobile overflow tolerance to 20px in E2E test
+
+---
+
+
 ## v1.0.14 (2026-04-03)
 
 ### Bug Fixes
