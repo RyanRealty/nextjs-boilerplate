@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.1 (2026-04-04)
+
+### Bug Fixes
+- fix: make start-sync resilient to full-lane timeout
+
+---
+
+
 ## v1.4.0 (2026-04-04)
 
 ### Features
