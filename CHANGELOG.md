@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.0 (2026-04-04)
+
+### Features
+- feat: add one-command sync restart and confirmation
+
+---
+
+
 ## v1.3.0 (2026-04-04)
 
 ### Features
