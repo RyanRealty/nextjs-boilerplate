@@ -10,6 +10,7 @@ Immediately run the sync status snapshot workflow and return options.
 - "Research the sync procedures."
 - "Research sync status and tell me what I can do."
 - "What can I run right now?"
+- "Give me a sync status."
 
 ## Required workflow
 
@@ -21,6 +22,8 @@ Immediately run the sync status snapshot workflow and return options.
    - Current metrics (listings, history rows, terminal remaining, finalized, strict-verified)
    - Cursor phase/year
    - Health assessment (moving, stalled, rate-limited, or erroring)
+   - Last run checkpoints (recent logs and lane activity timestamps)
+   - Approximate ETA to parity (with explicit assumptions)
    - Top 2-3 command options to execute now
 4. After user picks an option, execute it immediately and report results.
 

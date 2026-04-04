@@ -119,6 +119,7 @@ Treat these as identical to "what is sync status":
 - "research the sync procedures"
 - "research sync status and tell me where we're at"
 - "what can I do next for sync"
+- "give me a sync status"
 
 Mandatory output shape:
 
@@ -126,3 +127,21 @@ Mandatory output shape:
 2. **What this means**: one-line interpretation (on track, stalled, or needs manual kick)
 3. **Your options**: 2-3 concrete run commands
 4. **Decision prompt**: ask user to pick one option and execute it immediately
+
+For the exact prompt "give me a sync status", expand to include:
+
+1. Current totals and terminal breakdown
+2. Current lane/cursor state and whether jobs are actively moving
+3. Last run activity (recent year log entries and latest lane checkpoints)
+4. ETA to parity with explicit assumptions
+5. Action options (2-3 commands)
+
+## ETA Method (Required in detailed status)
+
+Use two recent snapshots to estimate throughput, then calculate a rough ETA:
+
+- Throughput per minute = `(terminal_finalized_now - terminal_finalized_prev) / minutes_elapsed`
+- Remaining minutes = `terminal_remaining_now / max(throughput_per_minute, 1)`
+- Convert to hours/days and clearly label as an approximation.
+
+If no previous snapshot exists, take a second snapshot after a short interval and then compute ETA.

@@ -53,6 +53,17 @@ Required response format for these prompts:
 3. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
 4. Wait for user selection ("run option 1/2/3")
 
+### Exact trigger: "Give me a sync status"
+
+When the user says exactly or approximately "Give me a sync status", agents MUST return a detailed operational report, not a short summary.
+
+Required details:
+1. Current totals (listings, history rows, terminal remaining, finalized, verified full)
+2. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
+3. Last things that ran (recent year log entries + latest lane activity)
+4. Approximate time to parity (ETA) with a clearly stated method and assumptions
+5. 2-3 concrete run options the user can choose immediately
+
 ---
 
 ## Development Environment

@@ -111,7 +111,7 @@ async function byStatus(orExpr) {
 
 async function main() {
   const targetYear = Number(argValue('year', '0') || '0')
-  const [totalListings, totalHistoryRowsRes, finalizedAllRes, verifiedAllRes, cursorRes, yearCursorRes, stateRes] = await Promise.all([
+  const [totalListings, totalHistoryRowsRes, finalizedAllRes, verifiedAllRes, cursorRes, yearCursorRes, yearLogRes, stateRes] = await Promise.all([
     countExact(() => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }), 'count total listings'),
     countWithFallback(
       () => supabase.from('listing_history').select('listing_key', { count: 'exact', head: true }),
@@ -126,12 +126,23 @@ async function main() {
       () => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).eq('history_verified_full', true),
       'count history_verified_full'
     ),
-    supabase.from('sync_cursor').select('phase, updated_at, run_started_at, error').eq('id', 'default').maybeSingle(),
+    supabase
+      .from('sync_cursor')
+      .select(
+        'phase, updated_at, run_started_at, run_history_rows, run_listings_upserted, paused, abort_requested, cron_enabled, error'
+      )
+      .eq('id', 'default')
+      .maybeSingle(),
     supabase
       .from('sync_year_cursor')
       .select('current_year, phase, next_history_offset, total_listings, updated_at')
       .eq('id', 'default')
       .maybeSingle(),
+    supabase
+      .from('year_sync_log')
+      .select('year, status, listings_upserted, history_inserted, listings_finalized, completed_at, error')
+      .order('completed_at', { ascending: false, nullsFirst: false })
+      .limit(6),
     supabase.from('sync_state').select('year_sync_matrix_cache').eq('id', 'default').maybeSingle(),
   ])
 
@@ -222,6 +233,9 @@ async function main() {
     cursors: {
       syncCursor: cursorRes.data ?? null,
       yearCursor: yearCursorRes.data ?? null,
+    },
+    lastRuns: {
+      recentYearSync: yearLogRes.data ?? [],
     },
     yearSummary,
     recommendedActions: [
