@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.0 (2026-04-04)
+
+### Features
+- feat: harden sync orchestration and status handoff
+
+---
+
+
 ## v1.1.2 (2026-04-04)
 
 ### Bug Fixes
