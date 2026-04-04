@@ -116,9 +116,28 @@ export async function GET(request: Request) {
       .upsert({ id: 'default', year_sync_matrix_cache: cache, updated_at: nowIso }, { onConflict: 'id' })
   }
 
+  async function runFullChunkWithRecovery() {
+    const first = await runOneFullSyncChunk()
+    if (first.ok) return { result: first, recovered: false, warning: null as string | null }
+    const errorText = String(first.error ?? first.message ?? '').toLowerCase()
+    const timedOut = errorText.includes('statement timeout') || errorText.includes('57014')
+    if (!timedOut) return { result: first, recovered: false, warning: null as string | null }
+
+    // One retry for transient DB timeout on large candidate scans.
+    const retry = await runOneFullSyncChunk()
+    if (retry.ok) {
+      return { result: retry, recovered: true, warning: 'fullChunk recovered after timeout retry' }
+    }
+    return {
+      result: retry,
+      recovered: false,
+      warning: 'fullChunk timeout persisted; other lanes started and cron will continue retrying',
+    }
+  }
+
   // Kick all operational lanes now so user gets immediate confirmation.
-  const [fullChunk, terminalChunk, deltaChunk, yearChunk] = await Promise.all([
-    runOneFullSyncChunk(),
+  const [fullChunkResult, terminalChunk, deltaChunk, yearChunk] = await Promise.all([
+    runFullChunkWithRecovery(),
     syncListingHistory({
       activeAndPendingOnly: false,
       limit: terminalLimit,
@@ -132,6 +151,8 @@ export async function GET(request: Request) {
     }),
     runYearSyncChunk({ supabase, token, targetYear }),
   ])
+  const fullChunk = fullChunkResult.result
+  const fullChunkRecoverableWarning = fullChunkResult.warning
 
   const { data: afterCursor } = await supabase
     .from('sync_cursor')
@@ -139,13 +160,15 @@ export async function GET(request: Request) {
     .eq('id', 'default')
     .maybeSingle()
 
-  const ok = Boolean(fullChunk.ok && terminalChunk.success && deltaChunk.success && yearChunk.ok)
+  const hardFail = !terminalChunk.success || !deltaChunk.success || !yearChunk.ok
+  const ok = !hardFail
   return NextResponse.json(
     {
       ok,
       message: ok
         ? 'Sync lanes restarted and kick-run completed.'
         : 'Sync start attempted; one or more lanes returned an error.',
+      warnings: [fullChunkRecoverableWarning].filter(Boolean),
       confirmations: {
         blockersCleared: {
           before: (beforeCursor as CursorRow | null) ?? null,
@@ -154,6 +177,7 @@ export async function GET(request: Request) {
         },
         lanesStarted: {
           fullChunk,
+          fullChunkRecovered: fullChunkResult.recovered,
           terminalChunk,
           deltaChunk,
           yearChunk,
