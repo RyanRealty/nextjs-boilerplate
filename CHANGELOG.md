@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.2.1 (2026-04-04)
+
+### Bug Fixes
+- fix: harden sync status count fallbacks
+
+---
+
+
 ## v1.2.0 (2026-04-04)
 
 ### Features
