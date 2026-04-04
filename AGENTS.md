@@ -46,12 +46,19 @@ If the user says any variation of these, the agent MUST execute the sync-status 
 - "tell me what options I have"
 - "what can I run right now"
 - "what should I run next"
+- "start sync"
 
 Required response format for these prompts:
 1. Current snapshot (key counts + cursor state)
 2. Health callout (moving, stalled, or rate-limited)
 3. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
 4. Wait for user selection ("run option 1/2/3")
+
+For "start sync", do not ask follow-up questions first:
+1. Execute: `curl -H "Authorization: Bearer $CRON_SECRET" "$BASE_URL/api/cron/start-sync"`
+2. Confirm blockers cleared (`paused=false`, `abort_requested=false`, `cron_enabled=true`)
+3. Confirm lane kick responses (`fullChunk`, `terminalChunk`, `deltaChunk`, `yearChunk`)
+4. Report "sync running" confirmation with latest cursor timestamps
 
 ### Exact trigger: "Give me a sync status"
 

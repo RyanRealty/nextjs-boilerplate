@@ -223,6 +223,10 @@ async function main() {
       terminalBackfill: {
         path: '/api/cron/sync-history-terminal',
       },
+      startSync: {
+        path: '/api/cron/start-sync',
+        purpose: 'clear blockers and kick all lanes',
+      },
     },
     totals,
     metricQuality: {
@@ -239,6 +243,10 @@ async function main() {
     },
     yearSummary,
     recommendedActions: [
+      {
+        when: 'Start or restart all sync lanes',
+        run: `curl -H "Authorization: Bearer $CRON_SECRET" "${siteUrl}/api/cron/start-sync"`,
+      },
       {
         when: 'Keep data fresh',
         run: `curl -H "Authorization: Bearer $CRON_SECRET" "${siteUrl}/api/cron/sync-delta"`,

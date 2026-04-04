@@ -39,6 +39,18 @@ export AUTH_HEADER="Authorization: Bearer $CRON_SECRET"
 curl -H "$AUTH_HEADER" "$BASE_URL/api/cron/sync-delta"
 ```
 
+### 0) Start or restart all sync lanes (recommended recovery command)
+
+```bash
+curl -H "$AUTH_HEADER" "$BASE_URL/api/cron/start-sync"
+```
+
+Optional targeted year kick:
+
+```bash
+curl -H "$AUTH_HEADER" "$BASE_URL/api/cron/start-sync?year=2025"
+```
+
 ### 2) Parity chunk lane (recommended default trigger)
 
 ```bash
@@ -120,6 +132,7 @@ Treat these as identical to "what is sync status":
 - "research sync status and tell me where we're at"
 - "what can I do next for sync"
 - "give me a sync status"
+- "start sync"
 
 Mandatory output shape:
 
@@ -135,6 +148,13 @@ For the exact prompt "give me a sync status", expand to include:
 3. Last run activity (recent year log entries and latest lane checkpoints)
 4. ETA to parity with explicit assumptions
 5. Action options (2-3 commands)
+
+For "start sync", do this immediately:
+
+1. Run `/api/cron/start-sync` with cron auth
+2. Confirm blocker flags are cleared (`paused=false`, `abort_requested=false`, `cron_enabled=true`)
+3. Confirm lane kick results (`fullChunk`, `terminalChunk`, `deltaChunk`, `yearChunk`)
+4. Return a concise "running now" confirmation with current cursor timestamps
 
 ## ETA Method (Required in detailed status)
 

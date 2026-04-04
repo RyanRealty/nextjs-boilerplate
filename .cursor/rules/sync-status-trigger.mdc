@@ -11,6 +11,7 @@ Immediately run the sync status snapshot workflow and return options.
 - "Research sync status and tell me what I can do."
 - "What can I run right now?"
 - "Give me a sync status."
+- "Start sync."
 
 ## Required workflow
 
@@ -26,6 +27,14 @@ Immediately run the sync status snapshot workflow and return options.
    - Approximate ETA to parity (with explicit assumptions)
    - Top 2-3 command options to execute now
 4. After user picks an option, execute it immediately and report results.
+
+For "start sync":
+
+1. Immediately execute `GET /api/cron/start-sync` with cron authorization.
+2. Confirm response includes:
+   - blocker flags cleared
+   - lane kick results for full, terminal, delta, and year
+3. Return a concise "sync is running now" confirmation with timestamps.
 
 ## Purpose
 
