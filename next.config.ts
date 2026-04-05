@@ -66,6 +66,9 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
+  // Prevent Vercel build retries/failures when a few pages exceed 60s prerender window.
+  // Runtime performance is controlled separately via query timeouts and cache.
+  staticPageGenerationTimeout: 180,
   async headers() {
     return [
       {
