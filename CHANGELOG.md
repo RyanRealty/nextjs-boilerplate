@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.9.2 (2026-04-05)
+
+### Maintenance
+- perf: trim homepage city block query path
+
+---
+
+
 ## v1.9.1 (2026-04-05)
 
 ### Bug Fixes
