@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.3 (2026-04-05)
+
+### Bug Fixes
+- fix: enforce canonical redirect for by-key listing route
+
+---
+
+
 ## v1.6.2 (2026-04-05)
 
 ### Bug Fixes
