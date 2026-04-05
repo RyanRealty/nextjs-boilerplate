@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.15.13 (2026-04-05)
+
+### Maintenance
+- docs: mark Spark support email as reviewed
+
+---
+
+
 ## v1.15.12 (2026-04-05)
 
 ### Bug Fixes
