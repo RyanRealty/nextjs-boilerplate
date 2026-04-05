@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import ListingDetailPage from '@/app/listing/[listingKey]/page'
 import { generateMetadata as generateListingMetadata } from '@/app/listing/[listingKey]/page'
 import { getListingDetailData, resolveListingKeyFromBreadcrumbPath, resolveListingKeyFromCanonicalPath } from '@/app/actions/listing-detail'
@@ -82,7 +82,7 @@ export default async function ListingByAddressPage({ params }: PageProps) {
     )
     const requestedPath = `/homes-for-sale/${slug.map((segment) => encodeURIComponent(segment)).join('/')}`
     if (canonicalPath !== requestedPath) {
-      redirect(canonicalPath)
+      permanentRedirect(canonicalPath)
     }
   }
 

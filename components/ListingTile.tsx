@@ -77,8 +77,10 @@ function formatAddress(listing: ListingTileListing): string {
 }
 
 function isDirectVideoUrl(uri: string): boolean {
-  const u = uri.toLowerCase()
-  return u.endsWith('.mp4') || u.endsWith('.webm') || u.endsWith('.mov') || u.includes('video') || u.includes('mp4')
+  const u = uri.trim().toLowerCase()
+  if (!u || u.includes('<') || u.includes('>')) return false
+  if (!u.startsWith('http://') && !u.startsWith('https://')) return false
+  return /\.(mp4|webm|mov)(\?|$)/.test(u)
 }
 
 function getVideoUrls(listing: ListingTileListing): string[] {
@@ -111,6 +113,14 @@ function hasFloorPlans(listing: ListingTileListing): boolean {
   const d = listing.details as { FloorPlans?: unknown[]; FloorPlan?: unknown[] } | undefined
   const plans = d?.FloorPlans ?? d?.FloorPlan
   return Array.isArray(plans) && plans.length > 0
+}
+
+function normalizeMlsId(value: unknown): string | null {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+  // MLS list numbers are numeric IDs; reject embedded HTML or malformed values.
+  if (!/^\d{5,16}$/.test(raw)) return null
+  return raw
 }
 
 export type ListingTileProps = {
@@ -184,17 +194,18 @@ function ListingTile({
     listing.SubdivisionName != null &&
     isResortCommunity(listing.City, listing.SubdivisionName)
   const row = listing as { ListNumber?: string | null; ListingKey?: string | null; list_number?: string | null; listing_key?: string | null }
-  const canonicalListingKey = (row.ListingKey ?? row.listing_key ?? listingKey ?? row.ListNumber ?? row.list_number ?? '').toString().trim()
-  const linkKey = (row.ListNumber ?? row.list_number ?? canonicalListingKey).toString().trim()
+  const safeListNumber = normalizeMlsId(row.ListNumber ?? row.list_number ?? null)
+  const canonicalListingKey = (row.ListingKey ?? row.listing_key ?? listingKey ?? safeListNumber ?? '').toString().trim()
+  const linkKey = safeListNumber ?? canonicalListingKey
   /** MLS# shown to users: prefer ListNumber (actual MLS list number); fall back to link key for routing. */
-  const mlsDisplay = (row.ListNumber ?? row.list_number ?? canonicalListingKey).toString().trim()
+  const mlsDisplay = safeListNumber ?? canonicalListingKey
   const neighborhood = getNeighborhoodName(listing)
   const href = linkKey
     ? listingDetailPath(
         linkKey,
         { streetNumber: listing.StreetNumber, streetName: listing.StreetName, city: listing.City, state: listing.State, postalCode: listing.PostalCode },
         { city: listing.City, neighborhood, subdivision: listing.SubdivisionName },
-        { mlsNumber: row.ListNumber ?? row.list_number ?? null }
+        { mlsNumber: safeListNumber }
       )
     : listingsBrowsePath()
   const videoUrls = useMemo(() => getVideoUrls(listing), [listing.details])
