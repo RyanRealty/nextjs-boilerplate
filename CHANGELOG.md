@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.15.10 (2026-04-05)
+
+### Bug Fixes
+- fix: make cities index render as static server tiles
+
+---
+
+
 ## v1.15.9 (2026-04-05)
 
 ### Bug Fixes
