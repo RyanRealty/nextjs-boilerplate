@@ -322,6 +322,7 @@ function ListingTile({
   return (
     <Link
       href={href}
+      prefetch={false}
       onClick={handleTileClick}
       className="group flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition hover:shadow-lg hover:-translate-y-1"
     >
@@ -362,8 +363,7 @@ function ListingTile({
               muted
               playsInline
               loop
-              preload="metadata"
-              autoPlay
+              preload="none"
               aria-hidden
               style={{ opacity: 0 }}
               onCanPlay={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transition = 'opacity 0.5s' }}

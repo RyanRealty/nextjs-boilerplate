@@ -23,13 +23,11 @@ import { getBestListingHeroForGeography } from '../../actions/photo-classificati
 import { getHeroVideoUrl, refreshHeroMedia } from '../../actions/hero-videos'
 import { getCommunityProfile } from '@/lib/community-profiles'
 import SaveSearchButton from '../../../components/SaveSearchButton'
-import { getGeocodedListings } from '../../actions/geocode'
 import { getCityContent, getSubdivisionBlurb } from '../../../lib/city-content'
 import { cityEntityKey, subdivisionEntityKey, getSubdivisionDisplayName, homesForSalePath, listingDetailPath, listingsBrowsePath, slugify } from '../../../lib/slug'
 import { entityKeyToSlug } from '../../../lib/community-slug'
 import { getPresetBySlug, isPresetSlug } from '../../../lib/search-presets'
 import { communityPagePath } from '../../../lib/community-slug'
-import SearchMapClustered from '../../../components/LazySearchMapClustered'
 import ListingTile from '../../../components/ListingTile'
 import AdvancedSearchFilters from '../../../components/AdvancedSearchFilters'
 import ShareButton from '../../../components/ShareButton'
@@ -380,7 +378,6 @@ export default async function SearchPage({
   const nearbyCommunities = city && subdivision && decodedSubdivision
     ? await withTimeout(getNearbyCommunities(city, decodedSubdivision), [])
     : []
-  const listingsWithCoords = await withTimeout(getGeocodedListings(listings), [])
 
   const placeName = subdivision && decodedSubdivision ? getSubdivisionDisplayName(decodedSubdivision) : (city ?? 'Central Oregon')
   const displayName = preset ? `${placeName} ${preset.shortLabel}` : (presetLabel ?? placeName)
@@ -466,13 +463,6 @@ export default async function SearchPage({
     session?.user
       ? await Promise.all([getSavedListingKeys(), getLikedListingKeys(), getBuyingPreferences()])
       : ([[], [] as string[], null] as [string[], string[], Awaited<ReturnType<typeof getBuyingPreferences>>])
-
-  const embeddedMapBoundary =
-    city != null
-      ? subdivision && decodedSubdivision
-        ? (await getCommunityBySlug(entityKeyToSlug(subdivisionEntityKey(city, decodedSubdivision))))?.boundaryGeojson ?? null
-        : await getCityBoundary(city)
-      : null
 
   const searchBreadcrumbItems: { label: string; href?: string }[] = [
     { label: 'Home', href: '/' },
@@ -1091,15 +1081,25 @@ export default async function SearchPage({
         <SaveSearchButton user={!!session?.user} />
       </div>
 
-      <section className="mb-10 overflow-hidden rounded-xl border border-border shadow-sm">
-        <div className="h-[320px] sm:h-[420px]">
-          <SearchMapClustered
-            listings={listingsWithCoords}
-            savedListingKeys={savedKeys}
-            likedListingKeys={likedKeys}
-            placeQuery={displayName ? `${displayName} Oregon` : undefined}
-            boundaryGeojson={embeddedMapBoundary ?? undefined}
-          />
+      <section className="mb-10 rounded-xl border border-border bg-card p-5">
+        <h2 className="text-base font-semibold text-foreground">Interactive map search</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Open the full map view to draw boundaries and explore listings quickly.
+        </p>
+        <div className="mt-3">
+          <Link
+            href={`${searchPagePath}?${new URLSearchParams(
+              Object.fromEntries(
+                Object.entries({
+                  ...sp,
+                  view: 'map',
+                }).filter(([, v]) => v !== undefined && v !== '')
+              ) as Record<string, string>
+            ).toString()}`}
+            className="inline-flex rounded-md border border-border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
+            Open map view
+          </Link>
         </div>
       </section>
 
