@@ -164,8 +164,6 @@ export default function MarketPulseCarousel({ data, className }: Props) {
     return () => ro.disconnect()
   }, [metricsByCity.length])
 
-  if (metricsByCity.length === 0) return null
-
   return (
     <section
         className={cn('w-full bg-card px-4 py-16 sm:px-6 sm:py-20', className)}
@@ -190,6 +188,14 @@ export default function MarketPulseCarousel({ data, className }: Props) {
             Residential home sales by city. Click a card to open the report generator with that city and year-to-date range.
           </p>
 
+          {metricsByCity.length === 0 ? (
+            <div className="mt-6 rounded-xl border border-border bg-background p-6">
+              <p className="text-sm font-semibold text-foreground">Market report cards are updating right now.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                New cards appear as fresh closed-sale batches are processed and normalized.
+              </p>
+            </div>
+          ) : (
           <div className="relative group/slider mt-6">
             <Button
               type="button"
@@ -298,6 +304,7 @@ export default function MarketPulseCarousel({ data, className }: Props) {
               })}
             </div>
           </div>
+          )}
 
           <div className="mt-8 flex justify-center">
             <Button variant="outline" size="default" className="group" asChild>
