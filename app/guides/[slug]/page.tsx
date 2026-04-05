@@ -83,7 +83,11 @@ export default async function GuideDetailPage({ params }: { params: Promise<{ sl
       />
       <article className="rounded-lg border border-border bg-card p-6">
         <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
-          <Link href="/guides" className="hover:text-foreground">Guides</Link> / <span>{guide.title}</span>
+          <Link href="/" className="hover:text-foreground">Home</Link>
+          <span className="mx-2">/</span>
+          <Link href="/guides" className="hover:text-foreground">Guides</Link>
+          <span className="mx-2">/</span>
+          <span>{guide.title}</span>
         </nav>
         <h1 className="text-3xl font-semibold text-foreground">{guide.title}</h1>
         {guide.meta_description && <p className="mt-3 text-muted-foreground">{guide.meta_description}</p>}

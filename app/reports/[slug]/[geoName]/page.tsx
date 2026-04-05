@@ -56,7 +56,7 @@ export default async function ReportGeoPage({ params }: PageProps) {
   const { data: row } = await supabase
     .from('reporting_cache')
     .select('metrics')
-    .eq('geo_type', geoType === 'community' ? 'community' : 'city')
+    .in('geo_type', geoType === 'community' ? ['subdivision', 'community'] : ['city'])
     .eq('geo_name', decodedName)
     .eq('period_type', 'monthly')
     .eq('period_start', periodStart)
@@ -81,6 +81,8 @@ export default async function ReportGeoPage({ params }: PageProps) {
       <section className="bg-primary px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-4xl">
           <nav className="mb-4 text-sm text-muted/80" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-muted">Home</Link>
+            <span className="mx-2">/</span>
             <Link href="/reports" className="hover:text-muted">Market reports</Link>
             <span className="mx-2">/</span>
             <Link href="/reports/explore" className="hover:text-muted">Explore</Link>

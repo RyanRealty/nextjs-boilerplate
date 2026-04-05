@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { slugify, subdivisionEntityKey } from '@/lib/slug'
 
 export type ReportMetrics = {
   sold_count: number
@@ -124,6 +125,49 @@ export async function getReportMetricsTimeSeries(
     return { data: null, error: 'Supabase not configured' }
   }
   const supabase = createClient(url, key)
+  const hasCustomFilters =
+    (filters?.includeCondoTown ?? false) ||
+    (filters?.includeManufactured ?? false) ||
+    (filters?.includeAcreage ?? false) ||
+    (filters?.includeCommercial ?? false) ||
+    (filters?.minPrice ?? null) != null ||
+    (filters?.maxPrice ?? null) != null
+
+  // Default path: read precomputed monthly cache rows instead of live-scan RPC.
+  if (!hasCustomFilters) {
+    const geoType = subdivision?.trim() ? 'subdivision' : 'city'
+    const geoSlug = subdivision?.trim()
+      ? subdivisionEntityKey(city.trim(), subdivision.trim())
+      : slugify(city.trim())
+    const { data: cacheRows, error: cacheError } = await supabase
+      .from('market_stats_cache')
+      .select('period_start, period_end, sold_count, median_sale_price')
+      .eq('geo_type', geoType)
+      .eq('geo_slug', geoSlug)
+      .eq('period_type', 'monthly')
+      .order('period_start', { ascending: false })
+      .limit(Math.min(60, Math.max(1, numMonths)))
+    if (!cacheError && Array.isArray(cacheRows) && cacheRows.length > 0) {
+      const rows = cacheRows
+        .map((row) => {
+          const periodStart = String((row as { period_start?: string }).period_start ?? '')
+          const monthDate = new Date(periodStart)
+          const monthLabel = Number.isNaN(monthDate.getTime())
+            ? periodStart
+            : monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          return {
+            period_start: periodStart,
+            period_end: String((row as { period_end?: string }).period_end ?? periodStart),
+            month_label: monthLabel,
+            sold_count: Number((row as { sold_count?: number }).sold_count ?? 0),
+            median_price: (row as { median_sale_price?: number | null }).median_sale_price ?? null,
+          } satisfies ReportMetricsTimeSeriesPoint
+        })
+        .sort((a, b) => a.period_start.localeCompare(b.period_start))
+      return { data: rows }
+    }
+  }
+
   const { data, error } = await supabase.rpc('get_city_metrics_timeseries', {
     p_city: city.trim(),
     p_num_months: Math.min(60, Math.max(1, numMonths)),

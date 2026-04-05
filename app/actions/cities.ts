@@ -26,7 +26,7 @@ function supabase() {
 const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details, lot_size_acres, lot_size_sqft'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, has_virtual_tour, lot_size_acres, lot_size_sqft'
 
 export type CityListingRow = {
   ListingKey: string | null
@@ -50,7 +50,7 @@ export type CityListingRow = {
   ListAgentName?: string | null
   OnMarketDate?: string | null
   OpenHouses?: unknown
-  details?: unknown
+  has_virtual_tour?: boolean | null
   lot_size_acres?: number | null
   lot_size_sqft?: number | null
 }

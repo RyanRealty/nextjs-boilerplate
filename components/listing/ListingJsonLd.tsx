@@ -23,6 +23,9 @@ type Fields = {
   BathroomsTotal?: number
   BuildingAreaTotal?: number
   PublicRemarks?: string
+  VirtualTourURLUnbranded?: string | null
+  VirtualTourURL?: string | null
+  VideoURL?: string | null
   [key: string]: unknown
 }
 
@@ -132,6 +135,23 @@ export default function ListingJsonLd({ listingKey, fields, imageUrl }: Props) {
       }))
   }
 
+  const videoUrl =
+    (typeof fields.VirtualTourURLUnbranded === 'string' && fields.VirtualTourURLUnbranded.trim()) ||
+    (typeof fields.VirtualTourURL === 'string' && fields.VirtualTourURL.trim()) ||
+    (typeof fields.VideoURL === 'string' && fields.VideoURL.trim()) ||
+    null
+  const videoSchema = videoUrl
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'VideoObject',
+        name: `${address || addressRegion || `Home for sale ${fields.ListingId ?? listingKey}`} virtual tour`,
+        description: (fields.PublicRemarks ?? '').slice(0, 300) || undefined,
+        contentUrl: videoUrl,
+        embedUrl: videoUrl,
+        thumbnailUrl: imageUrl ?? undefined,
+      }
+    : null
+
   return (
     <>
       <script
@@ -142,6 +162,12 @@ export default function ListingJsonLd({ listingKey, fields, imageUrl }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(realEstateListing) }}
       />
+      {videoSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
+        />
+      )}
     </>
   )
 }

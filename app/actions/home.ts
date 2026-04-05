@@ -215,29 +215,9 @@ export const getCommunityHighlights = unstable_cache(
 
 /** Market snapshot for Bend — uses RPC for single-scan aggregation instead of 4 queries + 15k row JS median. */
 async function _getMarketSnapshotUncached(): Promise<CityMarketStats & { avgDom?: number | null }> {
-  // Fast path: use pre-computed cache (populated by populateMarketPulseForCity)
+  // Use pre-computed cache-backed stats only.
   const stats = await getMarketStatsForCity('Bend')
   if (stats.count > 0) return { ...stats, avgDom: stats.avgDom ?? null }
-
-  // Slow fallback: RPC (only if cache is empty)
-  try {
-    const sb = supabase()
-    const { data, error } = await sb.rpc('get_homepage_market_stats', { p_city: 'Bend' })
-    if (!error && data && (Array.isArray(data) ? data.length > 0 : data)) {
-      const row = Array.isArray(data) ? data[0] : data
-      return {
-        count: row.active_count ?? 0,
-        avgPrice: Math.round(row.avg_price ?? 0),
-        medianPrice: Math.round(row.median_price ?? 0),
-        avgDom: row.avg_dom ? Math.round(row.avg_dom) : null,
-        newListingsLast30Days: row.new_listings_last_30_days ?? 0,
-        pendingCount: row.pending_count ?? 0,
-        closedLast12Months: row.closed_last_12_months ?? 0,
-      }
-    }
-  } catch {
-    // Fall through
-  }
   return { count: 0, avgPrice: null, medianPrice: null, avgDom: null, newListingsLast30Days: 0, pendingCount: 0, closedLast12Months: 0 }
 }
 

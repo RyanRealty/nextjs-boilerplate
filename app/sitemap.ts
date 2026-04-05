@@ -14,7 +14,7 @@ import { fetchAllRows } from '@/lib/supabase/paginate'
  *
  * For a Central Oregon regional site, total URLs are well under Google's
  * 50,000 limit per sitemap file, so we serve a single sitemap without chunking.
- * This avoids the Next.js 16 bug (#77304) where generateSitemaps() creates
+ * This avoids the Next.js 16 bug (issue 77304) where generateSitemaps() creates
  * chunks at /sitemap/[id].xml but never generates the /sitemap.xml index.
  */
 
@@ -77,6 +77,25 @@ async function buildAllUrls(baseUrl: string, now: Date): Promise<MetadataRoute.S
   const dynamicPages: MetadataRoute.Sitemap = []
 
   try {
+    // Community -> neighborhood lookup for canonical listing paths with optional neighborhood.
+    const { data: communityMetaRows } = await supabase
+      .from('communities')
+      .select('name, cities(name, slug), neighborhoods(slug)')
+      .limit(5000)
+    const neighborhoodByCommunity = new Map<string, string>()
+    for (const row of (communityMetaRows ?? []) as Array<{
+      name?: string | null
+      cities?: { name?: string | null; slug?: string | null } | null
+      neighborhoods?: { slug?: string | null } | null
+    }>) {
+      const cityName = (row.cities?.name ?? '').trim()
+      const communityName = (row.name ?? '').trim()
+      const neighborhoodSlug = (row.neighborhoods?.slug ?? '').trim()
+      if (!cityName || !communityName || !neighborhoodSlug) continue
+      const key = `${slugify(cityName)}:${slugify(communityName)}`
+      neighborhoodByCommunity.set(key, neighborhoodSlug)
+    }
+
     // Cities — paginate to get ALL cities (Supabase caps at 1,000 per request)
     const cityRows = await fetchAllRows<{ City?: string | null }>(
       supabase, 'listings', 'City',
@@ -197,7 +216,14 @@ async function buildAllUrls(baseUrl: string, now: Date): Promise<MetadataRoute.S
         url: `${baseUrl}${listingDetailPath(
           r.ListingKey,
           { streetNumber: r.StreetNumber ?? null, streetName: r.StreetName ?? null, city: r.City ?? null, state: r.State ?? null, postalCode: r.PostalCode ?? null },
-          { city: r.City ?? null, subdivision: r.SubdivisionName ?? null },
+          {
+            city: r.City ?? null,
+            neighborhood:
+              r.City && r.SubdivisionName
+                ? neighborhoodByCommunity.get(`${slugify(r.City)}:${slugify(r.SubdivisionName)}`) ?? null
+                : null,
+            subdivision: r.SubdivisionName ?? null,
+          },
           { mlsNumber: r.ListNumber ?? null }
         )}`,
         lastModified: r.ModificationTimestamp ? new Date(r.ModificationTimestamp) : now,

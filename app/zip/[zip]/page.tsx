@@ -53,8 +53,9 @@ export default async function ZipPage({ params }: { params: Promise<Params> }) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Search', item: `${baseUrl}/search` },
-      { '@type': 'ListItem', position: 2, name: zip, item: `${baseUrl}/zip/${zip}` },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}` },
+      { '@type': 'ListItem', position: 2, name: 'Search', item: `${baseUrl}/search` },
+      { '@type': 'ListItem', position: 3, name: zip, item: `${baseUrl}/zip/${zip}` },
     ],
   }
 
@@ -65,7 +66,11 @@ export default async function ZipPage({ params }: { params: Promise<Params> }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
-        <Link href="/search" className="hover:text-foreground">Search</Link> / <span>{zip}</span>
+        <Link href="/" className="hover:text-foreground">Home</Link>
+        <span className="mx-2">/</span>
+        <Link href="/search" className="hover:text-foreground">Search</Link>
+        <span className="mx-2">/</span>
+        <span>{zip}</span>
       </nav>
       <h1 className="text-3xl font-semibold text-foreground">Homes for Sale in {zip}</h1>
       <p className="mt-2 text-muted-foreground">

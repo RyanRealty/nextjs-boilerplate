@@ -767,10 +767,12 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
 
   // Query the actual PascalCase listings table — NO properties(*) join
   let listingRow: AnyRow | null = null
+  const DETAIL_LISTING_SELECT =
+    'ListingKey, ListNumber, ListingId, ListPrice, OriginalListPrice, ClosePrice, StandardStatus, MlsStatus, OnMarketDate, CloseDate, ListingContractDate, ModificationTimestamp, StatusChangeTimestamp, PriceChangeTimestamp, BedroomsTotal, BathroomsFull, BathroomsHalf, BathroomsTotalInteger, TotalLivingAreaSqFt, LotSizeAcres, LotSizeSquareFeet, YearBuilt, Levels, GarageSpaces, PropertyType, PropertySubType, SubdivisionName, PublicRemarks, Directions, ArchitecturalStyle, ConstructionMaterials, Roof, Flooring, Heating, Cooling, FireplaceYN, FireplaceFeatures, InteriorFeatures, ExteriorFeatures, Appliances, PoolFeatures, View, WaterfrontYN, WaterSource, Sewer, AssociationYN, AssociationFee, AssociationFeeFrequency, TaxAnnualAmount, TaxYear, TaxAssessedValue, ElementarySchool, MiddleOrJuniorSchool, HighSchool, PhotosCount, VirtualTourURLUnbranded, VOWAVMDisplayYN, NewConstructionYN, SeniorCommunityYN, DaysOnMarket, CumulativeDaysOnMarket, StreetNumber, StreetName, City, StateOrProvince, PostalCode, Latitude, Longitude, PhotoURL, OpenHouses, details'
 
   const { data: byKey } = await supabase
     .from('listings')
-    .select('*')
+    .select(DETAIL_LISTING_SELECT)
     .eq('ListingKey', resolvedKey)
     .maybeSingle()
   listingRow = byKey
@@ -779,7 +781,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   if (!listingRow) {
     const { data: byNum } = await supabase
       .from('listings')
-      .select('*')
+      .select(DETAIL_LISTING_SELECT)
       .eq('ListNumber', resolvedKey)
       .maybeSingle()
     listingRow = byNum
@@ -798,7 +800,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   try {
     const { data: dbPhotos } = await supabase
       .from('listing_photos')
-      .select('*')
+      .select('id, listing_key, photo_url, cdn_url, sort_order, caption, is_hero')
       .eq('listing_key', canonicalKey)
       .order('sort_order', { ascending: true })
     if (dbPhotos && dbPhotos.length > 0) {
@@ -811,7 +813,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   try {
     const { data: dbAgents } = await supabase
       .from('listing_agents')
-      .select('*')
+      .select('id, listing_key, agent_role, agent_name, agent_mls_id, agent_license, agent_email, agent_phone, office_name, office_mls_id, office_phone')
       .eq('listing_key', canonicalKey)
       .in('agent_role', ['list', 'listing'])
     if (dbAgents && dbAgents.length > 0) {
@@ -824,7 +826,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   try {
     const { data: dbOH } = await supabase
       .from('open_houses')
-      .select('*')
+      .select('id, listing_key, event_date, start_time, end_time, host_agent_name, remarks')
       .eq('listing_key', canonicalKey)
       .gte('event_date', new Date().toISOString().slice(0, 10))
       .order('event_date', { ascending: true })
@@ -860,7 +862,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
       .eq('listing_key', canonicalKey)
       .order('event_date', { ascending: true })
       .limit(100),
-    supabase.from('engagement_metrics').select('*').eq('listing_key', canonicalKey).maybeSingle(),
+    supabase.from('engagement_metrics').select('listing_key, view_count, like_count, save_count, share_count').eq('listing_key', canonicalKey).maybeSingle(),
   ])
 
   const histRows = (historyRes.data ?? []) as Array<{

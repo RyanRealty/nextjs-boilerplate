@@ -47,7 +47,7 @@ export default async function HousingMarketGeoPage({ params }: { params: Promise
   const cityName = unslug(slug[0] ?? '')
   const communityName = slug[1] ? unslug(slug[1]) : null
   const level = communityName ? 'subdivision' : 'city'
-  const geoSlug = communityName ? (slug[1] ?? '') : (slug[0] ?? '')
+  const geoSlug = communityName ? `${slug[0] ?? ''}:${slug[1] ?? ''}` : (slug[0] ?? '')
   const geoName = communityName ?? cityName
   const [stats, pulse, cityGuides] = await Promise.all([
     getCachedStats({ geoType: level, geoSlug, periodType: 'monthly' }),
@@ -69,12 +69,18 @@ export default async function HousingMarketGeoPage({ params }: { params: Promise
         {
           '@type': 'ListItem',
           position: 1,
+          name: 'Home',
+          item: siteUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
           name: 'Housing Market',
           item: `${siteUrl}/housing-market`,
         },
         {
           '@type': 'ListItem',
-          position: 2,
+          position: 3,
           name: geoName,
           item: canonicalUrl,
         },
@@ -86,6 +92,8 @@ export default async function HousingMarketGeoPage({ params }: { params: Promise
     <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <nav className="mb-4 text-sm text-muted-foreground" aria-label="Breadcrumb">
+        <Link href="/" className="hover:text-foreground">Home</Link>
+        <span className="mx-2">/</span>
         <Link href="/housing-market" className="hover:text-foreground">Housing market</Link>
         <span className="mx-2">/</span>
         <span>{geoName}</span>

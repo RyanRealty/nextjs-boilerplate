@@ -139,10 +139,15 @@ export function generateBrokerageSchema(brokerage: { name: string; url?: string;
 export type BreadcrumbItem = { name: string; url: string }
 
 export function generateBreadcrumbSchema(items: BreadcrumbItem[]): Record<string, unknown> {
+  const normalizedItems =
+    items.length > 0 && items[0]?.name === 'Home'
+      ? items
+      : [{ name: 'Home', url: SITE_URL }, ...items]
+
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, i) => ({
+    itemListElement: normalizedItems.map((item, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: item.name,

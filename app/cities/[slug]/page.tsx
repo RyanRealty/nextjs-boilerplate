@@ -6,7 +6,6 @@ import {
   getCitySoldListings,
   getCityPriceHistory,
   getCommunitiesInCity,
-  getNeighborhoodsInCity,
 } from '@/app/actions/cities'
 import { shareDescription, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '@/lib/share-metadata'
 import { getSession } from '@/app/actions/auth'
@@ -148,7 +147,6 @@ export default async function CityDetailPage({ params }: Props) {
     listings,
     soldListings,
     communities,
-    ,
     priceHistory,
     savedKeys,
     likedKeys,
@@ -162,7 +160,6 @@ export default async function CityDetailPage({ params }: Props) {
     getCityListings(city.name, 24),
     getCitySoldListings(city.name, 6),
     getCommunitiesInCity(city.name),
-    getNeighborhoodsInCity(city.name),
     getCityPriceHistory(city.name),
     session?.user ? getSavedListingKeys() : Promise.resolve([]),
     session?.user ? getLikedListingKeys() : Promise.resolve([]),

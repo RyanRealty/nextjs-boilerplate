@@ -47,7 +47,7 @@ function statusColor(s: string | null | undefined): string {
 }
 
 /** Listing tile accepts full HomeTileRow or ListingTileRow (missing fields shown as empty). */
-export type ListingTileListing = ListingTileRow & Partial<Pick<HomeTileRow, 'TotalLivingAreaSqFt' | 'ListOfficeName' | 'ListAgentName' | 'OnMarketDate' | 'OpenHouses' | 'details'>>
+export type ListingTileListing = ListingTileRow & Partial<Pick<HomeTileRow, 'TotalLivingAreaSqFt' | 'ListOfficeName' | 'ListAgentName' | 'OnMarketDate' | 'OpenHouses' | 'has_virtual_tour'>> & { details?: { Videos?: Array<{ Uri?: string; ObjectHtml?: string }>; VirtualTours?: unknown[]; VirtualTour?: unknown } | null }
 
 function getNeighborhoodName(listing: ListingTileListing): string | null {
   const maybe = listing as ListingTileListing & {
@@ -99,6 +99,7 @@ function getVideoUrls(listing: ListingTileListing): string[] {
 }
 
 function hasVirtualTour(listing: ListingTileListing): boolean {
+  if (listing.has_virtual_tour === true) return true
   const d = listing.details as { VirtualTours?: unknown; VirtualTour?: unknown } | undefined
   const tours = d?.VirtualTours ?? d?.VirtualTour
   if (Array.isArray(tours)) return tours.length > 0

@@ -199,7 +199,7 @@ export async function getSubdivisionNeighborhood(subdivisionName: string): Promi
 }
 
 const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details, AssociationYN, AssociationFee, AssociationFeeFrequency'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, has_virtual_tour, AssociationYN, AssociationFee, AssociationFeeFrequency'
 
 export type ListingRow = {
   ListingKey: string | null
@@ -223,7 +223,7 @@ export type ListingRow = {
   ListAgentName?: string | null
   OnMarketDate?: string | null
   OpenHouses?: unknown
-  details?: unknown
+  has_virtual_tour?: boolean | null
   AssociationYN?: boolean | null
   AssociationFee?: number | null
   AssociationFeeFrequency?: string | null

@@ -70,6 +70,8 @@ export default async function ReportPage({ params }: Props) {
       <section className="bg-primary px-4 py-8 sm:px-6 sm:py-10">
         <div className="mx-auto max-w-4xl">
           <nav className="mb-4 text-sm text-muted/80" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-muted">Home</Link>
+            <span className="mx-2">/</span>
             <Link href="/reports" className="hover:text-muted">Market reports</Link>
             <span className="mx-2">/</span>
             <span className="text-muted">{report.title}</span>

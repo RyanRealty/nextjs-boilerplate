@@ -28,6 +28,7 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'ChatGPT-User', allow: '/' },
       { userAgent: 'PerplexityBot', allow: '/' },
       { userAgent: 'ClaudeBot', allow: '/' },
+      { userAgent: 'Claude-SearchBot', allow: '/' },
       { userAgent: 'Claude-Web', allow: '/' },
       { userAgent: 'Google-Extended', allow: '/' },
       { userAgent: 'Applebot-Extended', allow: '/' },

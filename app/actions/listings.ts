@@ -86,14 +86,14 @@ export type ListingDetailsMedia = {
   VirtualTours?: Array<{ Uri?: string; Id?: string; Name?: string }> | null
 }
 
-/** Extended row for home page tiles: brokerage, open house, DOM, sq ft, details (Videos, VirtualTours). */
+/** Extended row for home page tiles: brokerage, open house, DOM, sq ft, and virtual-tour flag. */
 export type HomeTileRow = ListingTileRow & {
   TotalLivingAreaSqFt?: number | null
   ListOfficeName?: string | null
   ListAgentName?: string | null
   OnMarketDate?: string | null
   OpenHouses?: Array<{ Date?: string; StartTime?: string; EndTime?: string }> | null
-  details?: ListingDetailsMedia | null
+  has_virtual_tour?: boolean | null
 }
 
 /** Same shape as ListingTileRow so similar listings can use ListingTile. */
@@ -118,7 +118,7 @@ export type SimilarListingRow = {
   TotalLivingAreaSqFt?: number | null
   ListOfficeName?: string | null
   ListAgentName?: string | null
-  details?: ListingDetailsMedia | null
+  has_virtual_tour?: boolean | null
 }
 
 /**
@@ -133,7 +133,7 @@ export async function getOtherListingsInSubdivision(
   if (!supabase) return []
   const { data } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, details')
+    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour')
     .ilike('SubdivisionName', subdivisionName)
     .neq('ListingKey', excludeListingKey)
     .neq('ListNumber', excludeListingKey)
@@ -142,7 +142,7 @@ export async function getOtherListingsInSubdivision(
   return (data ?? []) as SimilarListingRow[]
 }
 
-const SIMILAR_SELECT = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, details'
+const SIMILAR_SELECT = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
 
 /**
  * Similar listings for detail page: same subdivision first, then fill to minCount with recent in city.
@@ -741,14 +741,9 @@ export async function getListingsWithAdvanced(options: {
   return { listings, totalCount }
 }
 
-// PERFORMANCE: `details` is 26KB per row (800+ Spark fields). Fetching it for tile display
-// adds ~500KB per 20 listings and 2x query time. Only include for pages that need video detection.
+// PERFORMANCE: keep tile selects narrow and exclude wide JSONB fields.
 const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, ClosePrice, CloseDate'
-
-/** Same as HOME_TILE_SELECT but includes the details JSONB (for video detection on tiles). */
-const HOME_TILE_SELECT_WITH_DETAILS =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, ClosePrice, CloseDate, details'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, ClosePrice, CloseDate, has_virtual_tour'
 
 /**
  * Listings for home page "Homes for You" slider. Newest in city; optional filters (maxPrice, minBeds, minBaths) for curated feed.
@@ -908,7 +903,7 @@ export type GetListingsInBoundsOptions = GetListingsForMapOptions & {
 }
 
 const LISTING_BOUNDS_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, details'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus'
 
 /**
  * Fetch listings within map bounds (viewport-driven search). Used by the unified map view:
@@ -1487,96 +1482,6 @@ export type CityMarketStats = {
   newListingsLast30Days: number
   pendingCount: number
   closedLast12Months: number
-}
-
-/**
- * @deprecated Use `getMarketStatsForCity` or `getMarketStatsForSubdivision` from
- * `@/app/actions/market-stats` instead. This legacy function makes 5+ separate
- * Supabase queries per call. The replacements use pre-computed cache tables.
- * Kept temporarily as a fallback for when pulse cache data is unavailable.
- */
-export async function getCityMarketStats(options: {
-  city?: string
-  subdivision?: string
-}): Promise<CityMarketStats> {
-  const supabase = getAnonSupabase()
-  if (!supabase) {
-    return { count: 0, avgPrice: null, medianPrice: null, avgDom: null, newListingsLast30Days: 0, pendingCount: 0, closedLast12Months: 0 }
-  }
-  const twelveMonthsAgo = new Date()
-  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
-  const twelveMonthsIso = twelveMonthsAgo.toISOString().slice(0, 10)
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  const thirtyDaysIso = thirtyDaysAgo.toISOString()
-
-  const cityFilter = options.city
-  const subFilter = options.subdivision?.trim()
-  const subNames = subFilter ? getSubdivisionMatchNames(subFilter) : []
-
-  const applyCitySub =
-    <T extends { filter: (col: string, op: string, val: string) => T; or: (expr: string) => T }>(q: T): T => {
-      let next = q
-      if (cityFilter) next = next.filter('City', 'ilike', cityFilter) as T
-      if (subNames.length === 1) next = next.filter('SubdivisionName', 'ilike', subNames[0]!) as T
-      else if (subNames.length > 1) next = next.or(subNames.map((n) => `SubdivisionName.ilike.${n}`).join(',')) as T
-      return next
-    }
-
-  let qActive = supabase.from('listings').select('ListingKey', { count: 'exact', head: true })
-  qActive = applyCitySub(qActive)
-  const { count: activeCount } = await qActive.or(ACTIVE_STATUS_OR)
-  const count = activeCount ?? 0
-
-  let qPending = supabase.from('listings').select('ListingKey', { count: 'exact', head: true })
-  qPending = applyCitySub(qPending)
-  const { count: pendingCount } = await qPending.or('StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%,StandardStatus.ilike.%UnderContract%,StandardStatus.ilike.%Contingent%')
-  const pending = pendingCount ?? 0
-
-  let qClosed = supabase.from('listings').select('ListingKey', { count: 'exact', head: true })
-  qClosed = applyCitySub(qClosed)
-  const { count: closedCount } = await qClosed
-    .or('StandardStatus.ilike.%Closed%')
-    .not('CloseDate', 'is', null)
-    .gte('CloseDate', twelveMonthsIso)
-  const closedLast12Months = closedCount ?? 0
-
-  // Paginate to get ALL active listings for price/DOM stats (Supabase caps at 1,000)
-  const { fetchAllRows } = await import('@/lib/supabase/paginate')
-  const rows = await fetchAllRows<{ ListPrice?: number | null; ModificationTimestamp?: string | null; OnMarketDate?: string | null }>(
-    supabase, 'listings', 'ListPrice, ModificationTimestamp, OnMarketDate',
-    (q: any) => {
-      let r = q.or(ACTIVE_STATUS_OR)
-      if (options.city?.trim()) r = r.ilike('City', options.city.trim())
-      if (options.subdivision?.trim()) r = r.ilike('SubdivisionName', options.subdivision.trim())
-      return r
-    },
-  )
-  const prices = rows.map((r) => Number(r.ListPrice)).filter((p) => Number.isFinite(p) && p > 0)
-  const newListingsLast30Days = rows.filter(
-    (r) => r.ModificationTimestamp && String(r.ModificationTimestamp) >= thirtyDaysIso
-  ).length
-  // Compute days on market from OnMarketDate (days_on_market column doesn't exist in this schema)
-  const nowMs = Date.now()
-  const domValues = rows
-    .map((r) => {
-      if (!r.OnMarketDate) return null
-      const d = new Date(r.OnMarketDate)
-      if (Number.isNaN(d.getTime())) return null
-      return Math.max(0, Math.floor((nowMs - d.getTime()) / (24 * 60 * 60 * 1000)))
-    })
-    .filter((d): d is number => d != null && d > 0)
-  const avgDom = domValues.length > 0 ? Math.round(domValues.reduce((a, b) => a + b, 0) / domValues.length) : null
-
-  let avgPrice: number | null = null
-  let medianPrice: number | null = null
-  if (prices.length > 0) {
-    avgPrice = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
-    prices.sort((a, b) => a - b)
-    const mid = Math.floor(prices.length / 2)
-    medianPrice = prices.length % 2 ? prices[mid]! : Math.round((prices[mid - 1]! + prices[mid]!) / 2)
-  }
-  return { count, avgPrice, medianPrice, avgDom, newListingsLast30Days, pendingCount: pending, closedLast12Months }
 }
 
 export type SubdivisionInCity = { subdivisionName: string; count: number }

@@ -54,7 +54,7 @@ export async function getCachedStats(input: {
   const supabase = createServiceClient()
   let query = supabase
     .from('market_stats_cache')
-    .select('*')
+    .select('id, geo_type, geo_slug, geo_label, period_type, period_start, period_end, sold_count, median_sale_price, avg_sale_price, total_volume, median_dom, speed_p25, speed_p50, speed_p75, median_ppsf, avg_sale_to_list_ratio, market_health_score, market_health_label, computed_at')
     .eq('geo_type', input.geoType)
     .eq('geo_slug', input.geoSlug)
     .eq('period_type', input.periodType ?? 'monthly')
@@ -72,7 +72,7 @@ export async function getLiveMarketPulse(input: {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('market_pulse_live')
-    .select('*')
+    .select('geo_type, geo_slug, geo_label, active_count, pending_count, new_count_7d, new_count_30d, median_list_price, avg_list_price, market_health_score, market_health_label, updated_at')
     .eq('geo_type', input.geoType)
     .eq('geo_slug', input.geoSlug)
     .maybeSingle()
