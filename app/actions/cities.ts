@@ -14,6 +14,7 @@ import { getHotCommunitiesInCity } from '@/app/actions/listings'
 import { entityKeyToSlug } from '@/lib/community-slug'
 import type { CommunityForIndex } from '@/lib/communities'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
+import { isResidentialInventoryType } from '@/lib/inventory-filters'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -71,46 +72,6 @@ export type CityListingRow = {
 async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
   const sb = supabase()
 
-  // Try fast RPC path first (single table scan with GROUP BY)
-  let cityStats: { city_name: string; active_count: number; median_price: number | null; community_count: number }[] = []
-  try {
-    const { data, error } = await sb.rpc('get_browse_cities_stats')
-    if (!error && data) cityStats = data as typeof cityStats
-  } catch {
-    // RPC not deployed yet — fall through to legacy path
-  }
-
-  if (cityStats.length > 0) {
-    // Fast path: RPC returned data, just need banners + city metadata
-    const allCityNames = cityStats.map((r) => r.city_name)
-    const allSlugs = allCityNames.map((name) => slugify(name))
-
-    const [bannerMap, cityMetaRes] = await Promise.all([
-      getBannersBatch('city', allSlugs),
-      sb.from('cities').select('name, description, hero_image_url').in('name', allCityNames),
-    ])
-
-    const cityMetaByName = new Map<string, { description?: string | null; hero_image_url?: string | null }>()
-    for (const row of (cityMetaRes.data ?? []) as { name: string; description?: string | null; hero_image_url?: string | null }[]) {
-      cityMetaByName.set(row.name.toLowerCase(), row)
-    }
-
-    return cityStats.map((row) => {
-      const slug = slugify(row.city_name)
-      const banner = bannerMap.get(slug)
-      const db = cityMetaByName.get(row.city_name.toLowerCase()) ?? null
-      return {
-        slug,
-        name: row.city_name,
-        activeCount: row.active_count,
-        medianPrice: row.median_price ? Math.round(row.median_price) : null,
-        communityCount: row.community_count,
-        heroImageUrl: normalizeBannerLikeUrl(db?.hero_image_url ?? null) ?? banner?.url ?? null,
-        description: db?.description ?? null,
-      }
-    })
-  }
-
   // Legacy fallback: fetch from listings table directly
   const [browse, listingRows] = await Promise.all([
     getBrowseCities(),
@@ -120,17 +81,20 @@ async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
         SubdivisionName?: string
         ListPrice?: number | null
         StandardStatus?: string | null
+        PropertyType?: string | null
       }>(
-        sb, 'listings', 'City, SubdivisionName, ListPrice, StandardStatus',
+        sb, 'listings', 'City, SubdivisionName, ListPrice, StandardStatus, PropertyType',
         (q: any) => q.or(ACTIVE_OR),
       )
     ),
   ])
-  const byCity = new Map<string, { prices: number[]; subdivisions: Set<string> }>()
+  const byCity = new Map<string, { prices: number[]; subdivisions: Set<string>; count: number }>()
   for (const row of listingRows) {
+    if (!isResidentialInventoryType(row.PropertyType ?? null)) continue
     const city = (row.City ?? '').toString().trim()
     if (!city) continue
-    const rec = byCity.get(city) ?? { prices: [], subdivisions: new Set<string>() }
+    const rec = byCity.get(city) ?? { prices: [], subdivisions: new Set<string>(), count: 0 }
+    rec.count += 1
     const p = Number(row.ListPrice)
     if (Number.isFinite(p) && p > 0) rec.prices.push(p)
     const sub = (row.SubdivisionName ?? '').toString().trim()
@@ -153,7 +117,7 @@ async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
   const result: CityForIndex[] = []
   for (const { City: name, count } of browse) {
     const rec = byCity.get(name)
-    const activeCount = rec ? rec.prices.length : count
+    const activeCount = rec?.count ?? count
     let medianPrice: number | null = null
     if (rec && rec.prices.length > 0) {
       rec.prices.sort((a, b) => a - b)
@@ -190,29 +154,34 @@ export const getCitiesForIndex = unstable_cache(
 export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
   const cityName = await getCityFromSlug(slug)
   if (!cityName) return null
-  const [stats, countRes, cityRow, subRows] = await Promise.all([
+  const [stats, cityRow, activeRows] = await Promise.all([
     getMarketStatsForCity(cityName),
-    supabase()
-      .from('listings')
-      .select('ListPrice', { count: 'exact', head: true })
-      .ilike('City', cityName)
-      .or(ACTIVE_OR),
     supabase()
       .from('cities')
       .select('name, slug, description, hero_image_url')
       .ilike('name', cityName)
       .maybeSingle(),
     import('@/lib/supabase/paginate').then((m) =>
-      m.fetchAllRows<{ SubdivisionName?: string | null }>(
-        supabase(), 'listings', 'SubdivisionName',
+      m.fetchAllRows<{ SubdivisionName?: string | null; ListPrice?: number | null; PropertyType?: string | null }>(
+        supabase(), 'listings', 'SubdivisionName, ListPrice, PropertyType',
         (q: any) => q.ilike('City', cityName).or(ACTIVE_OR),
-      ).then((rows) => ({ data: rows, error: null }))
+      )
     ),
   ])
-  // Use count from query; if it returns 0 but market stats show listings, use stats count as fallback
-  let activeCount = countRes.count ?? 0
+  const filteredRows = activeRows.filter((row) => isResidentialInventoryType(row.PropertyType ?? null))
+  let activeCount = filteredRows.length
   if (activeCount === 0 && stats.count > 0) activeCount = stats.count
-  const subs = (subRows.data ?? []) as { SubdivisionName?: string }[]
+  const subs = filteredRows as { SubdivisionName?: string; ListPrice?: number | null }[]
+  const prices = subs
+    .map((row) => Number(row.ListPrice))
+    .filter((price) => Number.isFinite(price) && price > 0)
+    .sort((a, b) => a - b)
+  const medianFromRows =
+    prices.length === 0
+      ? null
+      : prices.length % 2
+        ? prices[Math.floor(prices.length / 2)]!
+        : Math.round((prices[prices.length / 2 - 1]! + prices[prices.length / 2]!) / 2)
   const communityCount = new Set(subs.map((r) => (r.SubdivisionName ?? '').trim()).filter((s) => s && s.toLowerCase() !== 'n/a')).size
   const db = cityRow.data as { name?: string; description?: string | null; hero_image_url?: string | null } | null
   const bannerUrl = await getBannerUrl('city', slug)
@@ -222,7 +191,7 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
     description: db?.description ?? null,
     heroImageUrl: normalizeBannerLikeUrl(db?.hero_image_url ?? null) ?? bannerUrl ?? null,
     activeCount,
-    medianPrice: stats.medianPrice,
+    medianPrice: medianFromRows ?? stats.medianPrice,
     avgDom: stats.avgDom ?? null,
     closedLast12Months: stats.closedLast12Months,
     communityCount,
@@ -262,10 +231,31 @@ export async function getCitySoldListings(
 
 /** Communities (subdivisions) in this city for CityCommunities section. */
 async function getCommunitiesInCityUncached(cityName: string): Promise<CommunityForIndex[]> {
-  const [hot, flags] = await Promise.all([
+  const [hot, flags, listingRows] = await Promise.all([
     getHotCommunitiesInCity(cityName),
     listSubdivisionsWithFlags(),
+    supabase()
+      .from('listings')
+      .select('SubdivisionName, ListPrice, PropertyType')
+      .ilike('City', cityName)
+      .or(ACTIVE_OR)
+      .limit(4000)
+      .then((res) => (res.data ?? []) as { SubdivisionName?: string | null; ListPrice?: number | null; PropertyType?: string | null }[]),
   ])
+  const bySubdivision = new Map<string, number[]>()
+  const countBySubdivision = new Map<string, number>()
+  for (const row of listingRows) {
+    if (!isResidentialInventoryType(row.PropertyType ?? null)) continue
+    const sub = (row.SubdivisionName ?? '').trim()
+    if (!sub) continue
+    countBySubdivision.set(sub, (countBySubdivision.get(sub) ?? 0) + 1)
+    const price = Number(row.ListPrice)
+    if (Number.isFinite(price) && price > 0) {
+      const prices = bySubdivision.get(sub) ?? []
+      prices.push(price)
+      bySubdivision.set(sub, prices)
+    }
+  }
   const resortSet = new Set(
     (await import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()))
   )
@@ -282,8 +272,14 @@ async function getCommunitiesInCityUncached(cityName: string): Promise<Community
       entityKey: key,
       city: cityName,
       subdivision: h.subdivisionName,
-      activeCount: h.forSale + h.pending,
-      medianPrice: h.medianListPrice ?? null,
+      activeCount: countBySubdivision.get(h.subdivisionName) ?? h.forSale,
+      medianPrice: (() => {
+        const prices = bySubdivision.get(h.subdivisionName) ?? []
+        if (prices.length === 0) return h.medianListPrice ?? null
+        prices.sort((a, b) => a - b)
+        const mid = Math.floor(prices.length / 2)
+        return prices.length % 2 ? prices[mid]! : Math.round((prices[mid - 1]! + prices[mid]!) / 2)
+      })(),
       heroImageUrl: heroUrl ?? null,
       isResort,
     })
@@ -343,12 +339,13 @@ export async function getNeighborhoodsInCity(cityName: string): Promise<
       listingCount = count ?? 0
       const { data: priceRows } = await sb
         .from('listings')
-        .select('ListPrice')
+        .select('ListPrice, PropertyType')
         .in('property_id', ids)
         .or(ACTIVE_OR)
-        .not('ListPrice', 'is', null)
-        .limit(500)
-      const prices = (priceRows ?? []).map((r: { ListPrice?: number }) => Number(r.ListPrice)).filter((p) => Number.isFinite(p) && p > 0)
+        .limit(1000)
+      const filteredRows = (priceRows ?? []).filter((row: { PropertyType?: string | null }) => isResidentialInventoryType(row.PropertyType ?? null))
+      listingCount = filteredRows.length
+      const prices = filteredRows.map((r: { ListPrice?: number }) => Number(r.ListPrice)).filter((p) => Number.isFinite(p) && p > 0)
       prices.sort((a, b) => a - b)
       if (prices.length > 0) {
         const mid = Math.floor(prices.length / 2)
@@ -459,20 +456,15 @@ export async function getNeighborhoodBySlug(
   let activeCount = 0
   let medianPrice: number | null = null
   if (ids.length > 0) {
-    const { count } = await sb
-      .from('listings')
-      .select('ListPrice', { count: 'exact', head: true })
-      .or(ACTIVE_OR)
-      .in('property_id', ids)
-    activeCount = count ?? 0
     const { data: priceRows } = await sb
       .from('listings')
-      .select('ListPrice')
+      .select('ListPrice, PropertyType')
       .in('property_id', ids)
       .or(ACTIVE_OR)
-      .not('ListPrice', 'is', null)
-      .limit(500)
-    const prices = (priceRows ?? []).map((r: { ListPrice?: number }) => Number(r.ListPrice)).filter((p) => Number.isFinite(p) && p > 0)
+      .limit(1000)
+    const filteredRows = (priceRows ?? []).filter((row: { PropertyType?: string | null }) => isResidentialInventoryType(row.PropertyType ?? null))
+    activeCount = filteredRows.length
+    const prices = filteredRows.map((r: { ListPrice?: number }) => Number(r.ListPrice)).filter((p) => Number.isFinite(p) && p > 0)
     prices.sort((a, b) => a - b)
     if (prices.length > 0) {
       const mid = Math.floor(prices.length / 2)
@@ -578,14 +570,15 @@ export async function getCommunitiesInNeighborhood(neighborhoodId: string, cityN
   const communityNames = communityRows.map((c) => c.name)
   const { data: listingRowsData } = await sb
     .from('listings')
-    .select('SubdivisionName, ListPrice')
+    .select('SubdivisionName, ListPrice, PropertyType')
     .in('SubdivisionName', communityNames)
     .eq('StandardStatus', 'Active')
     .limit(2000)
-  const listingRows = (listingRowsData ?? []) as { SubdivisionName?: string; ListPrice?: number | null }[]
+  const listingRows = (listingRowsData ?? []) as { SubdivisionName?: string; ListPrice?: number | null; PropertyType?: string | null }[]
 
   const bySub = new Map<string, number[]>()
   for (const row of listingRows) {
+    if (!isResidentialInventoryType(row.PropertyType ?? null)) continue
     const sub = (row.SubdivisionName ?? '').trim()
     if (!sub || sub.toLowerCase() === 'n/a') continue
     const arr = bySub.get(sub) ?? []

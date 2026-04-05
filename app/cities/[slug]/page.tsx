@@ -45,6 +45,8 @@ import VideoToursRow from '@/components/videos/VideoToursRow'
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/structured-data'
 import CityClusterNav from '@/components/CityClusterNav'
 import { getGuidesByCity } from '@/app/actions/guides'
+import { getCityInventoryBreakdown } from '@/app/actions/inventory-breakdown'
+import InventoryTypeSlider from '@/components/geo-page/InventoryTypeSlider'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -158,6 +160,7 @@ export default async function CityDetailPage({ params }: Props) {
     cityGuides,
     cityPulse,
     cityOpenHouses,
+    inventoryBreakdown,
   ] = await Promise.all([
     getCityListings(city.name, 24),
     getCitySoldListings(city.name, 6),
@@ -173,6 +176,7 @@ export default async function CityDetailPage({ params }: Props) {
     getGuidesByCity(city.name),
     getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) }),
     getOpenHousesWithListings({ city: city.name }),
+    getCityInventoryBreakdown(city.name),
   ])
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
 
@@ -375,6 +379,8 @@ export default async function CityDetailPage({ params }: Props) {
         stats={stats}
         priceHistory={priceHistory}
       />
+
+      <InventoryTypeSlider placeLabel={city.name} breakdown={inventoryBreakdown} />
 
       {cityPulse && (
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">

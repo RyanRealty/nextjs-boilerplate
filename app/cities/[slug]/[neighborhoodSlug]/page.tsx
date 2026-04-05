@@ -34,6 +34,8 @@ import CommunitiesSlider from '@/components/sliders/CommunitiesSlider'
 import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
 import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
 import RecentlySoldRow from '@/components/RecentlySoldRow'
+import { getNeighborhoodInventoryBreakdown } from '@/app/actions/inventory-breakdown'
+import InventoryTypeSlider from '@/components/geo-page/InventoryTypeSlider'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -81,7 +83,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
   const pageUrl = `${siteUrl}/cities/${citySlug}/${neighborhoodSlug}`
   const pageTitle = `${neighborhood.name} in ${neighborhood.cityName}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
-  const [placePhotoUrl, listings, soldListings, savedKeys, likedKeys, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys] = await Promise.all([
+  const [placePhotoUrl, listings, soldListings, savedKeys, likedKeys, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys, inventoryBreakdown] = await Promise.all([
     !neighborhood.heroImageUrl
       ? fetchPlacePhoto(`${neighborhood.name} ${neighborhood.cityName} Oregon`).then((r) => r?.url ?? null).catch(() => null)
       : Promise.resolve(null),
@@ -94,6 +96,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
     getActiveBrokers(),
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
+    getNeighborhoodInventoryBreakdown(neighborhood.id),
   ])
 
   const heroImageUrl = neighborhood.heroImageUrl ?? placePhotoUrl ?? null
@@ -292,6 +295,8 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         stats={neighborhoodStats}
         priceHistory={[]}
       />
+
+      <InventoryTypeSlider placeLabel={neighborhood.name} breakdown={inventoryBreakdown} />
 
       <GeoSectionLatestActivity
         title="Latest activity"

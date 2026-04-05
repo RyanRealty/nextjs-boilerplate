@@ -11,6 +11,7 @@ import type { CityMarketStats } from '@/app/actions/listings'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
 import type { CommunityForIndex, CommunityDetail } from '@/lib/communities'
 import { entityKeyToSlug } from '@/lib/community-slug'
+import { isResidentialInventoryType } from '@/lib/inventory-filters'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -50,17 +51,17 @@ async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
   // instead of ILIKE (4x faster: 224ms vs 953ms per page). Covers 98% of active listings.
   // Paginate only if needed, but with eq + index this is much faster.
   const sb = supabase()
-  const allListingRows: { City?: string; SubdivisionName?: string; ListPrice?: number | null }[] = []
+  const allListingRows: { City?: string; SubdivisionName?: string; ListPrice?: number | null; PropertyType?: string | null }[] = []
   let offset = 0
   let hasMore = true
   while (hasMore) {
     const { data } = await sb
       .from('listings')
-      .select('City, SubdivisionName, ListPrice')
+      .select('City, SubdivisionName, ListPrice, PropertyType')
       .eq('StandardStatus', 'Active')
       .not('SubdivisionName', 'is', null)
       .range(offset, offset + 999)
-    const rows = (data ?? []) as { City?: string; SubdivisionName?: string; ListPrice?: number | null }[]
+    const rows = (data ?? []) as { City?: string; SubdivisionName?: string; ListPrice?: number | null; PropertyType?: string | null }[]
     allListingRows.push(...rows)
     hasMore = rows.length === 1000
     offset += 1000
@@ -76,6 +77,7 @@ async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
     { city: string; subdivision: string; prices: number[] }
   >()
   for (const row of listingRows) {
+    if (!isResidentialInventoryType(row.PropertyType ?? null)) continue
     const city = (row.City ?? '').toString().trim()
     const sub = (row.SubdivisionName ?? '').toString().trim()
     if (!city || !sub) continue
@@ -135,11 +137,35 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
   const { city, subdivision } = parsed
   const entityKey = subdivisionEntityKey(city, subdivision)
   const sb = supabase()
-  const [stats, communityRow] = await Promise.all([
+  const [stats, communityRow, activeRows] = await Promise.all([
     getMarketStatsForSubdivision(city, subdivision),
     sb.from('communities').select('id, name, slug, description, hero_image_url, boundary_geojson, is_resort, resort_content, neighborhood_id, neighborhoods(name, slug)').ilike('name', subdivision).maybeSingle(),
+    (async () => {
+      const names = getSubdivisionMatchNames(subdivision)
+      let query = sb
+        .from('listings')
+        .select('ListPrice, PropertyType')
+        .ilike('City', city)
+        .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
+        .limit(3000)
+      if (names.length === 1) query = query.ilike('SubdivisionName', names[0]!)
+      else if (names.length > 1) query = query.or(names.map((n) => `SubdivisionName.ilike.${n}`).join(','))
+      const { data } = await query
+      return (data ?? []) as { ListPrice?: number | null; PropertyType?: string | null }[]
+    })(),
   ])
-  const activeCount = stats.count
+  const residentialRows = activeRows.filter((row) => isResidentialInventoryType(row.PropertyType ?? null))
+  const activeCount = residentialRows.length > 0 ? residentialRows.length : stats.count
+  const prices = residentialRows
+    .map((row) => Number(row.ListPrice))
+    .filter((price) => Number.isFinite(price) && price > 0)
+    .sort((a, b) => a - b)
+  const medianFromRows =
+    prices.length === 0
+      ? null
+      : prices.length % 2
+        ? prices[Math.floor(prices.length / 2)]!
+        : Math.round((prices[prices.length / 2 - 1]! + prices[prices.length / 2]!) / 2)
   const comm = communityRow.data as {
     name?: string
     description?: string | null
@@ -172,7 +198,7 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
     isResort,
     resortContent: comm?.resort_content ?? null,
     activeCount,
-    medianPrice: stats.medianPrice,
+    medianPrice: medianFromRows ?? stats.medianPrice,
     avgDom: stats.avgDom ?? null,
     closedLast12Months: stats.closedLast12Months,
     neighborhoodName: comm?.neighborhoods?.name ?? null,

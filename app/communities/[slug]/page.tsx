@@ -43,6 +43,8 @@ import VideoToursRow from '@/components/videos/VideoToursRow'
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/structured-data'
 import CityClusterNav from '@/components/CityClusterNav'
 import { getGuidesByCity } from '@/app/actions/guides'
+import { getCommunityInventoryBreakdown } from '@/app/actions/inventory-breakdown'
+import InventoryTypeSlider from '@/components/geo-page/InventoryTypeSlider'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -89,7 +91,7 @@ export default async function CommunityDetailPage({ params }: Props) {
   const pageTitle = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
   const citySlug = community.city.toLowerCase().replace(/\s+/g, '-')
-  const [listings, soldListings, priceHistory, , savedKeys, likedKeys, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides, communityPulse, communityOpenHouses] =
+  const [listings, soldListings, priceHistory, , savedKeys, likedKeys, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides, communityPulse, communityOpenHouses, inventoryBreakdown] =
     await Promise.all([
       getCommunityListings(community.city, community.subdivision, 24),
       getCommunitySoldListings(community.city, community.subdivision, 6),
@@ -113,6 +115,7 @@ export default async function CommunityDetailPage({ params }: Props) {
         city: community.city,
         community: [community.subdivision],
       }),
+      getCommunityInventoryBreakdown(community.city, community.subdivision),
     ])
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
 
@@ -358,6 +361,8 @@ export default async function CommunityDetailPage({ params }: Props) {
         }}
         priceHistory={priceHistory}
       />
+
+      <InventoryTypeSlider placeLabel={community.name} breakdown={inventoryBreakdown} />
 
       {communityPulse && (
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
