@@ -11,6 +11,15 @@ import { Button } from "@/components/ui/button"
 
 const DIRECT_VIDEO_EXT = /\.(mp4|webm|ogg|mov)(\?|$)/i
 const EMBED_VIDEO_REGEX = /youtube\.com|youtu\.be|vimeo\.com/i
+const TRUSTED_EMBED_HOSTS = new Set([
+  'www.youtube.com',
+  'youtube.com',
+  'youtu.be',
+  'player.vimeo.com',
+  'vimeo.com',
+  'my.matterport.com',
+  'matterport.com',
+])
 function isDirectVideoUrl(uri: string): boolean {
   try {
     return DIRECT_VIDEO_EXT.test(new URL(uri).pathname)
@@ -20,6 +29,22 @@ function isDirectVideoUrl(uri: string): boolean {
 }
 function isVideoUrl(uri: string): boolean {
   return isDirectVideoUrl(uri) || EMBED_VIDEO_REGEX.test(uri)
+}
+
+function getIframeSrc(html: string): string | null {
+  const match = html.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i)
+  return match?.[1] ?? null
+}
+
+function isTrustedEmbedHtml(html: string): boolean {
+  const src = getIframeSrc(html)
+  if (!src) return false
+  try {
+    const host = new URL(src).hostname.toLowerCase()
+    return TRUSTED_EMBED_HOSTS.has(host)
+  } catch {
+    return false
+  }
 }
 function photoToVideoUrl(photo: SparkPhoto): string | null {
   const uri = photo.Uri1600 ?? photo.Uri1280 ?? photo.Uri1024 ?? photo.Uri800 ?? photo.Uri640 ?? photo.Uri300 ?? ''
@@ -119,7 +144,7 @@ export default function ListingHero({ photos, videos }: Props) {
   const renderMainContent = () => {
     if (current?.type === 'video') {
       const v = current.video
-      if (v.ObjectHtml) {
+      if (v.ObjectHtml && isTrustedEmbedHtml(v.ObjectHtml)) {
         return (
           <div
             className="aspect-video h-full w-full [&>iframe]:h-full [&>iframe]:w-full"
