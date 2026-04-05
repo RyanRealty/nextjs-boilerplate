@@ -155,10 +155,15 @@ async function _getActivityFeedByCityUncached(
   subdivision: string | null,
   limit: number
 ): Promise<ActivityFeedItem[]> {
-  return getActivityFeed({
+  const fallbackItems = await getActivityFeedWithFallback({
     city,
-    subdivision: subdivision ?? undefined,
     limit,
+  })
+  if (!subdivision?.trim()) return fallbackItems
+  const subdivisionFilter = subdivision.trim().toLowerCase()
+  return fallbackItems.filter((item) => {
+    const sub = String(item.SubdivisionName ?? '').trim().toLowerCase()
+    return sub.includes(subdivisionFilter)
   })
 }
 
