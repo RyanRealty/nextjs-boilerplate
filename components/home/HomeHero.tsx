@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 
 // No stock photography — fallback is empty; hero renders a navy gradient when no brokerage image is set.
 const DEFAULT_HERO_IMAGE = '/images/hero-poster.webp'
+const SEARCH_DEBOUNCE_MS = 90
 
 type MarketSnapshot = {
   count: number
@@ -35,6 +36,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null)
   const [loading, setLoading] = useState(false)
+  const suggestionsCacheRef = useRef<Map<string, SearchSuggestionsResult>>(new Map())
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -68,6 +70,13 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
     }
     const controller = new AbortController()
     const t = setTimeout(async () => {
+      const cached = suggestionsCacheRef.current.get(q.toLowerCase())
+      if (cached) {
+        setOpen(true)
+        setSuggestions(cached)
+        setLoading(false)
+        return
+      }
       setOpen(true)
       setLoading(true)
       try {
@@ -76,13 +85,14 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
           cache: 'no-store',
         })
         const data = (await res.json()) as SearchSuggestionsResult
+        suggestionsCacheRef.current.set(q.toLowerCase(), data)
         setSuggestions(data)
       } catch {
         setSuggestions(null)
       } finally {
         setLoading(false)
       }
-    }, 220)
+    }, SEARCH_DEBOUNCE_MS)
     return () => {
       clearTimeout(t)
       controller.abort()
@@ -257,7 +267,8 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
             />
             <Button
               type="submit"
-              className="px-6 py-4 bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+              variant="secondary"
+              className="px-6 py-4"
             >
               Search
             </Button>
@@ -278,6 +289,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                     <Button
                       key={`addr-${i}-${a.label}`}
                       type="button"
+                      variant="ghost"
                       role="option"
                       aria-selected={highlight === i}
                       className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === i ? 'bg-muted' : ''}`}
@@ -297,6 +309,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`city-${c.city}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
@@ -317,6 +330,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`sub-${s.city}-${s.subdivisionName}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
@@ -337,6 +351,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`n-${n.citySlug}-${n.neighborhoodSlug}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
@@ -357,6 +372,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`zip-${z.postalCode}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
@@ -377,6 +393,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`broker-${b.label}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}
@@ -397,6 +414,7 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                       <Button
                         key={`report-${i}-${r.label}`}
                         type="button"
+                        variant="ghost"
                         role="option"
                         aria-selected={highlight === idx}
                         className={`block w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted rounded-none ${highlight === idx ? 'bg-muted' : ''}`}

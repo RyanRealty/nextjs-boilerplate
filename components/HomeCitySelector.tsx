@@ -54,9 +54,10 @@ export default function HomeCitySelector({ currentCity, cities, signedIn }: Prop
     <div className="relative" ref={ref}>
       <Button
         type="button"
+        variant="outline"
         onClick={() => setOpen((o) => !o)}
         disabled={updating}
-        className="flex items-center gap-2 rounded-lg bg-card/95 px-3 py-2 text-left text-sm font-medium text-foreground shadow-md backdrop-blur-sm transition hover:bg-card disabled:opacity-70"
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium shadow-md backdrop-blur-sm disabled:opacity-70"
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label="Change default city"
@@ -73,6 +74,7 @@ export default function HomeCitySelector({ currentCity, cities, signedIn }: Prop
             <Button
               key={City}
               type="button"
+              variant="ghost"
               role="option"
               aria-selected={City === displayCity}
               onClick={() => handleSelect(City)}

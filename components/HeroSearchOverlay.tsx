@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getSearchSuggestions } from '@/app/actions/listings'
 import type { SearchSuggestionsResult } from '@/app/actions/listings'
 import { cityPagePath, listingsBrowsePath } from '@/lib/slug'
 import { communityPagePath } from '@/lib/community-slug'
@@ -13,7 +12,7 @@ import { Search01Icon } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const DEBOUNCE_MS = 220
+const DEBOUNCE_MS = 90
 const MIN_QUERY_LENGTH = 2
 
 type Props = {
@@ -31,6 +30,7 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const suggestionsCacheRef = useRef<Map<string, SearchSuggestionsResult>>(new Map())
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < MIN_QUERY_LENGTH) {
@@ -39,7 +39,18 @@ export default function HeroSearchOverlay({ homesForYouLabel }: Props) {
     }
     setLoading(true)
     try {
-      const result = await getSearchSuggestions(q)
+      const cacheKey = q.toLowerCase()
+      const cached = suggestionsCacheRef.current.get(cacheKey)
+      if (cached) {
+        setSuggestions(cached)
+        setHighlight(0)
+        return
+      }
+      const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(q)}`, {
+        cache: 'no-store',
+      })
+      const result = (await response.json()) as SearchSuggestionsResult
+      suggestionsCacheRef.current.set(cacheKey, result)
       setSuggestions(result)
       setHighlight(0)
     } catch {

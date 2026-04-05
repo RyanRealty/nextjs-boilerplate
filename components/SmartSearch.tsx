@@ -11,7 +11,7 @@ import { Search01Icon } from '@hugeicons/core-free-icons'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const DEBOUNCE_MS = 220
+const DEBOUNCE_MS = 90
 const MIN_QUERY_LENGTH = 2
 
 type SmartSearchProps = { onClose?: () => void }
@@ -23,6 +23,7 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
+  const suggestionsCacheRef = useRef<Map<string, SearchSuggestionsResult>>(new Map())
   const inputRef = useRef<HTMLInputElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -34,10 +35,18 @@ export default function SmartSearch({ onClose }: SmartSearchProps = {}) {
     }
     setLoading(true)
     try {
+      const cacheKey = q.toLowerCase()
+      const cached = suggestionsCacheRef.current.get(cacheKey)
+      if (cached) {
+        setSuggestions(cached)
+        setHighlight(0)
+        return
+      }
       const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(q)}`, {
         cache: 'no-store',
       })
       const result = (await response.json()) as SearchSuggestionsResult
+      suggestionsCacheRef.current.set(cacheKey, result)
       setSuggestions(result)
       setHighlight(0)
     } catch {
