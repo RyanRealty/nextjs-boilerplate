@@ -288,7 +288,7 @@ async function HeroWithMarket({ brokerage }: { brokerage: BrokerageSettingsRow |
   return (
     <HomeHero
       marketSnapshot={marketForHero}
-      heroVideoUrl={brokerage?.hero_video_url?.trim() || '/videos/hero.mp4'}
+      heroVideoUrl={brokerage?.hero_video_url?.trim() || '/videos/hero-optimized.mp4'}
       heroImageUrl={brokerage?.hero_image_url ?? null}
     />
   )
@@ -357,7 +357,7 @@ export default async function Home() {
       {/* Hero renders IMMEDIATELY with placeholder stats — no Suspense blocking LCP */}
       <HomeHero
         marketSnapshot={{ count: 0, medianPrice: null, avgDom: null }}
-        heroVideoUrl="/videos/hero.mp4"
+        heroVideoUrl="/videos/hero-optimized.mp4"
         heroImageUrl={null}
       />
 

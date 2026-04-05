@@ -217,7 +217,8 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload="none"
+                poster={backgroundImage ?? undefined}
                 className="absolute inset-0 h-full w-full object-cover bg-transparent"
                 aria-hidden
                 onCanPlay={(e) => {
