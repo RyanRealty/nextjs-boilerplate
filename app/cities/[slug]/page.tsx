@@ -51,7 +51,7 @@ type Props = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const city = await getCityBySlug(slug)
+  const city = await withTimeout(getCityBySlug(slug), null, 1200)
   if (!city) return { title: 'City Not Found' }
   const title = `Homes for Sale in ${city.name}, Oregon | Ryan Realty`
   const rawDesc =
@@ -146,7 +146,7 @@ function buildQuickFacts(
 
 export default async function CityDetailPage({ params }: Props) {
   const { slug } = await params
-  const city = await getCityBySlug(slug)
+  const city = await withTimeout(getCityBySlug(slug), null, 1200)
   if (!city) notFound()
   const heroImageUrl =
     city.heroImageUrl ?? null
@@ -221,8 +221,12 @@ export default async function CityDetailPage({ params }: Props) {
     .filter(Boolean)
   const communityEntityKeys = communities.map((c) => subdivisionEntityKey(c.city, c.subdivision))
   const [engagementMap, communityEngagementMap] = await Promise.all([
-    listingKeys.length > 0 ? getEngagementCountsBatchCached(listingKeys) : Promise.resolve({} as Record<string, EngagementCounts>),
-    communityEntityKeys.length > 0 ? getCommunityEngagementBatchCached(communityEntityKeys) : Promise.resolve({}),
+    listingKeys.length > 0
+      ? withTimeout(getEngagementCountsBatchCached(listingKeys), {} as Record<string, EngagementCounts>, 1200)
+      : Promise.resolve({} as Record<string, EngagementCounts>),
+    communityEntityKeys.length > 0
+      ? withTimeout(getCommunityEngagementBatchCached(communityEntityKeys), {}, 1200)
+      : Promise.resolve({}),
   ])
   const engagementScore = (key: string) => {
     const e = engagementMap[key]
@@ -241,7 +245,9 @@ export default async function CityDetailPage({ params }: Props) {
     })
     .slice(0, 12)
   const cityVideoKeys = cityVideoRows.map((row) => row.listing_key).filter((key) => key.trim().length > 0)
-  const cityVideoListingRows = cityVideoKeys.length > 0 ? await getHomeTileRowsByKeys(cityVideoKeys) : []
+  const cityVideoListingRows = cityVideoKeys.length > 0
+    ? await withTimeout(getHomeTileRowsByKeys(cityVideoKeys), [], 1200)
+    : []
   const cityVideoByKey = new Map(cityVideoRows.map((row) => [row.listing_key, row.video_url]))
   const listingsWithVideo = cityVideoListingRows.map((row) => {
     const listingKey = (row.ListingKey ?? '').toString().trim()
