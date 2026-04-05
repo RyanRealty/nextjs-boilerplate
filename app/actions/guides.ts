@@ -25,12 +25,20 @@ function getPublicClient() {
 }
 
 type CityStatRow = {
-  geo_name: string
+  geo_slug: string
   median_sale_price: number | null
-  months_of_supply: number | null
-  avg_days_on_market: number | null
-  active_inventory: number | null
+  median_dom: number | null
+  sold_count: number | null
   period_end: string | null
+}
+
+function slugToTitle(slug: string): string {
+  return slug
+    .trim()
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 function buildGuideHtmlFromStats(city: string, stats: CityStatRow): string {
@@ -38,24 +46,20 @@ function buildGuideHtmlFromStats(city: string, stats: CityStatRow): string {
     stats.median_sale_price != null && Number.isFinite(Number(stats.median_sale_price))
       ? `$${Math.round(Number(stats.median_sale_price)).toLocaleString()}`
       : 'Data unavailable'
-  const supply =
-    stats.months_of_supply != null && Number.isFinite(Number(stats.months_of_supply))
-      ? `${Number(stats.months_of_supply).toFixed(1)} months`
-      : 'Data unavailable'
   const dom =
-    stats.avg_days_on_market != null && Number.isFinite(Number(stats.avg_days_on_market))
-      ? `${Math.round(Number(stats.avg_days_on_market))} days`
+    stats.median_dom != null && Number.isFinite(Number(stats.median_dom))
+      ? `${Math.round(Number(stats.median_dom))} days`
       : 'Data unavailable'
-  const inventory =
-    stats.active_inventory != null && Number.isFinite(Number(stats.active_inventory))
-      ? Math.round(Number(stats.active_inventory)).toLocaleString()
+  const soldCount =
+    stats.sold_count != null && Number.isFinite(Number(stats.sold_count))
+      ? Math.round(Number(stats.sold_count)).toLocaleString()
       : 'Data unavailable'
   const period = stats.period_end ? new Date(stats.period_end).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'the latest cycle'
 
   return [
     `<p>${city} remains one of Central Oregon's most competitive markets. This guide is based on local listing and sold data from ${period} and is designed to help buyers and sellers make practical decisions.</p>`,
     '<h2>Market snapshot</h2>',
-    `<ul><li>Median sale price: ${median}</li><li>Months of supply: ${supply}</li><li>Average days on market: ${dom}</li><li>Active inventory: ${inventory}</li></ul>`,
+    `<ul><li>Median sale price: ${median}</li><li>Median days on market: ${dom}</li><li>Closed sales in period: ${soldCount}</li></ul>`,
     '<h2>What buyers should do now</h2>',
     `<p>In ${city}, homes that are priced correctly still move quickly in the most active ranges. Buyers should lock financing early, track new inventory daily, and write offers that match current demand in the exact neighborhood they target.</p>`,
     '<h2>What sellers should do now</h2>',
@@ -66,7 +70,7 @@ function buildGuideHtmlFromStats(city: string, stats: CityStatRow): string {
 }
 
 function normalizeGuideRowFromStats(stats: CityStatRow): GuideRow {
-  const city = stats.geo_name
+  const city = slugToTitle(stats.geo_slug)
   return {
     id: `generated-${cityEntityKey(city)}`,
     slug: `${cityEntityKey(city)}-housing-market-guide`,
@@ -87,8 +91,8 @@ async function getGeneratedGuidesFromStats(limit: number = 12): Promise<GuideRow
 
   const { data, error } = await supabase
     .from('market_stats_cache')
-    .select('geo_name, median_sale_price, months_of_supply, avg_days_on_market, active_inventory, period_end')
-    .eq('geo_level', 'city')
+    .select('geo_slug, median_sale_price, median_dom, sold_count, period_end')
+    .eq('geo_type', 'city')
     .eq('period_type', 'monthly')
     .order('period_end', { ascending: false })
     .limit(Math.max(20, limit * 4))
@@ -96,7 +100,7 @@ async function getGeneratedGuidesFromStats(limit: number = 12): Promise<GuideRow
 
   const byCity = new Map<string, CityStatRow>()
   for (const row of data as CityStatRow[]) {
-    const city = (row.geo_name ?? '').trim()
+    const city = (row.geo_slug ?? '').trim()
     if (!city || byCity.has(city)) continue
     byCity.set(city, row)
     if (byCity.size >= limit) break

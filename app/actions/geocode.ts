@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 const GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
+const MAX_GEOCODE_BATCH = 10
 
 /** Minimal listing-like shape for geocoding (Spark or internal). */
 export type GeocodeListingInput = {
@@ -27,9 +28,12 @@ export async function getGeocodedListings<T extends GeocodeListingInput>(listing
       ? createClient(supabaseUrl, serviceKey)
       : null
 
+  let geocodeAttempts = 0
   const updatedListings = await Promise.all(
     listings.map(async (item) => {
       if (item.Latitude && item.Longitude) return item
+      if (geocodeAttempts >= MAX_GEOCODE_BATCH) return item
+      geocodeAttempts += 1
 
       const address = `${item.StreetNumber ?? ''} ${item.StreetName ?? ''}, ${item.City ?? ''}, ${item.State ?? ''} ${item.PostalCode ?? ''}`.trim()
       if (!address.replace(/,/g, '').trim()) return item

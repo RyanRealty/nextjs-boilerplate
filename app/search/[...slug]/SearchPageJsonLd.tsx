@@ -51,7 +51,7 @@ export default function SearchPageJsonLd({
   }
 
   const breadcrumbItems: { name: string; item?: string }[] = [
-    { name: 'Ryan Realty', item: siteUrl || undefined },
+    { name: 'Home', item: siteUrl || undefined },
     { name: 'Homes for Sale', item: siteUrl ? `${siteUrl}/homes-for-sale` : undefined },
   ]
   if (city) {

@@ -184,7 +184,7 @@ function ListingTile({
     isResortCommunity(listing.City, listing.SubdivisionName)
   const row = listing as { ListNumber?: string | null; ListingKey?: string | null; list_number?: string | null; listing_key?: string | null }
   const canonicalListingKey = (row.ListingKey ?? row.listing_key ?? listingKey ?? row.ListNumber ?? row.list_number ?? '').toString().trim()
-  const linkKey = canonicalListingKey
+  const linkKey = (row.ListNumber ?? row.list_number ?? canonicalListingKey).toString().trim()
   /** MLS# shown to users: prefer ListNumber (actual MLS list number); fall back to link key for routing. */
   const mlsDisplay = (row.ListNumber ?? row.list_number ?? canonicalListingKey).toString().trim()
   const neighborhood = getNeighborhoodName(listing)

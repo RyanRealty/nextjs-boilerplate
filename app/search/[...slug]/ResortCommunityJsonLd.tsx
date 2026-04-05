@@ -43,21 +43,9 @@ export default function ResortCommunityJsonLd({
     }),
   }
 
-  const breadcrumbList = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Ryan Realty', item: siteUrl },
-      { '@type': 'ListItem', position: 2, name: 'Homes for Sale', item: `${siteUrl}/homes-for-sale` },
-      { '@type': 'ListItem', position: 3, name: city, item: `${siteUrl}${homesForSalePath(city)}` },
-      { '@type': 'ListItem', position: 4, name: subdivision, item: pageUrl },
-    ],
-  }
-
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(resort) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbList) }} />
     </>
   )
 }

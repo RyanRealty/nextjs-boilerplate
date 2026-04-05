@@ -49,7 +49,7 @@ describe('slug', () => {
   it('builds listing hierarchy path with city and subdivision', () => {
     expect(
       listingDetailPath(
-        '12345',
+        'spark-key-12345',
         {
           streetNumber: '100',
           streetName: 'Main St',
@@ -60,15 +60,16 @@ describe('slug', () => {
         {
           city: 'Bend',
           subdivision: 'Northwest Crossing',
-        }
+        },
+        { mlsNumber: '220189456' }
       )
-    ).toBe('/homes-for-sale/bend/northwest-crossing/12345-97702')
+    ).toBe('/homes-for-sale/bend/northwest-crossing/100-main-st-220189456')
   })
 
   it('includes neighborhood segment before subdivision when provided', () => {
     expect(
       listingDetailPath(
-        '12345',
+        'spark-key-12345',
         {
           streetNumber: '100',
           streetName: 'Main St',
@@ -80,12 +81,13 @@ describe('slug', () => {
           city: 'Bend',
           neighborhood: 'Westside',
           subdivision: 'Northwest Crossing',
-        }
+        },
+        { mlsNumber: '220189456' }
       )
-    ).toBe('/homes-for-sale/bend/westside/northwest-crossing/12345-97702')
+    ).toBe('/homes-for-sale/bend/westside/northwest-crossing/100-main-st-220189456')
   })
 
-  it('falls back to by-key listing path when postal code is missing', () => {
+  it('keeps hierarchy path without address when location is present', () => {
     expect(
       listingDetailPath(
         '12345',
@@ -101,7 +103,7 @@ describe('slug', () => {
           subdivision: 'Petrosa',
         }
       )
-    ).toBe('/homes-for-sale/listing/12345')
+    ).toBe('/homes-for-sale/bend/petrosa/12345')
   })
 
   it('builds subdivision listings path with optional neighborhood', () => {
@@ -113,7 +115,7 @@ describe('slug', () => {
     expect(listingDetailPath('abc-987')).toBe('/homes-for-sale/listing/abc-987')
   })
 
-  it('prefers listing key over mls number for by-key fallback paths', () => {
+  it('prefers mls number over listing key for canonical fallback paths', () => {
     expect(
       listingDetailPath(
         'abc-987',
@@ -121,11 +123,11 @@ describe('slug', () => {
         undefined,
         { mlsNumber: '17133' }
       )
-    ).toBe('/homes-for-sale/listing/abc-987')
+    ).toBe('/homes-for-sale/listing/17133')
   })
 
-  it('extracts listing key from canonical mls-and-zip slug', () => {
-    expect(listingKeyFromSlug('17133-97702')).toBe('17133')
+  it('extracts mls number from canonical address-mls slug', () => {
+    expect(listingKeyFromSlug('2145-nw-cascade-view-dr-220189456')).toBe('220189456')
   })
 
   it('extracts listing key from legacy tilde slug', () => {

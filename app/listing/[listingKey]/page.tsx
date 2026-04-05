@@ -45,13 +45,16 @@ import AdUnit from '@/components/AdUnit'
 import ListingJsonLd from '@/components/listing/ListingJsonLd'
 import { generateBreadcrumbSchema } from '@/lib/structured-data'
 import { getVacationRentalPotential } from '@/lib/vacation-rental-potential'
-import { Suspense } from 'react'
+import { Suspense, cache } from 'react'
 import ListingValuationSection from '@/components/listing/ListingValuationSection'
 import ListingTimeline from '@/components/listing/ListingTimeline'
 import TaxHistory from '@/components/listing/TaxHistory'
 import type { TaxRecord } from '@/components/listing/TaxHistory'
 
 type PageProps = { params: Promise<{ listingKey: string }> }
+
+export const revalidate = 60
+const getListingDetailDataCached = cache(getListingDetailData)
 
 function buildFullAddress(data: Awaited<ReturnType<typeof getListingDetailData>>): string {
   if (!data?.property) return ''
@@ -102,7 +105,7 @@ function buildListingBreadcrumbItems(data: ListingDetailData): BreadcrumbItem[] 
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { listingKey } = await params
-  const data = await getListingDetailData(listingKey)
+  const data = await getListingDetailDataCached(listingKey)
   if (!data) return { title: 'Listing Not Found | Ryan Realty' }
 
   const { listing, property, community, videos } = data
@@ -167,7 +170,7 @@ const directVideoExt = /\.(mp4|webm|ogg|mov)(\?|$)/i
 
 export default async function ListingDetailPage({ params }: PageProps) {
   const { listingKey } = await params
-  const data = await getListingDetailData(listingKey)
+  const data = await getListingDetailDataCached(listingKey)
   if (!data) notFound()
 
   const { listing, property, photos, agents, priceHistory, listingHistory, openHouses, community, videos, virtualTours } = data

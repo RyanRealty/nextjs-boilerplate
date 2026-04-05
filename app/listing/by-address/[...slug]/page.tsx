@@ -16,12 +16,13 @@ async function resolveListingKeyFromPathSegments(slug: string[]): Promise<string
   const areaSlugs = slug.slice(1, -1)
 
   // Canonical patterns:
-  // - /homes-for-sale/{city}/{...area}/{mlsOrKey}-{zip}
+  // - /homes-for-sale/{city}/{...area}/{street-address}-{mls}
+  // - /homes-for-sale/{city}/{street-address}-{mls}
   // - /homes-for-sale/{city}/{...area}/{listingKey}~{addressSlug} (legacy)
   const [candidateKey, candidateAddressSlug] = listingSegment.split('~')
   const keyFromSegment = listingKeyFromSlug(candidateKey ?? '')
-  const canonicalMatch = (candidateKey ?? '').trim().match(/^(.*)-(\d{5})$/)
-  const canonicalPostalCode = canonicalMatch?.[2] ?? null
+  const canonicalMatch = (candidateKey ?? '').trim().match(/^(.*)-(\d{5,})$/)
+  const canonicalPostalCode = canonicalMatch?.[2]?.length === 5 ? canonicalMatch[2] : null
 
   // Prefer resolving from address slug when present.
   // Some listing feeds may emit a segment key that does not directly match listing_key.
@@ -35,7 +36,7 @@ async function resolveListingKeyFromPathSegments(slug: string[]): Promise<string
     if (resolvedFromAddress) return resolvedFromAddress
   }
 
-  if (keyFromSegment && canonicalPostalCode) {
+  if (keyFromSegment) {
     const resolvedFromCanonicalPath = await resolveListingKeyFromCanonicalPath({
       citySlug,
       areaSlugs,

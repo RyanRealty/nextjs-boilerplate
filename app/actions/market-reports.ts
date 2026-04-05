@@ -42,6 +42,8 @@ type ListingRow = {
   CloseDate?: string | null
   ListDate?: string | null
   ListPrice?: number | null
+  ClosePrice?: number | null
+  details?: { ClosePrice?: number | string | null } | null
   PropertyType?: string | null
   StreetNumber?: string | null
   StreetName?: string | null
@@ -62,12 +64,27 @@ function closedListingToReportListing(r: ListingRow): ReportListing {
   const key = (r.ListingKey ?? r.ListNumber ?? '').toString().trim() || 'unknown'
   const parts = [r.StreetNumber, r.StreetName].filter(Boolean).map((x) => (x ?? '').toString().trim())
   const description = parts.length ? parts.join(' ') : null
+  const closePriceFromDetails = r.details?.ClosePrice
+  const normalizedCloseFromDetails =
+    typeof closePriceFromDetails === 'number'
+      ? closePriceFromDetails
+      : typeof closePriceFromDetails === 'string'
+        ? Number(closePriceFromDetails)
+        : null
+  const normalizedClosePrice =
+    typeof r.ClosePrice === 'number' && Number.isFinite(r.ClosePrice)
+      ? r.ClosePrice
+      : normalizedCloseFromDetails != null && Number.isFinite(normalizedCloseFromDetails)
+        ? normalizedCloseFromDetails
+        : typeof r.ListPrice === 'number' && Number.isFinite(r.ListPrice)
+          ? r.ListPrice
+          : null
   return {
     listing_key: key,
     event: 'Closed',
     event_date: r.CloseDate ?? null,
     city: (r.City ?? '').trim() || null,
-    price: typeof r.ListPrice === 'number' && Number.isFinite(r.ListPrice) ? r.ListPrice : null,
+    price: normalizedClosePrice,
     description,
     property_type: (r.PropertyType ?? '').trim() || null,
     days_on_market: daysBetween(r.CloseDate, r.ListDate),
@@ -89,7 +106,7 @@ async function getClosedSalesFromListings(
   const endStr = periodEnd.toISOString().slice(0, 10)
   const { data: rows } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, City, CloseDate, ListDate, ListPrice, PropertyType, StreetNumber, StreetName, SubdivisionName, PhotoURL')
+    .select('ListingKey, ListNumber, City, CloseDate, ListDate, ListPrice, ClosePrice, details, PropertyType, StreetNumber, StreetName, SubdivisionName, PhotoURL')
     .ilike('StandardStatus', '%closed%')
     .not('CloseDate', 'is', null)
     .gte('CloseDate', `${startStr}T00:00:00.000Z`)
@@ -223,7 +240,7 @@ async function getClosedSalesForLocation(
   const endStr = periodEnd.toISOString().slice(0, 10)
   let q = supabase
     .from('listings')
-    .select('ListingKey, ListNumber, City, CloseDate, ListDate, ListPrice, PropertyType, StreetNumber, StreetName, SubdivisionName')
+    .select('ListingKey, ListNumber, City, CloseDate, ListDate, ListPrice, ClosePrice, details, PropertyType, StreetNumber, StreetName, SubdivisionName')
     .ilike('StandardStatus', '%closed%')
     .not('CloseDate', 'is', null)
     .gte('CloseDate', `${startStr}T00:00:00.000Z`)

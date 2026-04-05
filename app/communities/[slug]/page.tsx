@@ -20,8 +20,7 @@ import { getSavedListingKeys } from '@/app/actions/saved-listings'
 import { trackPageViewIfPossible } from '@/lib/followupboss'
 import { getFubPersonIdFromCookie } from '@/app/actions/fub-identity-bridge'
 import { getLikedListingKeys } from '@/app/actions/likes'
-import { homesForSalePath, neighborhoodPagePath } from '@/lib/slug'
-import { slugify } from '@/lib/slug'
+import { homesForSalePath, neighborhoodPagePath, subdivisionEntityKey } from '@/lib/slug'
 import { getResortCommunityContent, buildDataDrivenCommunityAbout } from '@/lib/community-content'
 import { getLiveMarketPulse } from '@/app/actions/market-stats'
 import { getOpenHousesWithListings } from '@/app/actions/open-houses'
@@ -110,7 +109,7 @@ export default async function CommunityDetailPage({ params }: Props) {
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
   const communityPulse = await getLiveMarketPulse({
     geoType: 'subdivision',
-    geoSlug: `${slugify(community.city)}-${slugify(community.subdivision)}`,
+    geoSlug: subdivisionEntityKey(community.city, community.subdivision),
   })
   const communityOpenHouses = await getOpenHousesWithListings({
     city: community.city,

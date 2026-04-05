@@ -100,8 +100,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       { source: '/homes-for-sale/listing/:listingKey', destination: '/listing/by-key/:listingKey' },
-      { source: '/homes-for-sale/:city/:community/:listingSlug([^/]*-[0-9]{5})', destination: '/listing/by-address/:city/:community/:listingSlug' },
-      { source: '/homes-for-sale/:city/:neighborhood/:community/:listingSlug([^/]*-[0-9]{5})', destination: '/listing/by-address/:city/:neighborhood/:community/:listingSlug' },
+      { source: '/homes-for-sale/:city/:listingSlug([^/]*-[0-9]{5,})', destination: '/listing/by-address/:city/:listingSlug' },
+      { source: '/homes-for-sale/:city/:community/:listingSlug([^/]*-[0-9]{5,})', destination: '/listing/by-address/:city/:community/:listingSlug' },
+      { source: '/homes-for-sale/:city/:neighborhood/:community/:listingSlug([^/]*-[0-9]{5,})', destination: '/listing/by-address/:city/:neighborhood/:community/:listingSlug' },
       { source: '/homes-for-sale/:city/:community/:listingSlug([^/]*~[^/]*)', destination: '/listing/by-address/:city/:community/:listingSlug' },
       { source: '/homes-for-sale/:city/:neighborhood/:community/:listingSlug([^/]*~[^/]*)', destination: '/listing/by-address/:city/:neighborhood/:community/:listingSlug' },
       { source: '/homes-for-sale', destination: '/search' },

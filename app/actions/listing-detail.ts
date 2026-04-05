@@ -252,14 +252,14 @@ async function resolveListingKeyFromSlug(supabase: ReturnType<typeof getSupabase
     const c = String(candidate ?? '').trim()
     if (!c) return null
 
-    // Try ListingKey first, then ListNumber
+    // Try ListNumber first (canonical URL id), then ListingKey
     try {
-      const { data } = await supabase.from('listings').select('ListingKey').eq('ListingKey', c).limit(1)
+      const { data } = await supabase.from('listings').select('ListingKey').eq('ListNumber', c).limit(1)
       if (data?.[0]?.ListingKey) return String(data[0].ListingKey).trim()
     } catch { /* ignore */ }
 
     try {
-      const { data } = await supabase.from('listings').select('ListingKey').eq('ListNumber', c).limit(1)
+      const { data } = await supabase.from('listings').select('ListingKey').eq('ListingKey', c).limit(1)
       if (data?.[0]?.ListingKey) return String(data[0].ListingKey).trim()
     } catch { /* ignore */ }
 

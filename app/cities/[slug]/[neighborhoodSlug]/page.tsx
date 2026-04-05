@@ -170,7 +170,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
   })()
 
   const breadcrumbItems: { name: string; item: string }[] = [
-    { name: 'Ryan Realty', item: siteUrl },
+    { name: 'Home', item: siteUrl },
     { name: 'Cities', item: `${siteUrl}/cities` },
     { name: neighborhood.cityName, item: `${siteUrl}/cities/${citySlug}` },
     { name: neighborhood.name, item: `${siteUrl}/cities/${citySlug}/${neighborhoodSlug}` },

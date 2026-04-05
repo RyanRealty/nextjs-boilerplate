@@ -77,6 +77,62 @@ export type CMAResult = {
   valuationId: string
 }
 
+function buildCMAResult(
+  subject: CMASubject,
+  compsFiltered: CMACompRow[],
+  valuationId: string
+): CMAResult | null {
+  if (compsFiltered.length === 0) return null
+
+  const compResults: CMACompResult[] = []
+  const adjustedPrices: number[] = []
+  for (const comp of compsFiltered) {
+    const { adjustments, adjustedPrice } = computeAdjustments(subject, comp)
+    const sold = comp.close_price ?? 0
+    const sim = similarityScore(subject, comp, adjustedPrice, sold)
+    compResults.push({
+      listingKey: comp.listing_key,
+      address: comp.address ?? '',
+      soldPrice: sold,
+      soldDate: comp.close_date ?? '',
+      beds: comp.beds_total ?? 0,
+      baths: comp.baths_full ?? 0,
+      sqft: comp.living_area ?? null,
+      lotAcres: comp.lot_size_acres ?? null,
+      distanceMiles: comp.distance_miles ?? 0,
+      adjustments,
+      adjustedPrice,
+      similarityScore: sim,
+    })
+    adjustedPrices.push(adjustedPrice)
+  }
+
+  adjustedPrices.sort((a, b) => a - b)
+  const valueLow = percentile(adjustedPrices, 0.1)
+  const valueHigh = percentile(adjustedPrices, 0.9)
+  const weights = compResults.map((c: CMACompResult) => c.similarityScore)
+  const totalWeight = weights.reduce((a, b) => a + b, 0)
+  const estimatedValue =
+    totalWeight > 0
+      ? compResults.reduce((sum, c, i) => sum + c.adjustedPrice * (weights[i]! / totalWeight), 0)
+      : adjustedPrices[0] ?? 0
+  const confidence: 'high' | 'medium' | 'low' =
+    compResults.length >= 5 ? 'high' : compResults.length >= 3 ? 'medium' : 'low'
+
+  const methodology =
+    'Weighted average of adjusted comparable sales. Adjustments: sqft (price/sqft), beds ($15k), baths ($10k), age ($2k/yr), lot ($5k/0.25ac), garage ($15k), pool ($20k).'
+
+  return {
+    estimatedValue: Math.round(estimatedValue),
+    valueLow: Math.round(valueLow),
+    valueHigh: Math.round(valueHigh),
+    confidence,
+    comps: compResults,
+    methodology,
+    valuationId,
+  }
+}
+
 function num(v: unknown): number | null {
   if (v == null) return null
   const n = Number(v)
@@ -433,54 +489,18 @@ export async function computeCMA(propertyId: string): Promise<CMAResult | null> 
   const candidates = await getCompCandidates(supabase, propertyId, subject.communityId, subject)
   const compsFiltered = filterComps(subject, candidates)
   if (compsFiltered.length === 0) return null
-
-  const compResults: CMACompResult[] = []
-  const adjustedPrices: number[] = []
-  for (const comp of compsFiltered) {
-    const { adjustments, adjustedPrice } = computeAdjustments(subject, comp)
-    const sold = comp.close_price ?? 0
-    const sim = similarityScore(subject, comp, adjustedPrice, sold)
-    compResults.push({
-      listingKey: comp.listing_key,
-      address: comp.address ?? '',
-      soldPrice: sold,
-      soldDate: comp.close_date ?? '',
-      beds: comp.beds_total ?? 0,
-      baths: comp.baths_full ?? 0,
-      sqft: comp.living_area ?? null,
-      lotAcres: comp.lot_size_acres ?? null,
-      distanceMiles: comp.distance_miles ?? 0,
-      adjustments,
-      adjustedPrice,
-      similarityScore: sim,
-    })
-    adjustedPrices.push(adjustedPrice)
-  }
-
-  adjustedPrices.sort((a, b) => a - b)
-  const valueLow = percentile(adjustedPrices, 0.1)
-  const valueHigh = percentile(adjustedPrices, 0.9)
-  const weights = compResults.map((c: CMACompResult) => c.similarityScore)
-  const totalWeight = weights.reduce((a, b) => a + b, 0)
-  const estimatedValue =
-    totalWeight > 0
-      ? compResults.reduce((sum, c, i) => sum + c.adjustedPrice * (weights[i]! / totalWeight), 0)
-      : adjustedPrices[0] ?? 0
-  const confidence: 'high' | 'medium' | 'low' =
-    compResults.length >= 5 ? 'high' : compResults.length >= 3 ? 'medium' : 'low'
-
-  const methodology =
-    'Weighted average of adjusted comparable sales. Adjustments: sqft (price/sqft), beds ($15k), baths ($10k), age ($2k/yr), lot ($5k/0.25ac), garage ($15k), pool ($20k).'
+  const interim = buildCMAResult(subject, compsFiltered, 'pending')
+  if (!interim) return null
 
   const { data: valuation, error: valErr } = await supabase
     .from('valuations')
     .insert({
       property_id: propertyId,
-      estimated_value: Math.round(estimatedValue),
-      value_low: Math.round(valueLow),
-      value_high: Math.round(valueHigh),
-      confidence,
-      comp_count: compResults.length,
+      estimated_value: interim.estimatedValue,
+      value_low: interim.valueLow,
+      value_high: interim.valueHigh,
+      confidence: interim.confidence,
+      comp_count: interim.comps.length,
       methodology_version: '1.0',
     })
     .select('id')
@@ -489,7 +509,7 @@ export async function computeCMA(propertyId: string): Promise<CMAResult | null> 
   if (valErr || !valuation) return null
   const valuationId = (valuation as { id: string }).id
 
-  for (const c of compResults) {
+  for (const c of interim.comps) {
     const reason = c.adjustments.map((a) => `${a.reason}:${a.amount}`).join('; ')
     await supabase.from('valuation_comps').insert({
       valuation_id: valuationId,
@@ -505,15 +525,54 @@ export async function computeCMA(propertyId: string): Promise<CMAResult | null> 
     })
   }
 
-  return {
-    estimatedValue: Math.round(estimatedValue),
-    valueLow: Math.round(valueLow),
-    valueHigh: Math.round(valueHigh),
-    confidence,
-    comps: compResults,
-    methodology,
-    valuationId,
+  return { ...interim, valuationId }
+}
+
+/**
+ * Compute CMA directly from listing identity (ListingKey or ListNumber) without properties table dependency.
+ */
+export async function computeCMAByListingKey(listingKeyOrMls: string): Promise<CMAResult | null> {
+  const key = String(listingKeyOrMls ?? '').trim()
+  if (!key) return null
+
+  const supabase = getServiceSupabase()
+  const { data: listing, error } = await supabase
+    .from('listings')
+    .select('ListingKey, ListNumber, StreetNumber, StreetName, City, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, PropertyType')
+    .or(`ListingKey.eq.${key},ListNumber.eq.${key}`)
+    .order('ModificationTimestamp', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error || !listing) return null
+
+  const row = listing as Record<string, unknown>
+  const subject: CMASubject = {
+    propertyId: String(row.ListingKey ?? row.ListNumber ?? key),
+    address: [row.StreetNumber, row.StreetName, row.City].filter(Boolean).join(', '),
+    beds: num(row.BedroomsTotal),
+    baths: num(row.BathroomsTotal),
+    sqft: num(row.TotalLivingAreaSqFt),
+    lotAcres: null,
+    yearBuilt: null,
+    garageSpaces: null,
+    poolYn: false,
+    propertyType: row.PropertyType != null ? String(row.PropertyType) : null,
+    communityId: null,
+    listingKey: row.ListingKey != null ? String(row.ListingKey) : null,
+    vowAvmDisplayYn: true,
   }
+
+  const { data: rpcRows, error: rpcError } = await supabase.rpc('get_cma_comps_by_listing_key', {
+    p_listing_key: key,
+    p_radius_miles: 2,
+    p_months_back: 12,
+    p_max_count: 15,
+  })
+  if (rpcError || !Array.isArray(rpcRows) || rpcRows.length === 0) return null
+
+  const parsed = (rpcRows as Record<string, unknown>[]).map(parseCompRow)
+  const compsFiltered = filterComps(subject, parsed)
+  return buildCMAResult(subject, compsFiltered, `listing-${key}`)
 }
 
 /** Get cached CMA for a property (by property_id). Returns null if none or expired. */

@@ -96,7 +96,7 @@ function pulseToMarketStats(
 
 /**
  * Market stats for a city via cached pulse + stats tables.
- * Falls back to the legacy getCityMarketStats, then to a lightweight direct count.
+ * Falls back to a lightweight direct count when cache rows are unavailable.
  */
 export async function getMarketStatsForCity(
   cityName: string
@@ -107,14 +107,7 @@ export async function getMarketStatsForCity(
     getCachedStats({ geoType: 'city', geoSlug }),
   ])
   if (pulse) return pulseToMarketStats(pulse, cached)
-  // Fallback: try legacy, but with a timeout
-  try {
-    const { getCityMarketStats } = await import('@/app/actions/listings')
-    return await getCityMarketStats({ city: cityName })
-  } catch {
-    // Last resort: lightweight active count only
-    return getQuickCityCount(cityName)
-  }
+  return getQuickCityCount(cityName)
 }
 
 /**
@@ -229,7 +222,7 @@ async function getQuickCityCount(cityName: string): Promise<CityMarketStats> {
 
 /**
  * Market stats for a subdivision via cached pulse + stats tables.
- * Falls back to the legacy getCityMarketStats, then to a lightweight direct count.
+ * Falls back to lightweight city-level count when subdivision cache rows are unavailable.
  */
 export async function getMarketStatsForSubdivision(
   city: string,
@@ -241,10 +234,5 @@ export async function getMarketStatsForSubdivision(
     getCachedStats({ geoType: 'subdivision', geoSlug }),
   ])
   if (pulse) return pulseToMarketStats(pulse, cached)
-  try {
-    const { getCityMarketStats } = await import('@/app/actions/listings')
-    return await getCityMarketStats({ city, subdivision })
-  } catch {
-    return getQuickCityCount(city)
-  }
+  return getQuickCityCount(city)
 }

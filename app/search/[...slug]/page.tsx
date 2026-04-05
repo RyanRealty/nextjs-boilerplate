@@ -306,7 +306,15 @@ export default async function SearchPage({
       ? getMarketStatsForSubdivision(city, decodedSubdivision)
       : city
         ? getMarketStatsForCity(city)
-        : import('../../actions/listings').then((m) => m.getCityMarketStats({})),
+        : Promise.resolve({
+            count: 0,
+            avgPrice: null,
+            medianPrice: null,
+            avgDom: null,
+            newListingsLast30Days: 0,
+            pendingCount: 0,
+            closedLast12Months: 0,
+          }),
     city ? getCityStatusCounts({ city, subdivision: decodedSubdivision ?? null }) : Promise.resolve({ active: 0, pending: 0, closed: 0, other: 0 }),
     city && !subdivision ? getSubdivisionsInCity(city) : Promise.resolve([]),
     city && !subdivision ? getHotCommunitiesInCity(city) : Promise.resolve([]),
@@ -317,7 +325,7 @@ export default async function SearchPage({
     city
       ? getLiveMarketPulse({
           geoType: subdivision && decodedSubdivision ? 'subdivision' : 'city',
-          geoSlug: subdivision && decodedSubdivision ? `${slugify(city)}-${slugify(decodedSubdivision)}` : slugify(city),
+          geoSlug: subdivision && decodedSubdivision ? subdivisionEntityKey(city, decodedSubdivision) : slugify(city),
         })
       : Promise.resolve(null),
     city

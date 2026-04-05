@@ -30,9 +30,9 @@ export function cityPagePath(city: string): string {
   return homesForSalePath(city)
 }
 
-/** Canonical neighborhood listings path (e.g. "bend", "larkspur" -> "/homes-for-sale/bend/larkspur"). */
+/** Canonical neighborhood page path (e.g. "bend", "larkspur" -> "/cities/bend/larkspur"). */
 export function neighborhoodPagePath(citySlug: string, neighborhoodSlug: string): string {
-  return `/homes-for-sale/${slugify(citySlug)}/${slugify(neighborhoodSlug)}`
+  return `/cities/${slugify(citySlug)}/${slugify(neighborhoodSlug)}`
 }
 
 /**
@@ -111,7 +111,7 @@ export function parseEntityKey(entityKey: string): { city: string; subdivision: 
 
 /**
  * Build an SEO-friendly listing URL slug from address parts (e.g. "123-main-st-bend-oregon-97702").
- * Includes street, city, state, and zip for maximum local SEO. Used for /listing/[key]-[addressSlug].
+ * Includes street, city, state, and zip for legacy routes.
  */
 export function listingAddressSlug(parts: {
   streetNumber?: string | null
@@ -127,16 +127,26 @@ export function listingAddressSlug(parts: {
   return slugify(combined)
 }
 
-function normalizePostalCode(postalCode?: string | null): string | null {
-  const digits = String(postalCode ?? '').trim().replace(/\D/g, '')
-  if (!digits) return null
-  return digits.slice(0, 5)
+/** Build the canonical "{street-address}-{mlsNumber}" listing segment. */
+export function listingAddressSlugWithMls(
+  parts: {
+    streetNumber?: string | null
+    streetName?: string | null
+  } | null | undefined,
+  mlsNumber: string
+): string {
+  const mls = String(mlsNumber ?? '').trim()
+  if (!mls) return ''
+  const streetRaw = [parts?.streetNumber, parts?.streetName].filter(Boolean).join('-').trim()
+  const street = streetRaw ? slugify(streetRaw) : ''
+  return street ? `${street}-${mls}` : mls
 }
 
 /**
  * Build canonical listing detail path using location hierarchy:
- * /homes-for-sale/{city}/{optional-neighborhood}/{community}/{mlsOrKey}-{zip}
- * If location is incomplete, falls back to /homes-for-sale/listing/{mlsOrKey}.
+ * /homes-for-sale/{city}/[{neighborhood}/]{community}/{street-address}-{mlsNumber}
+ * If community is unavailable: /homes-for-sale/{city}/{street-address}-{mlsNumber}
+ * If location is incomplete, falls back to /homes-for-sale/listing/{mlsNumber}.
  */
 export function listingDetailPath(
   listingKey: string,
@@ -158,39 +168,51 @@ export function listingDetailPath(
 ): string {
   const normalizedListingKey = String(listingKey ?? '').trim()
   const normalizedMls = String(identifiers?.mlsNumber ?? '').trim()
-  const key = normalizedListingKey || normalizedMls
-  if (!key) return listingsBrowsePath()
-  const postalCode = normalizePostalCode(address?.postalCode)
+  const publicId = normalizedMls || normalizedListingKey
+  if (!publicId) return listingsBrowsePath()
+
   const cityRaw = location?.city ?? address?.city ?? null
   const citySlug = cityRaw?.trim() ? slugify(cityRaw) : null
   const neighborhoodSlug = location?.neighborhood?.trim() ? slugify(location.neighborhood) : null
   const subdivisionSlug = location?.subdivision?.trim() ? slugify(location.subdivision) : null
+  const listingSegment = listingAddressSlugWithMls(
+    { streetNumber: address?.streetNumber ?? null, streetName: address?.streetName ?? null },
+    publicId
+  )
 
-  // Hierarchy URLs must end with key-zip to match Next rewrites to listing detail.
-  // If zip is unavailable, use by-key fallback to avoid routing to /search and 404s.
-  if (citySlug && subdivisionSlug && postalCode) {
+  if (citySlug && subdivisionSlug && listingSegment) {
     const hierarchyBase = subdivisionListingsPath(citySlug, subdivisionSlug, neighborhoodSlug)
-    const listingSegment = `${encodeURIComponent(key)}-${postalCode}`
-    return `${hierarchyBase}/${listingSegment}`
+    return `${hierarchyBase}/${encodeURIComponent(listingSegment)}`
   }
-  return `/homes-for-sale/listing/${encodeURIComponent(key)}`
+
+  if (citySlug && listingSegment) {
+    return `/homes-for-sale/${citySlug}/${encodeURIComponent(listingSegment)}`
+  }
+
+  return `/homes-for-sale/listing/${encodeURIComponent(publicId)}`
 }
 
 /**
  * Extract the listing key from a URL segment that may be:
  * - "key"
  * - "key~address-slug" (legacy)
- * - "mlsOrKey-zip" (canonical)
+ * - "street-address-mls" (canonical)
+ * - "mlsOrKey-zip" (legacy canonical)
  * - "12345-address-slug" (legacy short form)
- * When the first segment is all digits (ListNumber), the rest is address slug; otherwise the whole segment is the key.
+ * Canonical parsing prefers the terminal MLS number token.
  */
 export function listingKeyFromSlug(slug: string): string {
   const decoded = decodeURIComponent(slug).trim()
   if (!decoded) return ''
   const beforeTilde = decoded.split('~')[0]?.trim() ?? ''
   if (!beforeTilde) return ''
+
+  const mlsTail = beforeTilde.match(/-(\d{6,})$/)
+  if (mlsTail?.[1]) return mlsTail[1].trim()
+
   const zipMatch = beforeTilde.match(/^(.*)-(\d{5})$/)
   if (zipMatch?.[1]) return zipMatch[1].trim()
+
   const parts = beforeTilde.split('-')
   const first = parts[0]?.trim() ?? ''
   if (parts.length > 1 && /^\d+$/.test(first)) return first
