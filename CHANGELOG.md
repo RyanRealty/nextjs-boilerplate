@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.5 (2026-04-05)
+
+### Bug Fixes
+- fix: resolve MLS ids before canonical by-key redirects
+
+---
+
+
 ## v1.6.4 (2026-04-05)
 
 ### Maintenance
