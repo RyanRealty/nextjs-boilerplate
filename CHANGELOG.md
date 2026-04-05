@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.15.4 (2026-04-05)
+
+### Bug Fixes
+- fix: use fallback activity feed for geo activity sections
+
+---
+
+
 ## v1.15.3 (2026-04-05)
 
 ### Bug Fixes
