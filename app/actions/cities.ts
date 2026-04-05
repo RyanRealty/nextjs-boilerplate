@@ -23,6 +23,18 @@ function supabase() {
   return createClient(url, anonKey)
 }
 
+function normalizeBannerLikeUrl(value: string | null | undefined): string | null {
+  const raw = value?.trim()
+  if (!raw) return null
+  const marker = '/storage/v1/object/public/banners/'
+  const markerIndex = raw.indexOf(marker)
+  if (markerIndex >= 0) {
+    const tail = raw.slice(markerIndex + marker.length)
+    if (tail.startsWith('http://') || tail.startsWith('https://')) return tail
+  }
+  return raw
+}
+
 const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const HOME_TILE_SELECT =
@@ -93,7 +105,7 @@ async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
         activeCount: row.active_count,
         medianPrice: row.median_price ? Math.round(row.median_price) : null,
         communityCount: row.community_count,
-        heroImageUrl: db?.hero_image_url ?? banner?.url ?? null,
+        heroImageUrl: normalizeBannerLikeUrl(db?.hero_image_url ?? null) ?? banner?.url ?? null,
         description: db?.description ?? null,
       }
     })
@@ -154,7 +166,15 @@ async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
     const slug = slugify(name)
     const banner = bannerMap.get(slug)
     const db = cityMetaByName.get(name.toLowerCase()) ?? null
-    result.push({ slug, name, activeCount, medianPrice, communityCount, heroImageUrl: db?.hero_image_url ?? banner?.url ?? null, description: db?.description ?? null })
+    result.push({
+      slug,
+      name,
+      activeCount,
+      medianPrice,
+      communityCount,
+      heroImageUrl: normalizeBannerLikeUrl(db?.hero_image_url ?? null) ?? banner?.url ?? null,
+      description: db?.description ?? null,
+    })
   }
   result.sort((a, b) => b.activeCount - a.activeCount || a.name.localeCompare(b.name))
   return result
@@ -200,7 +220,7 @@ export async function getCityBySlug(slug: string): Promise<CityDetail | null> {
     slug,
     name: db?.name ?? cityName,
     description: db?.description ?? null,
-    heroImageUrl: db?.hero_image_url ?? bannerUrl ?? null,
+    heroImageUrl: normalizeBannerLikeUrl(db?.hero_image_url ?? null) ?? bannerUrl ?? null,
     activeCount,
     medianPrice: stats.medianPrice,
     avgDom: stats.avgDom ?? null,

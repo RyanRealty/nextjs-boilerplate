@@ -20,6 +20,18 @@ function supabase() {
   return createClient(url, anonKey)
 }
 
+function normalizeBannerLikeUrl(value: string | null | undefined): string | null {
+  const raw = value?.trim()
+  if (!raw) return null
+  const marker = '/storage/v1/object/public/banners/'
+  const markerIndex = raw.indexOf(marker)
+  if (markerIndex >= 0) {
+    const tail = raw.slice(markerIndex + marker.length)
+    if (tail.startsWith('http://') || tail.startsWith('https://')) return tail
+  }
+  return raw
+}
+
 /** Known city slugs for parsing community slugs. */
 export async function getCitySlugs(): Promise<Set<string>> {
   const cities = await import('@/app/actions/listings').then((m) => m.getBrowseCities())
@@ -155,7 +167,7 @@ export async function getCommunityBySlug(slug: string): Promise<CommunityDetail 
     subdivision,
     name: comm?.name ?? subdivision,
     description: comm?.description ?? null,
-    heroImageUrl: comm?.hero_image_url ?? bannerUrl ?? null,
+    heroImageUrl: normalizeBannerLikeUrl(comm?.hero_image_url ?? null) ?? bannerUrl ?? null,
     boundaryGeojson: comm?.boundary_geojson ?? null,
     isResort,
     resortContent: comm?.resort_content ?? null,
