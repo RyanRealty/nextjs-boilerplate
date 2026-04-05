@@ -45,8 +45,8 @@ export async function getActivityFeed(options?: {
 
   const keys = [...new Set((events as { listing_key: string }[]).map((e) => e.listing_key).filter(Boolean))]
   const [byNum, byKeyRes] = await Promise.all([
-    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus').in('ListNumber', keys),
-    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus').in('ListingKey', keys),
+    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate').in('ListNumber', keys),
+    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate').in('ListingKey', keys),
   ])
   const listingRows = [...(byNum.data ?? []), ...(byKeyRes.data ?? [])]
   const seen = new Set<string>()
@@ -141,6 +141,8 @@ export async function getActivityFeed(options?: {
       NeighborhoodSlug: neighborhoodContext?.slug ?? null,
       PhotoURL: listing?.PhotoURL as string | null,
       StandardStatus: listing?.StandardStatus as string | null,
+      OnMarketDate: listing?.OnMarketDate as string | null,
+      CloseDate: listing?.CloseDate as string | null,
     })
   }
   return result
@@ -166,7 +168,7 @@ export async function getActivityFeedWithFallback(options: {
   const supabase = createClient(url, anonKey)
   const { data: rows } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, ModificationTimestamp')
+    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp')
     .ilike('City', options.city.trim())
     .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%,StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%')
     .order('ModificationTimestamp', { ascending: false })
@@ -197,6 +199,8 @@ export async function getActivityFeedWithFallback(options: {
       NeighborhoodSlug: null,
       PhotoURL: r.PhotoURL as string | null,
       StandardStatus: r.StandardStatus as string | null,
+      OnMarketDate: (r.OnMarketDate as string) ?? null,
+      CloseDate: (r.CloseDate as string) ?? null,
     })
   }
   return [...events, ...fallback]
@@ -228,7 +232,7 @@ async function _getActivityFeedWithFallbackMultiUncached(options: {
   const supabase = createClient(url, anonKey)
   const { data: rows } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, ModificationTimestamp')
+    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp')
     .in('City', cities)
     .or(ACTIVE_OR_PENDING_OR)
     .order('ModificationTimestamp', { ascending: false })
@@ -259,6 +263,8 @@ async function _getActivityFeedWithFallbackMultiUncached(options: {
       NeighborhoodSlug: null,
       PhotoURL: r.PhotoURL as string | null,
       StandardStatus: r.StandardStatus as string | null,
+      OnMarketDate: (r.OnMarketDate as string) ?? null,
+      CloseDate: (r.CloseDate as string) ?? null,
     })
   }
   return [...events, ...fallback]

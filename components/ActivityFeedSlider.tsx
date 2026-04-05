@@ -34,6 +34,7 @@ function mapToTileListing(item: ActivityFeedItem): ListingTileListing {
     Longitude: null,
     StandardStatus: item.StandardStatus ?? null,
     OnMarketDate: (item as { OnMarketDate?: string | null }).OnMarketDate ?? null,
+    CloseDate: (item as { CloseDate?: string | null }).CloseDate ?? null,
   }
 }
 
@@ -46,6 +47,16 @@ function getBadgeProps(eventType: ActivityFeedItem['event_type']): {
     hasRecentPriceChange: eventType === 'price_drop',
     hotBadge: false,
   }
+}
+
+function getPriceDropAmount(item: ActivityFeedItem): number | null {
+  if (item.event_type !== 'price_drop') return null
+  const previousRaw = item.payload?.previous_price
+  const nextRaw = item.payload?.new_price ?? item.ListPrice
+  const previous = typeof previousRaw === 'number' ? previousRaw : Number(previousRaw ?? NaN)
+  const next = typeof nextRaw === 'number' ? nextRaw : Number(nextRaw ?? NaN)
+  if (!Number.isFinite(previous) || !Number.isFinite(next) || previous <= next) return null
+  return previous - next
 }
 
 export default function ActivityFeedSlider({
@@ -79,6 +90,7 @@ export default function ActivityFeedSlider({
               saved={savedSet.has(item.listing_key)}
               liked={likedSet.has(item.listing_key)}
               hasRecentPriceChange={badges.hasRecentPriceChange}
+              priceDropAmount={getPriceDropAmount(item)}
               hotBadge={badges.hotBadge}
               priority={idx < 3}
             />

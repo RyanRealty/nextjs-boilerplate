@@ -38,4 +38,6 @@ export type ActivityFeedItem = {
   NeighborhoodSlug?: string | null
   PhotoURL?: string | null
   StandardStatus?: string | null
+  OnMarketDate?: string | null
+  CloseDate?: string | null
 }

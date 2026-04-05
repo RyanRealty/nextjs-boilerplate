@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useComparison } from '@/contexts/ComparisonContext'
 import { trackEvent } from '@/lib/tracking'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -79,8 +80,19 @@ function bestIndex(listings: CompareListingData[], key: keyof CompareListingData
 }
 
 export default function CompareClient({ listings }: { listings: CompareListingData[] }) {
-  const { removeFromComparison } = useComparison()
+  const { comparisonItems, removeFromComparison } = useComparison()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [pdfLoading, setPdfLoading] = useState(false)
+
+  useEffect(() => {
+    if (listings.length > 0) return
+    if (comparisonItems.length === 0) return
+    const currentIds = (searchParams?.get('ids') ?? '').trim()
+    const nextIds = comparisonItems.join(',')
+    if (currentIds === nextIds || !nextIds) return
+    router.replace(`/compare?ids=${encodeURIComponent(nextIds)}`)
+  }, [comparisonItems, listings.length, router, searchParams])
 
   const handleShare = () => {
     const url = typeof window !== 'undefined' ? window.location.href : ''
@@ -119,7 +131,11 @@ export default function CompareClient({ listings }: { listings: CompareListingDa
     return (
       <div className="py-20 text-center">
         <h1 className="text-2xl font-bold text-primary mb-4">No Listings to Compare</h1>
-        <p className="text-muted-foreground mb-6">Add listings from the search page to compare them side by side.</p>
+        <p className="text-muted-foreground mb-6">
+          {comparisonItems.length > 0
+            ? 'Loading your selected homes...'
+            : 'Add listings from the search page to compare them side by side.'}
+        </p>
         <Button asChild>
           <Link href="/homes-for-sale">
             Browse Homes

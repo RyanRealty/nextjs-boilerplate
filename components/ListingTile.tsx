@@ -23,12 +23,27 @@ import { ArrowLeftRightIcon } from '@hugeicons/core-free-icons'
 
 const LISTING_PROVIDED_BY = 'Oregon Data Share'
 
-function daysOnMarket(onMarketDate: string | null | undefined): number | null {
+function daysOnMarket(
+  onMarketDate: string | null | undefined,
+  closeDate?: string | null | undefined,
+  status?: string | null | undefined
+): number | null {
   if (!onMarketDate) return null
-  const d = new Date(onMarketDate)
-  if (Number.isNaN(d.getTime())) return null
-  const days = Math.floor((Date.now() - d.getTime()) / (24 * 60 * 60 * 1000))
+  const listed = new Date(onMarketDate)
+  if (Number.isNaN(listed.getTime())) return null
+  const closed = /closed/i.test(String(status ?? ''))
+    ? new Date(String(closeDate ?? ''))
+    : null
+  const endMs = closed && !Number.isNaN(closed.getTime()) ? closed.getTime() : Date.now()
+  const days = Math.floor((endMs - listed.getTime()) / (24 * 60 * 60 * 1000))
   return days >= 0 ? days : null
+}
+
+function formatListedDate(dateText: string | null | undefined): string | null {
+  if (!dateText) return null
+  const d = new Date(dateText)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function statusLabel(s: string | null | undefined): string {
@@ -134,6 +149,8 @@ export type ListingTileProps = {
   userEmail?: string | null
   /** When true, show "Price reduced" badge (e.g. from listing history). */
   hasRecentPriceChange?: boolean
+  /** Amount reduced for explicit price-drop events when known. */
+  priceDropAmount?: number | null
   /** When true, show "Hot" badge (e.g. Trending section). */
   hotBadge?: boolean
   /** When true, preload image (e.g. above-the-fold tiles). */
@@ -159,6 +176,7 @@ function ListingTile({
   signedIn,
   userEmail,
   hasRecentPriceChange = false,
+  priceDropAmount = null,
   hotBadge = false,
   priority = false,
   fubPersonId,
@@ -187,7 +205,12 @@ function ListingTile({
     router.push(`/login${returnUrl ? `?returnUrl=${returnUrl}` : ''}`)
   }
   const price = Number(listing.ListPrice ?? 0)
-  const dom = daysOnMarket(listing.OnMarketDate ?? undefined)
+  const dom = daysOnMarket(
+    listing.OnMarketDate ?? undefined,
+    listing.CloseDate ?? null,
+    listing.StandardStatus ?? null
+  )
+  const listedDate = formatListedDate(listing.OnMarketDate ?? null)
   const hasOpenHouse = Array.isArray(listing.OpenHouses) && listing.OpenHouses.length > 0
   const isResort =
     listing.City != null &&
@@ -454,6 +477,10 @@ function ListingTile({
           <span>
             Days on market: {dom != null && dom >= 0 ? (dom === 0 ? 'New' : `${dom} day${dom !== 1 ? 's' : ''}`) : '—'}
           </span>
+          <span>Listed: {listedDate ?? '—'}</span>
+          {hasRecentPriceChange && priceDropAmount && priceDropAmount > 0 && (
+            <span className="text-warning">Price drop: ${Math.round(priceDropAmount).toLocaleString()}</span>
+          )}
           <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColor(listing.StandardStatus)}`}>
             {statusLabel(listing.StandardStatus)}
           </span>

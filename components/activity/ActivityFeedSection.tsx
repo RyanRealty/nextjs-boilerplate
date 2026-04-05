@@ -62,8 +62,19 @@ function mapFeedItemToTile(item: ActivityFeedItem): ListingTileListing {
     Latitude: null,
     Longitude: null,
     StandardStatus: item.StandardStatus ?? null,
-    OnMarketDate: null,
+    OnMarketDate: item.OnMarketDate ?? null,
+    CloseDate: item.CloseDate ?? null,
   }
+}
+
+function getPriceDropAmount(item: ActivityFeedItem): number | null {
+  if (item.event_type !== 'price_drop') return null
+  const previousRaw = item.payload?.previous_price
+  const nextRaw = item.payload?.new_price ?? item.ListPrice
+  const previous = typeof previousRaw === 'number' ? previousRaw : Number(previousRaw ?? NaN)
+  const next = typeof nextRaw === 'number' ? nextRaw : Number(nextRaw ?? NaN)
+  if (!Number.isFinite(previous) || !Number.isFinite(next) || previous <= next) return null
+  return previous - next
 }
 
 /** Union of default cities and allCities for the selector list, default first then rest alphabetically. */
@@ -267,6 +278,7 @@ export default function ActivityFeedSection({
                   saved={savedKeys.includes(item.listing_key)}
                   liked={likedKeys.includes(item.listing_key)}
                   hasRecentPriceChange={item.event_type === 'price_drop'}
+                  priceDropAmount={getPriceDropAmount(item)}
                   priority={i < 3}
                 />
               </div>

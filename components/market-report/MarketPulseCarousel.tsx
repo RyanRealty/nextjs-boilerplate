@@ -19,9 +19,19 @@ import { cn } from '@/lib/utils'
 const SCROLL_THRESHOLD = 4
 
 function formatPeriodLabel(start: string, end: string): string {
+  const parseYmdLocal = (value: string): Date | null => {
+    const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!m) return null
+    const y = Number(m[1])
+    const mo = Number(m[2]) - 1
+    const d = Number(m[3])
+    const parsed = new Date(y, mo, d)
+    return Number.isNaN(parsed.getTime()) ? null : parsed
+  }
   try {
-    const s = new Date(start + 'Z')
-    const e = new Date(end + 'Z')
+    const s = parseYmdLocal(start)
+    const e = parseYmdLocal(end)
+    if (!s || !e) return `${start} – ${end}`
     return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
   } catch {
     return `${start} – ${end}`
@@ -263,6 +273,10 @@ export default function MarketPulseCarousel({ data, className }: Props) {
                           </div>
                         </div>
                         <div className="border-t border-border bg-card px-4 py-3">
+                          <div className="mb-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                            <span>Sold: {city.metrics.sold_count.toLocaleString()}</span>
+                            <span>Median: {city.metrics.median_price > 0 ? `$${Math.round(city.metrics.median_price).toLocaleString()}` : '—'}</span>
+                          </div>
                           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
                             View full report
                             <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />

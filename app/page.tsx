@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getBrokerageSettings } from './actions/brokerage'
 import { getMarketSnapshot, getJustListed } from './actions/home'
 import { getSession } from './actions/auth'
@@ -29,6 +30,7 @@ import AdUnit from '@/components/AdUnit'
 import HomeValuationCta from '@/components/HomeValuationCta'
 import BrokerageListingsSlider from '@/components/home/BrokerageListingsSlider'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent } from '@/components/ui/card'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const ogImage = `${siteUrl}/og-home.png`
@@ -276,25 +278,36 @@ export default async function Home() {
         <div className="mx-auto max-w-7xl">
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Discover by lifestyle</h2>
           <p className="mt-2 text-muted-foreground">Find homes that match how you want to live.</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[
-              { href: '/search/bend/waterfront', label: 'Waterfront Homes', icon: '🌊' },
-              { href: '/search/bend/on-golf-course', label: 'Golf Course Homes', icon: '⛳' },
-              { href: '/search/bend/new-listings', label: 'New Listings', icon: '✨' },
-              { href: '/search/bend/luxury', label: 'Luxury Homes', icon: '🏔️' },
+              { href: '/search/bend/luxury', label: 'Luxury homes', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/water-view', label: 'Water view homes', image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/on-golf-course', label: 'Golf course homes', image: 'https://images.unsplash.com/photo-1567168108480-0c3f6b6d33f9?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/new-listings', label: 'New listings', image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/open-house', label: 'Open house homes', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/mountain-view', label: 'Mountain view homes', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/with-view', label: 'Scenic view homes', image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/with-fireplace', label: 'Homes with fireplace', image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/lake-view', label: 'Lake view homes', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80' },
+              { href: '/search/bend/price-high-to-low', label: 'Premium homes', image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1200&q=80' },
             ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group flex items-center gap-3 rounded-xl border border-border bg-background p-5 shadow-sm transition hover:border-primary/30 hover:shadow-md"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-lg" aria-hidden>
-                  {item.icon}
-                </span>
-                <span className="text-sm font-semibold text-foreground group-hover:text-primary">
-                  {item.label}
-                </span>
-              </Link>
+              <Card key={item.href} className="overflow-hidden border-border bg-background shadow-sm transition hover:border-primary/30 hover:shadow-md">
+                <Link href={item.href} className="group block">
+                  <div className="relative aspect-[5/3]">
+                    <Image
+                      src={item.image}
+                      alt={item.label}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      sizes="(max-width: 1024px) 50vw, 20vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/55 to-transparent" />
+                  </div>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                  </CardContent>
+                </Link>
+              </Card>
             ))}
           </div>
         </div>

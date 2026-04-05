@@ -69,6 +69,12 @@ export async function getMarketReportData(options?: {
     (r): r is CityReport => r != null
   )
 
+  // Drop obvious no-data rows so the slider only shows meaningful market cards.
+  metricsByCity = metricsByCity.filter((row) => {
+    const m = row.metrics
+    return m.sold_count > 0 || m.current_listings > 0 || m.sales_12mo > 0
+  })
+
   // Attach city hero images for slider card backgrounds (match by name, case-insensitive).
   try {
     const citiesForIndex = await getCitiesForIndex()
