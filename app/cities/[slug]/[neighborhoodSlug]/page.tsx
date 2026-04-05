@@ -33,6 +33,7 @@ import GeoSectionNewestListings from '@/components/geo-page/GeoSectionNewestList
 import CommunitiesSlider from '@/components/sliders/CommunitiesSlider'
 import GeoSectionFeaturedListings from '@/components/geo-page/GeoSectionFeaturedListings'
 import GeoSectionLatestActivity from '@/components/geo-page/GeoSectionLatestActivity'
+import RecentlySoldRow from '@/components/RecentlySoldRow'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
@@ -80,7 +81,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
   const pageUrl = `${siteUrl}/cities/${citySlug}/${neighborhoodSlug}`
   const pageTitle = `${neighborhood.name} in ${neighborhood.cityName}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
-  const [placePhotoUrl, listings, , savedKeys, likedKeys, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys] = await Promise.all([
+  const [placePhotoUrl, listings, soldListings, savedKeys, likedKeys, communitiesInNeighborhood, activityFeed, brokers, savedCommunityKeys, likedCommunityKeys] = await Promise.all([
     !neighborhood.heroImageUrl
       ? fetchPlacePhoto(`${neighborhood.name} ${neighborhood.cityName} Oregon`).then((r) => r?.url ?? null).catch(() => null)
       : Promise.resolve(null),
@@ -154,6 +155,24 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
     avgDom,
     closedLast12Months: 0,
   }
+  const recentlySoldRows = soldListings
+    .map((item) => ({
+      listingKey: (item.ListingKey ?? item.ListNumber ?? '').toString().trim(),
+      listNumber: item.ListNumber ?? null,
+      listPrice: item.ListPrice ?? null,
+      closePrice: item.ClosePrice ?? null,
+      closeDate: item.CloseDate ?? null,
+      beds: item.BedroomsTotal ?? null,
+      baths: item.BathroomsTotal ?? null,
+      sqft: item.TotalLivingAreaSqFt ?? null,
+      streetNumber: item.StreetNumber ?? null,
+      streetName: item.StreetName ?? null,
+      city: item.City ?? null,
+      state: item.State ?? null,
+      postalCode: item.PostalCode ?? null,
+      photoUrl: item.PhotoURL ?? null,
+    }))
+    .filter((item) => item.listingKey.length > 0)
 
   const geo = (() => {
     const withCoords = listings.filter(
@@ -249,7 +268,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         items={[
           { label: 'Home', href: '/' },
           { label: 'Cities', href: '/cities' },
-          { label: neighborhood.cityName, href: `${siteUrl}/cities/${citySlug}` },
+          { label: neighborhood.cityName, href: `/cities/${citySlug}` },
           { label: neighborhood.name },
         ]}
       />
@@ -281,6 +300,12 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         savedKeys={session?.user ? savedKeys : []}
         likedKeys={session?.user ? likedKeys : []}
       />
+
+      <div className="px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <RecentlySoldRow title={`Recently sold in ${neighborhood.name}`} listings={recentlySoldRows} />
+        </div>
+      </div>
 
       <GeoSectionFeaturedListings
         title="Featured homes"

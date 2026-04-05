@@ -89,7 +89,7 @@ export default async function CommunityDetailPage({ params }: Props) {
   const pageTitle = `${community.name} Homes for Sale | ${community.city}, Oregon | Ryan Realty`
   trackPageViewIfPossible({ sessionUser: session?.user ?? undefined, fubPersonId, pageUrl, pageTitle })
   const citySlug = community.city.toLowerCase().replace(/\s+/g, '-')
-  const [listings, soldListings, priceHistory, , savedKeys, likedKeys, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides] =
+  const [listings, soldListings, priceHistory, , savedKeys, likedKeys, communitiesInCity, activityFeed, brokers, communitySaved, communityLiked, savedCommunityKeys, likedCommunityKeys, cityGuides, communityPulse, communityOpenHouses] =
     await Promise.all([
       getCommunityListings(community.city, community.subdivision, 24),
       getCommunitySoldListings(community.city, community.subdivision, 6),
@@ -105,16 +105,16 @@ export default async function CommunityDetailPage({ params }: Props) {
       session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
       session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
       getGuidesByCity(community.city),
+      getLiveMarketPulse({
+        geoType: 'subdivision',
+        geoSlug: subdivisionEntityKey(community.city, community.subdivision),
+      }),
+      getOpenHousesWithListings({
+        city: community.city,
+        community: [community.subdivision],
+      }),
     ])
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
-  const communityPulse = await getLiveMarketPulse({
-    geoType: 'subdivision',
-    geoSlug: subdivisionEntityKey(community.city, community.subdivision),
-  })
-  const communityOpenHouses = await getOpenHousesWithListings({
-    city: community.city,
-    community: [community.subdivision],
-  })
 
   const prices = listings
     .map((l) => l.ListPrice)

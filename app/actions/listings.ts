@@ -268,7 +268,7 @@ async function _getBrowseCitiesUncached(): Promise<BrowseCity[]> {
 export const getBrowseCities = unstable_cache(
   _getBrowseCitiesUncached,
   ['browse-cities'],
-  { revalidate: 300, tags: ['browse-cities'] }
+  { revalidate: 1800, tags: ['browse-cities'] }
 )
 
 /**
@@ -1507,7 +1507,7 @@ export type HotCommunity = {
  * Top communities in a city by activity: for-sale count, pending count, new listings (last 7 days), median price.
  * Used for "Hot communities" on city pages. Uses get_subdivision_status_counts RPC when available so counts match sync page.
  */
-export async function getHotCommunitiesInCity(city: string): Promise<HotCommunity[]> {
+async function getHotCommunitiesInCityUncached(city: string): Promise<HotCommunity[]> {
   if (!city?.trim()) return []
   const supabaseService = getServiceSupabase()
   if (supabaseService) {
@@ -1524,39 +1524,7 @@ export async function getHotCommunitiesInCity(city: string): Promise<HotCommunit
           medianListPrice: null as number | null,
         }))
         .sort((a, b) => (b.pending * 2 + b.forSale) - (a.pending * 2 + a.forSale) || b.forSale - a.forSale || a.subdivisionName.localeCompare(b.subdivisionName))
-      const topSubs = list.slice(0, 5)
-      const subNames = topSubs.map((c) => c.subdivisionName).filter(Boolean)
-      if (subNames.length > 0) {
-        const supabase = getAnonSupabase()
-        if (supabase) {
-          const { fetchAllRows: fetchAll } = await import('@/lib/supabase/paginate')
-          const rows = await fetchAll<{ SubdivisionName?: string | null; ListPrice?: number | null }>(
-            supabase, 'listings', 'SubdivisionName, ListPrice',
-            (q: any) => q.ilike('City', city.trim()).or(ACTIVE_STATUS_OR),
-          )
-          const bySub = new Map<string, number[]>()
-          for (const row of rows) {
-            const name = (row.SubdivisionName ?? '').trim()
-            if (!name || isNaSubdivision(name) || !subNames.includes(name)) continue
-            const p = Number(row.ListPrice)
-            if (Number.isFinite(p) && p > 0) {
-              const arr = bySub.get(name) ?? []
-              arr.push(p)
-              bySub.set(name, arr)
-            }
-          }
-          for (const c of topSubs) {
-            const prices = bySub.get(c.subdivisionName) ?? []
-            if (prices.length > 0) {
-              prices.sort((a, b) => a - b)
-              const mid = Math.floor(prices.length / 2)
-              c.medianListPrice =
-                prices.length % 2 ? prices[mid]! : Math.round((prices[mid - 1]! + prices[mid]!) / 2)
-            }
-          }
-        }
-      }
-      return topSubs
+      return list.slice(0, 5)
     }
   }
   const supabase = getAnonSupabase()
@@ -1614,6 +1582,12 @@ export async function getHotCommunitiesInCity(city: string): Promise<HotCommunit
   })
   return list.slice(0, 5)
 }
+
+export const getHotCommunitiesInCity = unstable_cache(
+  getHotCommunitiesInCityUncached,
+  ['hot-communities-city'],
+  { revalidate: 300, tags: ['hot-communities-city'] }
+)
 
 /**
  * Centroid (avg lat/lng) of listings in a city. Used to center the map on a city page.

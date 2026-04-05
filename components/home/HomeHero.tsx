@@ -30,6 +30,7 @@ type Props = {
 export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }: Props) {
   const backgroundImage = heroImageUrl?.trim() || DEFAULT_HERO_IMAGE
   const useVideo = Boolean(heroVideoUrl?.trim())
+  const [enableVideo, setEnableVideo] = useState(false)
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<SearchSuggestionsResult | null>(null)
@@ -67,6 +68,16 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
     }, 220)
     return () => clearTimeout(t)
   }, [query])
+
+  useEffect(() => {
+    if (!useVideo) {
+      setEnableVideo(false)
+      return
+    }
+    // Keep the hero image as the initial LCP surface, then start video shortly after first paint.
+    const timer = setTimeout(() => setEnableVideo(true), 1200)
+    return () => clearTimeout(timer)
+  }, [useVideo])
 
   const MAX_ADDRESSES = 6
   const MAX_CITIES = 6
@@ -170,22 +181,24 @@ export default function HomeHero({ marketSnapshot, heroVideoUrl, heroImageUrl }:
                 priority
               />
             )}
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="none"
-              className="absolute inset-0 h-full w-full object-cover bg-transparent"
-              aria-hidden
-              onCanPlay={(e) => {
-                const el = e.currentTarget
-                el.style.opacity = '1'
-              }}
-              style={{ opacity: 0, transition: 'opacity 0.5s ease-in' }}
-            >
-              <source src={heroVideoUrl!} type="video/mp4" />
-            </video>
+            {enableVideo ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="absolute inset-0 h-full w-full object-cover bg-transparent"
+                aria-hidden
+                onCanPlay={(e) => {
+                  const el = e.currentTarget
+                  el.style.opacity = '1'
+                }}
+                style={{ opacity: 0, transition: 'opacity 0.5s ease-in' }}
+              >
+                <source src={heroVideoUrl!} type="video/mp4" />
+              </video>
+            ) : null}
           </>
         ) : backgroundImage ? (
           <Image

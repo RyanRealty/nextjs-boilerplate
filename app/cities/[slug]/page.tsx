@@ -156,6 +156,8 @@ export default async function CityDetailPage({ params }: Props) {
     savedCommunityKeys,
     likedCommunityKeys,
     cityGuides,
+    cityPulse,
+    cityOpenHouses,
   ] = await Promise.all([
     getCityListings(city.name, 24),
     getCitySoldListings(city.name, 6),
@@ -169,10 +171,10 @@ export default async function CityDetailPage({ params }: Props) {
     session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
     session?.user ? getLikedCommunityKeys() : Promise.resolve([]),
     getGuidesByCity(city.name),
+    getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) }),
+    getOpenHousesWithListings({ city: city.name }),
   ])
   const cityGuideSlug = cityGuides.length > 0 ? cityGuides[0]!.slug : null
-  const cityPulse = await getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) })
-  const cityOpenHouses = await getOpenHousesWithListings({ city: city.name })
 
   const quickFacts = buildQuickFacts(city.name, listings)
   const hasRobustDbContent = city.description != null && city.description.trim().length >= 300

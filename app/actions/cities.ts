@@ -163,7 +163,7 @@ async function _getCitiesForIndexUncached(): Promise<CityForIndex[]> {
 export const getCitiesForIndex = unstable_cache(
   _getCitiesForIndexUncached,
   ['cities-index'],
-  { revalidate: 300, tags: ['cities-index'] }
+  { revalidate: 1800, tags: ['cities-index'] }
 )
 
 /** Get city by slug; returns null if not found. */
@@ -241,56 +241,41 @@ export async function getCitySoldListings(
 }
 
 /** Communities (subdivisions) in this city for CityCommunities section. */
-export async function getCommunitiesInCity(cityName: string): Promise<CommunityForIndex[]> {
-  const [hot, flags, listingRows] = await Promise.all([
+async function getCommunitiesInCityUncached(cityName: string): Promise<CommunityForIndex[]> {
+  const [hot, flags] = await Promise.all([
     getHotCommunitiesInCity(cityName),
     listSubdivisionsWithFlags(),
-    import('@/lib/supabase/paginate').then((m) =>
-      m.fetchAllRows<{ SubdivisionName?: string; ListPrice?: number | null }>(
-        supabase(), 'listings', 'SubdivisionName, ListPrice, StandardStatus',
-        (q: any) => q.ilike('City', cityName).or(ACTIVE_OR),
-      )
-    ),
   ])
-  const bySub = new Map<string, number[]>()
-  for (const row of listingRows) {
-    const sub = (row.SubdivisionName ?? '').trim()
-    if (!sub || sub.toLowerCase() === 'n/a') continue
-    const arr = bySub.get(sub) ?? []
-    const p = Number(row.ListPrice)
-    if (Number.isFinite(p) && p > 0) arr.push(p)
-    bySub.set(sub, arr)
-  }
   const resortSet = new Set(
     (await import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()))
   )
   const entityKey = (c: string, s: string) => `${slugify(c)}:${slugify(s)}`
+  const entityKeys = hot.map((h) => entityKey(cityName, h.subdivisionName))
+  const bannerMap = await getBannersBatch('subdivision', entityKeys)
   const result: CommunityForIndex[] = []
   for (const h of hot) {
-    const prices = bySub.get(h.subdivisionName) ?? []
-    prices.sort((a, b) => a - b)
-    const medianPrice =
-      prices.length === 0
-        ? null
-        : prices.length % 2
-          ? prices[Math.floor(prices.length / 2)]!
-          : Math.round((prices[prices.length / 2 - 1]! + prices[prices.length / 2]!) / 2)
     const key = entityKey(cityName, h.subdivisionName)
     const isResort = flags.some((f) => f.entity_key === key && f.is_resort) || resortSet.has(key)
-    const heroUrl = await getBannerUrl('subdivision', key)
+    const heroUrl = bannerMap.get(key)?.url ?? null
     result.push({
       slug: entityKeyToSlug(key),
       entityKey: key,
       city: cityName,
       subdivision: h.subdivisionName,
       activeCount: h.forSale + h.pending,
-      medianPrice: h.medianListPrice ?? medianPrice,
+      medianPrice: h.medianListPrice ?? null,
       heroImageUrl: heroUrl ?? null,
       isResort,
     })
   }
   return result
 }
+
+export const getCommunitiesInCity = unstable_cache(
+  getCommunitiesInCityUncached,
+  ['communities-in-city'],
+  { revalidate: 300, tags: ['communities-in-city'] }
+)
 
 /** Neighborhoods in this city (from neighborhoods table). Uses RPC when available for single-query stats; otherwise N+1 fallback. */
 export async function getNeighborhoodsInCity(cityName: string): Promise<
@@ -571,11 +556,13 @@ export async function getCommunitiesInNeighborhood(neighborhoodId: string, cityN
 
   // Get listing data for the specific subdivisions in this neighborhood
   const communityNames = communityRows.map((c) => c.name)
-  const { fetchAllRows: fetchAll } = await import('@/lib/supabase/paginate')
-  const listingRows = await fetchAll<{ SubdivisionName?: string; ListPrice?: number | null }>(
-    sb, 'listings', 'SubdivisionName, ListPrice, StandardStatus',
-    (q: any) => q.in('SubdivisionName', communityNames).or(ACTIVE_OR),
-  )
+  const { data: listingRowsData } = await sb
+    .from('listings')
+    .select('SubdivisionName, ListPrice')
+    .in('SubdivisionName', communityNames)
+    .eq('StandardStatus', 'Active')
+    .limit(2000)
+  const listingRows = (listingRowsData ?? []) as { SubdivisionName?: string; ListPrice?: number | null }[]
 
   const bySub = new Map<string, number[]>()
   for (const row of listingRows) {
@@ -591,6 +578,8 @@ export async function getCommunitiesInNeighborhood(neighborhoodId: string, cityN
     (await import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()))
   )
   const entityKey = (c: string, s: string) => `${slugify(c)}:${slugify(s)}`
+  const entityKeys = communityRows.map((comm) => entityKey(cityName, comm.name))
+  const bannerMap = await getBannersBatch('subdivision', entityKeys)
 
   const result: CommunityForIndex[] = []
   for (const comm of communityRows) {
@@ -605,7 +594,7 @@ export async function getCommunitiesInNeighborhood(neighborhoodId: string, cityN
 
     const key = entityKey(cityName, comm.name)
     const isResort = flags.some((f) => f.entity_key === key && f.is_resort) || resortSet.has(key)
-    const heroUrl = comm.hero_image_url ?? (await getBannerUrl('subdivision', key))
+    const heroUrl = comm.hero_image_url ?? bannerMap.get(key)?.url ?? null
 
     result.push({
       slug: comm.slug,

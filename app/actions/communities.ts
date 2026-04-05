@@ -112,7 +112,7 @@ async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
 export const getCommunitiesForIndex = unstable_cache(
   _getCommunitiesForIndexUncached,
   ['communities-index'],
-  { revalidate: 900, tags: ['communities-index'] }
+  { revalidate: 1800, tags: ['communities-index'] }
 )
 
 /** Get community by slug; returns null if not found. */
