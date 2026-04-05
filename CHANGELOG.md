@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.13 (2026-04-05)
+
+### Bug Fixes
+- fix: use server-side key for compare listing hydration
+
+---
+
+
 ## v1.6.12 (2026-04-05)
 
 ### Bug Fixes
