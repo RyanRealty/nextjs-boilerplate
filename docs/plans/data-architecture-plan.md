@@ -14,17 +14,17 @@
   PHASE STATUS:
   - Phase 0A: [COMPLETE] Documentation reconciliation
   - Phase 0B: [COMPLETE] Cursor rules  
-  - Phase 1:  [PENDING] Schema foundation
-  - Phase 2:  [PENDING] Stats computation fix
-  - Phase 3:  [PENDING] URL structure (MLS + address)
-  - Phase 4:  [PENDING] Geographic hierarchy
-  - Phase 5:  [PENDING] Breadcrumbs
-  - Phase 6:  [PENDING] Listing detail performance
-  - Phase 7:  [PENDING] Search + city + community performance
-  - Phase 8:  [PENDING] Cache layer
-  - Phase 9:  [PENDING] Historical data
-  - Phase 10: [PENDING] CMA engine
-  - Phase 11: [PENDING] Reports alignment
+- Phase 1:  [COMPLETE] Schema foundation
+- Phase 2:  [COMPLETE] Stats computation fix
+- Phase 3:  [COMPLETE] URL structure (MLS + address)
+- Phase 4:  [COMPLETE] Geographic hierarchy
+- Phase 5:  [COMPLETE] Breadcrumbs
+- Phase 6:  [COMPLETE] Listing detail performance
+- Phase 7:  [COMPLETE] Search + city + community performance
+- Phase 8:  [COMPLETE] Cache layer
+- Phase 9:  [COMPLETE] Historical data
+- Phase 10: [COMPLETE] CMA engine
+- Phase 11: [COMPLETE] Reports alignment
   - Phase 12: [PENDING] Legacy cleanup + CI enforcement
   - Phase 13: [PENDING] Full verification
 -->
