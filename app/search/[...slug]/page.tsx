@@ -20,7 +20,7 @@ import { getSession } from '../../actions/auth'
 import { getBannerUrl, getOrCreatePlaceBanner, getBannerSearchQuery } from '../../actions/banners'
 import { shareDescription, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '../../../lib/share-metadata'
 import { getBestListingHeroForGeography } from '../../actions/photo-classification'
-import { getHeroVideoUrl, refreshHeroMedia } from '../../actions/hero-videos'
+import { refreshHeroMedia } from '../../actions/hero-videos'
 import { getCommunityProfile } from '@/lib/community-profiles'
 import SaveSearchButton from '../../../components/SaveSearchButton'
 import { getCityContent, getSubdivisionBlurb } from '../../../lib/city-content'
@@ -430,16 +430,14 @@ export default async function SearchPage({
         subdivision ? isResortSubdivision : undefined
       )
     : ''
-  const [heroVideoUrl, listingHero, bannerResult] =
+  const [listingHero, bannerResult] =
     city
       ? await Promise.all([
-          subdivision
-            ? getHeroVideoUrl('subdivision', entityKey)
-            : getHeroVideoUrl('city', entityKey),
           getBestListingHeroForGeography(city, decodedSubdivision ?? null),
           getOrCreatePlaceBanner(entityType, entityKey, bannerSearchQuery),
         ])
-      : [null, null, { url: null, attribution: null }]
+      : [null, { url: null, attribution: null }]
+  const heroVideoUrl = null
   // Prefer curated Central Oregon lifestyle image over generic Unsplash/AI banner
   const { getCityHeroImage, CITY_HERO_IMAGES } = await import('@/lib/central-oregon-images')
   const curatedCityImage = city ? (CITY_HERO_IMAGES[city.toLowerCase().replace(/\s+/g, '-')] ?? null) : null
