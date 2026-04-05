@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.15.8 (2026-04-05)
+
+### Bug Fixes
+- fix: reduce search page payload and client churn
+
+---
+
+
 ## v1.15.7 (2026-04-05)
 
 ### Bug Fixes
