@@ -64,7 +64,7 @@ export default async function ComparePage({
 
   if (url?.trim() && key?.trim()) {
     const supabase = createClient(url, key)
-    const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, PropertyType, OnMarketDate, LotSizeAcres, YearBuilt, GarageSpaces, AssociationFee, TaxAnnualAmount'
+    const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, PropertyType, OnMarketDate, CloseDate'
 
     // Fetch listings by both ListNumber and ListingKey (match whichever column hits)
     const [byNumber, byKey] = await Promise.all([
@@ -112,7 +112,7 @@ export default async function ComparePage({
         beds: (row.BedroomsTotal as number) ?? null,
         baths: (row.BathroomsTotal as number) ?? null,
         sqft: (row.TotalLivingAreaSqFt as number) ?? null,
-        lotSizeAcres: (row.LotSizeAcres as number) ?? null,
+        lotSizeAcres: (row.lot_size_acres as number) ?? null,
         yearBuilt: (row.YearBuilt as number) ?? null,
         garageSpaces: (row.GarageSpaces as number) ?? null,
         hoa: (row.AssociationFee as number) ?? null,
