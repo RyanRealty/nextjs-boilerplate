@@ -141,8 +141,13 @@ export async function getBannersBatch(
 
   for (const row of (data ?? []) as { entity_key: string; storage_path?: string; attribution?: string | null }[]) {
     if (!row.storage_path) continue
+    const rawPath = row.storage_path.trim()
+    const resolvedUrl =
+      rawPath.startsWith('http://') || rawPath.startsWith('https://')
+        ? rawPath
+        : `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${rawPath}`
     result.set(row.entity_key, {
-      url: `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${row.storage_path}`,
+      url: resolvedUrl,
       attribution: row.attribution?.trim() ?? null,
     })
   }
