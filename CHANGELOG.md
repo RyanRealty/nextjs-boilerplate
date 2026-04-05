@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.16.7 (2026-04-05)
+
+### Maintenance
+- perf: code-split map stack from list search view
+
+---
+
+
 ## v1.16.6 (2026-04-05)
 
 ### Maintenance
