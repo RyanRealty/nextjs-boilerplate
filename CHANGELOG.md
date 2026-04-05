@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.3 (2026-04-05)
+
+### Maintenance
+- docs: reconcile data architecture phase 0 documentation and rules
+
+---
+
+
 ## v1.4.2 (2026-04-05)
 
 ### Bug Fixes
