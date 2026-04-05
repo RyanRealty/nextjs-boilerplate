@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.9.3 (2026-04-05)
+
+### Bug Fixes
+- fix: resolve external banner URLs in batch loader
+
+---
+
+
 ## v1.9.2 (2026-04-05)
 
 ### Maintenance
