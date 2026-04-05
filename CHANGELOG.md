@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.9.5 (2026-04-05)
+
+### Bug Fixes
+- fix: normalize malformed Supabase banner URLs from DB
+
+---
+
+
 ## v1.9.4 (2026-04-05)
 
 ### Bug Fixes
