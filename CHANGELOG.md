@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.10.1 (2026-04-05)
+
+### Bug Fixes
+- fix: broaden home video slider feed
+
+---
+
+
 ## v1.10.0 (2026-04-05)
 
 ### Features
