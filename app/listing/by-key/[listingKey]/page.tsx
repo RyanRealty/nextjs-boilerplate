@@ -1,5 +1,7 @@
-import ListingDetailPage from '@/app/listing/[listingKey]/page'
 import { generateMetadata as generateListingMetadata } from '@/app/listing/[listingKey]/page'
+import { getListingDetailData } from '@/app/actions/listing-detail'
+import { listingDetailPath } from '@/lib/slug'
+import { notFound, permanentRedirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 type PageProps = {
@@ -8,7 +10,25 @@ type PageProps = {
 
 export default async function ListingByKeyPage({ params }: PageProps) {
   const { listingKey } = await params
-  return <ListingDetailPage params={Promise.resolve({ listingKey })} />
+  const data = await getListingDetailData(listingKey)
+  if (!data) notFound()
+  const canonicalPath = listingDetailPath(
+    data.listing.listing_key,
+    {
+      streetNumber: data.property?.street_number ?? null,
+      streetName: data.property?.street_name ?? null,
+      city: data.property?.city ?? null,
+      state: data.property?.state ?? null,
+      postalCode: data.property?.postal_code ?? null,
+    },
+    {
+      city: data.property?.city ?? null,
+      neighborhood: data.community?.neighborhood_name ?? null,
+      subdivision: data.listing.subdivision_name ?? null,
+    },
+    { mlsNumber: data.listing.list_number ?? null }
+  )
+  permanentRedirect(canonicalPath)
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
