@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.12.0 (2026-04-05)
+
+### Features
+- feat: add active inventory type breakdown across geo pages
+
+---
+
+
 ## v1.11.0 (2026-04-05)
 
 ### Features
