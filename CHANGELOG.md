@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.2 (2026-04-05)
+
+### Bug Fixes
+- fix: harden legacy listing redirects and malformed media IDs
+
+---
+
+
 ## v1.6.1 (2026-04-05)
 
 ### Maintenance
