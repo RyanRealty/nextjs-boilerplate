@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.7 (2026-04-05)
+
+### Bug Fixes
+- fix: restore listing detail data fetch for canonical MLS pages
+
+---
+
+
 ## v1.6.6 (2026-04-05)
 
 ### Bug Fixes
