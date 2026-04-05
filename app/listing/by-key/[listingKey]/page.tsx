@@ -1,5 +1,6 @@
 import { generateMetadata as generateListingMetadata } from '@/app/listing/[listingKey]/page'
 import { getListingDetailData } from '@/app/actions/listing-detail'
+import { getListingByKey } from '@/app/actions/listings'
 import { listingDetailPath } from '@/lib/slug'
 import { notFound, permanentRedirect } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -10,7 +11,12 @@ type PageProps = {
 
 export default async function ListingByKeyPage({ params }: PageProps) {
   const { listingKey } = await params
-  const data = await getListingDetailData(listingKey)
+  const lookup = await getListingByKey(listingKey)
+  const resolvedKey =
+    (lookup?.ListingKey ?? lookup?.listing_key ?? lookup?.ListNumber ?? lookup?.list_number ?? listingKey)
+      ?.toString()
+      .trim() || listingKey
+  const data = await getListingDetailData(resolvedKey)
   if (!data) notFound()
   const canonicalPath = listingDetailPath(
     data.listing.listing_key,
