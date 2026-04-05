@@ -52,8 +52,6 @@ import { getBuyingPreferences } from '../../actions/buying-preferences'
 import { getCityBoundary, getCityPriceHistory } from '../../actions/cities'
 import { getCommunityBySlug } from '../../actions/communities'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '../../../lib/mortgage'
-import UnifiedMapListingsView from '../../../components/UnifiedMapListingsView'
-import SearchFilterBar from '../../../components/SearchFilterBar'
 import { shouldNoIndexSearchVariant } from '../../../lib/seo-routing'
 import { getActivityFeed } from '../../actions/activity-feed'
 import { getRecentlySold } from '../../actions/recently-sold'
@@ -467,6 +465,10 @@ export default async function SearchPage({
 
   // Map split view: bounds-driven, Bend default; on city/community pages center on that place and scope search
   if ((sp.view === 'map' || sp.view === 'split') && (city || hasFilterOnly)) {
+    const [{ default: UnifiedMapListingsView }, { default: SearchFilterBar }] = await Promise.all([
+      import('../../../components/UnifiedMapListingsView'),
+      import('../../../components/SearchFilterBar'),
+    ])
     const placeQuery = city
       ? decodedSubdivision
         ? `${getSubdivisionDisplayName(decodedSubdivision)} ${city} Oregon`
