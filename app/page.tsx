@@ -31,6 +31,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import LifestyleSearchSlider from '@/components/home/LifestyleSearchSlider'
 import { getListingsWithVideos } from './actions/videos'
 import type { ListingTileRow } from './actions/listings'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const ogImage = `${siteUrl}/og-home.png`
@@ -143,6 +144,87 @@ async function OpenHouseAsync() {
           viewAllHref="/open-houses"
         />
       </div>
+    </section>
+  )
+}
+
+async function MarketSnapshotSection() {
+  const snapshot = await withTimeout(
+    getMarketSnapshot(),
+    {
+      count: 0,
+      avgPrice: null,
+      medianPrice: null,
+      avgDom: null,
+      newListingsLast30Days: 0,
+      pendingCount: 0,
+      closedLast12Months: 0,
+    },
+    2000
+  )
+  return (
+    <section className="px-4 py-12 sm:px-6 sm:py-14">
+      <div className="mx-auto max-w-7xl">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Market snapshot</h2>
+        <p className="mt-2 text-muted-foreground">
+          Live housing signals to show what is happening right now, plus deeper market reports by city.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Active listings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">{snapshot.count.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Pending listings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">{snapshot.pendingCount.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Median list price</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">
+                {snapshot.medianPrice != null ? `$${Math.round(snapshot.medianPrice).toLocaleString()}` : '—'}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Average days on market</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">
+                {snapshot.avgDom != null ? Math.round(snapshot.avgDom).toLocaleString() : '—'}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">New listings in 30 days</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">{snapshot.newListingsLast30Days.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Closed in 12 months</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">{snapshot.closedLast12Months.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      <MarketPulseSection className="!px-0 !pt-10 !pb-0" />
     </section>
   )
 }
@@ -291,6 +373,18 @@ export default async function Home() {
       {/* Static — renders immediately, no data fetch */}
       <SocialProofSection testimonials={TESTIMONIALS} teamImageSrc={getTeamImageSrc(null)} />
 
+      <Suspense fallback={<SectionSkeleton />}>
+        <MarketSnapshotSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <HomeCitiesBlock session={null} />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <ActivityFeedAsync session={session} />
+      </Suspense>
+
       <LifestyleSearchSlider />
 
       <section className="px-4 py-12 sm:px-6 sm:py-14">
@@ -329,15 +423,7 @@ export default async function Home() {
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton />}>
-        <ActivityFeedAsync session={session} />
-      </Suspense>
-
-      <Suspense fallback={<SectionSkeleton />}>
         <PopularSearchesSection />
-      </Suspense>
-
-      <Suspense fallback={<SectionSkeleton />}>
-        <MarketPulseSection />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton />}>
@@ -352,9 +438,6 @@ export default async function Home() {
         <HomeCommunitiesBlock session={null} />
       </Suspense>
 
-      <Suspense fallback={<SectionSkeleton />}>
-        <HomeCitiesBlock session={null} />
-      </Suspense>
 
       {/* Static CTA sections — render immediately */}
       <section className="border-b border-border bg-card px-4 py-14 sm:px-6 sm:py-16">
