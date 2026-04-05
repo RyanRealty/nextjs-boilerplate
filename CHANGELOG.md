@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.15 (2026-04-05)
+
+### Bug Fixes
+- fix: replace broken lifestyle image source on home page
+
+---
+
+
 ## v1.6.14 (2026-04-05)
 
 ### Bug Fixes
