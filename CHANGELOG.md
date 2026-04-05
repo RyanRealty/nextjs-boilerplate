@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.16.5 (2026-04-05)
+
+### Maintenance
+- perf: move heavy marketing routes to dynamic rendering
+
+---
+
+
 ## v1.16.4 (2026-04-05)
 
 ### Other
