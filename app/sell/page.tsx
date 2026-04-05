@@ -156,6 +156,24 @@ export default async function SellPage() {
         </Link>
       </section>
 
+      <section className="mt-12" aria-labelledby="seller-intents-heading">
+        <h2 id="seller-intents-heading" className="text-lg font-semibold text-foreground">Seller strategy pages</h2>
+        <p className="mt-1 text-muted-foreground">
+          Choose your situation for a focused plan.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button asChild size="sm" variant="outline">
+            <Link href="/sell/for-sale-by-owner">For sale by owner help</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/sell/expired-listings">Expired listing relaunch</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/sell/inherited-home">Inherited home guidance</Link>
+          </Button>
+        </div>
+      </section>
+
       <section className="mt-12 rounded-lg border border-border bg-card p-6 shadow-sm" aria-labelledby="consult-heading">
         <h2 id="consult-heading" className="text-lg font-semibold text-foreground">Get a free consultation</h2>
         <p className="mt-1 text-muted-foreground">Tell us about your home and timeline. We&apos;ll follow up with a no-pressure conversation.</p>

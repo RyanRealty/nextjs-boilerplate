@@ -188,6 +188,37 @@ export default async function BuyPage() {
           </div>
         </div>
       </section>
+
+      <section className="border-t border-border bg-background px-4 py-14 sm:px-6" aria-labelledby="buyer-intent-heading">
+        <div className="mx-auto max-w-6xl">
+          <h2 id="buyer-intent-heading" className="text-center text-2xl font-bold text-primary sm:text-3xl">
+            Buyer strategy pages
+          </h2>
+          <p className="mt-3 text-center text-muted-foreground">
+            Start with the page that matches your goals.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/buy/first-time-home-buyer"
+              className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+            >
+              First time buyer plan
+            </Link>
+            <Link
+              href="/buy/relocation"
+              className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+            >
+              Relocation guidance
+            </Link>
+            <Link
+              href="/buy/investment"
+              className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+            >
+              Investment strategy
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
