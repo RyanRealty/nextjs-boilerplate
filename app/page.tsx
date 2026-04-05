@@ -57,6 +57,7 @@ function getTeamImageSrc(brokerage: BrokerageSettingsRow | null): string {
 }
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Ryan Realty — Central Oregon Real Estate | Bend, Redmond, Sisters, Sunriver',

@@ -7,6 +7,7 @@ const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').
 const ogImage = `${siteUrl}/api/og?type=default`
 
 export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Central Oregon Cities — Bend, Redmond, Sisters, Sunriver | Ryan Realty',

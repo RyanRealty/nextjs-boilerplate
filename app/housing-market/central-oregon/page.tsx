@@ -25,6 +25,8 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function CentralOregonHubPage() {
   const { cities } = await getReportCities()
   const core = (cities ?? []).slice(0, 12)
