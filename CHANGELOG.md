@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.5.0 (2026-04-05)
+
+### Features
+- feat: implement core data architecture phase groundwork
+
+---
+
+
 ## v1.4.3 (2026-04-05)
 
 ### Maintenance
