@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSignInUrl, signInWithEmailPassword, resetPasswordForEmail } from '@/app/actions/auth'
-import { getAdminRoleForEmail } from '@/app/actions/admin-roles'
 import { GoogleIcon } from '@/components/icons/AuthProviderIcons'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -43,11 +42,7 @@ export default function AdminLoginForm() {
       setError(result.error)
       return
     }
-    const role = await getAdminRoleForEmail(email.trim())
-    if (!role) {
-      router.replace('/admin/access-denied')
-      return
-    }
+    // Let the protected server layout enforce admin role checks after session cookies settle.
     router.refresh()
     router.push(ADMIN_NEXT)
   }
