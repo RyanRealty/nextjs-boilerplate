@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
+import { getFallbackImage } from '@/lib/fallback-images'
 
 export type CityCardProps = {
   slug: string
@@ -27,22 +28,19 @@ export default function CityCard({
   description,
 }: CityCardProps) {
   const href = `/cities/${slug}`
+  const heroSrc = heroImageUrl?.trim() || getFallbackImage('city', name)
 
   return (
     <Link href={href} className="group block">
       <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md">
         <div className="relative aspect-[21/9] w-full overflow-hidden">
-          {heroImageUrl ? (
-            <Image
-              src={heroImageUrl}
-              alt={`${name}, Oregon — real estate overview`}
-              fill
-              className="object-cover transition group-hover:scale-[1.02]"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary to-[var(--primary / 0.8)]" />
-          )}
+          <Image
+            src={heroSrc}
+            alt={`${name}, Oregon — real estate overview`}
+            fill
+            className="object-cover transition group-hover:scale-[1.02]"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h2 className="text-2xl font-bold text-primary-foreground drop-shadow-md">{name}</h2>

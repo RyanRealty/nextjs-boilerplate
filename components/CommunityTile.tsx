@@ -14,6 +14,7 @@ import { toggleCommunityLike, incrementCommunityShare } from "@/app/actions/comm
 import type { CommunityEngagementCounts } from "@/app/actions/community-engagement"
 import { isResortCommunity } from "@/lib/resort-communities"
 import { TILE_MIN_HEIGHT_PX } from "@/lib/tile-constants"
+import { getFallbackImage } from "@/lib/fallback-images"
 
 export type CommunityTileProps = {
   city: string
@@ -72,6 +73,7 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
   const [savedState, setSavedState] = useState(saved)
   const [likedState, setLikedState] = useState(liked)
   const [pending, setPending] = useState(false)
+  const heroSrc = bannerUrl?.trim() || getFallbackImage('community', `${city}-${displayName}`)
 
   function goToLogin(e: React.MouseEvent) {
     e.preventDefault()
@@ -112,17 +114,13 @@ export default function CommunityTile({ city, community, bannerUrl = null, signe
     >
       <div className="relative aspect-[4/3] w-full">
         <Link href={href} className="absolute inset-0 block">
-          {bannerUrl ? (
-            <Image
-              src={bannerUrl}
-              alt={`${community.subdivisionName} community in ${city}`}
-              fill
-              className="object-cover transition hover:scale-[1.02]"
-              sizes="300px"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-muted-foreground to-foreground" />
-          )}
+          <Image
+            src={heroSrc}
+            alt={`${community.subdivisionName} community in ${city}`}
+            fill
+            className="object-cover transition hover:scale-[1.02]"
+            sizes="300px"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <CardBadges
             position="top-left"

@@ -29,21 +29,26 @@ export async function getListingsWithVideos(filters?: {
   city?: string
   minPrice?: number
   maxPrice?: number
-  sort?: 'newest' | 'most_viewed'
+  sort?: 'newest' | 'most_viewed' | 'price_desc'
+  status?: 'active' | 'all'
+  limit?: number
 }): Promise<VideoListingRow[]> {
   const supabase = getSupabase()
+  const maxRows = Math.min(Math.max(filters?.limit ?? 24, 1), 60)
+  const candidateLimit = Math.min(Math.max(maxRows * 8, 80), 240)
 
   const { data: videoRows } = await supabase
     .from('listing_videos')
     .select('listing_key, video_url')
-    .limit(500)
+    .limit(candidateLimit)
 
   const keysFromVideos = [...new Set((videoRows ?? []).map((r: { listing_key: string }) => r.listing_key))]
   const { data: listWithVirtual } = await supabase
     .from('listings')
-    .select('listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, property_id, virtual_tour_url')
+    .select('listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, property_id, virtual_tour_url, standard_status, modification_timestamp')
     .not('virtual_tour_url', 'is', null)
-    .limit(200)
+    .order('list_price', { ascending: false, nullsFirst: false })
+    .limit(candidateLimit)
 
   const keysFromVirtual = (listWithVirtual ?? []).map((r: { listing_key: string }) => r.listing_key)
   const allKeys = [...new Set([...keysFromVideos, ...keysFromVirtual])]
@@ -51,8 +56,10 @@ export async function getListingsWithVideos(filters?: {
 
   const { data: listRows } = await supabase
     .from('listings')
-    .select('listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, property_id, virtual_tour_url')
+    .select('listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, property_id, virtual_tour_url, standard_status, modification_timestamp')
     .in('listing_key', allKeys)
+    .order('list_price', { ascending: false, nullsFirst: false })
+    .limit(candidateLimit)
 
   const propIds = [...new Set((listRows ?? []).map((l: { property_id?: string }) => l.property_id).filter(Boolean))]
   const { data: propRows } = await supabase.from('properties').select('id, city, unparsed_address').in('id', propIds)
@@ -64,9 +71,29 @@ export async function getListingsWithVideos(filters?: {
 
   const rows: VideoListingRow[] = []
   for (const row of listRows ?? []) {
-    const r = row as { listing_key: string; list_price?: number; beds_total?: number; baths_full?: number; living_area?: number; subdivision_name?: string; property_id?: string; virtual_tour_url?: string }
+    const r = row as {
+      listing_key: string
+      list_price?: number
+      beds_total?: number
+      baths_full?: number
+      living_area?: number
+      subdivision_name?: string
+      property_id?: string
+      virtual_tour_url?: string
+      standard_status?: string
+      modification_timestamp?: string
+    }
     const videoUrl = videoByKey.get(r.listing_key) ?? r.virtual_tour_url
     if (!videoUrl) continue
+    if (filters?.status !== 'all') {
+      const status = (r.standard_status ?? '').toLowerCase()
+      const isActive =
+        status.length === 0 ||
+        status.includes('active') ||
+        status.includes('for sale') ||
+        status.includes('coming soon')
+      if (!isActive) continue
+    }
     const prop = propById.get(r.property_id ?? '') as { city?: string; unparsed_address?: string } | undefined
     if (filters?.community && r.subdivision_name !== filters.community) continue
     if (filters?.city && prop?.city !== filters.city) continue
@@ -87,5 +114,8 @@ export async function getListingsWithVideos(filters?: {
       video_source: videoByKey.get(r.listing_key) ? 'listing_video' : 'virtual_tour',
     })
   }
-  return rows
+  if (filters?.sort === 'price_desc') {
+    rows.sort((a, b) => (b.list_price ?? 0) - (a.list_price ?? 0))
+  }
+  return rows.slice(0, maxRows)
 }

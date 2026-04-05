@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import type { ListingTileRow } from '@/app/actions/listings'
 import type { EngagementCounts } from '@/app/actions/engagement'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
@@ -13,6 +14,7 @@ type Props = {
   likedKeys?: string[]
   userEmail?: string | null
   engagementMap?: Record<string, EngagementCounts>
+  viewAllHref?: string
 }
 
 function hasVideo(listing: ListingTileRow & { details?: unknown }): boolean {
@@ -28,12 +30,22 @@ export default function VideoToursRow({
   likedKeys = [],
   userEmail,
   engagementMap,
+  viewAllHref,
 }: Props) {
   const withVideo = listings.filter(hasVideo).slice(0, 12)
   if (withVideo.length === 0) return null
 
   return (
-    <TilesSlider title={title}>
+    <TilesSlider
+      title={title}
+      headerRight={
+        viewAllHref ? (
+          <Link href={viewAllHref} className="text-sm font-medium text-muted-foreground hover:text-foreground">
+            View all videos →
+          </Link>
+        ) : null
+      }
+    >
       {withVideo.map((listing) => {
         const listingKey = (listing.ListingKey ?? listing.ListNumber ?? '').toString().trim()
         if (!listingKey) return null

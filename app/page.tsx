@@ -3,9 +3,8 @@ import path from 'path'
 import fs from 'fs'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { getBrokerageSettings } from './actions/brokerage'
-import { getMarketSnapshot, getJustListed } from './actions/home'
+import { getMarketSnapshot } from './actions/home'
 import { getSession } from './actions/auth'
 import { TESTIMONIALS } from '@/lib/testimonials'
 import HomeHero from '../components/home/HomeHero'
@@ -31,7 +30,9 @@ import HomeValuationCta from '@/components/HomeValuationCta'
 import BrokerageListingsSlider from '@/components/home/BrokerageListingsSlider'
 import PopularSearchesSection from '@/components/home/PopularSearchesSection'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent } from '@/components/ui/card'
+import LifestyleSearchSlider from '@/components/home/LifestyleSearchSlider'
+import { getListingsWithVideos } from './actions/videos'
+import type { ListingTileRow } from './actions/listings'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const ogImage = `${siteUrl}/og-home.png`
@@ -141,22 +142,46 @@ async function OpenHouseAsync() {
 }
 
 async function VideoToursAsync({ session }: { session: Awaited<ReturnType<typeof getSession>> }) {
-  const [justListed, savedKeys, likedKeys] = await Promise.all([
-    getJustListed('Bend'),
+  const [videoRows, savedKeys, likedKeys] = await Promise.all([
+    getListingsWithVideos({ city: 'Bend', sort: 'price_desc', status: 'active', limit: 10 }),
     session?.user ? getSavedListingKeys() : Promise.resolve([] as string[]),
     session?.user ? getLikedListingKeys() : Promise.resolve([] as string[]),
   ])
+  const listingsWithVideo = videoRows.map((row) => {
+    const [streetNumber = '', ...streetNameParts] = (row.unparsed_address ?? '').trim().split(/\s+/)
+    const streetName = streetNameParts.join(' ').trim() || null
+    return {
+      ListingKey: row.listing_key,
+      ListNumber: row.listing_key,
+      ListPrice: row.list_price,
+      BedroomsTotal: row.beds_total,
+      BathroomsTotal: row.baths_full,
+      StreetNumber: streetNumber || null,
+      StreetName: streetName,
+      City: row.city,
+      State: 'OR',
+      PostalCode: null,
+      SubdivisionName: row.subdivision_name,
+      PhotoURL: row.photo_url,
+      Latitude: null,
+      Longitude: null,
+      StandardStatus: 'Active',
+      TotalLivingAreaSqFt: row.living_area,
+      details: { Videos: [{ Uri: row.video_url }] },
+    } as ListingTileRow & { TotalLivingAreaSqFt?: number | null; details?: { Videos?: Array<{ Uri?: string }> } }
+  })
 
   return (
     <section className="px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <VideoToursRow
-          title="Video tours in Bend"
-          listings={justListed}
+          title="Top priced active homes with video"
+          listings={listingsWithVideo}
           signedIn={!!session?.user}
           savedKeys={savedKeys}
           likedKeys={likedKeys}
           userEmail={session?.user?.email ?? null}
+          viewAllHref="/videos"
         />
       </div>
     </section>
@@ -275,44 +300,7 @@ export default async function Home() {
       </Suspense>
 
       {/* Static sections — render immediately */}
-      <section className="border-b border-border bg-card px-4 py-12 sm:px-6 sm:py-14">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Discover by lifestyle</h2>
-          <p className="mt-2 text-muted-foreground">Find homes that match how you want to live.</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              { href: '/search/bend/luxury', label: 'Luxury homes', image: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/water-view', label: 'Water view homes', image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/on-golf-course', label: 'Golf course homes', image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/new-listings', label: 'New listings', image: 'https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/open-house', label: 'Open house homes', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/mountain-view', label: 'Mountain view homes', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/with-view', label: 'Scenic view homes', image: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/with-fireplace', label: 'Homes with fireplace', image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/lake-view', label: 'Lake view homes', image: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80' },
-              { href: '/search/bend/price-high-to-low', label: 'Premium homes', image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1200&q=80' },
-            ].map((item) => (
-              <Card key={item.href} className="overflow-hidden border-border bg-background shadow-sm transition hover:border-primary/30 hover:shadow-md">
-                <Link href={item.href} className="group block">
-                  <div className="relative aspect-[5/3]">
-                    <Image
-                      src={item.image}
-                      alt={item.label}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      sizes="(max-width: 1024px) 50vw, 20vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/55 to-transparent" />
-                  </div>
-                  <CardContent className="p-4">
-                    <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                  </CardContent>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <LifestyleSearchSlider />
 
       <Suspense fallback={<SectionSkeleton height="min-h-[240px]" />}>
         <PopularSearchesSection />

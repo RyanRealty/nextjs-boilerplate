@@ -10,6 +10,7 @@ import { subdivisionEntityKey } from '@/lib/slug'
 import { toggleSavedCommunity } from '@/app/actions/saved-communities'
 import { toggleCommunityLike, incrementCommunityShare } from '@/app/actions/community-engagement'
 import type { CommunityEngagementCounts } from '@/app/actions/community-engagement'
+import { getFallbackImage } from '@/lib/fallback-images'
 
 export type CommunityCardProps = {
   slug: string
@@ -54,6 +55,7 @@ export default function CommunityCard({
   engagement,
 }: CommunityCardProps) {
   const href = `/communities/${slug}`
+  const heroSrc = heroImageUrl?.trim() || getFallbackImage('community', `${city}-${name}`)
   const entityKey = subdivisionEntityKey(city, name)
   const aspectClass = size === 'large' ? 'aspect-[21/9]' : 'aspect-[16/10]'
   const viewCount = engagement?.view_count ?? 0
@@ -97,17 +99,13 @@ export default function CommunityCard({
     <Card className="overflow-hidden border-border shadow-sm transition hover:shadow-md group">
       <div className={`relative w-full overflow-hidden ${aspectClass}`}>
         <Link href={href} className="absolute inset-0 block">
-          {heroImageUrl ? (
-            <Image
-              src={heroImageUrl}
-              alt={`${name} community in ${city}`}
-              fill
-              className="object-cover transition group-hover:scale-[1.02]"
-              sizes={size === 'large' ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary to-foreground" />
-          )}
+          <Image
+            src={heroSrc}
+            alt={`${name} community in ${city}`}
+            fill
+            className="object-cover transition group-hover:scale-[1.02]"
+            sizes={size === 'large' ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 to-transparent" />
           {isResort && (
             <div className="absolute right-2 top-2">

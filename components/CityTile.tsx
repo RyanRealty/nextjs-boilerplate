@@ -8,6 +8,7 @@ import type { CityForIndex } from '@/lib/cities'
 import CardActionBar from '@/components/ui/CardActionBar'
 import { toggleSavedCity } from '@/app/actions/saved-cities'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
+import { getFallbackImage } from '@/lib/fallback-images'
 
 function formatPrice(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—'
@@ -39,6 +40,7 @@ export default function CityTile({ city, signedIn = false, saved = false, engage
         : `${city.activeCount} homes for sale`
   const [savedState, setSavedState] = useState(saved)
   const [pending, setPending] = useState(false)
+  const heroSrc = city.heroImageUrl?.trim() || getFallbackImage('city', city.name)
   const viewCount = engagement?.view_count ?? 0
   const likeCount = engagement?.like_count ?? 0
   const saveCount = engagement?.save_count ?? 0
@@ -72,17 +74,13 @@ export default function CityTile({ city, signedIn = false, saved = false, engage
     >
       <div className="relative aspect-[4/3] w-full">
         <Link href={href} className="absolute inset-0 block">
-          {city.heroImageUrl ? (
-            <Image
-              src={city.heroImageUrl}
-              alt={`${city.name}, Oregon — city overview`}
-              fill
-              className="object-cover transition hover:scale-[1.02]"
-              sizes="(max-width: 768px) 100vw, 400px"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary to-foreground" />
-          )}
+          <Image
+            src={heroSrc}
+            alt={`${city.name}, Oregon — city overview`}
+            fill
+            className="object-cover transition hover:scale-[1.02]"
+            sizes="(max-width: 768px) 100vw, 400px"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 text-primary-foreground">
             <h3 className="text-xl font-bold drop-shadow-md">{city.name}</h3>
