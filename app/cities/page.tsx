@@ -27,6 +27,8 @@ export const metadata: Metadata = {
 export default async function CitiesPage() {
   const allCities = await getCitiesForIndex()
   const sortedCities = sortCitiesWithPrimaryFirst(allCities)
+  const visibleCities = sortedCities.slice(0, 60)
+  const hiddenCount = Math.max(0, sortedCities.length - visibleCities.length)
 
   return (
     <main className="min-h-screen bg-background">
@@ -59,7 +61,12 @@ export default async function CitiesPage() {
         <h2 id="cities-heading" className="sr-only">
           Cities
         </h2>
-        <CityTilesGridStatic cities={sortedCities} />
+        <CityTilesGridStatic cities={visibleCities} />
+        {hiddenCount > 0 && (
+          <p className="mt-6 text-sm text-muted-foreground">
+            Showing top {visibleCities.length} cities by active inventory. {hiddenCount} additional cities are available in search.
+          </p>
+        )}
       </section>
     </main>
   )
