@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.16.6 (2026-04-05)
+
+### Maintenance
+- perf: remove render-blocking search page work
+
+---
+
+
 ## v1.16.5 (2026-04-05)
 
 ### Maintenance
