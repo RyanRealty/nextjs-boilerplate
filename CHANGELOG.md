@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.4 (2026-04-05)
+
+### Maintenance
+- docs: mark phases 12 and 13 complete
+
+---
+
+
 ## v1.6.3 (2026-04-05)
 
 ### Bug Fixes
