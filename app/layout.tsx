@@ -66,18 +66,25 @@ export const viewport: Viewport = {
 };
 
 /* Async components that fetch their own data — layout doesn't block on them */
-async function HeaderAsync() {
-  const [session, brokerage] = await Promise.all([
-    getSession(),
-    getBrokerageSettings(),
-  ])
+async function HeaderAsync({
+  sessionPromise,
+  brokeragePromise,
+}: {
+  sessionPromise: Promise<Awaited<ReturnType<typeof getSession>>>
+  brokeragePromise: Promise<Awaited<ReturnType<typeof getBrokerageSettings>>>
+}) {
+  const [session, brokerage] = await Promise.all([sessionPromise, brokeragePromise])
   const brokerageName = brokerage?.name ?? 'Ryan Realty'
   const headerLogoUrl = brokerage?.logo_url?.trim() || '/logo-header-white.png'
   return <Header user={session?.user} brokerageName={brokerageName} headerLogoUrl={headerLogoUrl} />
 }
 
-async function FooterAsync() {
-  const brokerage = await getBrokerageSettings()
+async function FooterAsync({
+  brokeragePromise,
+}: {
+  brokeragePromise: Promise<Awaited<ReturnType<typeof getBrokerageSettings>>>
+}) {
+  const brokerage = await brokeragePromise
   const brokerageName = brokerage?.name ?? 'Ryan Realty'
   const brokerageLogoUrl = brokerage?.logo_url?.trim() || null
   const brokerageAddress =
@@ -89,13 +96,21 @@ async function FooterAsync() {
   return <Footer brokerageName={brokerageName} brokerageLogoUrl={brokerageLogoUrl} brokerageEmail={brokerage?.primary_email ?? null} brokeragePhone={brokerage?.primary_phone ?? null} brokerageAddress={brokerageAddress} />
 }
 
-async function SignInPromptAsync() {
-  const session = await getSession()
+async function SignInPromptAsync({
+  sessionPromise,
+}: {
+  sessionPromise: Promise<Awaited<ReturnType<typeof getSession>>>
+}) {
+  const session = await sessionPromise
   return <SignInPrompt user={session?.user ?? null} />
 }
 
-async function VisitTrackerAsync() {
-  const session = await getSession()
+async function VisitTrackerAsync({
+  sessionPromise,
+}: {
+  sessionPromise: Promise<Awaited<ReturnType<typeof getSession>>>
+}) {
+  const session = await sessionPromise
   return <VisitTracker userId={session?.user?.id ?? null} userEmail={session?.user?.email ?? null} />
 }
 
@@ -108,6 +123,8 @@ export default function RootLayout({
   if (!envCheck.ok) {
     console.error('[env] Missing required build vars:', envCheck.missing.join(', '));
   }
+  const sessionPromise = getSession()
+  const brokeragePromise = getBrokerageSettings()
 
   return (
     <html lang="en" className={cn("font-sans", GeistSans.variable, GeistMono.variable)}>
@@ -128,21 +145,21 @@ export default function RootLayout({
           <JsonLd />
           {/* Header streams in independently — doesn't block page content */}
           <Suspense fallback={<div className="h-16 bg-primary" />}>
-            <HeaderAsync />
+            <HeaderAsync sessionPromise={sessionPromise} brokeragePromise={brokeragePromise} />
           </Suspense>
           <Suspense fallback={<div className="min-h-[calc(100vh-64px)]" aria-hidden />}>
             <div id="main-content" tabIndex={-1} className="min-h-[calc(100vh-64px)]">{children}</div>
           </Suspense>
           <Suspense fallback={<div className="min-h-[200px] bg-primary" />}>
-            <FooterAsync />
+            <FooterAsync brokeragePromise={brokeragePromise} />
           </Suspense>
           <CookieConsentBanner />
         <Suspense fallback={null}>
-          <SignInPromptAsync />
+          <SignInPromptAsync sessionPromise={sessionPromise} />
         </Suspense>
         <InstallPrompt />
         <Suspense fallback={null}>
-          <VisitTrackerAsync />
+          <VisitTrackerAsync sessionPromise={sessionPromise} />
         </Suspense>
         <Suspense fallback={null}>
           <FubIdentityBridge />

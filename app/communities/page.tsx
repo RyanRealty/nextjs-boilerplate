@@ -1,19 +1,15 @@
 import type { Metadata } from 'next'
 import { getCommunitiesForIndex } from '@/app/actions/communities'
-import { getSavedCommunityKeys } from '@/app/actions/saved-communities'
 import {
-  getLikedCommunityKeys,
-  getCommunityEngagementBatch,
+  getCommunityEngagementBatchCached,
   type CommunityEngagementCounts,
 } from '@/app/actions/community-engagement'
-import { getSession } from '@/app/actions/auth'
 import { RESORT_DISPLAY_NAMES } from '@/lib/communities'
 import CommunityCard from '@/components/community/CommunityCard'
 import CommunitiesFilter from '@/components/community/CommunitiesFilter'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 60
 
 export const metadata: Metadata = {
@@ -38,15 +34,14 @@ export const metadata: Metadata = {
 export default async function CommunitiesPage() {
   const allCommunities = await getCommunitiesForIndex()
   const entityKeys = allCommunities.map((c) => c.entityKey)
-  const [session, savedKeys, likedKeys, engagementMap] = await Promise.all([
-    getSession(),
-    getSavedCommunityKeys(),
-    getLikedCommunityKeys(),
+  const [savedKeys, likedKeys, engagementMap] = await Promise.all([
+    Promise.resolve([] as string[]),
+    Promise.resolve([] as string[]),
     entityKeys.length > 0
-      ? getCommunityEngagementBatch(entityKeys)
+      ? getCommunityEngagementBatchCached(entityKeys)
       : Promise.resolve({} as Record<string, CommunityEngagementCounts>),
   ])
-  const signedIn = !!session?.user
+  const signedIn = false
 
   const resortSlugs = new Set(
     RESORT_DISPLAY_NAMES.flatMap((name) => {

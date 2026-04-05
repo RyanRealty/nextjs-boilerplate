@@ -6,7 +6,6 @@ import { Suspense } from 'react'
 import { getOpenHousesWithListings } from '../../actions/open-houses'
 import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import {
-  getListingsForMap,
   getCityStatusCounts,
   getSubdivisionsInCity,
   getHotCommunitiesInCity,
@@ -221,6 +220,13 @@ function hasFilterOnlySearch(sp: SearchParams): boolean {
 
 export const revalidate = 60
 
+async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 2500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
+  ])
+}
+
 export default async function SearchPage({
   params,
   searchParams,
@@ -304,11 +310,15 @@ export default async function SearchPage({
 
   // Fetch ALL independent data in a single parallel batch (was 3 sequential waterfalls)
   const [listingsResult, marketStats, statusCounts, subdivisions, hotCommunities, priceChangeKeys, session, resortEntityKeys, searchPulse, searchActivityFeed, searchRecentlySold, cityPriceHistory, cityGuidesForCluster, cityOpenHouses] = await Promise.all([
-    getCachedSearchListings(filterOpts, page, pageSize),
+    withTimeout(getCachedSearchListings(filterOpts, page, pageSize), { listings: [], totalCount: 0, cacheKey: 'timeout' }),
     decodedSubdivision && city
-      ? getMarketStatsForSubdivision(city, decodedSubdivision)
+      ? withTimeout(getMarketStatsForSubdivision(city, decodedSubdivision), {
+          count: 0, avgPrice: null, medianPrice: null, avgDom: null, newListingsLast30Days: 0, pendingCount: 0, closedLast12Months: 0,
+        })
       : city
-        ? getMarketStatsForCity(city)
+        ? withTimeout(getMarketStatsForCity(city), {
+            count: 0, avgPrice: null, medianPrice: null, avgDom: null, newListingsLast30Days: 0, pendingCount: 0, closedLast12Months: 0,
+          })
         : Promise.resolve({
             count: 0,
             avgPrice: null,
@@ -318,35 +328,35 @@ export default async function SearchPage({
             pendingCount: 0,
             closedLast12Months: 0,
           }),
-    city ? getCityStatusCounts({ city, subdivision: decodedSubdivision ?? null }) : Promise.resolve({ active: 0, pending: 0, closed: 0, other: 0 }),
-    city && !subdivision ? getSubdivisionsInCity(city) : Promise.resolve([]),
-    city && !subdivision ? getHotCommunitiesInCity(city) : Promise.resolve([]),
-    getListingKeysWithRecentPriceChange(),
-    getSession(),
-    getResortEntityKeys(),
+    city ? withTimeout(getCityStatusCounts({ city, subdivision: decodedSubdivision ?? null }), { active: 0, pending: 0, closed: 0, other: 0 }) : Promise.resolve({ active: 0, pending: 0, closed: 0, other: 0 }),
+    city && !subdivision ? withTimeout(getSubdivisionsInCity(city), []) : Promise.resolve([]),
+    city && !subdivision ? withTimeout(getHotCommunitiesInCity(city), []) : Promise.resolve([]),
+    withTimeout(getListingKeysWithRecentPriceChange(), new Set<string>()),
+    withTimeout(getSession(), null, 600),
+    withTimeout(getResortEntityKeys(), new Set<string>()),
     // These were in sequential block 3 — now parallel
     city
-      ? getLiveMarketPulse({
+      ? withTimeout(getLiveMarketPulse({
           geoType: subdivision && decodedSubdivision ? 'subdivision' : 'city',
           geoSlug: subdivision && decodedSubdivision ? subdivisionEntityKey(city, decodedSubdivision) : slugify(city),
-        })
+        }), null)
       : Promise.resolve(null),
     city
-      ? getActivityFeed({
+      ? withTimeout(getActivityFeed({
           city,
           subdivision: decodedSubdivision ?? undefined,
           limit: 12,
           eventTypes: ['new_listing', 'price_drop', 'status_pending', 'status_closed', 'status_expired', 'back_on_market'],
-        })
+        }), [])
       : Promise.resolve([]),
     city
-      ? getRecentlySold({ city, subdivision: decodedSubdivision ?? undefined, limit: 12 })
+      ? withTimeout(getRecentlySold({ city, subdivision: decodedSubdivision ?? undefined, limit: 12 }), [])
       : Promise.resolve([]),
     // These were in sequential block 2 — now parallel
-    city ? getCityPriceHistory(city) : Promise.resolve([]),
-    city && !subdivision ? getGuidesByCity(city) : Promise.resolve([]),
+    city ? withTimeout(getCityPriceHistory(city), []) : Promise.resolve([]),
+    city && !subdivision ? withTimeout(getGuidesByCity(city), []) : Promise.resolve([]),
     // Open houses for this city
-    city ? getOpenHousesWithListings({ city }).catch(() => []) : Promise.resolve([]),
+    city ? withTimeout(getOpenHousesWithListings({ city }).catch(() => []), []) : Promise.resolve([]),
   ])
   const hotCommunitiesSlice = city && !subdivision ? hotCommunities.slice(0, 10) : []
   const cityGuideSlug = (cityGuidesForCluster as Array<{ slug: string }>).length > 0 ? (cityGuidesForCluster as Array<{ slug: string }>)[0]!.slug : null
@@ -359,7 +369,7 @@ export default async function SearchPage({
           )
         )
       : Promise.resolve([]),
-    session?.user ? getSavedCommunityKeys() : Promise.resolve([]),
+    session?.user ? withTimeout(getSavedCommunityKeys(), []) : Promise.resolve([]),
   ])
   const { listings, totalCount } = listingsResult
   const effectiveStatusFilter = (filterOpts.statusFilter && ['active', 'active_and_pending', 'pending', 'closed', 'all'].includes(filterOpts.statusFilter))
@@ -367,34 +377,10 @@ export default async function SearchPage({
     : filterOpts.includeClosed
       ? 'all'
       : 'active'
-  const [mapListingsRaw, nearbyCommunities] = await Promise.all([
-    getListingsForMap({
-      city: city ?? undefined,
-      subdivision: decodedSubdivision ?? undefined,
-      statusFilter: effectiveStatusFilter,
-      minPrice: filterOpts.minPrice,
-      maxPrice: filterOpts.maxPrice,
-      minBeds: filterOpts.minBeds,
-      maxBeds: filterOpts.maxBeds,
-      minBaths: filterOpts.minBaths,
-      maxBaths: filterOpts.maxBaths,
-      minSqFt: filterOpts.minSqFt,
-      maxSqFt: filterOpts.maxSqFt,
-      yearBuiltMin: filterOpts.yearBuiltMin,
-      yearBuiltMax: filterOpts.yearBuiltMax,
-      lotAcresMin: filterOpts.lotAcresMin,
-      lotAcresMax: filterOpts.lotAcresMax,
-      postalCode: filterOpts.postalCode,
-      propertyType: filterOpts.propertyType,
-    }),
-    city && subdivision && decodedSubdivision
-      ? getNearbyCommunities(city, decodedSubdivision)
-      : Promise.resolve([]),
-  ])
-  const [listingsWithCoords, mapListingsWithCoords] = await Promise.all([
-    getGeocodedListings(listings),
-    mapListingsRaw.length > 0 ? getGeocodedListings(mapListingsRaw) : Promise.resolve([]),
-  ])
+  const nearbyCommunities = city && subdivision && decodedSubdivision
+    ? await withTimeout(getNearbyCommunities(city, decodedSubdivision), [])
+    : []
+  const listingsWithCoords = await withTimeout(getGeocodedListings(listings), [])
 
   const placeName = subdivision && decodedSubdivision ? getSubdivisionDisplayName(decodedSubdivision) : (city ?? 'Central Oregon')
   const displayName = preset ? `${placeName} ${preset.shortLabel}` : (presetLabel ?? placeName)
@@ -1108,7 +1094,7 @@ export default async function SearchPage({
       <section className="mb-10 overflow-hidden rounded-xl border border-border shadow-sm">
         <div className="h-[320px] sm:h-[420px]">
           <SearchMapClustered
-            listings={mapListingsWithCoords.length > 0 ? mapListingsWithCoords : listingsWithCoords}
+            listings={listingsWithCoords}
             savedListingKeys={savedKeys}
             likedListingKeys={likedKeys}
             placeQuery={displayName ? `${displayName} Oregon` : undefined}

@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { getListingsWithAdvanced, getListingsForMap, getListingKeysWithRecentPriceChange } from '../actions/listings'
+import { getListingsWithAdvanced, getListingKeysWithRecentPriceChange } from '../actions/listings'
 import { getSession } from '../actions/auth'
 import { getCitiesForIndex } from '../actions/cities'
 import { estimatedMonthlyPayment, formatMonthlyPayment, DEFAULT_DISPLAY_RATE, DEFAULT_DISPLAY_DOWN_PCT, DEFAULT_DISPLAY_TERM_YEARS } from '../../lib/mortgage'
-import { getGeocodedListings } from '../actions/geocode'
 import ListingTile from '../../components/ListingTile'
 import SearchFilterBar from '../../components/SearchFilterBar'
 import BreadcrumbStrip from '../../components/layout/BreadcrumbStrip'
@@ -51,6 +50,13 @@ type SearchParams = {
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const defaultOgImage = `${siteUrl}/api/og?type=default`
+
+async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 2000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
+  ])
+}
 
 export const metadata: Metadata = {
   title: 'All Listings',
@@ -166,32 +172,14 @@ export default async function ListingsPage({
         ? 'all'
         : 'active'
 
-  const [listingsPromise, mapListingsPromise, priceChangeKeysPromise, sessionPromise, citiesPromise] = [
-    isMapView ? Promise.resolve({ listings: [], totalCount: 0 }) : getListingsWithAdvanced(filterOpts),
-    isMapView ? Promise.resolve([]) : getListingsForMap({
-      statusFilter: effectiveStatusFilter,
-      minPrice: filterOpts.minPrice,
-      maxPrice: filterOpts.maxPrice,
-      minBeds: filterOpts.minBeds,
-      maxBeds: filterOpts.maxBeds,
-      minBaths: filterOpts.minBaths,
-      maxBaths: filterOpts.maxBaths,
-      minSqFt: filterOpts.minSqFt,
-      maxSqFt: filterOpts.maxSqFt,
-      yearBuiltMin: filterOpts.yearBuiltMin,
-      yearBuiltMax: filterOpts.yearBuiltMax,
-      lotAcresMin: filterOpts.lotAcresMin,
-      lotAcresMax: filterOpts.lotAcresMax,
-      postalCode: filterOpts.postalCode,
-      propertyType: filterOpts.propertyType,
-    }),
-    getListingKeysWithRecentPriceChange(),
-    getSession(),
-    getCitiesForIndex(),
+  const [listingsPromise, priceChangeKeysPromise, sessionPromise, citiesPromise] = [
+    isMapView ? Promise.resolve({ listings: [], totalCount: 0 }) : withTimeout(getListingsWithAdvanced(filterOpts), { listings: [], totalCount: 0 }),
+    withTimeout(getListingKeysWithRecentPriceChange(), new Set<string>()),
+    withTimeout(getSession(), null, 500),
+    withTimeout(getCitiesForIndex(), []),
   ]
-  const [{ listings, totalCount }, mapListingsRaw, priceChangeKeys, session, cities] = await Promise.all([
+  const [{ listings, totalCount }, priceChangeKeys, session, cities] = await Promise.all([
     listingsPromise,
-    mapListingsPromise,
     priceChangeKeysPromise,
     sessionPromise,
     citiesPromise,
@@ -204,13 +192,6 @@ export default async function ListingsPage({
           import('../actions/buying-preferences').then((m) => m.getBuyingPreferences()),
         ])
       : [[], [] as string[], null] as [string[], string[], Awaited<ReturnType<typeof import('../actions/buying-preferences').getBuyingPreferences>>]
-  if (!isMapView) {
-    await Promise.all([
-      getGeocodedListings(listings),
-      mapListingsRaw.length > 0 ? getGeocodedListings(mapListingsRaw) : Promise.resolve([]),
-    ])
-  }
-
   if (isMapView) {
     const searchParamsForBar = {
       view: 'map',

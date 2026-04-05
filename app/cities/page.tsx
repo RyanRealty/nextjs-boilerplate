@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
 import { getCitiesForIndex } from '@/app/actions/cities'
-import { getSession } from '@/app/actions/auth'
-import { getSavedCitySlugs } from '@/app/actions/saved-cities'
 import { sortCitiesWithPrimaryFirst } from '@/lib/cities'
 import CityTilesGrid from '@/components/city/CityTilesGrid'
 
@@ -27,10 +25,8 @@ export const metadata: Metadata = {
 }
 
 export default async function CitiesPage() {
-  const [allCities, session] = await Promise.all([getCitiesForIndex(), getSession()])
-  const savedSlugs = session?.user ? await getSavedCitySlugs() : []
+  const allCities = await getCitiesForIndex()
   const sortedCities = sortCitiesWithPrimaryFirst(allCities)
-  const signedIn = !!session?.user
 
   return (
     <main className="min-h-screen bg-background">
@@ -63,7 +59,7 @@ export default async function CitiesPage() {
         <h2 id="cities-heading" className="sr-only">
           Cities
         </h2>
-        <CityTilesGrid cities={sortedCities} savedSlugs={savedSlugs} signedIn={signedIn} />
+        <CityTilesGrid cities={sortedCities} savedSlugs={[]} signedIn={false} />
       </section>
     </main>
   )
