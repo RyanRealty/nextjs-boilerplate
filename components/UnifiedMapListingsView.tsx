@@ -1,10 +1,13 @@
 'use client'
 
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getListingsInBounds, type MapBounds, type ListingTileRow } from '@/app/actions/listings'
 import type { ListingForMap } from '@/components/SearchMapClustered'
+import type { MapPolygonPoint } from '@/lib/map-polygon'
+import { encodeMapPolygon } from '@/lib/map-polygon'
 
 const SearchMapClustered = dynamic(
   () => import('@/components/SearchMapClustered'),
@@ -35,6 +38,15 @@ const SORT_OPTIONS = [
   { value: 'price_asc', label: 'Price: low to high' },
   { value: 'price_desc', label: 'Price: high to low' },
 ] as const
+
+function areBoundsSimilar(a: MapBounds, b: MapBounds, epsilon = 0.0005): boolean {
+  return (
+    Math.abs(a.west - b.west) < epsilon &&
+    Math.abs(a.south - b.south) < epsilon &&
+    Math.abs(a.east - b.east) < epsilon &&
+    Math.abs(a.north - b.north) < epsilon
+  )
+}
 
 const DIRECT_VIDEO_EXT = /\.(mp4|webm|ogg|mov)(\?|$)/i
 function hasPlayableVideo(details: { Videos?: Array<{ Uri?: string }> } | null | undefined): boolean {
@@ -89,6 +101,10 @@ export type UnifiedMapListingsViewProps = GetListingsForMapOptions & {
   initialListings?: ListingTileRow[]
   /** Total count when using initialListings (for "N results in this area"). */
   initialTotalCount?: number
+  /** Optional preloaded polygon area filter (e.g. from URL saved search). */
+  initialPolygon?: MapPolygonPoint[] | null
+  /** Keep map drawing in URL so search can be shared/saved. */
+  persistPolygonInUrl?: boolean
 }
 
 export default function UnifiedMapListingsView({
@@ -106,6 +122,8 @@ export default function UnifiedMapListingsView({
   boundaryGeojson,
   initialListings,
   initialTotalCount,
+  initialPolygon = null,
+  persistPolygonInUrl = false,
   city,
   subdivision,
   statusFilter,
@@ -121,20 +139,96 @@ export default function UnifiedMapListingsView({
   postalCode,
   propertyType,
 }: UnifiedMapListingsViewProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [bounds, setBounds] = useState<MapBounds | null>(null)
+  const [searchBounds, setSearchBounds] = useState<MapBounds | null>(null)
   const [listings, setListings] = useState<ListingTileRow[]>(() => initialListings ?? [])
   const [totalCount, setTotalCount] = useState(() => initialTotalCount ?? 0)
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [needsSearchThisArea, setNeedsSearchThisArea] = useState(false)
   const [, setPage] = useState(1)
   const [sort, setSort] = useState<'newest' | 'oldest' | 'price_asc' | 'price_desc'>('newest')
+  const [polygonFilter, setPolygonFilter] = useState<MapPolygonPoint[] | null>(initialPolygon)
   const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setPolygonFilter(initialPolygon ?? null)
+  }, [initialPolygon])
+
+  const syncPolygonToUrl = useCallback((polygon: MapPolygonPoint[] | null) => {
+    if (!persistPolygonInUrl || !pathname) return
+    const params = new URLSearchParams(searchParams?.toString() ?? '')
+    const encoded = polygon ? encodeMapPolygon(polygon) : undefined
+    if (encoded) params.set('poly', encoded)
+    else params.delete('poly')
+    if (!params.has('view')) params.set('view', 'map')
+    const query = params.toString()
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+  }, [persistPolygonInUrl, pathname, router, searchParams])
+
+  const runSearchForBounds = useCallback(
+    async (
+      targetBounds: MapBounds,
+      targetSort: 'newest' | 'oldest' | 'price_asc' | 'price_desc' = sort,
+      polygon: MapPolygonPoint[] | null = polygonFilter
+    ) => {
+      setPage(1)
+      setLoading(true)
+      const { listings: rows, totalCount: total } = await getListingsInBounds({
+        bounds: targetBounds,
+        city: city ?? undefined,
+        subdivision: subdivision ?? undefined,
+        statusFilter: statusFilter ?? undefined,
+        includeClosed,
+        minPrice,
+        maxPrice,
+        minBeds,
+        maxBeds,
+        minBaths,
+        maxBaths,
+        minSqFt,
+        maxSqFt,
+        postalCode: postalCode ?? undefined,
+        propertyType: propertyType ?? undefined,
+        limit: PER_PAGE,
+        offset: 0,
+        sort: targetSort,
+        polygon,
+      })
+      setListings(rows)
+      setTotalCount(total)
+      setSearchBounds(targetBounds)
+      setNeedsSearchThisArea(false)
+      setLoading(false)
+    },
+    [
+      sort,
+      polygonFilter,
+      city,
+      subdivision,
+      statusFilter,
+      includeClosed,
+      minPrice,
+      maxPrice,
+      minBeds,
+      maxBeds,
+      minBaths,
+      maxBaths,
+      minSqFt,
+      maxSqFt,
+      postalCode,
+      propertyType,
+    ]
+  )
 
   const fetchPage = useCallback(
     async (offset: number, append: boolean) => {
-      if (!bounds) return
+      if (!searchBounds) return
       const opts = {
-        bounds,
+        bounds: searchBounds,
         city: city ?? undefined,
         subdivision: subdivision ?? undefined,
         statusFilter: statusFilter ?? undefined,
@@ -152,6 +246,7 @@ export default function UnifiedMapListingsView({
         limit: PER_PAGE,
         offset,
         sort,
+        polygon: polygonFilter,
       }
       const { listings: rows, totalCount: total } = await getListingsInBounds(opts)
       if (append) {
@@ -162,7 +257,7 @@ export default function UnifiedMapListingsView({
       setTotalCount(total)
     },
     [
-      bounds,
+      searchBounds,
       city,
       subdivision,
       statusFilter,
@@ -178,55 +273,24 @@ export default function UnifiedMapListingsView({
       postalCode,
       propertyType,
       sort,
+      polygonFilter,
     ]
   )
 
   const onBoundsChanged = useCallback(
     (newBounds: MapBounds) => {
       setBounds(newBounds)
-      setPage(1)
-      setLoading(true)
-      getListingsInBounds({
-        bounds: newBounds,
-        city: city ?? undefined,
-        subdivision: subdivision ?? undefined,
-        statusFilter: statusFilter ?? undefined,
-        includeClosed,
-        minPrice,
-        maxPrice,
-        minBeds,
-        maxBeds,
-        minBaths,
-        maxBaths,
-        minSqFt,
-        maxSqFt,
-        postalCode: postalCode ?? undefined,
-        propertyType: propertyType ?? undefined,
-        limit: PER_PAGE,
-        offset: 0,
-        sort,
-      }).then(({ listings: rows, totalCount: total }) => {
-        setListings(rows)
-        setTotalCount(total)
-        setLoading(false)
-      })
+      if (!searchBounds) {
+        runSearchForBounds(newBounds, sort, polygonFilter)
+        return
+      }
+      setNeedsSearchThisArea(!areBoundsSimilar(newBounds, searchBounds))
     },
     [
-      city,
-      subdivision,
-      statusFilter,
-      includeClosed,
-      minPrice,
-      maxPrice,
-      minBeds,
-      maxBeds,
-      minBaths,
-      maxBaths,
-      minSqFt,
-      maxSqFt,
-      postalCode,
-      propertyType,
+      searchBounds,
       sort,
+      polygonFilter,
+      runSearchForBounds,
     ]
   )
 
@@ -236,14 +300,14 @@ export default function UnifiedMapListingsView({
   }, [])
 
   const loadMore = useCallback(() => {
-    if (!bounds || loadingMore || listings.length >= totalCount) return
+    if (!searchBounds || loadingMore || listings.length >= totalCount) return
     setLoadingMore(true)
     const nextOffset = listings.length
     fetchPage(nextOffset, true).then(() => {
       setPage(Math.floor(nextOffset / PER_PAGE) + 1)
       setLoadingMore(false)
     })
-  }, [bounds, loadingMore, listings.length, totalCount, fetchPage])
+  }, [searchBounds, loadingMore, listings.length, totalCount, fetchPage])
 
   const displayPrefs = {
     downPaymentPercent: prefs?.downPaymentPercent ?? DEFAULT_DISPLAY_DOWN_PCT,
@@ -266,13 +330,16 @@ export default function UnifiedMapListingsView({
         <div className="flex w-full flex-col min-h-0 border-r border-border bg-card md:w-[420px] lg:w-[480px] shrink-0">
           <div className="shrink-0 border-b border-border bg-card px-4 py-3">
             <h2 className="text-lg font-semibold text-primary">{pageTitle}</h2>
-            {bounds != null && (
+            {searchBounds != null && (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {loading ? 'Loading…' : `${totalCount.toLocaleString()} result${totalCount !== 1 ? 's' : ''} in this area`}
               </p>
             )}
-            {bounds == null && (
+            {searchBounds == null && (
               <p className="mt-0.5 text-sm text-muted-foreground">Move or zoom the map to see listings in that area.</p>
+            )}
+            {searchBounds != null && needsSearchThisArea && (
+              <p className="mt-1 text-sm text-muted-foreground">Map moved. Click Search this area to refresh results.</p>
             )}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">Sort:</span>
@@ -281,33 +348,9 @@ export default function UnifiedMapListingsView({
                 onValueChange={(v) => {
                   const value = v as typeof sort
                   setSort(value)
-                  if (bounds) {
-                    setPage(1)
-                    setLoading(true)
-                    getListingsInBounds({
-                      bounds,
-                      city: city ?? undefined,
-                      subdivision: subdivision ?? undefined,
-                      statusFilter: statusFilter ?? undefined,
-                      includeClosed,
-                      minPrice,
-                      maxPrice,
-                      minBeds,
-                      maxBeds,
-                      minBaths,
-                      maxBaths,
-                      minSqFt,
-                      maxSqFt,
-                      postalCode: postalCode ?? undefined,
-                      propertyType: propertyType ?? undefined,
-                      limit: PER_PAGE,
-                      offset: 0,
-                      sort: value,
-                    }).then(({ listings: rows, totalCount: total }) => {
-                      setListings(rows)
-                      setTotalCount(total)
-                      setLoading(false)
-                    })
+                  const target = bounds ?? searchBounds
+                  if (target) {
+                    runSearchForBounds(target, value, polygonFilter)
                   }
                 }}
               >
@@ -322,6 +365,32 @@ export default function UnifiedMapListingsView({
                   ))}
                 </SelectContent>
               </Select>
+              {polygonFilter && polygonFilter.length >= 3 && (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setPolygonFilter(null)
+                    syncPolygonToUrl(null)
+                    const target = bounds ?? searchBounds
+                    if (target) {
+                      runSearchForBounds(target, sort, null)
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Clear drawn area
+                </Button>
+              )}
+              {needsSearchThisArea && bounds && (
+                <Button
+                  type="button"
+                  onClick={() => runSearchForBounds(bounds, sort, polygonFilter)}
+                  size="sm"
+                >
+                  Search this area
+                </Button>
+              )}
             </div>
           </div>
           <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto p-4">
@@ -397,6 +466,15 @@ export default function UnifiedMapListingsView({
             initialZoom={12}
             onBoundsChanged={onBoundsChanged}
             boundaryGeojson={boundaryGeojson}
+            initialPolygon={polygonFilter}
+            onPolygonDrawn={(polygon) => {
+              setPolygonFilter(polygon)
+              syncPolygonToUrl(polygon)
+              const target = bounds ?? searchBounds
+              if (target) {
+                runSearchForBounds(target, sort, polygon)
+              }
+            }}
             className="h-full"
           />
         </div>
@@ -414,6 +492,15 @@ export default function UnifiedMapListingsView({
           initialZoom={12}
           onBoundsChanged={onBoundsChanged}
           boundaryGeojson={boundaryGeojson}
+          initialPolygon={polygonFilter}
+          onPolygonDrawn={(polygon) => {
+            setPolygonFilter(polygon)
+            syncPolygonToUrl(polygon)
+            const target = bounds ?? searchBounds
+            if (target) {
+              runSearchForBounds(target, sort, polygon)
+            }
+          }}
           className="h-full"
         />
       </div>

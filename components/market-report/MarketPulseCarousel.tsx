@@ -171,10 +171,10 @@ export default function MarketPulseCarousel({ data, className }: Props) {
       >
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-md border-primary/30 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+            <Badge variant="soft-trending" className="rounded-md px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest">
               Year to date
             </Badge>
-            <Badge variant="secondary" className="rounded-md px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <Badge variant="soft-neutral" className="rounded-md px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider">
               Residential only
             </Badge>
           </div>
@@ -265,7 +265,7 @@ export default function MarketPulseCarousel({ data, className }: Props) {
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                              <Badge variant="soft-neutral" className="text-[10px] uppercase tracking-wide">
                                 Top {metricsByCity.findIndex((m) => m.city === city.city) + 1}
                               </Badge>
                               <span
@@ -285,8 +285,8 @@ export default function MarketPulseCarousel({ data, className }: Props) {
                         </div>
                         <div className="border-t border-border bg-card px-4 py-3">
                           <div className="mb-2 flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">Sold {city.metrics.sold_count.toLocaleString()}</Badge>
-                            <Badge variant="outline">
+                            <Badge variant="soft-neutral">Sold {city.metrics.sold_count.toLocaleString()}</Badge>
+                            <Badge variant="soft-neutral">
                               Median {city.metrics.median_price > 0 ? `$${Math.round(city.metrics.median_price).toLocaleString()}` : '—'}
                             </Badge>
                           </div>

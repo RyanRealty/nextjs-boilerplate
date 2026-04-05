@@ -19,17 +19,20 @@ export type CardBadgeItem = {
   icon?: React.ReactNode
 }
 
-const variantClasses: Record<CardBadgeItem['variant'], string> = {
-  hot: 'bg-destructive text-destructive-foreground',
-  new: 'bg-success text-success-foreground',
-  'price-drop': 'bg-warning text-warning-foreground',
-  resort: 'bg-accent text-accent-foreground',
-  'open-house': 'bg-destructive text-destructive-foreground',
-  days: 'bg-card text-foreground',
-  media: 'bg-foreground/70 text-primary-foreground',
-  trending: 'bg-accent text-accent-foreground',
-  popular: 'bg-warning text-warning-foreground',
-  steady: 'bg-foreground/60 text-primary-foreground',
+const variantMap: Record<
+  CardBadgeItem['variant'],
+  'soft-hot' | 'soft-popular' | 'soft-price-drop' | 'soft-trending' | 'soft-neutral' | 'soft-media'
+> = {
+  hot: 'soft-hot',
+  new: 'soft-popular',
+  'price-drop': 'soft-price-drop',
+  resort: 'soft-trending',
+  'open-house': 'soft-hot',
+  days: 'soft-neutral',
+  media: 'soft-media',
+  trending: 'soft-trending',
+  popular: 'soft-popular',
+  steady: 'soft-neutral',
 }
 
 export type CardBadgesProps = {
@@ -61,7 +64,8 @@ export default function CardBadges({ items, max = 3, position = 'top-left', clas
       {show.map((item, i) => (
         <Badge
           key={`${item.label}-${i}`}
-          className={cn('shrink-0 gap-1 rounded-md px-2 py-1 text-xs font-semibold shadow-sm', variantClasses[item.variant])}
+          variant={variantMap[item.variant]}
+          className={cn('shrink-0 gap-1 rounded-md px-2 py-1 text-xs font-semibold shadow-sm')}
         >
           {item.icon != null && <span className="flex items-center">{item.icon}</span>}
           {item.label}

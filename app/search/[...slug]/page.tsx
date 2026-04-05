@@ -71,6 +71,7 @@ import InFeedAdCard from '../../../components/search/InFeedAdCard'
 import CityClusterNav from '../../../components/CityClusterNav'
 import { getGuidesByCity } from '../../actions/guides'
 import { getCachedSearchListings } from '../../actions/search-cache'
+import { decodeMapPolygon } from '@/lib/map-polygon'
 
 /** Resolve slug segments to city, subdivision (display name), and preset. */
 async function resolveSlug(slug: string[]): Promise<{
@@ -202,6 +203,7 @@ type SearchParams = {
   page?: string
   perPage?: string
   view?: string
+  poly?: string
 }
 
 /** Preset breadcrumb label for filter-only searches (e.g. Under $500K, Luxury). */
@@ -247,6 +249,7 @@ export default async function SearchPage({
   const pageSize = Math.min(100, Math.max(1, parseInt(perPageParam, 10) || defaultPageSize))
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const offset = (page - 1) * pageSize
+  const initialPolygon = decodeMapPolygon(sp.poly)
 
   const filterOptsBase = {
     city: city || undefined,
@@ -540,6 +543,8 @@ export default async function SearchPage({
           maxSqFt={sp.maxSqFt != null ? Number(sp.maxSqFt) : undefined}
           postalCode={sp.postalCode ?? undefined}
           propertyType={sp.propertyType ?? undefined}
+          initialPolygon={initialPolygon}
+          persistPolygonInUrl
           filterBar={
             <SearchFilterBar
               basePath={searchPagePath}
@@ -572,6 +577,7 @@ export default async function SearchPage({
               sort={sp.sort}
               view="map"
               perPage={perPageParam}
+              poly={sp.poly}
             />
           }
         />

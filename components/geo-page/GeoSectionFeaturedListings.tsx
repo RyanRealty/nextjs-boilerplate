@@ -7,32 +7,6 @@ import type { EngagementCounts } from '@/app/actions/engagement'
 import ListingTile from '@/components/ListingTile'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
-import { Badge } from '@/components/ui/badge'
-
-const VIEWS_HIGH = 5
-const LIKES_HIGH = 2
-
-function EngagementBadge({ engagement }: { engagement: EngagementCounts }) {
-  const views = engagement.view_count ?? 0
-  const likes = engagement.like_count ?? 0
-  const showViews = views >= VIEWS_HIGH
-  const showLikes = likes >= LIKES_HIGH
-  if (!showViews && !showLikes) return null
-  return (
-    <div className="absolute left-2 top-2 z-10 flex gap-1">
-      {showViews && (
-        <Badge variant="secondary" className="text-xs">
-          🔥 {views} views
-        </Badge>
-      )}
-      {showLikes && (
-        <Badge variant="secondary" className="text-xs">
-          ❤️ {likes}
-        </Badge>
-      )}
-    </div>
-  )
-}
 
 type Props = {
   title: string
@@ -78,21 +52,18 @@ export default function GeoSectionFeaturedListings({
         const engagement = engagementMap?.[key]
         return (
           <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
-            <div className="relative h-full">
-              {engagement && <EngagementBadge engagement={engagement} />}
-              <ListingTile
-                listing={listing as ListingTileListing}
-                listingKey={key}
-                saved={savedKeys.includes(key)}
-                liked={likedKeys.includes(key)}
-                signedIn={signedIn}
-                userEmail={userEmail}
-                viewCount={engagement?.view_count ?? 0}
-                likeCount={engagement?.like_count ?? 0}
-                saveCount={engagement?.save_count ?? 0}
-                shareCount={engagement?.share_count ?? 0}
-              />
-            </div>
+            <ListingTile
+              listing={listing as ListingTileListing}
+              listingKey={key}
+              saved={savedKeys.includes(key)}
+              liked={likedKeys.includes(key)}
+              signedIn={signedIn}
+              userEmail={userEmail}
+              viewCount={engagement?.view_count ?? 0}
+              likeCount={engagement?.like_count ?? 0}
+              saveCount={engagement?.save_count ?? 0}
+              shareCount={engagement?.share_count ?? 0}
+            />
           </TilesSliderItem>
         )
       })}

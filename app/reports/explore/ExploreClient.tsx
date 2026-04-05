@@ -388,107 +388,122 @@ export default function ExploreClient({
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div ref={containerRef} className="relative flex flex-col gap-1">
-            <span className="text-sm font-medium text-muted-foreground">Location</span>
-            <Input
-              type="text"
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value)}
-              onFocus={() => suggestions.length > 0 && setSuggestionsOpen(true)}
-              placeholder="City, community, neighborhood, or address…"
-              className="min-w-[280px] rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
-              aria-label="Search location"
-              aria-autocomplete="list"
-              aria-expanded={suggestionsOpen}
-              aria-controls="location-suggestions"
-              id="location-input"
-            />
-            {suggestionsOpen && (suggestions.length > 0 || suggestionsLoading) && (
-              <ul
-                id="location-suggestions"
-                role="listbox"
-                className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full min-w-[280px] overflow-auto rounded-lg border border-border bg-card py-1 shadow-md"
-              >
-                {suggestionsLoading && suggestions.length === 0 ? (
-                  <li className="px-3 py-2 text-sm text-muted-foreground">Searching…</li>
-                ) : (
-                  suggestions.map((loc) => (
-                    <li key={`${loc.type}-${loc.city}-${loc.subdivision ?? ''}-${loc.label}`}>
-                      <Button
-                        type="button"
-                        role="option"
-                        className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
-                        onClick={() => selectLocation(loc)}
-                      >
-                        {loc.type === 'city' && <span className="text-muted-foreground" aria-hidden>City · </span>}
-                        {loc.type === 'subdivision' && <span className="text-muted-foreground" aria-hidden>Community · </span>}
-                        {loc.type === 'address' && <span className="text-muted-foreground" aria-hidden>Address · </span>}
-                        {loc.label}
-                      </Button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            )}
-          </div>
-          {!customMode ? (
-            <Label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-muted-foreground">Period</span>
-              <Select value={presetId} onValueChange={applyPreset}>
-                <SelectTrigger className="rounded-lg" aria-label="Date range preset">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRESETS.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Label>
-          ) : (
-            <div className="flex flex-wrap items-end gap-2">
-              <Label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-muted-foreground">Start</span>
-                <Input
-                  type="date"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
-                  aria-label="Start date"
-                />
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-base">Build your report view</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Start with location and date range, then refine by property type and price.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div ref={containerRef} className="relative flex flex-col gap-1.5">
+              <Label htmlFor="location-input" className="text-sm text-muted-foreground">
+                Location
               </Label>
-              <Label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-muted-foreground">End</span>
+              <Input
+                type="text"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                onFocus={() => suggestions.length > 0 && setSuggestionsOpen(true)}
+                placeholder="City, community, neighborhood, or address"
+                className="w-full"
+                aria-label="Search location"
+                aria-autocomplete="list"
+                aria-expanded={suggestionsOpen}
+                aria-controls="location-suggestions"
+                id="location-input"
+              />
+              {suggestionsOpen && (suggestions.length > 0 || suggestionsLoading) && (
+                <ul
+                  id="location-suggestions"
+                  role="listbox"
+                  className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-md"
+                >
+                  {suggestionsLoading && suggestions.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-muted-foreground">Searching...</li>
+                  ) : (
+                    suggestions.map((loc) => (
+                      <li key={`${loc.type}-${loc.city}-${loc.subdivision ?? ''}-${loc.label}`}>
+                        <Button
+                          type="button"
+                          role="option"
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => selectLocation(loc)}
+                        >
+                          {loc.type === 'city' && <span className="text-muted-foreground" aria-hidden>City · </span>}
+                          {loc.type === 'subdivision' && <span className="text-muted-foreground" aria-hidden>Community · </span>}
+                          {loc.type === 'address' && <span className="text-muted-foreground" aria-hidden>Address · </span>}
+                          {loc.label}
+                        </Button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              )}
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              {!customMode ? (
+                <Label className="flex flex-col gap-1.5">
+                  <span className="text-sm text-muted-foreground">Date range</span>
+                  <Select value={presetId} onValueChange={applyPreset}>
+                    <SelectTrigger aria-label="Date range preset">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRESETS.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Label>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Label className="flex flex-col gap-1.5">
+                    <span className="text-sm text-muted-foreground">Start</span>
+                    <Input
+                      type="date"
+                      value={start}
+                      onChange={(e) => setStart(e.target.value)}
+                      aria-label="Start date"
+                    />
+                  </Label>
+                  <Label className="flex flex-col gap-1.5">
+                    <span className="text-sm text-muted-foreground">End</span>
+                    <Input
+                      type="date"
+                      value={end}
+                      onChange={(e) => setEnd(e.target.value)}
+                      aria-label="End date"
+                    />
+                  </Label>
+                </div>
+              )}
+              <Label className="flex items-center gap-2 pb-2">
                 <Input
-                  type="date"
-                  value={end}
-                  onChange={(e) => setEnd(e.target.value)}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
-                  aria-label="End date"
+                  type="checkbox"
+                  checked={customMode}
+                  onChange={(e) => {
+                    setCustomMode(e.target.checked)
+                    if (!e.target.checked) applyPreset(presetId)
+                  }}
+                  className="rounded border-border"
                 />
+                <span className="text-sm text-muted-foreground">Custom range</span>
               </Label>
             </div>
-          )}
-          <Label className="flex items-center gap-2 py-2">
-            <Input
-              type="checkbox"
-              checked={customMode}
-              onChange={(e) => {
-                setCustomMode(e.target.checked)
-                if (!e.target.checked) applyPreset(presetId)
-              }}
-              className="rounded border-border"
-            />
-            <span className="text-sm text-muted-foreground">Custom range</span>
-          </Label>
-          <div className="flex flex-col gap-2 border-l border-border pl-4">
-            <span className="text-sm font-medium text-muted-foreground">Property type</span>
-            <p className="text-xs text-muted-foreground">Default: residential homes only (no condos). Add types below to include in the report.</p>
-            <div className="flex flex-wrap gap-4">
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Property types</p>
+            <p className="text-xs text-muted-foreground">
+              Default is residential homes only. Add categories below when needed.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Label className="flex items-center gap-2">
                 <Input
                   type="checkbox"
@@ -496,7 +511,7 @@ export default function ExploreClient({
                   onChange={(e) => setIncludeCondoTown(e.target.checked)}
                   className="rounded border-border"
                 />
-                <span className="text-sm text-muted-foreground">Condos & townhomes</span>
+                <span className="text-sm text-muted-foreground">Condos and townhomes</span>
               </Label>
               <Label className="flex items-center gap-2">
                 <Input
@@ -514,7 +529,7 @@ export default function ExploreClient({
                   onChange={(e) => setIncludeAcreage(e.target.checked)}
                   className="rounded border-border"
                 />
-                <span className="text-sm text-muted-foreground">Acreage / land</span>
+                <span className="text-sm text-muted-foreground">Acreage and land</span>
               </Label>
               <Label className="flex items-center gap-2">
                 <Input
@@ -527,52 +542,54 @@ export default function ExploreClient({
               </Label>
             </div>
           </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <Label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-muted-foreground">Min price ($)</span>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Label className="flex flex-col gap-1.5">
+              <span className="text-sm text-muted-foreground">Min price</span>
               <Input
                 type="text"
                 inputMode="numeric"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="Optional"
-                className="w-28 rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                 aria-label="Minimum price filter"
               />
             </Label>
-            <Label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-muted-foreground">Max price ($)</span>
+            <Label className="flex flex-col gap-1.5">
+              <span className="text-sm text-muted-foreground">Max price</span>
               <Input
                 type="text"
                 inputMode="numeric"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 placeholder="Optional"
-                className="w-28 rounded-lg border border-border bg-card px-3 py-2 text-foreground shadow-sm"
                 aria-label="Maximum price filter"
               />
             </Label>
           </div>
-          <Button
-            type="button"
-            onClick={handleApply}
-            disabled={loading || !city.trim()}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? 'Loading…' : 'Apply'}
-          </Button>
-        </div>
-        {shareUrl && (
-          <ShareButton
-            url={shareUrl}
-            title={shareTitle}
-            text={shareText}
-            aria-label="Share this view"
-            variant="default"
-            trackContext="explore_report"
-          />
-        )}
-      </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Button
+              type="button"
+              onClick={handleApply}
+              disabled={loading || !city.trim()}
+              className="w-full sm:w-auto"
+            >
+              {loading ? 'Loading...' : 'Apply report filters'}
+            </Button>
+            {shareUrl && (
+              <ShareButton
+                url={shareUrl}
+                title={shareTitle}
+                text={shareText}
+                aria-label="Share this view"
+                variant="default"
+                trackContext="explore_report"
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {error && (
         <p className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive" role="alert">

@@ -7,6 +7,7 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer'
 
 import { MAP_DEFAULT_CENTER, getListingMarkerIcon, MAP_LABEL_LISTING, MAP_COLOR_LISTING_PIN } from '@/lib/map-constants'
 import { listingDetailPath } from '@/lib/slug'
+import type { MapPolygonPoint } from '@/lib/map-polygon'
 import { Button } from "@/components/ui/button"
 
 type GeoJSONPolygon = { type: 'Polygon'; coordinates: number[][][] | number[][] }
@@ -97,7 +98,9 @@ type Props = {
   /** Optional GeoJSON boundary (Polygon/MultiPolygon) to draw for city/neighborhood/community. */
   boundaryGeojson?: unknown
   /** Called when user draws a polygon on the map. Returns the polygon path for filtering. */
-  onPolygonDrawn?: (polygon: { lat: number; lng: number }[] | null) => void
+  onPolygonDrawn?: (polygon: MapPolygonPoint[] | null) => void
+  /** Initial polygon to render (e.g. from URL saved search). */
+  initialPolygon?: MapPolygonPoint[] | null
 }
 
 export default function SearchMapClustered({
@@ -112,6 +115,7 @@ export default function SearchMapClustered({
   onBoundsChanged,
   boundaryGeojson,
   onPolygonDrawn,
+  initialPolygon,
 }: Props) {
   const router = useRouter()
   const mapRef = useRef<google.maps.Map | null>(null)
@@ -121,8 +125,8 @@ export default function SearchMapClustered({
   const [placeViewport, setPlaceViewport] = useState<google.maps.LatLngBounds | null>(null)
   const [showBoundary, setShowBoundary] = useState(true)
   const [drawingMode, setDrawingMode] = useState(false)
-  const [drawnPolygon, setDrawnPolygon] = useState<google.maps.Polygon | null>(null)
-  const drawingPoints = useRef<{ lat: number; lng: number }[]>([])
+  const [drawingPoints, setDrawingPoints] = useState<MapPolygonPoint[]>([])
+  const [activePolygon, setActivePolygon] = useState<MapPolygonPoint[] | null>(initialPolygon ?? null)
   const [openInfo, setOpenInfo] = useState<{
     listingKey: string
     position: { lat: number; lng: number }
@@ -176,6 +180,10 @@ export default function SearchMapClustered({
   )
 
   const boundaryPaths = useMemo(() => geojsonToPaths(boundaryGeojson), [boundaryGeojson])
+
+  useEffect(() => {
+    setActivePolygon(initialPolygon && initialPolygon.length >= 3 ? initialPolygon : null)
+  }, [initialPolygon])
 
   const reportBounds = useCallback(() => {
     const map = mapRef.current
@@ -414,9 +422,7 @@ export default function SearchMapClustered({
         onClick={(e) => {
           if (drawingMode && e.latLng) {
             const point = { lat: e.latLng.lat(), lng: e.latLng.lng() }
-            drawingPoints.current = [...drawingPoints.current, point]
-            // Force re-render to show polygon preview
-            setDrawnPolygon(null) // trigger update
+            setDrawingPoints((prev) => [...prev, point])
           }
         }}
         options={{
@@ -430,26 +436,26 @@ export default function SearchMapClustered({
         }}
       >
         {/* Drawing preview polygon */}
-        {drawingMode && drawingPoints.current.length >= 2 && (
+        {drawingMode && drawingPoints.length >= 2 && (
           <Polygon
-            paths={drawingPoints.current}
+            paths={drawingPoints}
             options={{
-              fillColor: '#3b82f6',
+              fillColor: 'var(--accent)',
               fillOpacity: 0.15,
-              strokeColor: '#3b82f6',
+              strokeColor: 'var(--primary)',
               strokeWeight: 2,
               strokeOpacity: 0.8,
             }}
           />
         )}
         {/* Completed drawn polygon */}
-        {!drawingMode && drawnPolygon && (
+        {!drawingMode && activePolygon && activePolygon.length >= 3 && (
           <Polygon
-            paths={drawnPolygon.getPath().getArray().map(p => ({ lat: p.lat(), lng: p.lng() }))}
+            paths={activePolygon}
             options={{
-              fillColor: '#3b82f6',
+              fillColor: 'var(--accent)',
               fillOpacity: 0.2,
-              strokeColor: '#2563eb',
+              strokeColor: 'var(--primary)',
               strokeWeight: 2,
             }}
           />
@@ -513,16 +519,16 @@ export default function SearchMapClustered({
       {/* Draw-on-map controls */}
       {onPolygonDrawn && (
         <div className="absolute left-3 top-3 z-[100] flex gap-2" aria-label="Draw controls">
-          {!drawingMode && !drawnPolygon && (
+          {!drawingMode && (!activePolygon || activePolygon.length < 3) && (
             <Button
               type="button"
               onClick={() => {
                 setDrawingMode(true)
-                drawingPoints.current = []
+                setDrawingPoints([])
               }}
               className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary shadow-md hover:bg-muted"
             >
-              ✏️ Draw to search
+              Draw area
             </Button>
           )}
           {drawingMode && (
@@ -531,24 +537,23 @@ export default function SearchMapClustered({
                 type="button"
                 onClick={() => {
                   // Finalize the polygon
-                  if (drawingPoints.current.length >= 3) {
-                    const path = [...drawingPoints.current]
-                    const polygon = new google.maps.Polygon({ paths: path })
-                    setDrawnPolygon(polygon)
-                    onPolygonDrawn(path)
+                  if (drawingPoints.length >= 3) {
+                    const path = [...drawingPoints]
+                    setActivePolygon(path)
+                    onPolygonDrawn?.(path)
                   }
                   setDrawingMode(false)
                 }}
                 className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-md hover:bg-primary/90"
-                disabled={drawingPoints.current.length < 3}
+                disabled={drawingPoints.length < 3}
               >
-                Done ({drawingPoints.current.length} points)
+                Apply area ({drawingPoints.length})
               </Button>
               <Button
                 type="button"
                 onClick={() => {
                   setDrawingMode(false)
-                  drawingPoints.current = []
+                  setDrawingPoints([])
                 }}
                 className="rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-md hover:bg-muted"
               >
@@ -556,18 +561,17 @@ export default function SearchMapClustered({
               </Button>
             </>
           )}
-          {drawnPolygon && (
+          {!drawingMode && activePolygon && activePolygon.length >= 3 && (
             <Button
               type="button"
               onClick={() => {
-                drawnPolygon.setMap(null)
-                setDrawnPolygon(null)
-                drawingPoints.current = []
-                onPolygonDrawn(null)
+                setActivePolygon(null)
+                setDrawingPoints([])
+                onPolygonDrawn?.(null)
               }}
               className="rounded-lg border border-destructive bg-card px-3 py-2 text-sm font-medium text-destructive shadow-md hover:bg-destructive/10"
             >
-              Clear drawing
+              Clear area
             </Button>
           )}
         </div>

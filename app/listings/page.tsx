@@ -15,6 +15,7 @@ import UnifiedMapListingsView from '../../components/UnifiedMapListingsView'
 import ListingsPagination from '../../components/ListingsPagination'
 import ListingsPageFooter from './ListingsPageFooter'
 import { listingsBrowsePath } from '@/lib/slug'
+import { decodeMapPolygon } from '@/lib/map-polygon'
 
 type SearchParams = {
   view?: string
@@ -45,6 +46,7 @@ type SearchParams = {
   includeClosed?: string
   page?: string
   perPage?: string
+  poly?: string
 }
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
@@ -106,10 +108,12 @@ export default async function ListingsPage({
     includeClosed,
     page: pageParam,
     perPage: perPageParam,
+    poly,
   } = p
   const page = Math.max(1, parseInt(String(pageParam ?? '1'), 10) || 1)
   const perPage = Math.min(50, Math.max(10, parseInt(String(perPageParam ?? '20'), 10) || 20))
   const isMapView = view === 'map'
+  const initialPolygon = decodeMapPolygon(poly)
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -237,6 +241,7 @@ export default async function ListingsPage({
       includeClosed: p.includeClosed,
       page: String(page),
       perPage: p.perPage ?? String(perPage),
+      poly: p.poly,
     }
     const mapQuery = new URLSearchParams()
     for (const [k, v] of Object.entries(searchParamsForBar)) {
@@ -276,6 +281,8 @@ export default async function ListingsPage({
           maxSqFt={maxSqFt ? Number(maxSqFt) : undefined}
           postalCode={postalCode ?? undefined}
           propertyType={propertyType ?? undefined}
+          initialPolygon={initialPolygon}
+          persistPolygonInUrl
           filterBar={
             <SearchFilterBar
               basePath="/listings"
@@ -308,6 +315,7 @@ export default async function ListingsPage({
               sort={p.sort}
               view="map"
               perPage={p.perPage ?? String(perPage)}
+              poly={p.poly}
             />
           }
         />
@@ -380,6 +388,7 @@ export default async function ListingsPage({
             sort={sort}
             view={view}
             perPage={p.perPage ?? String(perPage)}
+            poly={p.poly}
           />
         </Suspense>
       </div>
@@ -446,6 +455,7 @@ export default async function ListingsPage({
               includeClosed: p.includeClosed,
               page: p.page,
               perPage: p.perPage,
+              poly: p.poly,
             }}
             page={page}
             perPage={perPage}

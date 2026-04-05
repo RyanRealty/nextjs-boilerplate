@@ -37,22 +37,22 @@ function eventLabel(type: ActivityFeedItem['event_type']): string {
 
 function eventBadgeVariant(
   type: ActivityFeedItem['event_type']
-): 'default' | 'secondary' | 'outline' | 'destructive' {
+): 'soft-popular' | 'soft-price-drop' | 'soft-trending' | 'soft-neutral' | 'soft-hot' {
   switch (type) {
     case 'new_listing':
-      return 'default'
+      return 'soft-popular'
     case 'price_drop':
-      return 'secondary'
+      return 'soft-price-drop'
     case 'status_pending':
-      return 'outline'
+      return 'soft-trending'
     case 'status_closed':
-      return 'secondary'
+      return 'soft-neutral'
     case 'status_expired':
-      return 'destructive'
+      return 'soft-hot'
     case 'back_on_market':
-      return 'default'
+      return 'soft-trending'
     default:
-      return 'outline'
+      return 'soft-neutral'
   }
 }
 

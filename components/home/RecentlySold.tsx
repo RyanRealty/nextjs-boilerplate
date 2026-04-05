@@ -4,7 +4,6 @@ import Link from 'next/link'
 import HomeTileCard from './HomeTileCard'
 import type { HomeTileRow } from '@/app/actions/listings'
 import type { EngagementCounts } from '@/app/actions/engagement'
-import { Badge } from '@/components/ui/badge'
 import { TILE_MIN_HEIGHT_PX } from '@/lib/tile-constants'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 
@@ -65,9 +64,6 @@ export default function RecentlySold({
             return (
               <TilesSliderItem key={key} style={{ minHeight: TILE_MIN_HEIGHT_PX }}>
                 <div className="relative h-full">
-                  <div className="absolute left-3 top-3 z-10">
-                    <Badge variant="outline">Sold</Badge>
-                  </div>
                   <HomeTileCard
                     listing={listing}
                     listingKey={String(key)}

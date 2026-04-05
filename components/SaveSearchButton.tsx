@@ -23,7 +23,7 @@ export default function SaveSearchButton({ user }: Props) {
   function buildFilters(): Record<string, unknown> {
     const filters: Record<string, unknown> = {}
     const parts = pathname?.split('/').filter(Boolean) ?? []
-    if (parts[0] === 'search') {
+    if (parts[0] === 'search' || parts[0] === 'homes-for-sale') {
       if (parts[1]) filters.city = decodeURIComponent(parts[1]).trim()
       if (parts[2]) filters.subdivision = decodeURIComponent(parts[2])
     }
@@ -37,6 +37,8 @@ export default function SaveSearchButton({ user }: Props) {
     const sort = searchParams.get('sort')
     const statusFilter = searchParams.get('statusFilter')
     const includeClosed = searchParams.get('includeClosed')
+    const view = searchParams.get('view')
+    const poly = searchParams.get('poly')
     if (minPrice) filters.minPrice = Number(minPrice)
     if (maxPrice) filters.maxPrice = Number(maxPrice)
     if (beds) filters.beds = Number(beds)
@@ -47,6 +49,8 @@ export default function SaveSearchButton({ user }: Props) {
     if (sort) filters.sort = sort
     if (statusFilter) filters.statusFilter = statusFilter
     if (includeClosed === '1') filters.includeClosed = true
+    if (view) filters.view = view
+    if (poly) filters.poly = poly
     return filters
   }
 

@@ -45,18 +45,20 @@ function eventLabel(type: ActivityFeedItem['event_type']): string {
   }
 }
 
-function eventBadgeVariant(type: ActivityFeedItem['event_type']): 'default' | 'destructive' | 'secondary' | 'outline' {
+function eventBadgeVariant(
+  type: ActivityFeedItem['event_type']
+): 'soft-popular' | 'soft-price-drop' | 'soft-trending' | 'soft-neutral' {
   switch (type) {
     case 'new_listing':
-      return 'default'
+      return 'soft-popular'
     case 'price_drop':
-      return 'destructive'
+      return 'soft-price-drop'
     case 'status_pending':
-      return 'secondary'
+      return 'soft-trending'
     case 'status_closed':
-      return 'outline'
+      return 'soft-neutral'
     default:
-      return 'default'
+      return 'soft-neutral'
   }
 }
 

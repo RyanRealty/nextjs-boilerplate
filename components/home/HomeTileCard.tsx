@@ -13,6 +13,10 @@ type Props = {
   userEmail?: string | null
   /** When true, show "Hot" badge (e.g. Trending section). */
   hotBadge?: boolean
+  /** When true, show price reduction badge. */
+  hasRecentPriceChange?: boolean
+  /** Amount reduced when known. */
+  priceDropAmount?: number | null
   viewCount?: number
   likeCount?: number
   saveCount?: number
@@ -29,6 +33,8 @@ export default function HomeTileCard({
   signedIn,
   userEmail,
   hotBadge,
+  hasRecentPriceChange,
+  priceDropAmount,
   viewCount,
   likeCount,
   saveCount,
@@ -44,6 +50,8 @@ export default function HomeTileCard({
       signedIn={signedIn}
       userEmail={userEmail}
       hotBadge={hotBadge}
+      hasRecentPriceChange={hasRecentPriceChange}
+      priceDropAmount={priceDropAmount}
       viewCount={viewCount}
       likeCount={likeCount}
       saveCount={saveCount}

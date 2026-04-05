@@ -4,6 +4,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { listingDetailPath, listingKeyFromSlug, neighborhoodPagePath, reportsExploreYtdPath } from '../../lib/slug'
 import { getSubdivisionMatchNames } from '../../lib/subdivision-aliases'
+import { getPolygonBounds, isPointInPolygon, type MapPolygonPoint } from '@/lib/map-polygon'
 
 function getAnonSupabase(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -894,6 +895,8 @@ export type MapBounds = { west: number; south: number; east: number; north: numb
 export type GetListingsInBoundsOptions = GetListingsForMapOptions & {
   /** Map viewport bounds. Listings returned are within this box. */
   bounds: MapBounds
+  /** Optional drawn polygon; when set we filter to listings inside this shape. */
+  polygon?: MapPolygonPoint[] | null
   limit?: number
   offset?: number
   sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc'
@@ -911,15 +914,17 @@ export async function getListingsInBounds(
 ): Promise<{ listings: ListingTileRow[]; totalCount: number }> {
   const supabase = getAnonSupabase()
   if (!supabase) return { listings: [], totalCount: 0 }
-  const { bounds, limit = 20, offset = 0, sort = 'newest' } = options
+  const { bounds, polygon, limit = 20, offset = 0, sort = 'newest' } = options
+  const polygonBounds = polygon && polygon.length >= 3 ? getPolygonBounds(polygon) : null
+  const effectiveBounds = polygonBounds ?? bounds
 
   let query = supabase
     .from('listings')
     .select(LISTING_BOUNDS_SELECT, { count: 'exact' })
-    .gte('Latitude', bounds.south)
-    .lte('Latitude', bounds.north)
-    .gte('Longitude', bounds.west)
-    .lte('Longitude', bounds.east)
+    .gte('Latitude', effectiveBounds.south)
+    .lte('Latitude', effectiveBounds.north)
+    .gte('Longitude', effectiveBounds.west)
+    .lte('Longitude', effectiveBounds.east)
 
   if (options.city?.trim()) query = query.ilike('City', options.city.trim())
   if (options.subdivision?.trim()) {
@@ -958,12 +963,17 @@ export async function getListingsInBounds(
   else if (sort === 'price_desc') query = query.order('ListPrice', { ascending: false, nullsFirst: false })
 
   const limitClamp = Math.min(Math.max(limit, 1), 50)
-  const { data, error, count } = await query.range(offset, offset + limitClamp - 1)
+  const polygonFetchLimit = 3000
+  if (polygon && polygon.length >= 3) {
+    query = query.limit(polygonFetchLimit)
+  } else {
+    query = query.range(offset, offset + limitClamp - 1)
+  }
+  const { data, error, count } = await query
 
   if (error) return { listings: [], totalCount: 0 }
   const rows = (data ?? []) as ListingTileRow[]
-  const totalCount = typeof count === 'number' ? count : rows.length
-  const filtered =
+  const statusFiltered =
     statusFilter === 'active'
       ? rows.filter((r) => isActiveStatus(r.StandardStatus))
       : statusFilter === 'active_and_pending'
@@ -973,7 +983,22 @@ export async function getListingsInBounds(
           : statusFilter === 'closed'
             ? rows.filter((r) => isClosedStatus(r.StandardStatus))
             : rows
-  return { listings: filtered, totalCount }
+
+  if (polygon && polygon.length >= 3) {
+    const polygonFiltered = statusFiltered.filter((row) => {
+      const lat = Number(row.Latitude)
+      const lng = Number(row.Longitude)
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
+      return isPointInPolygon({ lat, lng }, polygon)
+    })
+    return {
+      listings: polygonFiltered.slice(offset, offset + limitClamp),
+      totalCount: polygonFiltered.length,
+    }
+  }
+
+  const totalCount = typeof count === 'number' ? count : statusFiltered.length
+  return { listings: statusFiltered, totalCount }
 }
 
 /**

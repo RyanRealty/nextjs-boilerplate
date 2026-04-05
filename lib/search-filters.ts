@@ -36,6 +36,8 @@ const FILTER_KEYS = [
   'newListingsDays',
   'sort',
   'includeClosed',
+  'view',
+  'poly',
 ] as const
 
 function asTrimmedString(value: unknown): string | undefined {
@@ -70,7 +72,7 @@ export function normalizeSavedSearchFilters(input: SavedSearchFilters): SavedSea
     const value = input[key]
     if (value == null) continue
 
-    if (key === 'city' || key === 'subdivision' || key === 'postalCode' || key === 'propertyType' || key === 'propertySubType' || key === 'statusFilter' || key === 'keywords' || key === 'viewContains' || key === 'sort') {
+    if (key === 'city' || key === 'subdivision' || key === 'postalCode' || key === 'propertyType' || key === 'propertySubType' || key === 'statusFilter' || key === 'keywords' || key === 'viewContains' || key === 'sort' || key === 'view' || key === 'poly') {
       const parsed = asTrimmedString(value)
       if (parsed) out[key] = parsed
       continue

@@ -78,6 +78,7 @@ export type SearchFilterBarProps = {
   sort?: string
   view?: string
   perPage?: string
+  poly?: string
 }
 
 function hasStatusActive(params: SearchFilterBarProps): boolean {
@@ -124,6 +125,8 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
   const [isPending, startTransition] = useTransition()
   const pathname = props.basePath ?? listingsBrowsePath()
   const [open, setOpen] = useState<OpenKey>(null)
+  const [garageMinValue, setGarageMinValue] = useState(props.garageMin ?? '__all__')
+  const [newListingsDaysValue, setNewListingsDaysValue] = useState(props.newListingsDays ?? '__all__')
   const barRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -133,6 +136,11 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    setGarageMinValue(props.garageMin ?? '__all__')
+    setNewListingsDaysValue(props.newListingsDays ?? '__all__')
+  }, [props.garageMin, props.newListingsDays])
 
   function buildParams(overrides: Record<string, string | undefined>): URLSearchParams {
     const p = {
@@ -162,6 +170,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
       sort: props.sort,
       view: props.view,
       perPage: props.perPage,
+      poly: props.poly,
       page: '1',
       ...overrides,
     }
@@ -187,7 +196,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
   const btnActive =
     'border-accent bg-accent/10 text-primary'
   const dropdownPanel =
-    'absolute left-0 top-full z-50 mt-1 min-w-[280px] rounded-lg border border-border bg-card p-4 shadow-lg'
+    'absolute left-0 right-0 top-full z-50 mt-1 w-[min(92vw,360px)] rounded-lg border border-border bg-card p-4 shadow-lg sm:right-auto sm:min-w-[280px]'
 
   return (
     <div ref={barRef} className="flex flex-wrap items-center gap-2">
@@ -662,13 +671,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
               <div className="space-y-2">
                 <Label className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">Garage (min)</span>
-                  <Select defaultValue={props.garageMin ?? '__all__'} onValueChange={(v) => {
-                    const form = (event?.target as HTMLElement)?.closest('form');
-                    if (form) {
-                      const select = form.querySelector<HTMLInputElement>('input[name="garageMin"]');
-                      if (select) select.value = v;
-                    }
-                  }}>
+                  <Select value={garageMinValue} onValueChange={setGarageMinValue}>
                     <SelectTrigger className="rounded-lg border border-border px-3 py-2 text-sm">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
@@ -679,17 +682,11 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <input type="hidden" name="garageMin" defaultValue={props.garageMin ?? '__all__'} />
+                  <input type="hidden" name="garageMin" value={garageMinValue} readOnly />
                 </Label>
                 <Label className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">New listings</span>
-                  <Select defaultValue={props.newListingsDays ?? '__all__'} onValueChange={(v) => {
-                    const form = (event?.target as HTMLElement)?.closest('form');
-                    if (form) {
-                      const select = form.querySelector<HTMLInputElement>('input[name="newListingsDays"]');
-                      if (select) select.value = v;
-                    }
-                  }}>
+                  <Select value={newListingsDaysValue} onValueChange={setNewListingsDaysValue}>
                     <SelectTrigger className="rounded-lg border border-border px-3 py-2 text-sm">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
@@ -700,7 +697,7 @@ export default function SearchFilterBar(props: SearchFilterBarProps) {
                       <SelectItem value="30">Last 30 days</SelectItem>
                     </SelectContent>
                   </Select>
-                  <input type="hidden" name="newListingsDays" defaultValue={props.newListingsDays ?? '__all__'} />
+                  <input type="hidden" name="newListingsDays" value={newListingsDaysValue} readOnly />
                 </Label>
               </div>
               <div className="flex flex-wrap gap-4 border-t border-border pt-3">

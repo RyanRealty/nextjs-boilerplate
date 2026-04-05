@@ -171,7 +171,10 @@ export type ListingTileProps = {
   viewCount?: number
 }
 
-const MIN_LIKES_FOR_FIRE = 3
+const POPULAR_VIEW_THRESHOLD = 20
+const POPULAR_LIKE_THRESHOLD = 4
+const POPULAR_SAVE_THRESHOLD = 3
+const TRENDING_VIDEO_VIEW_THRESHOLD = 35
 
 function ListingTile({
   listing,
@@ -248,6 +251,8 @@ function ListingTile({
   const hasVideo = videoUrls.length > 0
   const hasVirtTour = hasVirtualTour(listing)
   const hasPlans = hasFloorPlans(listing)
+  const isPopular = viewCount >= POPULAR_VIEW_THRESHOLD || likeCount >= POPULAR_LIKE_THRESHOLD || saveCount >= POPULAR_SAVE_THRESHOLD
+  const isTrendingVideo = hasVideo && (hotBadge || viewCount >= TRENDING_VIDEO_VIEW_THRESHOLD)
 
   const address = formatAddress(listing)
 
@@ -424,11 +429,19 @@ function ListingTile({
           position="top-left"
           max={3}
           items={[
-            ...(dom !== 0 && likeCount >= MIN_LIKES_FOR_FIRE ? [{ label: String(likeCount), variant: 'hot' as const, icon: <span aria-hidden><svg className="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 23C12 23 20 16 20 10c0-2.5-1.5-4-4-4-.8 0-1.5.2-2 .7-.5-.5-1.2-.7-2-.7-2.5 0-4 1.5-4 4 0 6 8 13 8 13z" /></svg></span> }] : []),
-            ...(hotBadge ? [{ label: 'Hot', variant: 'hot' as const }] : []),
+            ...(hotBadge ? [{ label: 'Hot market', variant: 'hot' as const }] : []),
+            ...(isTrendingVideo ? [{ label: 'Trending video', variant: 'trending' as const, icon: <span aria-hidden><svg className="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></span> }] : []),
+            ...(hasRecentPriceChange
+              ? [{
+                  label: priceDropAmount && priceDropAmount > 0
+                    ? `Price reduced $${Math.round(priceDropAmount).toLocaleString()}`
+                    : 'Price reduced',
+                  variant: 'price-drop' as const,
+                }]
+              : []),
+            ...(isPopular ? [{ label: 'Popular', variant: 'popular' as const }] : []),
             ...(hasOpenHouse ? [{ label: 'Open house', variant: 'open-house' as const }] : []),
             ...(dom === 0 ? [{ label: 'New', variant: 'new' as const, icon: <span aria-hidden><svg className="size-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" /></svg></span> }] : []),
-            ...(hasRecentPriceChange ? [{ label: 'Price reduced', variant: 'price-drop' as const }] : []),
             ...(isResort ? [{ label: 'Resort & master plan', variant: 'resort' as const }] : []),
           ]}
         />
