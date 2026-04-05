@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.6.8 (2026-04-05)
+
+### Bug Fixes
+- fix: avoid broken unknown listing video embeds
+
+---
+
+
 ## v1.6.7 (2026-04-05)
 
 ### Bug Fixes
