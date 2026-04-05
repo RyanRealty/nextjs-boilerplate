@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.16.8 (2026-04-05)
+
+### Maintenance
+- perf: add fail-fast guards to city detail data fanout
+
+---
+
+
 ## v1.16.7 (2026-04-05)
 
 ### Maintenance
