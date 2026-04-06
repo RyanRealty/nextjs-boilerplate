@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.0 (2026-04-06)
+
+### Features
+- feat: video slider uses priciest Central Oregon listings that have tours
+
+---
+
+
 ## v1.19.3 (2026-04-06)
 
 ### Bug Fixes
