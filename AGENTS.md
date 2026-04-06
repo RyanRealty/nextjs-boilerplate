@@ -284,6 +284,10 @@ git push origin feat/some-branch
 gh pr create
 ```
 
+## Production parity (code + database + Vercel)
+
+**https://ryanrealty.vercel.app** reflects “everything current” only when **`main` is on Vercel production** and **hosted Supabase** has **all migrations applied** that the shipped code needs. SQL under `supabase/migrations/` is not live until it runs against the production database. See `.cursor/rules/production-parity.mdc` and `.cursor/rules/supabase-migrations-auto.mdc`.
+
 The orchestrator automatically:
 - Updates the task status in the registry
 - Checks if the parent phase is now fully complete

@@ -1,0 +1,18 @@
+---
+description: ryanrealty.vercel.app must reflect latest code, Vercel prod deploy, and hosted Supabase schema together.
+alwaysApply: true
+---
+
+# Production parity (single current state)
+
+**https://ryanrealty.vercel.app** counts as “everything latest” only when all of these match the same release:
+
+1. **`main`** includes the intended commits.  
+2. **Vercel production** has a **READY** deployment for that commit (not only a passing local build).  
+3. **Hosted Supabase** (the project the production app uses) has **every migration applied** that the shipped code needs. Files in `supabase/migrations/` are not live until they run against that database.
+
+When work touches schema or depends on new columns, functions, or tables, **apply hosted migrations in the same delivery effort** as the code push. Do not ask whether to migrate. Use `.cursor/rules/supabase-migrations-auto.mdc` (MCP or `npm run db:push` after `supabase link`).
+
+After deploy, **verify the production URL** for the changed behavior. Follow `.cursor/rules/deploy-verify-before-done.mdc`.
+
+If anything lags, state which layer is behind (Git, Vercel, or Supabase). Never tell the user production shows the full latest state unless all three are aligned.

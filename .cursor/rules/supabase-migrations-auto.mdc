@@ -5,6 +5,8 @@ alwaysApply: true
 
 # Supabase migrations
 
+Part of **production parity** (`.cursor/rules/production-parity.mdc`): hosted schema must stay in step with what ships on `main` and Vercel.
+
 When migrations in `supabase/migrations/` must be applied to the hosted project (user says apply migrations, fix missing columns, db drift, `mls_source`, `has_virtual_tour`, etc.):
 
 1. **Do not ask** whether to run migrations. Apply them.
