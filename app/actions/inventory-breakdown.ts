@@ -29,6 +29,22 @@ const EMPTY_BREAKDOWN: InventoryBreakdown = {
   landLot: 0,
 }
 
+function parseRpcBreakdown(data: unknown): InventoryBreakdown | null {
+  if (!data || typeof data !== 'object') return null
+  const o = data as Record<string, unknown>
+  const n = (k: string) => {
+    const v = o[k]
+    const x = typeof v === 'number' ? v : Number(v)
+    return Number.isFinite(x) ? Math.max(0, Math.trunc(x)) : 0
+  }
+  return {
+    singleFamily: n('singleFamily'),
+    condoTownhome: n('condoTownhome'),
+    manufacturedMobile: n('manufacturedMobile'),
+    landLot: n('landLot'),
+  }
+}
+
 function summarizeBuckets(rows: Array<{ PropertyType?: string | null; StandardStatus?: string | null }>): InventoryBreakdown {
   const result: InventoryBreakdown = { ...EMPTY_BREAKDOWN }
   for (const row of rows) {
@@ -42,32 +58,66 @@ function summarizeBuckets(rows: Array<{ PropertyType?: string | null; StandardSt
   return result
 }
 
-export async function getCityInventoryBreakdown(cityName: string): Promise<InventoryBreakdown> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function breakdownFromListingsTableScan(buildQuery: (q: any) => any): Promise<InventoryBreakdown> {
   const rows = await fetchAllRows<{ PropertyType?: string | null; StandardStatus?: string | null }>(
     supabase(),
     'listings',
     'PropertyType, StandardStatus',
-    (q: any) => q.ilike('City', cityName).or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
+    buildQuery
   )
   return summarizeBuckets(rows)
 }
 
-export async function getCommunityInventoryBreakdown(cityName: string, subdivisionName: string): Promise<InventoryBreakdown> {
-  const rows = await fetchAllRows<{ PropertyType?: string | null; StandardStatus?: string | null }>(
-    supabase(),
-    'listings',
-    'PropertyType, StandardStatus',
-    (q: any) =>
-      q
-        .ilike('City', cityName)
-        .ilike('SubdivisionName', subdivisionName)
-        .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
+export async function getCityInventoryBreakdown(cityName: string): Promise<InventoryBreakdown> {
+  const sb = supabase()
+  const { data, error } = await sb.rpc('inventory_breakdown_for_city', { p_city: cityName.trim() })
+  if (!error) {
+    const parsed = parseRpcBreakdown(data)
+    if (parsed) return parsed
+  } else {
+    console.error('[getCityInventoryBreakdown] rpc', error.message)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return breakdownFromListingsTableScan((q: any) =>
+    q
+      .ilike('City', cityName)
+      .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
   )
-  return summarizeBuckets(rows)
+}
+
+export async function getCommunityInventoryBreakdown(cityName: string, subdivisionName: string): Promise<InventoryBreakdown> {
+  const sb = supabase()
+  const { data, error } = await sb.rpc('inventory_breakdown_for_community', {
+    p_city: cityName.trim(),
+    p_subdivision: subdivisionName.trim(),
+  })
+  if (!error) {
+    const parsed = parseRpcBreakdown(data)
+    if (parsed) return parsed
+  } else {
+    console.error('[getCommunityInventoryBreakdown] rpc', error.message)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return breakdownFromListingsTableScan((q: any) =>
+    q
+      .ilike('City', cityName)
+      .ilike('SubdivisionName', subdivisionName)
+      .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
+  )
 }
 
 export async function getNeighborhoodInventoryBreakdown(neighborhoodId: string): Promise<InventoryBreakdown> {
   const sb = supabase()
+  const { data, error } = await sb.rpc('inventory_breakdown_for_neighborhood', {
+    p_neighborhood_id: neighborhoodId,
+  })
+  if (!error) {
+    const parsed = parseRpcBreakdown(data)
+    if (parsed) return parsed
+  } else {
+    console.error('[getNeighborhoodInventoryBreakdown] rpc', error.message)
+  }
   const { data: propIds } = await sb.from('properties').select('id').eq('neighborhood_id', neighborhoodId).limit(5000)
   const ids = (propIds ?? []).map((row: { id: string }) => row.id)
   if (ids.length === 0) return { ...EMPTY_BREAKDOWN }
@@ -75,7 +125,9 @@ export async function getNeighborhoodInventoryBreakdown(neighborhoodId: string):
     sb,
     'listings',
     'PropertyType, StandardStatus',
-    (q: any) => q.in('property_id', ids).or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (q: any) =>
+      q.in('property_id', ids).or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
   )
   return summarizeBuckets(rows)
 }

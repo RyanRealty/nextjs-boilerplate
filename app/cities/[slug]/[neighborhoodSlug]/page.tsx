@@ -102,7 +102,7 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
     withTimeout(getActiveBrokers(), []),
     Promise.resolve([] as string[]),
     Promise.resolve([] as string[]),
-    withTimeout(getNeighborhoodInventoryBreakdown(neighborhood.id), EMPTY_INVENTORY),
+    withTimeout(getNeighborhoodInventoryBreakdown(neighborhood.id), EMPTY_INVENTORY, 20_000),
     withTimeout(getListingsWithVideosCached({ city: neighborhood.cityName, sort: 'price_desc', status: 'active', limit: 20 }), []),
   ])
 
@@ -329,7 +329,11 @@ export default async function NeighborhoodDetailPage({ params }: Props) {
         priceRangeMax={priceRangeMax}
       />
 
-      <InventoryTypeSlider placeLabel={neighborhood.name} breakdown={inventoryBreakdown} />
+      <InventoryTypeSlider
+        placeLabel={neighborhood.name}
+        breakdown={inventoryBreakdown}
+        browseCityName={neighborhood.cityName}
+      />
 
       <GeoSectionLatestActivity
         title={`What is happening in ${neighborhood.name}`}

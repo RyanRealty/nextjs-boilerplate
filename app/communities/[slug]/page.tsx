@@ -123,7 +123,7 @@ export default async function CommunityDetailPage({ params }: Props) {
         city: community.city,
         community: [community.subdivision],
       }), []),
-      withTimeout(getCommunityInventoryBreakdown(community.city, community.subdivision), EMPTY_INVENTORY),
+      withTimeout(getCommunityInventoryBreakdown(community.city, community.subdivision), EMPTY_INVENTORY, 20_000),
       withTimeout(getListingsWithVideosCached({ city: community.city, community: community.subdivision, sort: 'price_desc', status: 'active', limit: 12 }), []),
       withTimeout(getReportMetricsTimeSeries(community.city, 60, community.subdivision), { data: [], error: undefined }),
     ])
@@ -391,7 +391,12 @@ export default async function CommunityDetailPage({ params }: Props) {
         />
       </div>
 
-      <InventoryTypeSlider placeLabel={community.name} breakdown={inventoryBreakdown} />
+      <InventoryTypeSlider
+        placeLabel={community.name}
+        breakdown={inventoryBreakdown}
+        browseCityName={community.city}
+        browseSubdivisionName={community.subdivision}
+      />
 
       {communityPulse && (
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">

@@ -186,7 +186,7 @@ export default async function CityDetailPage({ params }: Props) {
     withTimeout(getGuidesByCity(city.name), []),
     withTimeout(getLiveMarketPulse({ geoType: 'city', geoSlug: slugify(city.name) }), null),
     withTimeout(getOpenHousesWithListings({ city: city.name }), []),
-    withTimeout(getCityInventoryBreakdown(city.name), EMPTY_INVENTORY),
+    withTimeout(getCityInventoryBreakdown(city.name), EMPTY_INVENTORY, 20_000),
     withTimeout(getListingsWithVideosCached({ city: city.name, sort: 'price_desc', status: 'active', limit: 12 }), []),
     withTimeout(getReportMetricsTimeSeries(city.name, 60), { data: [], error: undefined }),
   ])
@@ -417,7 +417,7 @@ export default async function CityDetailPage({ params }: Props) {
         />
       </div>
 
-      <InventoryTypeSlider placeLabel={city.name} breakdown={inventoryBreakdown} />
+      <InventoryTypeSlider placeLabel={city.name} breakdown={inventoryBreakdown} browseCityName={city.name} />
 
       {cityPulse && (
         <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
