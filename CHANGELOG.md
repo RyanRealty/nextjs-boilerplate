@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.19.1 (2026-04-06)
+
+### Bug Fixes
+- fix: home video tours slider empty from timeout and client filter
+
+---
+
+
 ## v1.19.0 (2026-04-06)
 
 ### Features
