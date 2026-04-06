@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.6 (2026-04-06)
+
+### Bug Fixes
+- fix: use ilike for terminal status counts in sync tooling
+
+---
+
+
 ## v1.20.5 (2026-04-06)
 
 ### Maintenance
