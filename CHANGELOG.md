@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.3 (2026-04-06)
+
+### Bug Fixes
+- fix: embed YouTube Vimeo Matterport in listing tiles on hover
+
+---
+
+
 ## v1.20.2 (2026-04-06)
 
 ### Bug Fixes
