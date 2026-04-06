@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { MARKET_REPORT_DEFAULT_CITIES } from '@/app/actions/market-report-types'
-import { fetchVideoRowsViaListingVideosJoin } from '@/lib/video-tours-listing-videos-join'
+import { fetchListingsWithVideos } from '@/lib/fetch-listings-with-videos'
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET
@@ -30,21 +29,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const citiesLower = new Set(MARKET_REPORT_DEFAULT_CITIES.map((c) => c.toLowerCase()))
+    const hubFilters = {
+      region: 'central_oregon' as const,
+      sort: 'price_desc' as const,
+      status: 'active' as const,
+      limit: 48,
+    }
+    const homeFilters = { ...hubFilters, limit: 12 }
 
     const [homeRows, hubRows] = await Promise.all([
-      fetchVideoRowsViaListingVideosJoin(supabase, {
-        maxRows: 12,
-        priceDesc: true,
-        citiesLower,
-        listingVideosLimit: 1200,
-      }),
-      fetchVideoRowsViaListingVideosJoin(supabase, {
-        maxRows: 48,
-        priceDesc: true,
-        citiesLower,
-        listingVideosLimit: 4000,
-      }),
+      fetchListingsWithVideos(supabase, homeFilters),
+      fetchListingsWithVideos(supabase, hubFilters),
     ])
 
     const now = new Date().toISOString()
