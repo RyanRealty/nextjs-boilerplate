@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.17.7 (2026-04-06)
+
+### Maintenance
+- style: streamline search filters and report builder layout
+
+---
+
+
 ## v1.17.6 (2026-04-06)
 
 ### Bug Fixes
