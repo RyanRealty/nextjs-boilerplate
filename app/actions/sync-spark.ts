@@ -65,15 +65,19 @@ async function syncListingVideosForRows(
   for (const row of rows) {
     const listingKey = String(row.ListingKey ?? '').trim()
     if (!listingKey) continue
-    const details = (row.details ?? null) as { Videos?: unknown } | null
-    const videos = Array.isArray(details?.Videos) ? details.Videos : []
+    const details = (row.details ?? null) as { Videos?: unknown; videos?: unknown } | null
+    const videos = Array.isArray(details?.Videos)
+      ? details.Videos
+      : Array.isArray(details?.videos)
+        ? details.videos
+        : []
     await sb.from('listing_videos').delete().eq('listing_key', listingKey)
     if (videos.length === 0) continue
     const videoRows = videos
       .map((item, index) => {
-        const record = item as { Uri?: string; URL?: string; Url?: string; Order?: number } | null
+        const record = item as { Uri?: string; uri?: string; URL?: string; Url?: string; Order?: number } | null
         if (!record) return null
-        const videoUrl = (record.Uri ?? record.URL ?? record.Url ?? '').trim()
+        const videoUrl = (record.Uri ?? record.uri ?? record.URL ?? record.Url ?? '').trim()
         if (!videoUrl || !isLikelyVideoUrl(videoUrl)) return null
         return {
           listing_key: listingKey,
