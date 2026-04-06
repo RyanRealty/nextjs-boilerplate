@@ -4,6 +4,18 @@ import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { MARKET_REPORT_DEFAULT_CITIES } from '@/app/actions/market-report-types'
 import { pickFirstVideoFromListingRow, resolveListingKeyFromRow } from '@/lib/pick-video-from-details'
+import type { VideoListingRowShape } from '@/lib/video-tours-listing-videos-join'
+import {
+  LISTING_VIDEO_SELECT_MAIN,
+  fetchVideoRowsViaListingVideosJoin,
+  parseVideoListingRowsFromCacheJson,
+  rowCity,
+  rowInCitiesList,
+  rowListPrice,
+  rowMeetsStatusFilter,
+  rowSubdivision,
+  unparsedFromRow,
+} from '@/lib/video-tours-listing-videos-join'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -13,158 +25,65 @@ function getSupabase() {
   return createClient(url, anonKey)
 }
 
-export type VideoListingRow = {
-  listing_key: string
-  list_number: string | null
-  list_price: number | null
-  beds_total: number | null
-  baths_full: number | null
-  living_area: number | null
-  subdivision_name: string | null
-  city: string | null
-  unparsed_address: string | null
-  photo_url: string | null
-  video_url: string
-  video_source: 'virtual_tour' | 'listing_video'
-}
-
-/** Spark delta columns plus snake_case `listing_key` / `virtual_tour_url` from OData `processSparkListing`. */
-const LISTING_VIDEO_SELECT_BASE =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp'
-
-/** Production `listings` is RESO-shaped (PascalCase). Do not select snake_case mirrors unless a migration added them. */
-const LISTING_VIDEO_SELECT_MAIN = `${LISTING_VIDEO_SELECT_BASE}, has_virtual_tour`
+export type VideoListingRow = VideoListingRowShape
 
 const ACTIVE_STATUS_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 
-function rowCity(row: Record<string, unknown>): string | null {
-  const v = row.City ?? row.city
-  return v != null && String(v).trim() ? String(v).trim() : null
-}
+const CENTRAL_OREGON_CITIES_LOWER = new Set(MARKET_REPORT_DEFAULT_CITIES.map((c) => c.toLowerCase()))
 
-function rowSubdivision(row: Record<string, unknown>): string | null {
-  const v = row.SubdivisionName ?? row.subdivision_name
-  return v != null && String(v).trim() ? String(v).trim() : null
-}
+/** Prefer DB cache (cron-refreshed). Fallback is listing_videos join only when cache is cold or short. */
+const MIN_HOME_VIDEO_CACHE_ROWS = 10
+const MIN_HUB_VIDEO_CACHE_ROWS = 40
 
-function rowListPrice(row: Record<string, unknown>): number | null {
-  const p = row.ListPrice ?? row.list_price
-  if (p == null) return null
-  const n = typeof p === 'number' ? p : Number(p)
-  return Number.isFinite(n) ? n : null
-}
-
-function rowMeetsStatusFilter(row: Record<string, unknown>, statusAll: boolean): boolean {
-  if (statusAll) return true
-  const s = String(row.StandardStatus ?? row.standard_status ?? '').trim().toLowerCase()
-  return (
-    s.length === 0 ||
-    s.includes('active') ||
-    s.includes('for sale') ||
-    s.includes('coming soon')
-  )
-}
-
-function unparsedFromRow(row: Record<string, unknown>): string | null {
-  const u = row.unparsed_address
-  if (u != null && String(u).trim()) return String(u).trim()
-  const line = [row.StreetNumber, row.StreetName]
-    .map((x) => String(x ?? '').trim())
-    .filter(Boolean)
-    .join(' ')
-    .trim()
-  return line || null
-}
-
-function rowInCitiesList(row: Record<string, unknown>, citiesLower: Set<string>): boolean {
-  const c = rowCity(row)
-  if (!c) return false
-  return citiesLower.has(c.toLowerCase())
-}
-
-/**
- * Prefer small listing_videos + keyed listing lookups over scanning hundreds of listings (home page, /videos).
- */
-async function getListingsWithVideosFromListingVideosTable(
-  supabase: ReturnType<typeof getSupabase>,
-  maxRows: number,
-  priceDesc: boolean,
-  /** When set, only keep rows whose listing city is in this set (lowercase city names). */
-  citiesLower: Set<string> | null = null
-): Promise<VideoListingRow[]> {
-  const lvLimit = citiesLower != null && citiesLower.size > 0 ? 400 : 150
-  const { data: lvRows, error: lvErr } = await supabase
-    .from('listing_videos')
-    .select('listing_key, video_url')
-    .order('created_at', { ascending: false })
-    .limit(lvLimit)
-
-  if (lvErr) {
-    console.error('[getListingsWithVideos] listing_videos fast path', lvErr)
-    return []
-  }
-  if (!lvRows?.length) return []
-
-  const urlByKey = new Map<string, string>()
-  for (const lv of lvRows) {
-    const lk = String((lv as { listing_key?: string }).listing_key ?? '').trim()
-    const vu = String((lv as { video_url?: string }).video_url ?? '').trim()
-    if (lk && vu && !urlByKey.has(lk)) urlByKey.set(lk, vu)
-  }
-  const keys = [...urlByKey.keys()]
-  if (keys.length === 0) return []
-
-  const byKey = new Map<string, Record<string, unknown>>()
-  const chunkSize = 40
-  const slices: string[][] = []
-  for (let i = 0; i < keys.length; i += chunkSize) {
-    slices.push(keys.slice(i, i + chunkSize))
-  }
-  // Fetch by key only; filter active status in memory. Combining .in(ListingKey) with .or(ACTIVE_STATUS_OR)
-  // in PostgREST can drop rows that should match, leaving the fast path empty while legacy paths still work.
-  const chunkResults = await Promise.all(
-    slices.map((slice) => supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN).in('ListingKey', slice))
-  )
-  for (const ea of chunkResults) {
-    if (ea.error && !/column|ListingKey/i.test(ea.error.message ?? '')) {
-      console.error('[getListingsWithVideos] fast path ListingKey', ea.error)
+export async function getCentralOregonHomeVideoTours(): Promise<VideoListingRowShape[]> {
+  try {
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('video_tours_cache')
+      .select('listings')
+      .eq('scope', 'central_oregon_home')
+      .maybeSingle()
+    if (!error && data?.listings != null) {
+      const parsed = parseVideoListingRowsFromCacheJson(data.listings)
+      if (parsed.length >= MIN_HOME_VIDEO_CACHE_ROWS) {
+        return parsed.slice(0, 12)
+      }
     }
-    for (const row of ea.data ?? []) {
-      const rec = row as Record<string, unknown>
-      const k = resolveListingKeyFromRow(rec)
-      if (k && !byKey.has(k)) byKey.set(k, rec)
+  } catch (err) {
+    console.error('[getCentralOregonHomeVideoTours] cache read', err)
+  }
+  return fetchVideoRowsViaListingVideosJoin(getSupabase(), {
+    maxRows: 12,
+    priceDesc: true,
+    citiesLower: CENTRAL_OREGON_CITIES_LOWER,
+    listingVideosLimit: 600,
+  })
+}
+
+export async function getCentralOregonVideosHubListings(): Promise<VideoListingRowShape[]> {
+  try {
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('video_tours_cache')
+      .select('listings')
+      .eq('scope', 'central_oregon_hub')
+      .maybeSingle()
+    if (!error && data?.listings != null) {
+      const parsed = parseVideoListingRowsFromCacheJson(data.listings)
+      if (parsed.length >= MIN_HUB_VIDEO_CACHE_ROWS) {
+        return parsed.slice(0, 48)
+      }
     }
+  } catch (err) {
+    console.error('[getCentralOregonVideosHubListings] cache read', err)
   }
-
-  const rows: VideoListingRow[] = []
-  for (const lk of keys) {
-    const rec = byKey.get(lk)
-    const vurl = urlByKey.get(lk)
-    if (!rec || !vurl) continue
-    if (!rowMeetsStatusFilter(rec, false)) continue
-    if (citiesLower && !rowInCitiesList(rec, citiesLower)) continue
-
-    rows.push({
-      listing_key: lk,
-      list_number: (rec.ListNumber ?? rec.list_number ?? null) as string | null,
-      list_price: rowListPrice(rec),
-      beds_total: (rec.BedroomsTotal ?? rec.beds_total) as number | null,
-      baths_full: (rec.BathroomsTotal ?? rec.baths_full) as number | null,
-      living_area: (rec.TotalLivingAreaSqFt ?? rec.living_area) as number | null,
-      subdivision_name: rowSubdivision(rec),
-      city: rowCity(rec),
-      unparsed_address: unparsedFromRow(rec),
-      photo_url: (rec.PhotoURL ?? rec.photo_url) as string | null,
-      video_url: vurl,
-      video_source: 'listing_video',
-    })
-  }
-
-  if (priceDesc) {
-    rows.sort((a, b) => (b.list_price ?? 0) - (a.list_price ?? 0))
-  }
-  return rows.slice(0, maxRows)
+  return fetchVideoRowsViaListingVideosJoin(getSupabase(), {
+    maxRows: 48,
+    priceDesc: true,
+    citiesLower: CENTRAL_OREGON_CITIES_LOWER,
+    listingVideosLimit: 2500,
+  })
 }
 
 function resolveVideoCitiesList(filters?: {
@@ -208,12 +127,11 @@ export async function getListingsWithVideos(filters?: {
   // listings tables; try listing_videos + keyed lookups first. If that yields nothing, fall through
   // (legacy listing_videos + listings merge) instead of awaiting another doomed full scan.
   if (citiesList && citiesList.length > 0 && filters?.sort === 'price_desc') {
-    const fromVideos = await getListingsWithVideosFromListingVideosTable(
-      supabase,
+    const fromVideos = await fetchVideoRowsViaListingVideosJoin(supabase, {
       maxRows,
-      true,
-      citiesLowerForFilter
-    )
+      priceDesc: true,
+      citiesLower: citiesLowerForFilter,
+    })
     if (fromVideos.length > 0) {
       return fromVideos.slice(0, maxRows)
     }
@@ -228,11 +146,11 @@ export async function getListingsWithVideos(filters?: {
     filters?.maxPrice != null
 
   if (!geoOrPriceScoped && !statusAll) {
-    const fastRows = await getListingsWithVideosFromListingVideosTable(
-      supabase,
+    const fastRows = await fetchVideoRowsViaListingVideosJoin(supabase, {
       maxRows,
-      filters?.sort === 'price_desc'
-    )
+      priceDesc: filters?.sort === 'price_desc',
+      citiesLower: null,
+    })
     if (fastRows.length > 0) {
       return fastRows
     }
@@ -484,7 +402,7 @@ async function _getListingsWithVideosCachedUncached(
 
 const _getListingsWithVideosCached = unstable_cache(
   _getListingsWithVideosCachedUncached,
-  ['listings-with-videos-v8'],
+  ['listings-with-videos-v10'],
   { revalidate: 300, tags: ['listings-videos'] }
 )
 

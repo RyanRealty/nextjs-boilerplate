@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getListingsWithVideos } from '@/app/actions/videos'
+import { getCentralOregonVideosHubListings } from '@/app/actions/videos'
 import VideosClient from '@/components/videos/VideosClient'
 
 const videosOgImage = `${(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')}/api/og?type=default`
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 20_000): Promise<T> {
+async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 15_000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
@@ -27,9 +27,6 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 20_0
 }
 
 export default async function VideosPage() {
-  const listings = await withTimeout(
-    getListingsWithVideos({ region: 'central_oregon', sort: 'price_desc', status: 'active', limit: 48 }),
-    []
-  )
+  const listings = await withTimeout(getCentralOregonVideosHubListings(), [])
   return <VideosClient initialListings={listings} />
 }

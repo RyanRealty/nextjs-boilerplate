@@ -29,7 +29,7 @@ import BrokerageListingsSlider from '@/components/home/BrokerageListingsSlider'
 import PopularSearchesSection from '@/components/home/PopularSearchesSection'
 import { Skeleton } from '@/components/ui/skeleton'
 import LifestyleSearchSlider from '@/components/home/LifestyleSearchSlider'
-import { getListingsWithVideosCached } from './actions/videos'
+import { getCentralOregonHomeVideoTours } from './actions/videos'
 import type { ListingTileRow } from './actions/listings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -42,8 +42,8 @@ type PublicSession = { user?: { email?: string | null } } | null
 
 /** Home streams many heavy Supabase scans; allow time and never reject the Suspense boundary. */
 const HOME_FETCH_MS = 12_000
-/** Video tour query can scan listings + listing_videos; 12s was timing out and yielded an empty slider. */
-const HOME_VIDEO_TOURS_MS = 90_000
+/** Live fallback only when video_tours_cache is cold; normal path is one indexed read. */
+const HOME_VIDEO_TOURS_MS = 12_000
 
 function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = HOME_FETCH_MS, label?: string): Promise<T> {
   return withTimeoutFallback(promise, fallback, timeoutMs, label)
@@ -256,17 +256,7 @@ async function MarketSnapshotSection() {
 
 async function VideoToursAsync({ session }: { session: PublicSession }) {
   const [videoRows, savedKeys, likedKeys] = await Promise.all([
-    withTimeout(
-      getListingsWithVideosCached({
-        region: 'central_oregon',
-        sort: 'price_desc',
-        status: 'active',
-        limit: 12,
-      }),
-      [],
-      HOME_VIDEO_TOURS_MS,
-      'home-video-listings'
-    ),
+    withTimeout(getCentralOregonHomeVideoTours(), [], HOME_VIDEO_TOURS_MS, 'home-video-listings'),
     session?.user ? withTimeout(getSavedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-video-saved') : Promise.resolve([] as string[]),
     session?.user ? withTimeout(getLikedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-video-liked') : Promise.resolve([] as string[]),
   ])
