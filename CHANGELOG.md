@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.5 (2026-04-06)
+
+### Maintenance
+- perf: make home video tours use listing_videos path first
+
+---
+
+
 ## v1.20.4 (2026-04-06)
 
 ### Bug Fixes
