@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.17.2 (2026-04-06)
+
+### Bug Fixes
+- fix: video slider detection, sync tour URLs, CMA RPC schema, migration index
+
+---
+
+
 ## v1.17.1 (2026-04-06)
 
 ### Bug Fixes
