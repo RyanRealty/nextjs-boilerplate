@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.17.0 (2026-04-06)
+
+### Features
+- feat: add full listing-year cohort breakdown to sync status report
+
+---
+
+
 ## v1.16.11 (2026-04-06)
 
 ### Maintenance
