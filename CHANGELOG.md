@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.21.2 (2026-04-06)
+
+### Maintenance
+- refactor: centralize video tours DB refresh in getRefreshVideoToursCache
+
+---
+
+
 ## v1.21.1 (2026-04-06)
 
 ### Bug Fixes
