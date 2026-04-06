@@ -138,7 +138,7 @@ export async function getOtherListingsInSubdivision(
   const { data } = await supabase
     .from('listings')
     .select(
-      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
+      'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
     )
     .ilike('SubdivisionName', subdivisionName)
     .neq('ListingKey', excludeListingKey)
@@ -149,7 +149,7 @@ export async function getOtherListingsInSubdivision(
 }
 
 const SIMILAR_SELECT =
-  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
 
 /**
  * Similar listings for detail page: same subdivision first, then fill to minCount with recent in city.
@@ -564,7 +564,7 @@ export async function getListings(options: {
   if (!supabase) return []
   // Exclude heavy `details` JSONB from basic listing queries — only needed for advanced RPC path
   const select =
-    'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, TotalLivingAreaSqFt, OnMarketDate, CloseDate'
+    'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, TotalLivingAreaSqFt, OnMarketDate, CloseDate'
   let query = supabase.from('listings').select(select)
 
   if (options.city) query = query.ilike('City', options.city)
@@ -905,7 +905,7 @@ export type GetListingsInBoundsOptions = GetListingsForMapOptions & {
 }
 
 const LISTING_BOUNDS_SELECT =
-  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, CloseDate, TotalLivingAreaSqFt, ListOfficeName, ListAgentName'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, CloseDate, TotalLivingAreaSqFt, ListOfficeName, ListAgentName'
 
 /**
  * Fetch listings within map bounds (viewport-driven search). Used by the unified map view:
@@ -1826,7 +1826,7 @@ export async function getListingByKey(listingKeyOrSlug: string): Promise<Listing
 }
 
 const LISTING_TILE_SELECT =
-  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
 
 export type ListingsAtAddressOptions = {
   streetNumber: string | null

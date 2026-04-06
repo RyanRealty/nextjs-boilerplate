@@ -4,21 +4,19 @@ import { sortResortCommunitiesInPrimaryCities } from '@/lib/communities'
 import { getPrimaryCityRank } from '@/lib/cities'
 import ResortCommunitiesSlider from '@/components/area-guides/ResortCommunitiesSlider'
 import type { AuthUser } from '@/app/actions/auth'
+import { withTimeoutFallback } from '@/lib/with-timeout-fallback'
 
 type Props = { session: { user: AuthUser } | null }
 
-async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1500): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
-  ])
-}
+const HOME_COMMUNITIES_MS = 12_000
 
 /** Async block: fetches communities + saved keys so the home page can stream this section. */
 export default async function HomeCommunitiesBlock({ session }: Props) {
   const [allCommunities, savedCommunityKeys] = await Promise.all([
-    withTimeout(getCommunitiesForIndex(), []),
-    session?.user ? withTimeout(getSavedCommunityKeys().catch(() => []), []) : Promise.resolve([]),
+    withTimeoutFallback(getCommunitiesForIndex(), [], HOME_COMMUNITIES_MS, 'home-communities-index'),
+    session?.user
+      ? withTimeoutFallback(getSavedCommunityKeys().catch(() => []), [], HOME_COMMUNITIES_MS, 'home-saved-community-keys')
+      : Promise.resolve([]),
   ])
   const resortCommunities = sortResortCommunitiesInPrimaryCities(
     allCommunities ?? [],

@@ -32,16 +32,17 @@ import LifestyleSearchSlider from '@/components/home/LifestyleSearchSlider'
 import { getListingsWithVideos } from './actions/videos'
 import type { ListingTileRow } from './actions/listings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { withTimeoutFallback } from '@/lib/with-timeout-fallback'
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const ogImage = `${siteUrl}/og-home.png`
 type PublicSession = { user?: { email?: string | null } } | null
 
-async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1500): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
-  ])
+/** Home streams many heavy Supabase scans; allow time and never reject the Suspense boundary. */
+const HOME_FETCH_MS = 12_000
+
+function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = HOME_FETCH_MS, label?: string): Promise<T> {
+  return withTimeoutFallback(promise, fallback, timeoutMs, label)
 }
 
 function getTeamImageSrc(brokerage: BrokerageSettingsRow | null): string {
@@ -102,10 +103,10 @@ function SectionSkeleton({ height = 'min-h-[320px]' }: { height?: string }) {
 
 async function ActivityFeedAsync({ session }: { session: PublicSession }) {
   const [activityFeed, browseCities, savedKeys, likedKeys] = await Promise.all([
-    withTimeout(getActivityFeedWithFallbackMulti({ cities: [...ACTIVITY_FEED_DEFAULT_CITIES], limit: 12 }), []),
-    withTimeout(getBrowseCities(), []),
-    session?.user ? withTimeout(getSavedListingKeys(), [] as string[]) : Promise.resolve([] as string[]),
-    session?.user ? withTimeout(getLikedListingKeys(), [] as string[]) : Promise.resolve([] as string[]),
+    withTimeout(getActivityFeedWithFallbackMulti({ cities: [...ACTIVITY_FEED_DEFAULT_CITIES], limit: 12 }), [], HOME_FETCH_MS, 'home-activity-feed'),
+    withTimeout(getBrowseCities(), [], HOME_FETCH_MS, 'home-browse-cities'),
+    session?.user ? withTimeout(getSavedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-saved-keys') : Promise.resolve([] as string[]),
+    session?.user ? withTimeout(getLikedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-liked-keys') : Promise.resolve([] as string[]),
   ])
 
   return (
@@ -135,7 +136,7 @@ async function MarketSnapshotForHero() {
 }
 
 async function OpenHouseAsync() {
-  const weekendOpenHouses = await withTimeout(getOpenHousesWithListings(), [])
+  const weekendOpenHouses = await withTimeout(getOpenHousesWithListings(), [], HOME_FETCH_MS, 'home-open-houses')
   return (
     <section className="px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-7xl">
@@ -161,7 +162,8 @@ async function MarketSnapshotSection() {
       pendingCount: 0,
       closedLast12Months: 0,
     },
-    2000
+    HOME_FETCH_MS,
+    'home-market-snapshot'
   )
   return (
     <section className="px-4 py-12 sm:px-6 sm:py-14">
@@ -232,9 +234,9 @@ async function MarketSnapshotSection() {
 
 async function VideoToursAsync({ session }: { session: PublicSession }) {
   const [videoRows, savedKeys, likedKeys] = await Promise.all([
-    withTimeout(getListingsWithVideos({ sort: 'price_desc', status: 'active', limit: 10 }), []),
-    session?.user ? withTimeout(getSavedListingKeys(), [] as string[]) : Promise.resolve([] as string[]),
-    session?.user ? withTimeout(getLikedListingKeys(), [] as string[]) : Promise.resolve([] as string[]),
+    withTimeout(getListingsWithVideos({ sort: 'price_desc', status: 'active', limit: 10 }), [], HOME_FETCH_MS, 'home-video-listings'),
+    session?.user ? withTimeout(getSavedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-video-saved') : Promise.resolve([] as string[]),
+    session?.user ? withTimeout(getLikedListingKeys(), [] as string[], HOME_FETCH_MS, 'home-video-liked') : Promise.resolve([] as string[]),
   ])
   const listingsWithVideo = videoRows.map((row) => {
     const [streetNumber = '', ...streetNameParts] = (row.unparsed_address ?? '').trim().split(/\s+/)

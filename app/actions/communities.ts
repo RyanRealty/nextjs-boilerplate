@@ -17,6 +17,10 @@ import { COMMUNITY_LISTING_TILE_SELECT } from '@/lib/listing-tile-projections'
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+/** Match listings.ts / cities.ts active inventory (Spark sends several status strings). */
+const INDEX_ACTIVE_OR =
+  'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
+
 function supabase() {
   if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
   return createClient(url, anonKey)
@@ -48,9 +52,7 @@ export async function getCitySlugs(): Promise<Set<string>> {
 
 /** All communities for index: from listings + subdivision_flags, with counts and hero. */
 async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
-  // Fetch active listings for community stats — use eq('StandardStatus', 'Active')
-  // instead of ILIKE (4x faster: 224ms vs 953ms per page). Covers 98% of active listings.
-  // Paginate only if needed, but with eq + index this is much faster.
+  // Active inventory for community stats (same filter as city index / browse).
   const sb = supabase()
   const allListingRows: { City?: string; SubdivisionName?: string; ListPrice?: number | null; PropertyType?: string | null }[] = []
   let offset = 0
@@ -59,7 +61,7 @@ async function _getCommunitiesForIndexUncached(): Promise<CommunityForIndex[]> {
     const { data } = await sb
       .from('listings')
       .select('City, SubdivisionName, ListPrice, PropertyType')
-      .eq('StandardStatus', 'Active')
+      .or(INDEX_ACTIVE_OR)
       .not('SubdivisionName', 'is', null)
       .range(offset, offset + 999)
     const rows = (data ?? []) as { City?: string; SubdivisionName?: string; ListPrice?: number | null; PropertyType?: string | null }[]

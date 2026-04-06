@@ -3,21 +3,19 @@ import { getSavedCitySlugs } from '@/app/actions/saved-cities'
 import { getHomePopularCitiesOrdered } from '@/lib/cities'
 import PopularCitiesSection from '@/components/home/PopularCitiesSection'
 import type { AuthUser } from '@/app/actions/auth'
+import { withTimeoutFallback } from '@/lib/with-timeout-fallback'
 
 type Props = { session: { user: AuthUser } | null }
 
-async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 1500): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
-  ])
-}
+const HOME_CITIES_MS = 12_000
 
 /** Async block: fetches cities + saved slugs so the home page can stream this section. */
 export default async function HomeCitiesBlock({ session }: Props) {
   const [allCities, savedCitySlugs] = await Promise.all([
-    withTimeout(getCitiesForIndex(), []),
-    session?.user ? withTimeout(getSavedCitySlugs().catch(() => []), []) : Promise.resolve([]),
+    withTimeoutFallback(getCitiesForIndex(), [], HOME_CITIES_MS, 'home-cities-index'),
+    session?.user
+      ? withTimeoutFallback(getSavedCitySlugs().catch(() => []), [], HOME_CITIES_MS, 'home-saved-city-slugs')
+      : Promise.resolve([]),
   ])
   const popularCitiesBase = getHomePopularCitiesOrdered(allCities ?? [])
   const popularCities = popularCitiesBase.length > 0 ? popularCitiesBase : (allCities ?? []).slice(0, 8)

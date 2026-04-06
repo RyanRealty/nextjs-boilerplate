@@ -48,13 +48,13 @@ export async function getActivityFeed(options?: {
     supabase
       .from('listings')
       .select(
-        'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+        'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
       )
       .in('ListNumber', keys),
     supabase
       .from('listings')
       .select(
-        'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+        'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
       )
       .in('ListingKey', keys),
   ])
@@ -212,7 +212,7 @@ export async function getActivityFeedWithFallback(options: {
   const { data: rows } = await supabase
     .from('listings')
     .select(
-      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+      'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
     )
     .ilike('City', options.city.trim())
     .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%,StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%')
@@ -279,7 +279,7 @@ async function _getActivityFeedWithFallbackMultiUncached(options: {
   const { data: rows } = await supabase
     .from('listings')
     .select(
-      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+      'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
     )
     .in('City', cities)
     .or(ACTIVE_OR_PENDING_OR)
