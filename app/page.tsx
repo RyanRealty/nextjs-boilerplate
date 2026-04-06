@@ -270,7 +270,7 @@ async function VideoToursAsync({ session }: { session: PublicSession }) {
     const streetName = streetNameParts.join(' ').trim() || null
     return {
       ListingKey: row.listing_key,
-      ListNumber: row.listing_key,
+      ListNumber: row.list_number ?? row.listing_key,
       ListPrice: row.list_price,
       BedroomsTotal: row.beds_total,
       BathroomsTotal: row.baths_full,

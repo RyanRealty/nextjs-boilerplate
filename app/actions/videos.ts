@@ -18,6 +18,7 @@ function getSupabase() {
 
 export type VideoListingRow = {
   listing_key: string
+  list_number: string | null
   list_price: number | null
   beds_total: number | null
   baths_full: number | null
@@ -32,18 +33,13 @@ export type VideoListingRow = {
 
 /** Spark delta columns plus snake_case `listing_key` / `virtual_tour_url` from OData `processSparkListing`. */
 const LISTING_VIDEO_SELECT_BASE =
-  'ListingKey, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp'
 
-const LISTING_VIDEO_SELECT_MAIN = `${LISTING_VIDEO_SELECT_BASE}, listing_key, virtual_tour_url, has_virtual_tour, list_price, beds_total, baths_full, living_area, subdivision_name, city, photo_url, standard_status`
+/** Production `listings` is RESO-shaped (PascalCase). Do not select snake_case mirrors unless a migration added them. */
+const LISTING_VIDEO_SELECT_MAIN = `${LISTING_VIDEO_SELECT_BASE}, has_virtual_tour`
 
 const ACTIVE_STATUS_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
-
-function hasVideoFromDetailsOrTourColumn(row: Record<string, unknown>): boolean {
-  if (pickFirstVideoFromDetails(row.details)) return true
-  const vt = String(row.virtual_tour_url ?? row.VirtualTourURL ?? row.VirtualTourURLUnbranded ?? '').trim()
-  return !!vt
-}
 
 function rowCity(row: Record<string, unknown>): string | null {
   const v = row.City ?? row.city
@@ -117,17 +113,15 @@ async function getListingsWithVideosFromListingVideosTable(
   const chunkSize = 40
   for (let i = 0; i < keys.length; i += chunkSize) {
     const slice = keys.slice(i, i + chunkSize)
-    const [ea, eb] = await Promise.all([
-      supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN).or(ACTIVE_STATUS_OR).in('ListingKey', slice),
-      supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN).or(ACTIVE_STATUS_OR).in('listing_key', slice),
-    ])
+    const ea = await supabase
+      .from('listings')
+      .select(LISTING_VIDEO_SELECT_MAIN)
+      .or(ACTIVE_STATUS_OR)
+      .in('ListingKey', slice)
     if (ea.error && !/column|ListingKey/i.test(ea.error.message ?? '')) {
       console.error('[getListingsWithVideos] fast path ListingKey', ea.error)
     }
-    if (eb.error && !/column|listing_key/i.test(eb.error.message ?? '')) {
-      console.error('[getListingsWithVideos] fast path listing_key', eb.error)
-    }
-    for (const row of [...(ea.data ?? []), ...(eb.data ?? [])]) {
+    for (const row of ea.data ?? []) {
       const rec = row as Record<string, unknown>
       const k = resolveListingKeyFromRow(rec)
       if (k && !byKey.has(k)) byKey.set(k, rec)
@@ -144,6 +138,7 @@ async function getListingsWithVideosFromListingVideosTable(
 
     rows.push({
       listing_key: lk,
+      list_number: (rec.ListNumber ?? rec.list_number ?? null) as string | null,
       list_price: rowListPrice(rec),
       beds_total: (rec.BedroomsTotal ?? rec.beds_total) as number | null,
       baths_full: (rec.BathroomsTotal ?? rec.baths_full) as number | null,
@@ -241,45 +236,13 @@ export async function getListingsWithVideos(filters?: {
     }
   }
 
-  const keysForRawProbe = [
-    ...new Set(
-      listRows
-        .filter((row) => {
-          const r = row as Record<string, unknown>
-          return !hasVideoFromDetailsOrTourColumn(r) && !!resolveListingKeyFromRow(r)
-        })
-        .map((row) => resolveListingKeyFromRow(row as Record<string, unknown>))
-    ),
-  ].slice(0, 100)
-
-  const rawDataByKey = new Map<string, unknown>()
-  if (keysForRawProbe.length > 0) {
-    const selRaw = 'ListingKey, listing_key, raw_data'
-    const [ra, rb] = await Promise.all([
-      supabase.from('listings').select(selRaw).in('ListingKey', keysForRawProbe),
-      supabase.from('listings').select(selRaw).in('listing_key', keysForRawProbe),
-    ])
-    if (ra.error && !/column|raw_data/i.test(ra.error.message ?? '')) {
-      console.error('[getListingsWithVideos] raw_data ListingKey', ra.error)
-    }
-    if (rb.error && !/column|raw_data/i.test(rb.error.message ?? '')) {
-      console.error('[getListingsWithVideos] raw_data listing_key', rb.error)
-    }
-    for (const row of [...(ra.data ?? []), ...(rb.data ?? [])]) {
-      const r = row as Record<string, unknown>
-      const k = resolveListingKeyFromRow(r)
-      if (k && r.raw_data != null && !rawDataByKey.has(k)) rawDataByKey.set(k, r.raw_data)
-    }
-  }
-
   const rows: VideoListingRow[] = []
   for (const row of listRows) {
     const r = row as Record<string, unknown>
     const listingKey = resolveListingKeyFromRow(r)
     if (!listingKey) continue
 
-    const rawMerged = { ...r, raw_data: rawDataByKey.get(listingKey) ?? r.raw_data }
-    const video = pickFirstVideoFromListingRow(rawMerged)
+    const video = pickFirstVideoFromListingRow(r)
     if (!video) continue
 
     if (!rowMeetsStatusFilter(r, statusAll)) continue
@@ -291,6 +254,7 @@ export async function getListingsWithVideos(filters?: {
 
     rows.push({
       listing_key: listingKey,
+      list_number: (r.ListNumber ?? r.list_number ?? null) as string | null,
       list_price: price,
       beds_total: (r.BedroomsTotal ?? r.beds_total ?? null) as number | null,
       baths_full: (r.BathroomsTotal ?? r.baths_full ?? null) as number | null,
@@ -323,12 +287,9 @@ export async function getListingsWithVideos(filters?: {
       const missingKeys = [...urlByListing.keys()].filter((k) => !existingKeys.has(k)).slice(0, 80)
       if (missingKeys.length > 0) {
         const selExtra = LISTING_VIDEO_SELECT_MAIN
-        const [ea, eb] = await Promise.all([
-          supabase.from('listings').select(selExtra).in('ListingKey', missingKeys),
-          supabase.from('listings').select(selExtra).in('listing_key', missingKeys),
-        ])
+        const ea = await supabase.from('listings').select(selExtra).in('ListingKey', missingKeys)
         const byKey = new Map<string, Record<string, unknown>>()
-        for (const row of [...(ea.data ?? []), ...(eb.data ?? [])]) {
+        for (const row of ea.data ?? []) {
           const rec = row as Record<string, unknown>
           const k = resolveListingKeyFromRow(rec)
           if (k && !byKey.has(k)) byKey.set(k, rec)
@@ -346,6 +307,7 @@ export async function getListingsWithVideos(filters?: {
           if (filters?.maxPrice != null && (price == null || price > filters.maxPrice)) continue
           rows.push({
             listing_key: lk,
+            list_number: (rec.ListNumber ?? rec.list_number ?? null) as string | null,
             list_price: price,
             beds_total: (rec.BedroomsTotal ?? rec.beds_total) as number | null,
             baths_full: (rec.BathroomsTotal ?? rec.baths_full) as number | null,
@@ -375,60 +337,52 @@ export async function getListingsWithVideos(filters?: {
       ])
     )
 
-    const { data: legacyListings } = await supabase
+    let legacyQuery = supabase
       .from('listings')
-      .select(
-        'listing_key, list_price, beds_total, baths_full, living_area, subdivision_name, city, unparsed_address, photo_url, virtual_tour_url, standard_status, modification_timestamp'
-      )
+      .select(LISTING_VIDEO_SELECT_MAIN)
       .limit(candidateLimit)
+    if (!statusAll) {
+      legacyQuery = legacyQuery.or(ACTIVE_STATUS_OR)
+    }
+    if (filters?.sort === 'price_desc') {
+      legacyQuery = legacyQuery.order('ListPrice', { ascending: false, nullsFirst: false })
+    } else {
+      legacyQuery = legacyQuery.order('ModificationTimestamp', { ascending: false, nullsFirst: false })
+    }
+    const { data: legacyListings, error: legacyErr } = await legacyQuery
+    if (legacyErr) {
+      console.error('[getListingsWithVideos] legacy listings', legacyErr)
+    }
 
     for (const row of legacyListings ?? []) {
-      const r = row as {
-        listing_key?: string | null
-        list_price?: number | null
-        beds_total?: number | null
-        baths_full?: number | null
-        living_area?: number | null
-        subdivision_name?: string | null
-        city?: string | null
-        unparsed_address?: string | null
-        photo_url?: string | null
-        virtual_tour_url?: string | null
-        standard_status?: string | null
-      }
-      const listingKey = String(r.listing_key ?? '').trim()
+      const r = row as Record<string, unknown>
+      const listingKey = resolveListingKeyFromRow(r)
       if (!listingKey) continue
 
-      if (!statusAll) {
-        const status = String(r.standard_status ?? '').toLowerCase()
-        const isActive =
-          status.length === 0 ||
-          status.includes('active') ||
-          status.includes('for sale') ||
-          status.includes('coming soon')
-        if (!isActive) continue
-      }
+      if (!rowMeetsStatusFilter(r, statusAll)) continue
 
-      if (filters?.community && r.subdivision_name !== filters.community) continue
-      if (filters?.city && r.city !== filters.city) continue
-      const price = r.list_price ?? null
+      if (filters?.community && rowSubdivision(r) !== filters.community) continue
+      if (filters?.city && rowCity(r) !== filters.city) continue
+      const price = rowListPrice(r)
       if (filters?.minPrice != null && (price == null || price < filters.minPrice)) continue
       if (filters?.maxPrice != null && (price == null || price > filters.maxPrice)) continue
 
-      const videoUrl = legacyVideoByKey.get(listingKey) || String(r.virtual_tour_url ?? '').trim()
-      if (!videoUrl) continue
+      const fromDetails = pickFirstVideoFromListingRow(r)
+      const videoUrl = legacyVideoByKey.get(listingKey) || fromDetails?.url || ''
+      if (!videoUrl.trim()) continue
       rows.push({
         listing_key: listingKey,
+        list_number: (r.ListNumber ?? r.list_number ?? null) as string | null,
         list_price: price,
-        beds_total: r.beds_total ?? null,
-        baths_full: r.baths_full ?? null,
-        living_area: r.living_area ?? null,
-        subdivision_name: r.subdivision_name ?? null,
-        city: r.city ?? null,
-        unparsed_address: r.unparsed_address ?? null,
-        photo_url: r.photo_url ?? null,
-        video_url: videoUrl,
-        video_source: legacyVideoByKey.has(listingKey) ? 'listing_video' : 'virtual_tour',
+        beds_total: (r.BedroomsTotal ?? r.beds_total ?? null) as number | null,
+        baths_full: (r.BathroomsTotal ?? r.baths_full ?? null) as number | null,
+        living_area: (r.TotalLivingAreaSqFt ?? r.living_area ?? null) as number | null,
+        subdivision_name: rowSubdivision(r),
+        city: rowCity(r),
+        unparsed_address: unparsedFromRow(r),
+        photo_url: (r.PhotoURL ?? r.photo_url ?? null) as string | null,
+        video_url: videoUrl.trim(),
+        video_source: legacyVideoByKey.has(listingKey) ? 'listing_video' : (fromDetails?.source ?? 'virtual_tour'),
       })
     }
   }
@@ -457,7 +411,7 @@ async function _getListingsWithVideosCachedUncached(
 
 const _getListingsWithVideosCached = unstable_cache(
   _getListingsWithVideosCachedUncached,
-  ['listings-with-videos-v2'],
+  ['listings-with-videos-v3'],
   { revalidate: 300, tags: ['listings-videos'] }
 )
 
