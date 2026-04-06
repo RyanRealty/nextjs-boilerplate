@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
+import { pickFirstVideoFromDetails } from '@/lib/pick-video-from-details'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -25,33 +26,11 @@ export type VideoListingRow = {
   video_source: 'virtual_tour' | 'listing_video'
 }
 
-function pickFirstVideo(details: unknown): { url: string; source: 'virtual_tour' | 'listing_video' } | null {
-  if (!details || typeof details !== 'object') return null
-  const d = details as {
-    Videos?: Array<{ Uri?: string | null; ObjectHtml?: string | null }>
-    VirtualTours?: Array<{ Uri?: string | null }>
-    VirtualTourURLUnbranded?: string | null
-    VirtualTourURL?: string | null
-  }
+const LISTING_VIDEO_SELECT_BASE =
+  'ListingKey, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp'
 
-  if (Array.isArray(d.Videos)) {
-    for (const video of d.Videos) {
-      const uri = String(video?.Uri ?? '').trim()
-      if (uri) return { url: uri, source: 'listing_video' }
-      const objectHtml = String(video?.ObjectHtml ?? '').trim()
-      if (objectHtml) return { url: objectHtml, source: 'listing_video' }
-    }
-  }
-
-  if (Array.isArray(d.VirtualTours)) {
-    const firstTour = d.VirtualTours.find((tour) => String(tour?.Uri ?? '').trim().length > 0)
-    if (firstTour?.Uri) return { url: String(firstTour.Uri).trim(), source: 'virtual_tour' }
-  }
-
-  const fallbackTour = String(d.VirtualTourURLUnbranded ?? d.VirtualTourURL ?? '').trim()
-  if (fallbackTour) return { url: fallbackTour, source: 'virtual_tour' }
-  return null
-}
+const ACTIVE_STATUS_OR =
+  'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 
 export async function getListingsWithVideos(filters?: {
   community?: string
@@ -64,31 +43,63 @@ export async function getListingsWithVideos(filters?: {
 }): Promise<VideoListingRow[]> {
   const supabase = getSupabase()
   const maxRows = Math.min(Math.max(filters?.limit ?? 24, 1), 60)
-  const candidateLimit = Math.min(Math.max(maxRows * 10, 100), 320)
+  const candidateLimit = Math.min(Math.max(maxRows * 25, 200), 900)
 
-  let query = supabase
-    .from('listings')
-    .select(
-      'ListingKey, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp'
-    )
-    .limit(candidateLimit)
-
-  if (filters?.status !== 'all') {
-    query = query.or(
-      'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
-    )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function applyFiltersAndOrder(q: any) {
+    let query = q
+    if (filters?.status !== 'all') {
+      query = query.or(ACTIVE_STATUS_OR)
+    }
+    if (filters?.sort === 'price_desc') {
+      query = query.order('ListPrice', { ascending: false, nullsFirst: false })
+    } else {
+      query = query.order('ModificationTimestamp', { ascending: false, nullsFirst: false })
+    }
+    return query.limit(candidateLimit)
   }
 
-  if (filters?.sort === 'price_desc') {
-    query = query.order('ListPrice', { ascending: false, nullsFirst: false })
-  } else {
-    query = query.order('ModificationTimestamp', { ascending: false, nullsFirst: false })
+  const seenKeys = new Set<string>()
+  const listRows: Array<Record<string, unknown>> = []
+
+  const tourRes = await applyFiltersAndOrder(
+    supabase.from('listings').select(`${LISTING_VIDEO_SELECT_BASE}, has_virtual_tour`).eq('has_virtual_tour', true)
+  )
+  const tourErr = tourRes.error?.message ?? ''
+  if (
+    !tourRes.error &&
+    Array.isArray(tourRes.data) &&
+    tourRes.data.length > 0
+  ) {
+    for (const row of tourRes.data as Array<Record<string, unknown>>) {
+      const k = String(row.ListingKey ?? '').trim()
+      if (!k || seenKeys.has(k)) continue
+      seenKeys.add(k)
+      listRows.push(row)
+    }
+  } else if (tourRes.error && !/has_virtual_tour|column/i.test(tourErr)) {
+    console.error('[getListingsWithVideos] has_virtual_tour query', tourRes.error)
   }
 
-  const { data: listRows } = await query
+  if (listRows.length < candidateLimit) {
+    const broadRes = await applyFiltersAndOrder(
+      supabase.from('listings').select(LISTING_VIDEO_SELECT_BASE)
+    )
+    if (broadRes.error) {
+      console.error('[getListingsWithVideos] broad query', broadRes.error)
+    } else {
+      for (const row of (broadRes.data ?? []) as Array<Record<string, unknown>>) {
+        const k = String(row.ListingKey ?? '').trim()
+        if (!k || seenKeys.has(k)) continue
+        seenKeys.add(k)
+        listRows.push(row)
+        if (listRows.length >= candidateLimit) break
+      }
+    }
+  }
 
   const rows: VideoListingRow[] = []
-  for (const row of listRows ?? []) {
+  for (const row of listRows) {
     const r = row as {
       ListingKey?: string | null
       ListPrice?: number | null
@@ -104,7 +115,7 @@ export async function getListingsWithVideos(filters?: {
     }
     const listingKey = String(r.ListingKey ?? '').trim()
     if (!listingKey) continue
-    const video = pickFirstVideo(r.details)
+    const video = pickFirstVideoFromDetails(r.details)
     if (!video) continue
     if (filters?.community && r.SubdivisionName !== filters.community) continue
     if (filters?.city && r.City !== filters.city) continue

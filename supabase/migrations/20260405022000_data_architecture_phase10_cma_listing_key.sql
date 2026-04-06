@@ -45,12 +45,14 @@ closed_candidates as (
     coalesce(c."ClosePrice", (c.details->>'ClosePrice')::numeric, c."ListPrice") as close_price,
     c."CloseDate"::date as close_date,
     c."BedroomsTotal"::integer as beds_total,
-    c."BathroomsFull"::numeric as baths_full,
+    c."BathroomsTotal"::numeric as baths_full,
     c."TotalLivingAreaSqFt"::numeric as living_area,
-    nullif(c."LotSizeAcres", 0)::numeric as lot_size_acres,
-    c."YearBuilt"::integer as year_built,
-    c."GarageSpaces"::integer as garage_spaces,
-    coalesce(c."PoolYN", false) as pool_yn,
+    nullif((c.details->>'LotSizeAcres')::numeric, 0) as lot_size_acres,
+    nullif((c.details->>'YearBuilt')::text, '')::integer as year_built,
+    nullif((c.details->>'GarageSpaces')::text, '')::integer as garage_spaces,
+    (
+      lower(trim(coalesce(c.details->>'PoolYN', ''))) in ('y', 'yes', 'true', '1')
+    ) as pool_yn,
     c."PropertyType"::text as property_type,
     round(
       (

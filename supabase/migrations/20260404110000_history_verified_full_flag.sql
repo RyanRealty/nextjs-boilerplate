@@ -6,5 +6,5 @@ alter table if exists public.listings
   add column if not exists history_verified_full boolean not null default false;
 
 create index if not exists idx_listings_history_verify_backlog
-  on public.listings (history_finalized, history_verified_full, standardstatus)
+  on public.listings (history_finalized, history_verified_full, "StandardStatus")
   where history_finalized = true and history_verified_full = false;

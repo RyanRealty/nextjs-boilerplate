@@ -39,7 +39,21 @@ const ACTIVITY_STATUS_CLOSED = 'status_closed'
 
 function isLikelyVideoUrl(url: string): boolean {
   const u = url.toLowerCase()
-  return u.endsWith('.mp4') || u.endsWith('.mov') || u.endsWith('.webm') || u.includes('video')
+  if (u.length < 10) return false
+  return (
+    u.includes('matterport') ||
+    u.includes('youtube') ||
+    u.includes('youtu.be') ||
+    u.includes('vimeo') ||
+    u.includes('branded') ||
+    u.includes('unbranded') ||
+    u.includes('tour') ||
+    u.endsWith('.mp4') ||
+    u.endsWith('.mov') ||
+    u.endsWith('.webm') ||
+    u.includes('/video') ||
+    u.includes('video')
+  )
 }
 
 async function syncListingVideosForRows(

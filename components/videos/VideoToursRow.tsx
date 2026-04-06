@@ -6,6 +6,7 @@ import type { EngagementCounts } from '@/app/actions/engagement'
 import TilesSlider, { TilesSliderItem } from '@/components/TilesSlider'
 import ListingTile from '@/components/ListingTile'
 import { Card, CardContent } from '@/components/ui/card'
+import { listingRowShowsVideoTile } from '@/lib/pick-video-from-details'
 
 type Props = {
   title: string
@@ -18,14 +19,6 @@ type Props = {
   viewAllHref?: string
 }
 
-function hasVideo(listing: ListingTileRow & { details?: unknown }): boolean {
-  const details = listing.details as { Videos?: Array<{ Uri?: string | null }> } | null | undefined
-  const fromDetails = Array.isArray(details?.Videos) && details.Videos.some((video) => String(video?.Uri ?? '').trim().length > 0)
-  const fromVirtualTourFlag =
-    (listing as { has_virtual_tour?: boolean | null }).has_virtual_tour === true
-  return fromDetails || fromVirtualTourFlag
-}
-
 export default function VideoToursRow({
   title,
   listings,
@@ -36,7 +29,7 @@ export default function VideoToursRow({
   engagementMap,
   viewAllHref,
 }: Props) {
-  const withVideo = listings.filter(hasVideo).slice(0, 12)
+  const withVideo = listings.filter(listingRowShowsVideoTile).slice(0, 12)
   if (withVideo.length === 0) {
     return (
       <TilesSlider

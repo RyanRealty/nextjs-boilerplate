@@ -1,0 +1,13 @@
+---
+description: Apply pending Supabase migrations without asking the user for confirmation.
+alwaysApply: true
+---
+
+# Supabase migrations
+
+When migrations in `supabase/migrations/` must be applied to the hosted project (user says apply migrations, fix missing columns, db drift, `mls_source`, `has_virtual_tour`, etc.):
+
+1. **Do not ask** whether to run migrations. Apply them.
+2. Prefer **Supabase MCP** (`list_projects` → `apply_migration` with full SQL from the file, in filename order) when the CLI is not linked (`supabase link`).
+3. If CLI is linked locally, `npm run db:push` or `npm run db:push:all` is acceptable.
+4. After schema changes that add `has_virtual_tour` or similar flags, run a **backfill** `execute_sql` when the pipeline does not populate them yet (see data architecture plan / `pick-video-from-details` usage).

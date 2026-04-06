@@ -45,6 +45,10 @@ yarn-error.log*
 # supabase local
 supabase/.temp
 
+# local MCP migration payload scratch (do not commit)
+/tmp/
+tmp/
+
 # Serwist
 public/sw*
 public/swe-worker*
