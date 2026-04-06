@@ -40,7 +40,8 @@ describe('structured-data canonical URLs', () => {
         postal_code: '97701',
       }
     )
-    expect(schema.url).toBe(`https://ryan-realty.com${expectedPath}`)
+    const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
+    expect(schema.url).toBe(`${base}${expectedPath}`)
     expect(schema.url).not.toMatch(/\/listings\//)
   })
 })

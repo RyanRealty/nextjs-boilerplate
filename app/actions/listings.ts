@@ -3,6 +3,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
 import { listingDetailPath, listingKeyFromSlug, neighborhoodPagePath, reportsExploreYtdPath } from '../../lib/slug'
+import { HOME_TILE_SELECT } from '@/lib/listing-tile-projections'
 import { getSubdivisionMatchNames } from '../../lib/subdivision-aliases'
 import { getPolygonBounds, isPointInPolygon, type MapPolygonPoint } from '@/lib/map-polygon'
 
@@ -102,6 +103,7 @@ export type HomeTileRow = ListingTileRow & {
 export type SimilarListingRow = {
   ListingKey: string | null
   ListNumber?: string | null
+  mls_source?: string | null
   ListPrice: number | null
   BedroomsTotal: number | null
   BathroomsTotal: number | null
@@ -135,7 +137,9 @@ export async function getOtherListingsInSubdivision(
   if (!supabase) return []
   const { data } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour')
+    .select(
+      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
+    )
     .ilike('SubdivisionName', subdivisionName)
     .neq('ListingKey', excludeListingKey)
     .neq('ListNumber', excludeListingKey)
@@ -144,7 +148,8 @@ export async function getOtherListingsInSubdivision(
   return (data ?? []) as SimilarListingRow[]
 }
 
-const SIMILAR_SELECT = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
+const SIMILAR_SELECT =
+  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
 
 /**
  * Similar listings for detail page: same subdivision first, then fill to minCount with recent in city.
@@ -558,7 +563,8 @@ export async function getListings(options: {
   const supabase = getAnonSupabase()
   if (!supabase) return []
   // Exclude heavy `details` JSONB from basic listing queries — only needed for advanced RPC path
-  const select = 'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, OnMarketDate'
+  const select =
+    'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, TotalLivingAreaSqFt, OnMarketDate, CloseDate'
   let query = supabase.from('listings').select(select)
 
   if (options.city) query = query.ilike('City', options.city)
@@ -739,10 +745,6 @@ export async function getListingsWithAdvanced(options: {
   return { listings, totalCount }
 }
 
-// PERFORMANCE: keep tile selects narrow and exclude wide JSONB fields.
-const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, ClosePrice, CloseDate, has_virtual_tour'
-
 /**
  * Listings for home page "Homes for You" slider. Newest in city; optional filters (maxPrice, minBeds, minBaths) for curated feed.
  */
@@ -903,7 +905,7 @@ export type GetListingsInBoundsOptions = GetListingsForMapOptions & {
 }
 
 const LISTING_BOUNDS_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus'
+  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, StandardStatus, OnMarketDate, CloseDate, TotalLivingAreaSqFt, ListOfficeName, ListAgentName'
 
 /**
  * Fetch listings within map bounds (viewport-driven search). Used by the unified map view:
@@ -1824,7 +1826,7 @@ export async function getListingByKey(listingKeyOrSlug: string): Promise<Listing
 }
 
 const LISTING_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, OnMarketDate, ClosePrice, CloseDate'
+  'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
 
 export type ListingsAtAddressOptions = {
   streetNumber: string | null
@@ -2156,8 +2158,8 @@ export async function getListingKeysWithRecentPriceChange(withinDays = PRICE_CHA
 
 /* ---------- Brokerage (Ryan Realty) listings ---------- */
 
-const BROKERAGE_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, ClosePrice, CloseDate'
+/** Same columns as HOME_TILE_SELECT — brokerage slider is ListingTile only. */
+const BROKERAGE_TILE_SELECT = HOME_TILE_SELECT
 
 /**
  * Get listings from Ryan Realty's brokerage.

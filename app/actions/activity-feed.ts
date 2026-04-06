@@ -45,8 +45,18 @@ export async function getActivityFeed(options?: {
 
   const keys = [...new Set((events as { listing_key: string }[]).map((e) => e.listing_key).filter(Boolean))]
   const [byNum, byKeyRes] = await Promise.all([
-    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate').in('ListNumber', keys),
-    supabase.from('listings').select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate').in('ListingKey', keys),
+    supabase
+      .from('listings')
+      .select(
+        'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+      )
+      .in('ListNumber', keys),
+    supabase
+      .from('listings')
+      .select(
+        'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+      )
+      .in('ListingKey', keys),
   ])
   const listingRows = [...(byNum.data ?? []), ...(byKeyRes.data ?? [])]
   const seen = new Set<string>()
@@ -126,7 +136,7 @@ export async function getActivityFeed(options?: {
       id: e.id,
       listing_key: canonicalKey,
       ListNumber: (listing?.ListNumber ?? null) as string | null,
-      mls_source: null,
+      mls_source: (listing?.mls_source as string | null | undefined) ?? null,
       event_type: e.event_type as ActivityFeedItem['event_type'],
       event_at: e.event_at,
       payload: (e.payload as Record<string, unknown>) ?? undefined,
@@ -201,12 +211,14 @@ export async function getActivityFeedWithFallback(options: {
   const supabase = createClient(url, anonKey)
   const { data: rows } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp')
+    .select(
+      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+    )
     .ilike('City', options.city.trim())
     .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%,StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%')
     .order('ModificationTimestamp', { ascending: false })
     .limit(limit * 2)
-  const list = (rows ?? []) as Array<Record<string, unknown> & { ModificationTimestamp?: string }>
+  const list = (rows ?? []) as Array<Record<string, unknown>>
   const fallback: ActivityFeedItem[] = []
   for (const r of list) {
     if (fallback.length + events.length >= limit) break
@@ -217,9 +229,9 @@ export async function getActivityFeedWithFallback(options: {
       id: `fallback-${key}`,
       listing_key: key,
       ListNumber: (r.ListNumber as string) ?? null,
-      mls_source: null,
+      mls_source: (r.mls_source as string | null | undefined) ?? null,
       event_type: 'new_listing',
-      event_at: (r.ModificationTimestamp ?? new Date().toISOString()) as string,
+      event_at: (r.OnMarketDate ?? new Date().toISOString()) as string,
       ListPrice: r.ListPrice as number | null,
       BedroomsTotal: r.BedroomsTotal as number | null,
       BathroomsTotal: r.BathroomsTotal as number | null,
@@ -266,12 +278,14 @@ async function _getActivityFeedWithFallbackMultiUncached(options: {
   const supabase = createClient(url, anonKey)
   const { data: rows } = await supabase
     .from('listings')
-    .select('ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp')
+    .select(
+      'ListingKey, ListNumber, mls_source, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, CloseDate'
+    )
     .in('City', cities)
     .or(ACTIVE_OR_PENDING_OR)
     .order('ModificationTimestamp', { ascending: false })
     .limit(limit * 2)
-  const list = (rows ?? []) as Array<Record<string, unknown> & { ModificationTimestamp?: string }>
+  const list = (rows ?? []) as Array<Record<string, unknown>>
   const fallback: ActivityFeedItem[] = []
   for (const r of list) {
     if (fallback.length + events.length >= limit) break
@@ -282,9 +296,9 @@ async function _getActivityFeedWithFallbackMultiUncached(options: {
       id: `fallback-${key}`,
       listing_key: key,
       ListNumber: (r.ListNumber as string) ?? null,
-      mls_source: null,
+      mls_source: (r.mls_source as string | null | undefined) ?? null,
       event_type: 'new_listing',
-      event_at: (r.ModificationTimestamp ?? new Date().toISOString()) as string,
+      event_at: (r.OnMarketDate ?? new Date().toISOString()) as string,
       ListPrice: r.ListPrice as number | null,
       BedroomsTotal: r.BedroomsTotal as number | null,
       BathroomsTotal: r.BathroomsTotal as number | null,

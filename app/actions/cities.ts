@@ -16,6 +16,7 @@ import type { CommunityForIndex } from '@/lib/communities'
 import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
 import { isResidentialInventoryType } from '@/lib/inventory-filters'
 import { getResortCommunityImage } from '@/lib/resort-community-images'
+import { CITY_LISTING_TILE_SELECT } from '@/lib/listing-tile-projections'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -41,12 +42,11 @@ const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const PENDING_OR =
   'StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%,StandardStatus.ilike.%Contingent%'
-const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, has_virtual_tour, lot_size_acres, lot_size_sqft, details'
 
 export type CityListingRow = {
   ListingKey: string | null
   ListNumber?: string | null
+  mls_source?: string | null
   ListPrice: number | null
   BedroomsTotal: number | null
   BathroomsTotal: number | null
@@ -59,15 +59,14 @@ export type CityListingRow = {
   PhotoURL: string | null
   Latitude: number | null
   Longitude: number | null
-  ModificationTimestamp?: string | null
   StandardStatus?: string | null
   TotalLivingAreaSqFt?: number | null
   ListOfficeName?: string | null
   ListAgentName?: string | null
   OnMarketDate?: string | null
+  CloseDate?: string | null
   OpenHouses?: unknown
   has_virtual_tour?: boolean | null
-  details?: unknown
   lot_size_acres?: number | null
   lot_size_sqft?: number | null
 }
@@ -215,7 +214,7 @@ async function _getCityListingsUncached(
 ): Promise<CityListingRow[]> {
   const { data } = await supabase()
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(CITY_LISTING_TILE_SELECT)
     .ilike('City', cityName)
     .or(ACTIVE_OR)
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
@@ -236,7 +235,7 @@ async function _getCitySoldListingsUncached(
 ): Promise<(CityListingRow & { ClosePrice?: number | null; CloseDate?: string | null })[]> {
   const { data } = await supabase()
     .from('listings')
-    .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
+    .select(`${CITY_LISTING_TILE_SELECT}, ClosePrice`)
     .ilike('City', cityName)
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)
@@ -258,7 +257,7 @@ async function _getCityPendingListingsUncached(
 ): Promise<CityListingRow[]> {
   const { data } = await supabase()
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(CITY_LISTING_TILE_SELECT)
     .ilike('City', cityName)
     .or(PENDING_OR)
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
@@ -602,7 +601,7 @@ async function _getNeighborhoodListingsUncached(
   if (ids.length === 0) return []
   const { data } = await sb
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(CITY_LISTING_TILE_SELECT)
     .in('property_id', ids)
     .or(ACTIVE_OR)
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
@@ -627,7 +626,7 @@ async function _getNeighborhoodSoldListingsUncached(
   if (ids.length === 0) return []
   const { data } = await sb
     .from('listings')
-    .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
+    .select(`${CITY_LISTING_TILE_SELECT}, ClosePrice`)
     .in('property_id', ids)
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)
@@ -705,7 +704,7 @@ async function _getNeighborhoodPendingListingsUncached(
   if (ids.length === 0) return []
   const { data } = await sb
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(CITY_LISTING_TILE_SELECT)
     .in('property_id', ids)
     .or(PENDING_OR)
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })

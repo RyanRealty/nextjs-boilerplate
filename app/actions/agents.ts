@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { getActiveBrokers, getBrokerBySlug, type BrokerRow } from '@/app/actions/brokers'
 import type { HomeTileRow } from '@/app/actions/listings'
+import { HOME_TILE_SELECT } from '@/lib/listing-tile-projections'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -10,9 +11,6 @@ const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
 const PENDING_OR =
   'StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%,StandardStatus.ilike.%Undercontract%,StandardStatus.ilike.%Contingent%'
-const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details'
-
 function supabase() {
   if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
   return createClient(url, anonKey)
@@ -202,7 +200,7 @@ export async function getAgentSoldListings(
   const since = twentyFourMoAgo.toISOString().slice(0, 10)
   const { data } = await supabase()
     .from('listings')
-    .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
+    .select(`${HOME_TILE_SELECT}, ClosePrice`)
     .in('ListingKey', keys.slice(0, 5000))
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)

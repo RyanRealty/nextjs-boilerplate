@@ -7,6 +7,7 @@ import {
   getHomeTileRowsByKeys,
   getHotCommunitiesInCity,
 } from '@/app/actions/listings'
+import { HOME_TILE_SELECT } from '@/lib/listing-tile-projections'
 import { getMarketStatsForCity } from '@/app/actions/market-stats'
 import { getTrendingListingKeys } from '@/app/actions/listing-views'
 import { sendEvent } from '@/lib/followupboss'
@@ -21,9 +22,6 @@ function supabase() {
   if (!url?.trim() || !anonKey?.trim()) throw new Error('Supabase not configured')
   return createClient(url, anonKey)
 }
-
-const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, details'
 
 const ACTIVE_OR =
   'StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%'
@@ -110,7 +108,7 @@ async function _getRecentlySoldUncached(city?: string): Promise<(HomeTileRow & {
     const sb = supabase()
     let query = sb
       .from('listings')
-      .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
+      .select(`${HOME_TILE_SELECT}, ClosePrice`)
       .or(CLOSED_OR)
       .not('CloseDate', 'is', null)
       .order('CloseDate', { ascending: false, nullsFirst: false })
@@ -123,7 +121,7 @@ async function _getRecentlySoldUncached(city?: string): Promise<(HomeTileRow & {
       const sb = supabase()
       let query = sb
         .from('listings')
-        .select(`${HOME_TILE_SELECT}, close_price, close_date`)
+        .select(`${HOME_TILE_SELECT}, close_price`)
         .or(CLOSED_OR)
         .not('close_date', 'is', null)
         .order('close_date', { ascending: false, nullsFirst: false })

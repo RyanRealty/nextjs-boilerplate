@@ -12,6 +12,7 @@ import { listSubdivisionsWithFlags } from '@/app/actions/subdivision-flags'
 import type { CommunityForIndex, CommunityDetail } from '@/lib/communities'
 import { entityKeyToSlug } from '@/lib/community-slug'
 import { isResidentialInventoryType } from '@/lib/inventory-filters'
+import { COMMUNITY_LISTING_TILE_SELECT } from '@/lib/listing-tile-projections'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -242,14 +243,13 @@ export async function getSubdivisionNeighborhood(subdivisionName: string): Promi
   }
 }
 
-const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, Latitude, Longitude, ModificationTimestamp, PropertyType, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, has_virtual_tour, AssociationYN, AssociationFee, AssociationFeeFrequency, details'
 const PENDING_OR =
   'StandardStatus.ilike.%Pending%,StandardStatus.ilike.%Under Contract%,StandardStatus.ilike.%Contingent%'
 
 export type ListingRow = {
   ListingKey: string | null
   ListNumber?: string | null
+  mls_source?: string | null
   ListPrice: number | null
   BedroomsTotal: number | null
   BathroomsTotal: number | null
@@ -262,15 +262,14 @@ export type ListingRow = {
   PhotoURL: string | null
   Latitude: number | null
   Longitude: number | null
-  ModificationTimestamp?: string | null
   StandardStatus?: string | null
   TotalLivingAreaSqFt?: number | null
   ListOfficeName?: string | null
   ListAgentName?: string | null
   OnMarketDate?: string | null
+  CloseDate?: string | null
   OpenHouses?: unknown
   has_virtual_tour?: boolean | null
-  details?: unknown
   AssociationYN?: boolean | null
   AssociationFee?: number | null
   AssociationFeeFrequency?: string | null
@@ -286,7 +285,7 @@ async function _getCommunityListingsUncached(
   const names = getSubdivisionMatchNames(subdivision)
   let query = sb
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(COMMUNITY_LISTING_TILE_SELECT)
     .ilike('City', city)
     .or('StandardStatus.is.null,StandardStatus.ilike.%Active%,StandardStatus.ilike.%For Sale%,StandardStatus.ilike.%Coming Soon%')
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
@@ -313,7 +312,7 @@ async function _getCommunitySoldListingsUncached(
   const names = getSubdivisionMatchNames(subdivision)
   let query = sb
     .from('listings')
-    .select(`${HOME_TILE_SELECT}, ClosePrice, CloseDate`)
+    .select(`${COMMUNITY_LISTING_TILE_SELECT}, ClosePrice`)
     .ilike('City', city)
     .or('StandardStatus.ilike.%Closed%')
     .not('CloseDate', 'is', null)
@@ -341,7 +340,7 @@ async function _getCommunityPendingListingsUncached(
   const names = getSubdivisionMatchNames(subdivision)
   let query = sb
     .from('listings')
-    .select(HOME_TILE_SELECT)
+    .select(COMMUNITY_LISTING_TILE_SELECT)
     .ilike('City', city)
     .or(PENDING_OR)
     .order('ModificationTimestamp', { ascending: false, nullsFirst: false })
