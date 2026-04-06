@@ -111,8 +111,12 @@ async function byStatus(orExpr) {
 
 async function main() {
   const targetYear = Number(argValue('year', '0') || '0')
-  const [totalListings, totalHistoryRowsRes, finalizedAllRes, verifiedAllRes, cursorRes, yearCursorRes, yearLogRes, stateRes] = await Promise.all([
-    countExact(() => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }), 'count total listings'),
+  const [totalListingsRes, totalHistoryRowsRes, finalizedAllRes, verifiedAllRes, cursorRes, yearCursorRes, yearLogRes, stateRes] = await Promise.all([
+    countWithFallback(
+      () => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }),
+      () => supabase.from('listings').select('ListingKey', { count: 'planned', head: true }),
+      'count total listings'
+    ),
     countWithFallback(
       () => supabase.from('listing_history').select('listing_key', { count: 'exact', head: true }),
       () => supabase.from('listing_history').select('listing_key', { count: 'planned', head: true }),
@@ -153,10 +157,11 @@ async function main() {
     byStatus(STATUS_FILTERS.canceled),
   ])
 
+  const totalListings = totalListingsRes.count ?? 0
   const totalHistoryRows = totalHistoryRowsRes.count
   const finalizedAll = finalizedAllRes.count ?? 0
   const verifiedAll = verifiedAllRes.count ?? 0
-  const warnings = [totalHistoryRowsRes.error, finalizedAllRes.error, verifiedAllRes.error].filter(Boolean)
+  const warnings = [totalListingsRes.error, totalHistoryRowsRes.error, finalizedAllRes.error, verifiedAllRes.error].filter(Boolean)
   const totals = {
     totalListings,
     totalHistoryRows,
@@ -205,6 +210,24 @@ async function main() {
     }
   })
 
+  const yearsFinalization = yearSummary.map((y) => {
+    const total = Number(y.supabaseListings ?? y.totalListings ?? 0) || 0
+    const finalized = Number(y.finalizedListings ?? 0) || 0
+    const remaining = Math.max(0, total - finalized)
+    const finalizedPct = total > 0 ? Math.round((finalized / total) * 10000) / 100 : null
+    return {
+      year: y.year,
+      totalListings: total,
+      finalizedListings: finalized,
+      remainingListings: remaining,
+      finalizedPct,
+      fullyFinalized: total > 0 ? remaining === 0 : false,
+      runStatus: y.runStatus,
+      runPhase: y.runPhase,
+      lastSyncedAt: y.lastSyncedAt,
+    }
+  })
+
   const payload = {
     generatedAt: new Date().toISOString(),
     lanes: {
@@ -230,6 +253,7 @@ async function main() {
     },
     totals,
     metricQuality: {
+      totalListingsCountMode: totalListingsRes.mode,
       historyRowsCountMode: totalHistoryRowsRes.mode,
     },
     statusByTerminal: { closed, expired, withdrawn, canceled },
@@ -242,6 +266,7 @@ async function main() {
       recentYearSync: yearLogRes.data ?? [],
     },
     yearSummary,
+    yearsFinalization,
     recommendedActions: [
       {
         when: 'Start or restart all sync lanes',
@@ -286,6 +311,13 @@ async function main() {
   console.log(`History verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
   console.log(`Finalized but unverified: ${totals.historyFinalizedUnverifiedAll.toLocaleString()}`)
   console.log(`Terminal remaining: ${totals.terminal.remaining.toLocaleString()}`)
+  console.log('\nYears finalized status (newest shown):')
+  for (const y of yearsFinalization) {
+    const pct = y.finalizedPct == null ? 'n/a' : `${y.finalizedPct}%`
+    console.log(
+      `- ${y.year}: ${y.finalizedListings.toLocaleString()}/${y.totalListings.toLocaleString()} finalized (${pct}), remaining ${y.remainingListings.toLocaleString()}`
+    )
+  }
   console.log('\nCurrent cursors:')
   console.log(`- sync_cursor: ${JSON.stringify(payload.cursors.syncCursor)}`)
   console.log(`- sync_year_cursor: ${JSON.stringify(payload.cursors.yearCursor)}`)

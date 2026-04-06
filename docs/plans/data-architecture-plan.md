@@ -522,13 +522,13 @@ Every stat on the site that reads from `market_stats_cache` is currently wrong.
 **Current problems:**
 1. `getListings` + `getActiveListingsCount` run **sequentially**
 2. `getGeocodedListings` fires **100+ parallel Google Geocode API calls**
-3. `getListingsInBounds` selects `details` JSONB for every map listing
+3. ~~`getListingsInBounds` selects `details` JSONB for every map listing~~ **Done:** `LISTING_BOUNDS_SELECT` is flat columns only (see `lib/listing-tile-projections.ts` + `app/actions/listings.ts`).
 4. Banner lookups are sequential in a `for` loop
 
 **Fixes:**
 1. Parallelize list + count (or combine into one RPC)
 2. Cap geocode batch to 10 max; background-sync the rest
-3. Strip `details` from `LISTING_BOUNDS_SELECT`
+3. ~~Strip `details` from `LISTING_BOUNDS_SELECT`~~ **Done**
 4. Parallelize banner lookups
 
 **Files:** [app/actions/listings.ts](app/actions/listings.ts), [app/actions/geocode.ts](app/actions/geocode.ts)
@@ -537,12 +537,12 @@ Every stat on the site that reads from `market_stats_cache` is currently wrong.
 
 **Current problems:**
 1. `getNeighborhoodsInCity` runs but **result is destructured and discarded** (wasted N+1 query)
-2. `HOME_TILE_SELECT` includes `details` on 24 tiles (24 x 26KB = 624KB wasted)
+2. ~~`HOME_TILE_SELECT` includes `details` on 24 tiles~~ **Done:** city sliders use `CITY_LISTING_TILE_SELECT` from `lib/listing-tile-projections.ts` (no `details` JSONB).
 3. `getCommunitiesInCity` uses `fetchAllRows` (full table scan) + sequential banner lookups
 
 **Fixes:**
 1. Remove unused `getNeighborhoodsInCity` from `Promise.all`
-2. Strip `details` from city tile select
+2. ~~Strip `details` from city tile select~~ **Done**
 3. Use `market_pulse_live` for community counts; parallelize banners
 
 **Files:** [app/actions/cities.ts](app/actions/cities.ts), [app/cities/[slug]/page.tsx](app/cities/[slug]/page.tsx)
@@ -550,11 +550,11 @@ Every stat on the site that reads from `market_stats_cache` is currently wrong.
 ### Community Page ([app/communities/[slug]/page.tsx](app/communities/[slug]/page.tsx))
 
 **Current problems:**
-1. `HOME_TILE_SELECT` includes `details` on 24 tiles
+1. ~~`HOME_TILE_SELECT` includes `details` on 24 tiles~~ **Done:** community listings use `COMMUNITY_LISTING_TILE_SELECT` (no `details` JSONB).
 2. Listing-scan fallbacks for stats
 
 **Fixes:**
-1. Strip `details` from tile select
+1. ~~Strip `details` from tile select~~ **Done**
 2. Use `market_stats_cache` for community stats
 
 **Files:** [app/actions/communities.ts](app/actions/communities.ts)

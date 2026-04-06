@@ -50,9 +50,10 @@ If the user says any variation of these, the agent MUST execute the sync-status 
 
 Required response format for these prompts:
 1. Current snapshot (key counts + cursor state)
-2. Health callout (moving, stalled, or rate-limited)
-3. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
-4. Wait for user selection ("run option 1/2/3")
+2. Year finalization status (which years are fully finalized vs remaining)
+3. Health callout (moving, stalled, or rate-limited)
+4. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
+5. Wait for user selection ("run option 1/2/3")
 
 For "start sync", do not ask follow-up questions first:
 1. Execute: `curl -H "Authorization: Bearer $CRON_SECRET" "$BASE_URL/api/cron/start-sync"`
@@ -66,10 +67,11 @@ When the user says exactly or approximately "Give me a sync status", agents MUST
 
 Required details:
 1. Current totals (listings, history rows, terminal remaining, finalized, verified full)
-2. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
-3. Last things that ran (recent year log entries + latest lane activity)
-4. Approximate time to parity (ETA) with a clearly stated method and assumptions
-5. 2-3 concrete run options the user can choose immediately
+2. Year finalization status (finalized/total/remaining for years currently in scope)
+3. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
+4. Last things that ran (recent year log entries + latest lane activity)
+5. Approximate time to parity (ETA) with a clearly stated method and assumptions
+6. 2-3 concrete run options the user can choose immediately
 
 ---
 
