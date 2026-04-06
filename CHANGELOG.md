@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.20.1 (2026-04-06)
+
+### Maintenance
+- style: rename home video slider to Popular Tours
+
+---
+
+
 ## v1.20.0 (2026-04-06)
 
 ### Features
