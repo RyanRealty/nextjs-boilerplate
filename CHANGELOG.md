@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.18.0 (2026-04-06)
+
+### Features
+- feat: central oregon residential snapshot and single regional sales chart on home
+
+---
+
+
 ## v1.17.8 (2026-04-06)
 
 ### Bug Fixes
