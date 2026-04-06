@@ -1,29 +1,22 @@
 import { getCityHeroImage } from '@/lib/central-oregon-images'
 import { getFallbackImage } from '@/lib/fallback-images'
 
-const HOME_HERO_UNSPLASH =
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=80'
-
-function normalize(value: string): string {
-  return value.trim().toLowerCase()
-}
-
-export function isUnsplashImageUrl(url: string | null | undefined): boolean {
-  const value = url?.trim()
-  if (!value) return false
-  return value.includes('images.unsplash.com')
-}
-
+/**
+ * Use admin or CMS hero image when set; otherwise the fallback (curated Unsplash or default).
+ * Any non-empty HTTPS URL is accepted (Supabase Storage, Unsplash, etc.).
+ */
 export function resolveUnsplashHeroImage(
   configuredImageUrl: string | null | undefined,
-  fallbackUnsplashImage: string
+  fallbackImage: string
 ): string {
-  if (isUnsplashImageUrl(configuredImageUrl)) return configuredImageUrl!.trim()
-  return fallbackUnsplashImage
+  const v = configuredImageUrl?.trim()
+  if (v) return v
+  return fallbackImage
 }
 
+/** Default homepage hero when brokerage hero image URL is empty (Bend, Oregon landscape). */
 export function getHomeHeroImage(): string {
-  return HOME_HERO_UNSPLASH
+  return getCityHeroImage('bend')
 }
 
 export function getCityHeroUnsplash(cityName: string): string {

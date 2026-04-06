@@ -19,7 +19,7 @@ import { getBrowseCities } from './actions/listings'
 import { getSavedListingKeys } from './actions/saved-listings'
 import { getLikedListingKeys } from './actions/likes'
 import { getOpenHousesWithListings } from './actions/open-houses'
-import type { BrokerageSettingsRow } from './actions/brokerage'
+import { getBrokerageSettings, type BrokerageSettingsRow } from './actions/brokerage'
 import { listingsBrowsePath } from '@/lib/slug'
 import OpenHouseSection from '@/components/open-houses/OpenHouseSection'
 import VideoToursRow from '@/components/videos/VideoToursRow'
@@ -322,6 +322,10 @@ export default async function Home() {
 
   // Keep public home route cache-friendly by avoiding auth lookup in server render path.
   const session: PublicSession = null
+  const brokerage = await getBrokerageSettings()
+  const heroVideoUrl = brokerage?.hero_video_url?.trim() || null
+  const heroImageUrl = brokerage?.hero_image_url?.trim() || null
+
   return (
     <main className="min-h-screen bg-background">
       <script
@@ -362,8 +366,8 @@ export default async function Home() {
       {/* Hero renders IMMEDIATELY with placeholder stats — no Suspense blocking LCP */}
       <HomeHero
         marketSnapshot={{ count: 0, medianPrice: null, avgDom: null }}
-        heroVideoUrl="/videos/hero-optimized.mp4"
-        heroImageUrl={null}
+        heroVideoUrl={heroVideoUrl}
+        heroImageUrl={heroImageUrl}
       />
 
       <div className="mx-auto mt-4 flex w-full max-w-7xl justify-end px-4 sm:px-6">

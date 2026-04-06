@@ -79,8 +79,9 @@ export default function HeroMediaForm({ initialHeroVideoUrl, initialHeroImageUrl
       <h2 className="text-lg font-semibold text-foreground">Homepage hero</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Optional background video or image for the homepage hero. When a video URL is set, it plays
-        as the hero background (autoplay, muted, loop). Otherwise the image is used. Use a direct
-        link to an MP4 file for video.
+        behind the search bar (autoplay, muted, loop). When the video URL is empty, only the image
+        shows. If both video and image URLs are empty, the site uses a default Bend landscape photo
+        from Unsplash. Use a direct link to an MP4 file for video.
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">

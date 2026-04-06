@@ -10,8 +10,8 @@
 
 /** City-specific hero images — recognizable landmarks and landscapes for each city */
 export const CITY_HERO_IMAGES: Record<string, string> = {
-  // Bend: Mt. Bachelor view from Bend, Deschutes River valley
-  'bend': 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1920&q=80',
+  // Bend: high-use Unsplash landscape (mountains and valley, fits Central Oregon hero use site-wide)
+  'bend': 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=2400&q=85',
   // Redmond/Terrebonne: Smith Rock State Park
   'redmond': 'https://images.unsplash.com/photo-1573111651542-961c4080bc18?w=1920&q=80',
   'terrebonne': 'https://images.unsplash.com/photo-1693719205045-dc0f15254790?w=1920&q=80',
