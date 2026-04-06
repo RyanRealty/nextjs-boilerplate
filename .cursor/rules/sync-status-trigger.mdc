@@ -21,6 +21,7 @@ Immediately run the sync status snapshot workflow and return options.
    - `docs/SYNC_HANDOFF_PLAYBOOK.md`
 3. Respond with:
    - Current metrics (listings, history rows, terminal remaining, finalized, strict-verified)
+   - Full `listingYearsBreakdown` from the JSON (every cohort year in the DB, newest first), or a compact summary plus offer the full table on request
    - Year finalization status (which years are fully finalized vs still remaining)
    - Cursor phase/year
    - Health assessment (moving, stalled, rate-limited, or erroring)
@@ -45,6 +46,7 @@ Prevent repeated re-explanation across sessions and keep sync operations actiona
 
 For any sync status reply ("where are we with sync", "what's happening in sync", etc), include:
 
-- A short list of years currently in scope with `finalized/total` and remaining count
+- The complete per-year cohort table from `listingYearsBreakdown` in the report JSON (all years present, not only 2015+), unless the user explicitly asks for a short summary only
+- A short list of years currently in scope with `finalized/total` and remaining count when a full table would be redundant
 - Explicit callout of any year that is fully finalized (`remaining = 0`)
 - Explicit callout of the oldest/newest year currently being processed

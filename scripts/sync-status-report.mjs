@@ -111,7 +111,18 @@ async function byStatus(orExpr) {
 
 async function main() {
   const targetYear = Number(argValue('year', '0') || '0')
-  const [totalListingsRes, totalHistoryRowsRes, finalizedAllRes, verifiedAllRes, cursorRes, yearCursorRes, yearLogRes, stateRes] = await Promise.all([
+  const [
+    totalListingsRes,
+    totalHistoryRowsRes,
+    finalizedAllRes,
+    verifiedAllRes,
+    cursorRes,
+    yearCursorRes,
+    yearLogRes,
+    stateRes,
+    yearStatsRes,
+    noListDateRes,
+  ] = await Promise.all([
     countWithFallback(
       () => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }),
       () => supabase.from('listings').select('ListingKey', { count: 'planned', head: true }),
@@ -148,6 +159,19 @@ async function main() {
       .order('completed_at', { ascending: false, nullsFirst: false })
       .limit(6),
     supabase.from('sync_state').select('year_sync_matrix_cache').eq('id', 'default').maybeSingle(),
+    supabase
+      .from('listing_year_finalization_stats')
+      .select('list_year, total_listings, finalized_listings, verified_full_listings')
+      .order('list_year', { ascending: false }),
+    countMaybe(
+      () =>
+        supabase
+          .from('listings')
+          .select('ListingKey', { count: 'exact', head: true })
+          .is('ListDate', null)
+          .is('OnMarketDate', null),
+      'count listings missing list dates'
+    ),
   ])
 
   const [closed, expired, withdrawn, canceled] = await Promise.all([
@@ -161,7 +185,37 @@ async function main() {
   const totalHistoryRows = totalHistoryRowsRes.count
   const finalizedAll = finalizedAllRes.count ?? 0
   const verifiedAll = verifiedAllRes.count ?? 0
-  const warnings = [totalListingsRes.error, totalHistoryRowsRes.error, finalizedAllRes.error, verifiedAllRes.error].filter(Boolean)
+  const listingYearsBreakdown = []
+  if (!yearStatsRes.error) {
+    for (const r of yearStatsRes.data ?? []) {
+      const total = Number(r.total_listings) || 0
+      const finalized = Number(r.finalized_listings) || 0
+      const verifiedFull = Number(r.verified_full_listings) || 0
+      listingYearsBreakdown.push({
+        year: r.list_year,
+        total,
+        finalized,
+        verifiedFull,
+        remaining: Math.max(0, total - finalized),
+        finalizedUnverified: Math.max(0, finalized - verifiedFull),
+        fullyFinalized: total > 0 && finalized === total,
+      })
+    }
+  }
+
+  const listingYearsWithoutDate = {
+    totalListings: noListDateRes.count ?? 0,
+    note: 'Rows where both ListDate and OnMarketDate are null',
+  }
+
+  const warnings = [
+    totalListingsRes.error,
+    totalHistoryRowsRes.error,
+    finalizedAllRes.error,
+    verifiedAllRes.error,
+    yearStatsRes.error ? `listing year breakdown: ${formatError(yearStatsRes.error)}` : null,
+    noListDateRes.error,
+  ].filter(Boolean)
   const totals = {
     totalListings,
     totalHistoryRows,
@@ -267,6 +321,10 @@ async function main() {
     },
     yearSummary,
     yearsFinalization,
+    listingYearsBreakdown,
+    listingYearsCohortNote:
+      'Cohort year is the calendar year of coalesce(ListDate, OnMarketDate). Sparse years are expected when the feed contains rare dates.',
+    listingYearsWithoutDate,
     recommendedActions: [
       {
         when: 'Start or restart all sync lanes',
@@ -316,6 +374,16 @@ async function main() {
     const pct = y.finalizedPct == null ? 'n/a' : `${y.finalizedPct}%`
     console.log(
       `- ${y.year}: ${y.finalizedListings.toLocaleString()}/${y.totalListings.toLocaleString()} finalized (${pct}), remaining ${y.remainingListings.toLocaleString()}`
+    )
+  }
+  console.log('\nListing year cohorts (calendar year of ListDate or OnMarketDate, newest first):')
+  console.log(
+    `Rows missing both ListDate and OnMarketDate: ${listingYearsWithoutDate.totalListings.toLocaleString()}`
+  )
+  for (const y of listingYearsBreakdown) {
+    const tag = y.fullyFinalized ? 'fully finalized' : 'open'
+    console.log(
+      `- ${y.year}: ${y.finalized.toLocaleString()}/${y.total.toLocaleString()} finalized, ${y.verifiedFull.toLocaleString()} strict-verified, ${y.remaining.toLocaleString()} remaining [${tag}]`
     )
   }
   console.log('\nCurrent cursors:')

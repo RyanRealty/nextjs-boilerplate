@@ -6,6 +6,7 @@ This is the persistent handoff for future agents and future sessions.
 
 - Visual dashboard: `/admin/sync`
 - Machine-readable snapshot: `node scripts/sync-status-report.mjs --json`
+  - Includes `listingYearsBreakdown`, every cohort year present in the database (calendar year of `ListDate` or `OnMarketDate`), with finalized and strict-verified counts
 - Runtime cursors in DB:
   - `sync_cursor` (fresh/full lane state)
   - `sync_year_cursor` (year backfill lane state)
