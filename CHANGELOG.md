@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.19.2 (2026-04-06)
+
+### Bug Fixes
+- fix: video listings select only real RESO columns so queries succeed
+
+---
+
+
 ## v1.19.1 (2026-04-06)
 
 ### Bug Fixes
