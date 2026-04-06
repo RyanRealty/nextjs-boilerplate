@@ -27,6 +27,9 @@ async function withTimeout<T>(promise: Promise<T>, fallback: T, timeoutMs = 20_0
 }
 
 export default async function VideosPage() {
-  const listings = await withTimeout(getListingsWithVideos({}), [])
+  const listings = await withTimeout(
+    getListingsWithVideos({ region: 'central_oregon', sort: 'price_desc', status: 'active', limit: 48 }),
+    []
+  )
   return <VideosClient initialListings={listings} />
 }

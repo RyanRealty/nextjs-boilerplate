@@ -257,7 +257,12 @@ async function MarketSnapshotSection() {
 async function VideoToursAsync({ session }: { session: PublicSession }) {
   const [videoRows, savedKeys, likedKeys] = await Promise.all([
     withTimeout(
-      getListingsWithVideosCached({ sort: 'price_desc', status: 'active', limit: 10 }),
+      getListingsWithVideosCached({
+        region: 'central_oregon',
+        sort: 'price_desc',
+        status: 'active',
+        limit: 12,
+      }),
       [],
       HOME_VIDEO_TOURS_MS,
       'home-video-listings'
@@ -298,7 +303,7 @@ async function VideoToursAsync({ session }: { session: PublicSession }) {
     <section className="px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <VideoToursRow
-          title="Top priced active homes with video"
+          title="Priciest Central Oregon homes with a video tour"
           listings={listingsWithVideo}
           signedIn={!!session?.user}
           savedKeys={savedKeys}

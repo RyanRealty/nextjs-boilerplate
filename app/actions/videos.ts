@@ -2,11 +2,8 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import {
-  pickFirstVideoFromDetails,
-  pickFirstVideoFromListingRow,
-  resolveListingKeyFromRow,
-} from '@/lib/pick-video-from-details'
+import { MARKET_REPORT_DEFAULT_CITIES } from '@/app/actions/market-report-types'
+import { pickFirstVideoFromListingRow, resolveListingKeyFromRow } from '@/lib/pick-video-from-details'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -78,6 +75,82 @@ function unparsedFromRow(row: Record<string, unknown>): string | null {
     .join(' ')
     .trim()
   return line || null
+}
+
+function rowInCitiesList(row: Record<string, unknown>, citiesLower: Set<string>): boolean {
+  const c = rowCity(row)
+  if (!c) return false
+  return citiesLower.has(c.toLowerCase())
+}
+
+/**
+ * Walk active listings in `cities` from highest ListPrice down; keep the first `maxRows` that have a playable
+ * or embeddable video in `details` (same rules as pickFirstVideoFromListingRow). This matches the product rule
+ * "most expensive Central Oregon homes that actually have a video," not "any home flagged has_virtual_tour."
+ */
+async function fetchPriceFirstListingsWithVideoInCities(
+  supabase: ReturnType<typeof getSupabase>,
+  cities: string[],
+  maxRows: number,
+  statusAll: boolean,
+  community: string | null,
+  minPrice: number | undefined,
+  maxPrice: number | undefined
+): Promise<VideoListingRow[]> {
+  const scanLimit = Math.min(Math.max(maxRows * 80, 400), 1200)
+  const citiesLower = new Set(cities.map((c) => c.toLowerCase()))
+
+  let q = supabase
+    .from('listings')
+    .select(LISTING_VIDEO_SELECT_MAIN)
+    .in('City', cities)
+    .order('ListPrice', { ascending: false, nullsFirst: false })
+    .limit(scanLimit)
+
+  if (!statusAll) {
+    q = q.or(ACTIVE_STATUS_OR)
+  }
+
+  const { data, error } = await q
+  if (error) {
+    console.error('[getListingsWithVideos] price-first by city', error)
+    return []
+  }
+
+  const rows: VideoListingRow[] = []
+  for (const row of data ?? []) {
+    if (rows.length >= maxRows) break
+    const r = row as Record<string, unknown>
+    if (!rowInCitiesList(r, citiesLower)) continue
+    if (!rowMeetsStatusFilter(r, statusAll)) continue
+    if (community?.trim() && rowSubdivision(r) !== community.trim()) continue
+    const price = rowListPrice(r)
+    if (minPrice != null && (price == null || price < minPrice)) continue
+    if (maxPrice != null && (price == null || price > maxPrice)) continue
+
+    const video = pickFirstVideoFromListingRow(r)
+    if (!video) continue
+
+    const listingKey = resolveListingKeyFromRow(r)
+    if (!listingKey) continue
+
+    rows.push({
+      listing_key: listingKey,
+      list_number: (r.ListNumber ?? r.list_number ?? null) as string | null,
+      list_price: price,
+      beds_total: (r.BedroomsTotal ?? r.beds_total ?? null) as number | null,
+      baths_full: (r.BathroomsTotal ?? r.baths_full ?? null) as number | null,
+      living_area: (r.TotalLivingAreaSqFt ?? r.living_area ?? null) as number | null,
+      subdivision_name: rowSubdivision(r),
+      city: rowCity(r),
+      unparsed_address: unparsedFromRow(r),
+      photo_url: (r.PhotoURL ?? r.photo_url ?? null) as string | null,
+      video_url: video.url,
+      video_source: video.source,
+    })
+  }
+
+  return rows
 }
 
 /**
@@ -158,9 +231,29 @@ async function getListingsWithVideosFromListingVideosTable(
   return rows.slice(0, maxRows)
 }
 
+function resolveVideoCitiesList(filters?: {
+  region?: 'central_oregon'
+  cities?: string[]
+  city?: string
+}): string[] | null {
+  if (filters?.region === 'central_oregon') {
+    return [...MARKET_REPORT_DEFAULT_CITIES]
+  }
+  if (filters?.cities?.length) {
+    return [...new Set(filters.cities.map((c) => c.trim()).filter(Boolean))]
+  }
+  if (filters?.city?.trim()) {
+    return [filters.city.trim()]
+  }
+  return null
+}
+
 export async function getListingsWithVideos(filters?: {
   community?: string
   city?: string
+  /** When set, uses the same Central Oregon city list as market reports (Bend, Redmond, Sisters, …). */
+  region?: 'central_oregon'
+  cities?: string[]
   minPrice?: number
   maxPrice?: number
   sort?: 'newest' | 'most_viewed' | 'price_desc'
@@ -171,10 +264,27 @@ export async function getListingsWithVideos(filters?: {
   const maxRows = Math.min(Math.max(filters?.limit ?? 24, 1), 60)
   const candidateLimit = Math.min(Math.max(maxRows * 25, 200), 900)
   const statusAll = filters?.status === 'all'
+  const citiesList = resolveVideoCitiesList(filters)
+  const citiesLowerForFilter =
+    citiesList && citiesList.length > 0 ? new Set(citiesList.map((c) => c.toLowerCase())) : null
+
+  if (citiesList && citiesList.length > 0 && filters?.sort === 'price_desc') {
+    return fetchPriceFirstListingsWithVideoInCities(
+      supabase,
+      citiesList,
+      maxRows,
+      statusAll,
+      filters?.community?.trim() || null,
+      filters?.minPrice,
+      filters?.maxPrice
+    )
+  }
 
   const geoOrPriceScoped =
     Boolean(filters?.city?.trim()) ||
     Boolean(filters?.community?.trim()) ||
+    Boolean(filters?.cities?.length) ||
+    filters?.region === 'central_oregon' ||
     filters?.minPrice != null ||
     filters?.maxPrice != null
 
@@ -206,9 +316,11 @@ export async function getListingsWithVideos(filters?: {
   const seenKeys = new Set<string>()
   const listRows: Array<Record<string, unknown>> = []
 
-  const tourRes = await applyFiltersAndOrder(
-    supabase.from('listings').select(`${LISTING_VIDEO_SELECT_MAIN}`).eq('has_virtual_tour', true)
-  )
+  let tourQ = supabase.from('listings').select(`${LISTING_VIDEO_SELECT_MAIN}`).eq('has_virtual_tour', true)
+  if (citiesList?.length) {
+    tourQ = tourQ.in('City', citiesList)
+  }
+  const tourRes = await applyFiltersAndOrder(tourQ)
   const tourErr = tourRes.error?.message ?? ''
   if (!tourRes.error && Array.isArray(tourRes.data) && tourRes.data.length > 0) {
     for (const row of tourRes.data as Array<Record<string, unknown>>) {
@@ -222,7 +334,11 @@ export async function getListingsWithVideos(filters?: {
   }
 
   if (listRows.length < candidateLimit) {
-    const broadRes = await applyFiltersAndOrder(supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN))
+    let broadQ = supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN)
+    if (citiesList?.length) {
+      broadQ = broadQ.in('City', citiesList)
+    }
+    const broadRes = await applyFiltersAndOrder(broadQ)
     if (broadRes.error) {
       console.error('[getListingsWithVideos] broad query', broadRes.error)
     } else {
@@ -247,7 +363,7 @@ export async function getListingsWithVideos(filters?: {
 
     if (!rowMeetsStatusFilter(r, statusAll)) continue
     if (filters?.community && rowSubdivision(r) !== filters.community) continue
-    if (filters?.city && rowCity(r) !== filters.city) continue
+    if (citiesLowerForFilter && !rowInCitiesList(r, citiesLowerForFilter)) continue
     const price = rowListPrice(r)
     if (filters?.minPrice != null && (price == null || price < filters.minPrice)) continue
     if (filters?.maxPrice != null && (price == null || price > filters.maxPrice)) continue
@@ -301,7 +417,7 @@ export async function getListingsWithVideos(filters?: {
           if (!rec || !vurl) continue
           if (!rowMeetsStatusFilter(rec, statusAll)) continue
           if (filters?.community && rowSubdivision(rec) !== filters.community) continue
-          if (filters?.city && rowCity(rec) !== filters.city) continue
+          if (citiesLowerForFilter && !rowInCitiesList(rec, citiesLowerForFilter)) continue
           const price = rowListPrice(rec)
           if (filters?.minPrice != null && (price == null || price < filters.minPrice)) continue
           if (filters?.maxPrice != null && (price == null || price > filters.maxPrice)) continue
@@ -337,10 +453,10 @@ export async function getListingsWithVideos(filters?: {
       ])
     )
 
-    let legacyQuery = supabase
-      .from('listings')
-      .select(LISTING_VIDEO_SELECT_MAIN)
-      .limit(candidateLimit)
+    let legacyQuery = supabase.from('listings').select(LISTING_VIDEO_SELECT_MAIN).limit(candidateLimit)
+    if (citiesList?.length) {
+      legacyQuery = legacyQuery.in('City', citiesList)
+    }
     if (!statusAll) {
       legacyQuery = legacyQuery.or(ACTIVE_STATUS_OR)
     }
@@ -362,7 +478,7 @@ export async function getListingsWithVideos(filters?: {
       if (!rowMeetsStatusFilter(r, statusAll)) continue
 
       if (filters?.community && rowSubdivision(r) !== filters.community) continue
-      if (filters?.city && rowCity(r) !== filters.city) continue
+      if (citiesLowerForFilter && !rowInCitiesList(r, citiesLowerForFilter)) continue
       const price = rowListPrice(r)
       if (filters?.minPrice != null && (price == null || price < filters.minPrice)) continue
       if (filters?.maxPrice != null && (price == null || price > filters.maxPrice)) continue
@@ -393,38 +509,69 @@ export async function getListingsWithVideos(filters?: {
   return rows.slice(0, maxRows)
 }
 
+/** Stable cache key token for `region: 'central_oregon'` (MARKET_REPORT_DEFAULT_CITIES). */
+const CACHE_KEY_REGION_CENTRAL_OREGON = '__region_central_oregon__'
+
 async function _getListingsWithVideosCachedUncached(
   city: string | null,
   community: string | null,
+  citiesOrRegionKey: string | null,
   sort: 'newest' | 'most_viewed' | 'price_desc',
   status: 'active' | 'all',
   limit: number
 ): Promise<VideoListingRow[]> {
-  return getListingsWithVideos({
+  const base = {
     city: city ?? undefined,
     community: community ?? undefined,
     sort,
     status,
     limit,
-  })
+  }
+  if (citiesOrRegionKey === CACHE_KEY_REGION_CENTRAL_OREGON) {
+    return getListingsWithVideos({ ...base, region: 'central_oregon' })
+  }
+  if (citiesOrRegionKey?.startsWith('cities:')) {
+    try {
+      const parsed = JSON.parse(citiesOrRegionKey.slice('cities:'.length)) as unknown
+      if (Array.isArray(parsed) && parsed.every((x) => typeof x === 'string')) {
+        return getListingsWithVideos({ ...base, cities: parsed })
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return getListingsWithVideos(base)
 }
 
 const _getListingsWithVideosCached = unstable_cache(
   _getListingsWithVideosCachedUncached,
-  ['listings-with-videos-v3'],
+  ['listings-with-videos-v5'],
   { revalidate: 300, tags: ['listings-videos'] }
 )
 
 export async function getListingsWithVideosCached(filters?: {
   community?: string
   city?: string
+  region?: 'central_oregon'
+  cities?: string[]
   sort?: 'newest' | 'most_viewed' | 'price_desc'
   status?: 'active' | 'all'
   limit?: number
 }): Promise<VideoListingRow[]> {
+  let citiesOrRegionKey: string | null = null
+  if (filters?.region === 'central_oregon') {
+    citiesOrRegionKey = CACHE_KEY_REGION_CENTRAL_OREGON
+  } else if (filters?.cities?.length) {
+    const normalized = [...new Set(filters.cities.map((c) => c.trim()).filter(Boolean))].sort()
+    if (normalized.length > 0) {
+      citiesOrRegionKey = `cities:${JSON.stringify(normalized)}`
+    }
+  }
+
   return _getListingsWithVideosCached(
     filters?.city?.trim() || null,
     filters?.community?.trim() || null,
+    citiesOrRegionKey,
     filters?.sort ?? 'newest',
     filters?.status ?? 'active',
     Math.min(Math.max(filters?.limit ?? 24, 1), 60)
