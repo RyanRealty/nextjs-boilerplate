@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.17.5 (2026-04-06)
+
+### Bug Fixes
+- fix(videos): restore tour discovery from details, raw_data, listing_videos, and virtual_tour_url
+
+---
+
+
 ## v1.17.4 (2026-04-06)
 
 ### Maintenance
