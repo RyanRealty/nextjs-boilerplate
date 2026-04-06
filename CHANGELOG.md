@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.19.3 (2026-04-06)
+
+### Bug Fixes
+- fix: show poster fallback for direct video tiles without PhotoURL
+
+---
+
+
 ## v1.19.2 (2026-04-06)
 
 ### Bug Fixes
