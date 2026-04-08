@@ -92,6 +92,8 @@ Year-targeted strict verify:
 curl -H "$AUTH_HEADER" "$BASE_URL/api/cron/sync-verify-full-history?year=2025&limit=200"
 ```
 
+Optional query param **`concurrency=1`** through **`concurrency=6`** (default **3** from env `STRICT_VERIFY_CONCURRENCY` or the cron URL) runs that many listings in parallel per invocation to shorten wall time. Raise gradually and watch Vercel logs for **504** or rising **`fetchFailures`** in the JSON response (Spark throttling).
+
 ## What To Run Based on Status
 
 Run first:
