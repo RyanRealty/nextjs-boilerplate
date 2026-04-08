@@ -17,6 +17,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/sync-verify-full-history?limit=150",
+      "schedule": "*/10 * * * *"
+    },
+    {
       "path": "/api/cron/sync-full",
       "schedule": "0 2 * * 0"
     },
