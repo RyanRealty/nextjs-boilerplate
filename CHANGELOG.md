@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.24.0 (2026-04-08)
+
+### Features
+- feat: log strict verify cron runs and surface health in report and admin
+
+---
+
+
 ## v1.23.0 (2026-04-08)
 
 ### Features
