@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.22.1 (2026-04-08)
+
+### Maintenance
+- docs: require strictVerification in sync status report and agent rules
+
+---
+
+
 ## v1.22.0 (2026-04-08)
 
 ### Features
