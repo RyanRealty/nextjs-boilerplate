@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.25.0 (2026-04-08)
+
+### Features
+- feat: speed strict-verify cron and add compact sync status snapshot
+
+---
+
+
 ## v1.24.1 (2026-04-08)
 
 ### Maintenance
