@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.21.4 (2026-04-08)
+
+### Maintenance
+- chore: run strict history verify every minute with small batch
+
+---
+
+
 ## v1.21.3 (2026-04-08)
 
 ### Maintenance
