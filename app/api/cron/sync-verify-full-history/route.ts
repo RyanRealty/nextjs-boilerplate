@@ -19,6 +19,10 @@ function isTerminalStatus(status: string | null | undefined): boolean {
   return /closed/.test(t) || /expired/.test(t) || /withdrawn/.test(t) || /cancel/.test(t)
 }
 
+/** PostgREST OR filter aligned with isTerminalStatus (terminal rows only — avoids wasting batch limit). */
+const TERMINAL_STATUS_OR_FILTER =
+  'StandardStatus.ilike.%closed%,StandardStatus.ilike.%expired%,StandardStatus.ilike.%withdrawn%,StandardStatus.ilike.%cancel%'
+
 function sparkHistoryItemToRow(listingKey: string, item: SparkListingHistoryItem) {
   const dateRaw = item.ModificationTimestamp ?? item.Date
   const eventDate = dateRaw && !Number.isNaN(new Date(String(dateRaw)).getTime()) ? String(dateRaw) : null
@@ -227,6 +231,7 @@ export async function GET(request: Request) {
     .select('ListingKey, ListNumber, StandardStatus, OnMarketDate')
     .eq('history_finalized', true)
     .eq('history_verified_full', false)
+    .or(TERMINAL_STATUS_OR_FILTER)
     .order('OnMarketDate', { ascending: false, nullsFirst: false })
     .limit(limit)
   if (hasYear && fromIso && toIso) {

@@ -60,6 +60,9 @@ next-env.d.ts
 # Claude IDE local settings (optional)
 .claude
 
+# Local sync status deltas (Matt / agent — not committed)
+.cursor/local/
+
 # Legacy style backup — old design system (hex, .btn-cta, .card-base); do not use or import
 _style_backup
 

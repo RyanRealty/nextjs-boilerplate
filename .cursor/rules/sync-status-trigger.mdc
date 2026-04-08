@@ -20,7 +20,20 @@ Immediately run the sync status snapshot workflow and return options.
 - "Give me a sync status."
 - "Start sync."
 
-## Required workflow
+## Compact strict-verify check (preferred for recurring “where are we at”)
+
+When the user asks for sync **status** in a **short** form, wants **delta since last time**, **ETA only**, or says they do **not** want the full report: run **`npm run sync:strict-last-ask`** (or `node scripts/sync-strict-verify-last-ask.mjs`) with the same env as `sync-status-report` (e.g. `source .env.local` first). Paste the script output; do not paste the full JSON.
+
+That script:
+
+- Confirms the strict-verify cron is **working** (recent telemetry)
+- Shows **terminal strict backlog** and rough **ETA**
+- Compares to **last run** using **`.cursor/local/sync-strict-verify-last.json`** (gitignored), then **overwrites** it
+- Prints **year-by-year** rows where `finalizedUnverified > 0` (ListDate/OnMarketDate cohort)
+
+Use the **full** workflow below when they ask for **full** sync detail, playbook options, start-sync, or the exact **“Give me a sync status”** deep operational report per `AGENTS.md`.
+
+## Required workflow (full)
 
 1. Run:
    - `node scripts/sync-status-report.mjs --json`

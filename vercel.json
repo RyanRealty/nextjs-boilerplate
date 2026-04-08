@@ -13,7 +13,7 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/sync-verify-full-history?limit=60&concurrency=3",
+      "path": "/api/cron/sync-verify-full-history?limit=150&concurrency=5",
       "schedule": "* * * * *"
     },
     {
