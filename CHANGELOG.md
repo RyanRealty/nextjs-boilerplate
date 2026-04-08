@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.24.1 (2026-04-08)
+
+### Maintenance
+- chore: remove year-by-year Spark sync lane; strict verify only for history completeness
+
+---
+
+
 ## v1.24.0 (2026-04-08)
 
 ### Features
