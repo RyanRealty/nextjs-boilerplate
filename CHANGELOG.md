@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.21.3 (2026-04-08)
+
+### Maintenance
+- chore: schedule strict history verification cron every 10 minutes
+
+---
+
+
 ## v1.21.2 (2026-04-06)
 
 ### Maintenance
