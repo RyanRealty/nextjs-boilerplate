@@ -11,7 +11,9 @@ Immediately run the sync status snapshot workflow and return options.
 ## Trigger examples
 
 - "What's the sync like?"
+- "What's up with the sync?"
 - "Where are we at on sync?"
+- "Where are we at with the sync?"
 - "Research the sync procedures."
 - "Research sync status and tell me what I can do."
 - "What can I run right now?"
@@ -26,6 +28,7 @@ Immediately run the sync status snapshot workflow and return options.
    - `docs/SYNC_HANDOFF_PLAYBOOK.md`
 3. Respond with:
    - Current metrics (listings, history rows, terminal remaining, finalized, strict-verified)
+   - **Strict verification (mandatory):** Summarize the JSON object `strictVerification` from the same report. Include at least `counts.allListingsHistoryVerifiedFull`, `counts.allListingsFinalizedNotStrictVerified`, `counts.terminalStrictVerifyBacklog`, and `counts.terminalHistoryVerifiedFull`, plus `adminDashboardForLiveDeltas` so the user knows where to watch live 15s deltas. State that the terminal backlog is what `sync-verify-full-history` processes.
    - Full `listingYearsBreakdown` (coalesce ListDate or OnMarketDate cohorts) from the JSON, newest first, or a compact summary plus offer the full table on request
    - `yearsFinalization` and/or `listingYearsOnMarketBreakdown` for OnMarketDate-aligned counts (matches year-by-year sync); do not equate them to `listingYearsBreakdown` without stating the cohort definition
    - Year finalization status (which years are fully finalized vs still remaining, using the correct breakdown)
@@ -50,8 +53,9 @@ Prevent repeated re-explanation across sessions and keep sync operations actiona
 
 ## Year finalization requirement
 
-For any sync status reply ("where are we with sync", "what's happening in sync", etc), include:
+For any sync status reply ("where are we with sync", "what's happening in sync", "what's up with the sync", "where are we at with the sync", etc), include:
 
+- The **`strictVerification`** object from the same JSON report (see workflow step 3). Do not skip this in favor of year tables only.
 - The complete per-year table from `listingYearsBreakdown` in the report JSON (all years present), unless the user explicitly asks for a short summary only, and call out `yearsFinalization` / `listingYearsOnMarketBreakdown` when the question is about the year-by-year job
 - A short list of years currently in scope with `finalized/total` and remaining count when a full table would be redundant
 - Explicit callout of any year that is fully finalized (`remaining = 0`)

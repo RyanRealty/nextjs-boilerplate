@@ -39,8 +39,10 @@ Then use:
 If the user says any variation of these, the agent MUST execute the sync-status flow above before asking follow-ups:
 
 - "what's the sync like"
+- "what's up with the sync"
 - "what is sync status"
 - "where are we at on sync"
+- "where are we at with the sync"
 - "research sync procedures"
 - "research sync status"
 - "tell me what options I have"
@@ -50,11 +52,12 @@ If the user says any variation of these, the agent MUST execute the sync-status 
 
 Required response format for these prompts:
 1. Current snapshot (key counts + cursor state)
-2. Full `listingYearsBreakdown` from `node scripts/sync-status-report.mjs --json` (coalesce ListDate or OnMarketDate cohorts), unless the user asks for a short summary only. When discussing year-by-year sync scope, also reference `yearsFinalization` or `listingYearsOnMarketBreakdown` (OnMarketDate only)
-3. Year finalization status from `yearsFinalization` (DB on-market stats + job progress; see `yearsFinalizationNote` in JSON)
-4. Health callout (moving, stalled, or rate-limited)
-5. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
-6. Wait for user selection ("run option 1/2/3")
+2. **Strict verification:** Always summarize the `strictVerification` object from the same JSON report (`counts` for global and terminal-only backlog, `adminDashboardForLiveDeltas` for live activity on `/admin/sync`). This is distinct from terminal finalization remaining (`totals.terminal.remaining`).
+3. Full `listingYearsBreakdown` from `node scripts/sync-status-report.mjs --json` (coalesce ListDate or OnMarketDate cohorts), unless the user asks for a short summary only. When discussing year-by-year sync scope, also reference `yearsFinalization` or `listingYearsOnMarketBreakdown` (OnMarketDate only)
+4. Year finalization status from `yearsFinalization` (DB on-market stats + job progress; see `yearsFinalizationNote` in JSON)
+5. Health callout (moving, stalled, or rate-limited)
+6. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
+7. Wait for user selection ("run option 1/2/3")
 
 For "start sync", do not ask follow-up questions first:
 1. Execute: `curl -H "Authorization: Bearer $CRON_SECRET" "$BASE_URL/api/cron/start-sync"`
@@ -68,12 +71,13 @@ When the user says exactly or approximately "Give me a sync status", agents MUST
 
 Required details:
 1. Current totals (listings, history rows, terminal remaining, finalized, verified full)
-2. Complete `listingYearsBreakdown` and, for year-lane alignment, `listingYearsOnMarketBreakdown` or `yearsFinalization` from the status report JSON
-3. Year finalization status (`yearsFinalization` finalized/total/remaining; `processedListings` vs `totalListings` for active year)
-4. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
-5. Last things that ran (recent year log entries + latest lane activity)
-6. Approximate time to parity (ETA) with a clearly stated method and assumptions
-7. 2-3 concrete run options the user can choose immediately
+2. Full **`strictVerification`** block from the same JSON (all-listing vs terminal-only strict backlog, verified full counts, `adminDashboardForLiveDeltas`; clarify that terminal strict backlog is what `sync-verify-full-history` drains)
+3. Complete `listingYearsBreakdown` and, for year-lane alignment, `listingYearsOnMarketBreakdown` or `yearsFinalization` from the status report JSON
+4. Year finalization status (`yearsFinalization` finalized/total/remaining; `processedListings` vs `totalListings` for active year)
+5. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
+6. Last things that ran (recent year log entries + latest lane activity)
+7. Approximate time to parity (ETA) with a clearly stated method and assumptions
+8. 2-3 concrete run options the user can choose immediately
 
 ---
 

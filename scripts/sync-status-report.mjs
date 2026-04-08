@@ -350,8 +350,37 @@ async function main() {
         path: '/api/cron/start-sync',
         purpose: 'clear blockers and kick all lanes',
       },
+      strictVerify: {
+        path: '/api/cron/sync-verify-full-history',
+        cadence: 'see vercel.json production crons (continuous strict verification)',
+      },
     },
     totals,
+    strictVerification: {
+      reportNote:
+        'Agents must summarize this block whenever the user asks about sync status (including what is up with sync, where we are at with sync, sync health, etc.).',
+      cronPath: '/api/cron/sync-verify-full-history',
+      productionScheduleNote: 'Schedule and per-run limit are defined in vercel.json for production.',
+      adminDashboardForLiveDeltas: `${String(siteUrl).replace(/\/$/, '')}/admin/sync`,
+      definitions: {
+        history_verified_full:
+          'Set only after Spark listing history (or price history fallback) succeeds with full pagination, not partial pages.',
+        terminalStrictVerifyBacklog:
+          'Terminal status listings (closed, expired, withdrawn, canceled) that are history_finalized but not history_verified_full. This is what the strict verify cron processes first.',
+      },
+      counts: {
+        allListingsHistoryVerifiedFull: totals.historyVerifiedFullAll,
+        allListingsFinalizedNotStrictVerified: totals.historyFinalizedUnverifiedAll,
+        terminalStrictVerifyBacklog: totals.terminal.finalizedUnverified,
+        terminalHistoryVerifiedFull: totals.terminal.verifiedFull,
+      },
+      perTerminalFinalizedUnverified: {
+        closed: closed.finalizedUnverified,
+        expired: expired.finalizedUnverified,
+        withdrawn: withdrawn.finalizedUnverified,
+        canceled: canceled.finalizedUnverified,
+      },
+    },
     metricQuality: {
       totalListingsCountMode: totalListingsRes.mode,
       historyRowsCountMode: totalHistoryRowsRes.mode,
@@ -425,6 +454,12 @@ async function main() {
   console.log(`History verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
   console.log(`Finalized but unverified: ${totals.historyFinalizedUnverifiedAll.toLocaleString()}`)
   console.log(`Terminal remaining: ${totals.terminal.remaining.toLocaleString()}`)
+  console.log('\nStrict verification (Spark full pagination, sync-verify-full-history cron):')
+  console.log(`  All listings verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
+  console.log(`  All listings finalized but not strict verified: ${totals.historyFinalizedUnverifiedAll.toLocaleString()}`)
+  console.log(`  Terminal strict verify backlog: ${totals.terminal.finalizedUnverified.toLocaleString()}`)
+  console.log(`  Terminal verified full: ${totals.terminal.verifiedFull.toLocaleString()}`)
+  console.log(`  Live deltas: ${String(siteUrl).replace(/\/$/, '')}/admin/sync`)
   console.log('\nYears finalized status (OnMarketDate year, matches year-by-year sync; newest shown):')
   for (const y of yearsFinalization) {
     const pct = y.finalizedPct == null ? 'n/a' : `${y.finalizedPct}%`
