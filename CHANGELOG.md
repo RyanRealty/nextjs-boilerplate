@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.22.0 (2026-04-08)
+
+### Features
+- feat(admin): show strict verification queue and live deltas on sync page
+
+---
+
+
 ## v1.21.4 (2026-04-08)
 
 ### Maintenance
