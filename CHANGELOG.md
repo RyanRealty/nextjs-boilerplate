@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.23.0 (2026-04-08)
+
+### Features
+- feat(sync): parallel strict verify workers and higher cron batch
+
+---
+
+
 ## v1.22.2 (2026-04-08)
 
 ### Maintenance
