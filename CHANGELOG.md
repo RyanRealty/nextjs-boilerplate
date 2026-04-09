@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.2 (2026-04-09)
+
+### Bug Fixes
+- fix: use RPC for exact listing_history count in sync status report
+
+---
+
+
 ## v1.27.1 (2026-04-09)
 
 ### Maintenance
