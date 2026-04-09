@@ -86,6 +86,25 @@ async function countMaybe(run, label) {
   }
 }
 
+/**
+ * PostgREST head+count=exact on listing_history often times out at multi-million rows.
+ * Prefer DB RPC with extended statement_timeout; fall back to exact/planned count.
+ */
+async function countListingHistoryForReport(supabaseClient) {
+  const { data, error: rpcError } = await supabaseClient.rpc('report_listing_history_row_count')
+  if (!rpcError && data != null) {
+    const n = typeof data === 'string' ? Number(data) : Number(data)
+    if (Number.isFinite(n) && n >= 0) {
+      return { count: n, mode: 'rpc_exact', error: null }
+    }
+  }
+  return countWithFallback(
+    () => supabaseClient.from('listing_history').select('listing_key', { count: 'exact', head: true }),
+    () => supabaseClient.from('listing_history').select('listing_key', { count: 'planned', head: true }),
+    'count listing_history'
+  )
+}
+
 function summarizeStrictVerifyRuns(runs, terminalStrictBacklog) {
   if (!runs || runs.length === 0) {
     return {
@@ -231,11 +250,7 @@ async function main() {
       () => supabase.from('listings').select('ListingKey', { count: 'planned', head: true }),
       'count total listings'
     ),
-    countWithFallback(
-      () => supabase.from('listing_history').select('listing_key', { count: 'exact', head: true }),
-      () => supabase.from('listing_history').select('listing_key', { count: 'planned', head: true }),
-      'count listing_history'
-    ),
+    countListingHistoryForReport(supabase),
     countMaybe(
       () => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).eq('history_finalized', true),
       'count history_finalized'
@@ -642,7 +657,7 @@ async function main() {
   console.log(`Generated: ${payload.generatedAt}`)
   console.log(`Total listings: ${totals.totalListings.toLocaleString()}`)
   console.log(
-    `History rows: ${typeof totals.totalHistoryRows === 'number' ? totals.totalHistoryRows.toLocaleString() : 'unavailable'}`
+    `History rows: ${typeof totals.totalHistoryRows === 'number' ? totals.totalHistoryRows.toLocaleString() : 'unavailable'} (${totalHistoryRowsRes.mode})`
   )
   console.log(`History finalized: ${totals.historyFinalizedAll.toLocaleString()}`)
   console.log(`History verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
