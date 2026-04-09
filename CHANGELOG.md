@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.26.0 (2026-04-09)
+
+### Features
+- feat: set GitHub Actions secrets via API when GITHUB_TOKEN set (no gh required)
+
+---
+
+
 ## v1.25.4 (2026-04-09)
 
 ### Bug Fixes
