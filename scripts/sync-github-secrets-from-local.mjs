@@ -40,6 +40,22 @@ if (!existsSync(envPath)) {
   process.exit(1)
 }
 
+const ghVersion = spawnSync('gh', ['--version'], { encoding: 'utf8' })
+if (ghVersion.status !== 0) {
+  console.error('GitHub CLI (gh) is not installed or not on your PATH.')
+  console.error('  macOS (Homebrew): brew install gh')
+  console.error('  Then authenticate: gh auth login')
+  console.error('Or add secrets manually: repo Settings → Secrets and variables → Actions → New repository secret')
+  process.exit(1)
+}
+
+const ghAuth = spawnSync('gh', ['auth', 'status'], { encoding: 'utf8' })
+if (ghAuth.status !== 0) {
+  console.error('gh is installed but you are not logged in. Run: gh auth login')
+  console.error(ghAuth.stderr || ghAuth.stdout || '')
+  process.exit(1)
+}
+
 const env = loadEnvLocal()
 for (const key of keys) {
   const val = env[key]
@@ -53,7 +69,7 @@ for (const key of keys) {
     stdio: ['pipe', 'inherit', 'inherit'],
   })
   if (r.status !== 0) {
-    console.error(`gh secret set ${key} failed (install gh and run: gh auth login)`)
+    console.error(`gh secret set ${key} failed. Ensure this repo is the current gh repo (gh repo set-default) and you have admin access.`)
     process.exit(r.status ?? 1)
   }
   console.log(`GitHub Actions secret set: ${key}`)
