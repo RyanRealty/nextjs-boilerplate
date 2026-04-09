@@ -52,12 +52,13 @@ If the user says any variation of these, the agent MUST execute the sync-status 
 
 Required response format for these prompts:
 1. Current snapshot (key counts + cursor state)
-2. **Strict verification:** Always summarize the `strictVerification` object from the same JSON report (`counts` for global and terminal-only backlog, `adminDashboardForLiveDeltas` for live activity on `/admin/sync`). This is distinct from terminal finalization remaining (`totals.terminal.remaining`).
-3. Full `listingYearsBreakdown` from `node scripts/sync-status-report.mjs --json` (coalesce ListDate or OnMarketDate cohorts), unless the user asks for a short summary only. Also reference `yearsFinalization` or `listingYearsOnMarketBreakdown` (OnMarketDate only)
-4. Year finalization status from `yearsFinalization` (DB on-market stats; see `yearsFinalizationNote` in JSON; year-by-year Spark chunk sync was removed)
-5. Health callout (moving, stalled, or rate-limited)
-6. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
-7. Wait for user selection ("run option 1/2/3")
+2. **Active listing freshness:** Summarize `activeListingFreshness` from the same JSON (`lastDeltaSuccessAt`, `minutesSinceLastDeltaSuccess`, `deltaHealth`, `counts.deltaEligibleListings`, `activityEventsLast24h.byEventType`, and the `pipeline` object). This is how live inventory stays current via `sync-delta`.
+3. **Strict verification:** Always summarize the `strictVerification` object from the same JSON report (`counts` for global and terminal-only backlog, `adminDashboardForLiveDeltas` for live activity on `/admin/sync`). This is distinct from terminal finalization remaining (`totals.terminal.remaining`).
+4. Full `listingYearsBreakdown` from `node scripts/sync-status-report.mjs --json` (coalesce ListDate or OnMarketDate cohorts), unless the user asks for a short summary only. Also reference `yearsFinalization` or `listingYearsOnMarketBreakdown` (OnMarketDate only)
+5. Year finalization status from `yearsFinalization` (DB on-market stats; see `yearsFinalizationNote` in JSON; year-by-year Spark chunk sync was removed)
+6. Health callout (moving, stalled, or rate-limited)
+7. Top 2-3 commands to run now (from `docs/SYNC_HANDOFF_PLAYBOOK.md`)
+8. Wait for user selection ("run option 1/2/3")
 
 For "start sync", do not ask follow-up questions first:
 1. Execute: `curl -H "Authorization: Bearer $CRON_SECRET" "$BASE_URL/api/cron/start-sync"`
@@ -71,13 +72,14 @@ When the user says exactly or approximately "Give me a sync status", agents MUST
 
 Required details:
 1. Current totals (listings, history rows, terminal remaining, finalized, verified full)
-2. Full **`strictVerification`** block from the same JSON (all-listing vs terminal-only strict backlog, verified full counts, `adminDashboardForLiveDeltas`; clarify that terminal strict backlog is what `sync-verify-full-history` drains)
-3. Complete `listingYearsBreakdown` and, for year-lane alignment, `listingYearsOnMarketBreakdown` or `yearsFinalization` from the status report JSON
-4. Year finalization status (`yearsFinalization` finalized/total/remaining; year lane retired so matrix job progress fields are not live)
-5. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
-6. Latest lane activity (cursors, `strictVerification.runTelemetry` recent runs)
-7. Approximate time to parity (ETA) with a clearly stated method and assumptions
-8. 2-3 concrete run options the user can choose immediately
+2. Full **`activeListingFreshness`** block (delta cadence, last success time, delta-eligible inventory count, 24h `activity_events` mix, pipeline from live updates through terminal to strict backlog)
+3. Full **`strictVerification`** block from the same JSON (all-listing vs terminal-only strict backlog, verified full counts, `adminDashboardForLiveDeltas`; clarify that terminal strict backlog is what `sync-verify-full-history` drains)
+4. Complete `listingYearsBreakdown` and, for year-lane alignment, `listingYearsOnMarketBreakdown` or `yearsFinalization` from the status report JSON
+5. Year finalization status (`yearsFinalization` finalized/total/remaining; year lane retired so matrix job progress fields are not live)
+6. What is running right now (cursor phase, updated timestamps, paused/abort flags if available)
+7. Latest lane activity (cursors, delta freshness, `strictVerification.runTelemetry` recent runs)
+8. Approximate time to parity (ETA) with a clearly stated method and assumptions
+9. 2-3 concrete run options the user can choose immediately
 
 ---
 

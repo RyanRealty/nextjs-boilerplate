@@ -41,6 +41,7 @@ Use the **full** workflow below when they ask for **full** sync detail, playbook
    - `docs/SYNC_HANDOFF_PLAYBOOK.md`
 3. Respond with:
    - Current metrics (listings, history rows, terminal remaining, finalized, strict-verified)
+   - **Active listing freshness (mandatory):** Summarize `activeListingFreshness` from the same JSON (`lastDeltaSuccessAt`, `minutesSinceLastDeltaSuccess`, `deltaHealth`, `counts.deltaEligibleListings`, `activityEventsLast24h`, and `pipeline`). Explain that `sync-delta` keeps live inventory updated and how terminal rows flow to strict verify when applicable.
    - **Strict verification (mandatory):** Summarize the JSON object `strictVerification` from the same report. Include at least `counts.allListingsHistoryVerifiedFull`, `counts.allListingsFinalizedNotStrictVerified`, `counts.terminalStrictVerifyBacklog`, and `counts.terminalHistoryVerifiedFull`, plus `adminDashboardForLiveDeltas` so the user knows where to watch live 15s deltas. State that the terminal backlog is what `sync-verify-full-history` processes.
    - Full `listingYearsBreakdown` (coalesce ListDate or OnMarketDate cohorts) from the JSON, newest first, or a compact summary plus offer the full table on request
    - `yearsFinalization` and/or `listingYearsOnMarketBreakdown` for OnMarketDate-aligned counts; do not equate them to `listingYearsBreakdown` without stating the cohort definition
@@ -68,6 +69,7 @@ Prevent repeated re-explanation across sessions and keep sync operations actiona
 
 For any sync status reply ("where are we with sync", "what's happening in sync", "what's up with the sync", "where are we at with the sync", etc), include:
 
+- The **`activeListingFreshness`** object from the same JSON report (see workflow step 3). Do not skip this when the question touches live inventory, price or status changes, or delta health.
 - The **`strictVerification`** object from the same JSON report (see workflow step 3). Do not skip this in favor of year tables only.
 - The complete per-year table from `listingYearsBreakdown` in the report JSON (all years present), unless the user explicitly asks for a short summary only, and call out `yearsFinalization` / `listingYearsOnMarketBreakdown` when the question is about per-year finalization or strict coverage
 - A short list of years currently in scope with `finalized/total` and remaining count when a full table would be redundant

@@ -222,6 +222,9 @@ async function main() {
     onMarketYearStatsRes,
     noListDateRes,
     strictVerifyRunsRes,
+    syncStateRes,
+    notFinalizedRes,
+    activityEventsRes,
   ] = await Promise.all([
     countWithFallback(
       () => supabase.from('listings').select('ListingKey', { count: 'exact', head: true }),
@@ -277,6 +280,17 @@ async function main() {
       )
       .order('completed_at', { ascending: false })
       .limit(20),
+    supabase.from('sync_state').select('last_delta_sync_at, updated_at').eq('id', 'default').maybeSingle(),
+    countMaybe(
+      () =>
+        supabase.from('listings').select('ListingKey', { count: 'exact', head: true }).eq('is_finalized', false),
+      'count listings is_finalized false'
+    ),
+    supabase
+      .from('activity_events')
+      .select('event_type')
+      .gte('event_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(12000),
   ])
 
   const [closed, expired, withdrawn, canceled] = await Promise.all([
@@ -385,6 +399,28 @@ async function main() {
   const strictVerifyEtaNote =
     'Rough ETA assumes about one successful cron per minute and the average marked_verified from the last five logged runs. Spark failures, timeouts, or overlapping invocations change actual time.'
 
+  const lastDeltaAt = syncStateRes.data?.last_delta_sync_at ?? null
+  const lastDeltaTs = lastDeltaAt ? new Date(lastDeltaAt).getTime() : NaN
+  const minutesSinceLastDeltaSuccess = Number.isFinite(lastDeltaTs)
+    ? Math.max(0, (Date.now() - lastDeltaTs) / 60000)
+    : null
+
+  const activityByType = {}
+  let activitySampleTotal = 0
+  if (!activityEventsRes.error && activityEventsRes.data) {
+    for (const row of activityEventsRes.data) {
+      const t = row.event_type ?? 'unknown'
+      activityByType[t] = (activityByType[t] ?? 0) + 1
+      activitySampleTotal += 1
+    }
+  }
+
+  let deltaHealth = 'unknown'
+  if (lastDeltaAt == null) deltaHealth = 'unknown'
+  else if (minutesSinceLastDeltaSuccess != null && minutesSinceLastDeltaSuccess <= 25) deltaHealth = 'current'
+  else if (minutesSinceLastDeltaSuccess != null && minutesSinceLastDeltaSuccess <= 60) deltaHealth = 'lagging'
+  else if (minutesSinceLastDeltaSuccess != null) deltaHealth = 'stale'
+
   const warnings = [
     totalListingsRes.error,
     totalHistoryRowsRes.error,
@@ -399,6 +435,13 @@ async function main() {
     strictVerifyRunsRes.error ? `strict_verify_runs: ${formatError(strictVerifyRunsRes.error)}` : null,
     strictVerifyRunHealth.status === 'stalled' ? `Strict verify stalled: ${strictVerifyRunHealth.summary}` : null,
     strictVerifyRunHealth.status === 'degraded' ? `Strict verify degraded: ${strictVerifyRunHealth.summary}` : null,
+    syncStateRes.error ? `sync_state: ${formatError(syncStateRes.error)}` : null,
+    notFinalizedRes.error ? `delta-eligible listing count: ${formatError(notFinalizedRes.error)}` : null,
+    activityEventsRes.error ? `activity_events 24h sample: ${formatError(activityEventsRes.error)}` : null,
+    lastDeltaAt == null ? 'last_delta_sync_at is null (delta may not have completed successfully yet)' : null,
+    minutesSinceLastDeltaSuccess != null && minutesSinceLastDeltaSuccess > 50
+      ? `Delta sync may be stale (last success about ${Math.round(minutesSinceLastDeltaSuccess)} min ago; production cron targets every 15 min)`
+      : null,
   ].filter(Boolean)
 
   const onMarketYearRows = !onMarketYearStatsRes.error ? (onMarketYearStatsRes.data ?? []) : []
@@ -470,6 +513,36 @@ async function main() {
       },
     },
     totals,
+    activeListingFreshness: {
+      reportNote:
+        'Agents must summarize this block when the user asks about active listings, live inventory freshness, delta sync, price or status changes, or what is updating.',
+      cronPath: '/api/cron/sync-delta',
+      productionScheduleNote: 'Production schedule is in vercel.json (typically every 15 minutes).',
+      lastDeltaSuccessAt: lastDeltaAt,
+      minutesSinceLastDeltaSuccess,
+      deltaHealth,
+      counts: {
+        deltaEligibleListings: notFinalizedRes.count ?? null,
+        deltaEligibleNote:
+          'Rows with is_finalized=false. The delta cron skips is_finalized=true forever. When Spark ModificationTimestamp advances, modified rows are fetched and upserted.',
+      },
+      activityEventsLast24h: {
+        sampleRowsUsed: activitySampleTotal,
+        byEventType: activityByType,
+        note:
+          'From activity_events where event_at is within the last 24 hours (emitted by sync-delta for new listings, price changes, status transitions). Capped at 12000 rows; if sampleRowsUsed equals 12000, distributions are a lower bound.',
+      },
+      pipeline: {
+        keepActiveFresh:
+          'sync-delta queries Spark for listings with ModificationTimestamp after last_delta_sync_at, upserts listing fields, records price_history and status_history, inserts activity_events, and may fix photos.',
+        whenListingGoesTerminal:
+          'Delta queues terminal rows that are not yet finalized, fetches Spark listing history (or price history fallback), runs auxiliary media sync, and when the fetch is fully successful sets history_finalized, history_verified_full, and is_finalized together (bounded per run).',
+        terminalHistoryLanes:
+          'sync-history-terminal and sync-parity still backfill terminal listing history for rows that need it outside delta.',
+        strictVerifyBacklog:
+          'Rows that are history_finalized but not history_verified_full (often older terminal inventory) are drained by sync-verify-full-history. See strictVerification.counts.terminalStrictVerifyBacklog.',
+      },
+    },
     strictVerification: {
       reportNote:
         'Agents must summarize this block whenever the user asks about sync status (including what is up with sync, where we are at with sync, sync health, etc.).',
@@ -575,6 +648,20 @@ async function main() {
   console.log(`History verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
   console.log(`Finalized but unverified: ${totals.historyFinalizedUnverifiedAll.toLocaleString()}`)
   console.log(`Terminal remaining: ${totals.terminal.remaining.toLocaleString()}`)
+  console.log('\nActive listing freshness (sync-delta, live inventory):')
+  console.log(`  last_delta_sync_at: ${lastDeltaAt ?? 'null'}`)
+  console.log(
+    `  minutes since last delta success: ${minutesSinceLastDeltaSuccess == null ? 'n/a' : Math.round(minutesSinceLastDeltaSuccess)}`
+  )
+  console.log(`  delta health signal: ${deltaHealth}`)
+  console.log(
+    `  delta-eligible listings (is_finalized=false): ${notFinalizedRes.count == null ? 'unavailable' : Number(notFinalizedRes.count).toLocaleString()}`
+  )
+  console.log(`  activity_events last 24h (capped sample): ${activitySampleTotal.toLocaleString()} rows`)
+  const topActivityTypes = Object.entries(activityByType).sort((a, b) => b[1] - a[1]).slice(0, 10)
+  if (topActivityTypes.length > 0) {
+    console.log(`  top event types: ${topActivityTypes.map(([k, v]) => `${k}=${v}`).join(', ')}`)
+  }
   console.log('\nStrict verification (Spark full pagination, sync-verify-full-history cron):')
   console.log(`  All listings verified full: ${totals.historyVerifiedFullAll.toLocaleString()}`)
   console.log(`  All listings finalized but not strict verified: ${totals.historyFinalizedUnverifiedAll.toLocaleString()}`)
