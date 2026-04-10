@@ -5,7 +5,7 @@ This project includes:
 | Folder | Skill `name` | When it applies |
 |--------|----------------|-----------------|
 | `oregon-real-estate-oref/` | `oregon-real-estate-oref` | Oregon transactions, OREF forms, compliance checklists |
-| `oregon-orea-principal-broker/` | `oregon-orea-principal-broker` | OREA expectations, OAR 863 PB supervision/records/agency/trust lens for reviewing files |
+| `oregon-orea-principal-broker/` | `oregon-orea-principal-broker` | Educated first-pass file review: OREA + OAR 863 (you remain final say) |
 | `skyslope-api/` | `skyslope-api` | SkySlope APIs, env vars, auditing files via API |
 
 ## Turn on / see them in Cursor

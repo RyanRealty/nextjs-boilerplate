@@ -1,6 +1,6 @@
 # Oregon OREA / principal broker — official sources
 
-Use these for **training and verification**. Rule text and Agency publications beat any paraphrase from an LLM.
+Use these to **anchor a sharp first pass**. When a detail must be letter-perfect (deadlines, exact definitions), open the **current** rule or statute here—then keep moving on the rest of the file.
 
 | Resource | URL |
 |----------|-----|

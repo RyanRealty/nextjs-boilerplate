@@ -1,21 +1,19 @@
 ---
 name: oregon-real-estate-oref
 description: >-
-  Guides Oregon residential and commercial transaction workflows, OREF form
-  selection, and compliance-minded checklists. Use when the user mentions OREF,
-  Oregon Real Estate Forms, Oregon purchase agreements, earnest money, disclosures,
-  addenda, transaction timelines, or brokerage compliance in Oregon. Does not
-  replace a principal broker or attorney.
+  Strong first pass on Oregon OREF workflows: form categories, transaction
+  sequencing, earnest money and disclosure patterns. User is final authority.
+  Pair with oregon-orea-principal-broker for OREA/OAR regulatory file review.
 ---
 
 # Oregon real estate transactions and OREF
 
 ## Role boundary
 
-- Give **process guidance**, **checklists**, and **pointers to official sources**.
-- **Do not** reproduce OREF form text, fill-in legal clauses, or present OREF language as if it were the current form. OREF forms are **licensed** and **versioned**; only the subscriber’s **authorized platform** (e.g. SkySlope, other OREF hosts) or **orefonline.com** under subscription is authoritative.
-- **Not legal advice.** Oregon licensees should defer to **principal broker policy**, **OREF release notes**, and **counsel** when interpretation is disputed.
-- For **Oregon Real Estate Agency / principal broker supervision, records, agency, and trust-account themes** when reading any transaction PDF, use the companion skill **`oregon-orea-principal-broker`** (OREA + OAR 863 lens). This OREF skill stays focused on **form library** workflow; the PB skill stays focused on **regulatory** duties.
+- Deliver **educated first-pass** guidance: checklists, sequencing, and **which OREF families** apply—Matt reviews and decides final.
+- **Do not** paste proprietary OREF clause text or present stale form language as current. Authoritative wording lives on the **authorized platform** (e.g. SkySlope) or **orefonline.com** under license.
+- If **OREF numbering or release** is uncertain, say so and point to the **live library**.
+- For **OREA / principal broker file duties** (supervision, records, agency, trust), use **`oregon-orea-principal-broker`** in the same pass. This skill stays on **OREF catalog and deal papering**; that skill stays on **regulatory file quality**.
 
 ## When this skill applies
 
