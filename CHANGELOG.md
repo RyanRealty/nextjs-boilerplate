@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.13 (2026-04-10)
+
+### Maintenance
+- docs: confident first-pass tone for Oregon PB and OREF skills
+
+---
+
+
 ## v1.27.12 (2026-04-10)
 
 ### Maintenance
