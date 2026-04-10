@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.12 (2026-04-10)
+
+### Maintenance
+- docs: add oregon-orea-principal-broker skill for OREA/OAR PB transaction lens
+
+---
+
+
 ## v1.27.11 (2026-04-10)
 
 ### Maintenance
