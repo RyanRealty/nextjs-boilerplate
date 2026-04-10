@@ -4,13 +4,15 @@
 
 # SkySlope Forms file folders master audit
 
-Generated (UTC): 2026-04-10T23:40:00.573Z
+Generated (UTC): 2026-04-10T23:43:39.120Z
 
 This report inventories **every listing file** and **every sale file** returned by the SkySlope **Listings/Sales** API in this account, including checklist activity scaffolding and the flat **Documents** library timeline.
 
 ## Important limitations (read this once)
 
-- **"Folders"** here means **SkySlope file folders**: one row per **listingGuid** (listing file) and one row per **saleGuid** (sale file). This is not the separate **SkySlope Forms Partnership** product API.
+- **Product scope:** This report uses the **SkySlope Forms** transaction **Files** API on `api-latest.skyslope.com` (`GET /api/files/listings`, `GET /api/files/sales`, etc.), i.e. listing/sale **file cabinets** tied to brokerage forms. It does **not** pull from **SkySlope Suite** (a different SkySlope application). It is also **not** the OAuth **Forms Partnership** developer API at `forms.skyslope.com`.
+- **"Folders"** here means **SkySlope file folders**: one row per **listingGuid** (listing file) and one row per **saleGuid** (sale file).
+- **Archived files:** Rows are **dropped** when status/stage text matches archive heuristics (or `isArchived` / `archived` is true). Set `SKYSLOPE_INCLUDE_ARCHIVED=1` to include them. Note: `GET /api/files` (unified search) supports an `archived` **status** filter but, in practice, can **omit** active under-contract listings (e.g. **Transaction**); this script keeps using **`/api/files/listings`** and **`/api/files/sales`** so the inventory matches SkySlope Forms file folders.
 - **707 documents** existed at generation time across **10** listing files + **10** sale files. Fully OCR-reading every scanned PDF is a batch job; this report uses **API metadata for 100% of documents** and **PDF text extraction for a prioritized subset** (420 PDFs) focused on offers, counters, RSA/sale agreement language, and termination/release patterns.
 
 ### What “fully executed” means here (Ryan Realty standard)

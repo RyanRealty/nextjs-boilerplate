@@ -7,6 +7,7 @@
  *   npm run skyslope:forms-audit > docs/skyslope-forms-folder-master-audit.md
  *
  * Requires .env.local with SKYSLOPE_* credentials (not committed).
+ * Optional: SKYSLOPE_INCLUDE_ARCHIVED=1 to include archived file rows.
  */
 import fs from 'fs'
 import crypto from 'crypto'
@@ -21,6 +22,8 @@ const ROOT = path.join(__dirname, '..')
 const ENV_PATH = path.join(ROOT, '.env.local')
 
 const BASE = 'https://api-latest.skyslope.com'
+/** Set `SKYSLOPE_INCLUDE_ARCHIVED=1` to include archived file rows (default excludes). */
+const INCLUDE_ARCHIVED = process.env.SKYSLOPE_INCLUDE_ARCHIVED === '1'
 const MAX_DEEP_READS = 420
 /** Large signed offer packages often exceed 3–5 MB. */
 const MAX_PDF_BYTES = 9_000_000
@@ -77,6 +80,18 @@ function apiHeaders(session, extra = {}) {
   }
 }
 
+/** Transaction file row from `GET /api/files/listings` or `.../sales` — treat as archived when status/stage says so. */
+function isSkySlopeFilesRowArchived(row) {
+  if (!row || typeof row !== 'object') return false
+  if (row.isArchived === true || row.archived === true) return true
+  const hay = [row.status, row.stage, row.mlsStatus, row.fileStatus]
+    .filter(Boolean)
+    .map((x) => String(x))
+    .join(' ')
+    .toLowerCase()
+  return /\barchiv/.test(hay)
+}
+
 async function fetchPaged(session, kind) {
   const all = []
   for (let page = 1; page <= 200; page++) {
@@ -85,7 +100,8 @@ async function fetchPaged(session, kind) {
     if (!r.ok) throw new Error(`${kind} page ${page}: ${r.status}`)
     const j = await r.json()
     const rows = j?.value?.[kind] ?? []
-    all.push(...rows)
+    const kept = INCLUDE_ARCHIVED ? rows : rows.filter((row) => !isSkySlopeFilesRowArchived(row))
+    all.push(...kept)
     if (rows.length < 50) break
   }
   return all
@@ -420,7 +436,13 @@ async function main() {
   lines.push(`## Important limitations (read this once)`)
   lines.push(``)
   lines.push(
-    `- **"Folders"** here means **SkySlope file folders**: one row per **listingGuid** (listing file) and one row per **saleGuid** (sale file). This is not the separate **SkySlope Forms Partnership** product API.`
+    `- **Product scope:** This report uses the **SkySlope Forms** transaction **Files** API on \`${BASE.replace('https://', '')}\` (\`GET /api/files/listings\`, \`GET /api/files/sales\`, etc.), i.e. listing/sale **file cabinets** tied to brokerage forms. It does **not** pull from **SkySlope Suite** (a different SkySlope application). It is also **not** the OAuth **Forms Partnership** developer API at \`forms.skyslope.com\`.`
+  )
+  lines.push(
+    `- **"Folders"** here means **SkySlope file folders**: one row per **listingGuid** (listing file) and one row per **saleGuid** (sale file).`
+  )
+  lines.push(
+    `- **Archived files:** Rows are **dropped** when status/stage text matches archive heuristics (or \`isArchived\` / \`archived\` is true). Set \`SKYSLOPE_INCLUDE_ARCHIVED=1\` to include them. Note: \`GET /api/files\` (unified search) supports an \`archived\` **status** filter but, in practice, can **omit** active under-contract listings (e.g. **Transaction**); this script keeps using **\`/api/files/listings\`** and **\`/api/files/sales\`** so the inventory matches SkySlope Forms file folders.`
   )
   lines.push(
     `- **${totalDocs} documents** existed at generation time across **${listingRows.length}** listing files + **${saleRows.length}** sale files. Fully OCR-reading every scanned PDF is a batch job; this report uses **API metadata for 100% of documents** and **PDF text extraction for a prioritized subset** (${selected.length} PDFs) focused on offers, counters, RSA/sale agreement language, and termination/release patterns.`

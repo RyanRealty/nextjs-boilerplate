@@ -22,6 +22,14 @@ SkySlope exposes **different** REST APIs with **different** auth:
 
 If the user says “SkySlope API,” **ask which surface** unless context is obvious (this repo’s `.env.example` targets the **Listings/Sales** style keys).
 
+## SkySlope Forms vs SkySlope Suite (do not mix them up)
+
+- **SkySlope Forms** (for this repo): the **transaction file** experience—listing files and sale files, checklists, uploaded PDFs—exposed to integrations as the **Listings / Sales (Files) API** on hosts like `api-latest.skyslope.com`. This is what `SKYSLOPE_*` env vars and `scripts/skyslope-forms-master-audit.mjs` target.
+- **SkySlope Suite**: a **separate SkySlope application** (brokerage/office suite branding). It is **not** the same integration surface as the Files API above. Do not assume Suite screens or exports map 1:1 to Forms Files API payloads.
+- **Forms Partnership API** (`forms.skyslope.com`, OAuth): another distinct surface for forms-library / envelope workflows—not the HMAC Listings/Sales Files API.
+
+When the user says they want **everything in SkySlope Forms**, they mean **Forms file folders** via the **Files** endpoints, **excluding archived** rows unless they explicitly opt in.
+
 ## Listings/Sales API: credentials (Ryan Realty repo)
 
 Required env names (see `.env.example`):

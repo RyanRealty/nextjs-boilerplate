@@ -1,5 +1,18 @@
 # SkySlope reference links
 
+## SkySlope Forms vs Suite vs APIs
+
+| Name | What it is | Typical integration |
+|------|------------|---------------------|
+| **SkySlope Forms** (transaction files) | Listing file + sale file cabinets, checklists, documents | **Listings/Sales Files API** — `api-latest.skyslope.com`, HMAC + `Session` (this repo) |
+| **SkySlope Suite** | Different SkySlope **application** (office/brokerage suite) | **Not** the Files API above; do not conflate exports or UI with Forms file JSON |
+| **Forms Partnership API** | Partner forms / envelopes | `forms.skyslope.com` — OAuth, different auth |
+| **Offers API** | Offers analytics | `offers.skyslope.com` — OAuth |
+
+**Archived files:** For Files API **folder lists**, exclude archived rows in tooling (e.g. filter `status`/`stage` text for “archived” or boolean flags). The unified `GET /api/files` endpoint documents an `archived` **status** filter but can omit active under-contract listings depending on filters—prefer **`/api/files/listings`** and **`/api/files/sales`** for a full Forms folder inventory.
+
+---
+
 ## Fully executed (what that means for Ryan Realty work)
 
 **Fully executed** is a **human transaction file standard**, not something API metadata or raw PDF text extraction can certify.
