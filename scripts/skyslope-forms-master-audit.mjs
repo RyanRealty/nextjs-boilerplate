@@ -432,6 +432,9 @@ async function main() {
   lines.push(
     `This report inventories **every listing file** and **every sale file** returned by the SkySlope **Listings/Sales** API in this account, including checklist activity scaffolding and the flat **Documents** library timeline.`
   )
+  lines.push(
+    `For **Oregon regulatory** completeness (principal broker supervision, records, agency, trust-account themes), reviewers should use the **\`oregon-orea-principal-broker\`** Cursor skill (OREA + OAR 863 lens) alongside **\`oregon-real-estate-oref\`** for OREF form questions—not this script’s heuristics alone.`
+  )
   lines.push(``)
   lines.push(`## Important limitations (read this once)`)
   lines.push(``)

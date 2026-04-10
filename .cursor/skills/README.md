@@ -5,6 +5,7 @@ This project includes:
 | Folder | Skill `name` | When it applies |
 |--------|----------------|-----------------|
 | `oregon-real-estate-oref/` | `oregon-real-estate-oref` | Oregon transactions, OREF forms, compliance checklists |
+| `oregon-orea-principal-broker/` | `oregon-orea-principal-broker` | OREA expectations, OAR 863 PB supervision/records/agency/trust lens for reviewing files |
 | `skyslope-api/` | `skyslope-api` | SkySlope APIs, env vars, auditing files via API |
 
 ## Turn on / see them in Cursor
@@ -15,7 +16,7 @@ This project includes:
 
 ## Invoke
 
-- In **Agent** chat, type **`/`** and choose e.g. **`oregon-real-estate-oref`** or **`skyslope-api`**, or describe the task and let the agent match the skill description.
+- In **Agent** chat, type **`/`** and choose e.g. **`oregon-real-estate-oref`**, **`oregon-orea-principal-broker`**, or **`skyslope-api`**, or describe the task and let the agent match the skill description.
 
 ## Global skills
 

@@ -4,9 +4,10 @@
 
 # SkySlope Forms file folders master audit
 
-Generated (UTC): 2026-04-10T23:43:39.120Z
+Generated (UTC): 2026-04-10T23:45:49.415Z
 
 This report inventories **every listing file** and **every sale file** returned by the SkySlope **Listings/Sales** API in this account, including checklist activity scaffolding and the flat **Documents** library timeline.
+For **Oregon regulatory** completeness (principal broker supervision, records, agency, trust-account themes), reviewers should use the **`oregon-orea-principal-broker`** Cursor skill (OREA + OAR 863 lens) alongside **`oregon-real-estate-oref`** for OREF form questions—not this script’s heuristics alone.
 
 ## Important limitations (read this once)
 

@@ -30,6 +30,8 @@ If the user says “SkySlope API,” **ask which surface** unless context is obv
 
 When the user says they want **everything in SkySlope Forms**, they mean **Forms file folders** via the **Files** endpoints, **excluding archived** rows unless they explicitly opt in.
 
+When reviewing **whether a file satisfies Oregon regulatory expectations** (supervision, records, agency, trust themes), combine this skill with **`oregon-orea-principal-broker`** (OREA / OAR 863 lens)—this skill does not substitute for principal broker judgment.
+
 ## Listings/Sales API: credentials (Ryan Realty repo)
 
 Required env names (see `.env.example`):

@@ -15,6 +15,7 @@ description: >-
 - Give **process guidance**, **checklists**, and **pointers to official sources**.
 - **Do not** reproduce OREF form text, fill-in legal clauses, or present OREF language as if it were the current form. OREF forms are **licensed** and **versioned**; only the subscriber’s **authorized platform** (e.g. SkySlope, other OREF hosts) or **orefonline.com** under subscription is authoritative.
 - **Not legal advice.** Oregon licensees should defer to **principal broker policy**, **OREF release notes**, and **counsel** when interpretation is disputed.
+- For **Oregon Real Estate Agency / principal broker supervision, records, agency, and trust-account themes** when reading any transaction PDF, use the companion skill **`oregon-orea-principal-broker`** (OREA + OAR 863 lens). This OREF skill stays focused on **form library** workflow; the PB skill stays focused on **regulatory** duties.
 
 ## When this skill applies
 
