@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.7 (2026-04-10)
+
+### Maintenance
+- docs: how to find and use Cursor Agent Skills in this repo
+
+---
+
+
 ## v1.27.6 (2026-04-10)
 
 ### Maintenance
