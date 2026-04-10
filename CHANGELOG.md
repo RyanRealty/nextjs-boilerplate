@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.3 (2026-04-10)
+
+### Bug Fixes
+- fix: RPC for listings missing both ListDate and OnMarketDate in sync report
+
+---
+
+
 ## v1.27.2 (2026-04-09)
 
 ### Bug Fixes
