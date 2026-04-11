@@ -17,22 +17,7 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import {
-  Document,
-  HeadingLevel,
-  LineRuleType,
-  Packer,
-  PageBreak,
-  Paragraph,
-  ShadingType,
-  Table,
-  TableCell,
-  TableLayoutType,
-  TableRow,
-  TextRun,
-  VerticalAlign,
-  WidthType,
-} from 'docx'
+import { Document, HeadingLevel, LineRuleType, Packer, PageBreak, Paragraph, TextRun } from 'docx'
 
 import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
 import { inferKind, parseDate, fmtDate, wordSectionForKind } from './skyslope-forms-document-taxonomy.mjs'
@@ -199,11 +184,8 @@ async function mapPool(items, concurrency, fn) {
 /** Half-points: Word `w:sz` (20 = 10 pt). */
 const FONT_BODY = 24
 const FONT_SMALL = 22
-const FONT_TABLE = 26
-const FONT_TABLE_HEAD = 28
-/** Label value blocks for each document (half points). */
-const FONT_DETAIL_LABEL = 26
-const FONT_DETAIL_VALUE = 28
+/** Slightly larger body for long notes so Word wraps at full page width. */
+const FONT_VALUE_LONG = 26
 const FONT_H1 = 36
 const FONT_H2 = 30
 const FONT_H3 = 26
@@ -288,14 +270,40 @@ function glossaryParagraphs() {
     ),
     pBoldLead(
       'Document blocks.',
-      'Each uploaded file appears as its own two column label and value table in portrait. Labels stay narrow so values use most of the page width. There is no wide multi column grid.'
+      'Each uploaded file is plain paragraphs only. A small bold field name sits on its own line and the value follows on the next line at the full page width. There are no Word tables in the body of this brief so nothing is trapped in grid cells.'
     ),
     new Paragraph({ spacing: { after: 280 }, children: [] }),
   ]
 }
 
-function tableExecutiveSummary(meta) {
-  const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
+/**
+ * Label line then value line at full page width (no tables).
+ * @param {string} label
+ * @param {string} value
+ * @param {{ tightTop?: boolean, longValue?: boolean, labelBefore?: number }} [opts]
+ * @returns {Paragraph[]}
+ */
+function fieldStack(label, value, opts = {}) {
+  const raw = value === undefined || value === null ? '' : String(value)
+  const val = raw.trim() === '' ? '—' : raw
+  const valueSize = opts.longValue ? FONT_VALUE_LONG : FONT_BODY
+  const labelBefore =
+    opts.labelBefore ??
+    (opts.tightTop ? 40 : 180)
+  return [
+    new Paragraph({
+      spacing: { before: labelBefore, after: 40 },
+      children: [new TextRun({ text: label, bold: true, size: FONT_SMALL })],
+    }),
+    new Paragraph({
+      spacing: { after: 120, line: 320, lineRule: LineRuleType.AUTO },
+      children: [new TextRun({ text: val, size: valueSize })],
+    }),
+  ]
+}
+
+/** @param {Record<string, unknown>} meta */
+function executiveSummaryParagraphs(meta) {
   const rows = [
     ['Generated (UTC)', meta.generatedUtc],
     ['Buyer representation rows', String(meta.buyerRows)],
@@ -305,110 +313,68 @@ function tableExecutiveSummary(meta) {
     ['PDFs in deep read budget', String(meta.pdfSampleBudget)],
     ['Max pages read per sampled PDF', String(meta.pagesPerPdfCap)],
   ]
-  return new Table({
-    layout: TableLayoutType.FIXED,
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: rows.map(
-      ([k, v]) =>
-        new TableRow({
-          children: [
-            new TableCell({
-              verticalAlign: VerticalAlign.TOP,
-              width: pct(34),
-              margins: { top: 100, bottom: 100, left: 140, right: 120 },
-              shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
-              children: [
-                new Paragraph({
-                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: k, bold: true, size: FONT_TABLE })],
-                }),
-              ],
-            }),
-            new TableCell({
-              verticalAlign: VerticalAlign.TOP,
-              width: pct(66),
-              margins: { top: 100, bottom: 100, left: 120, right: 140 },
-              children: [
-                new Paragraph({
-                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: v, size: FONT_TABLE })],
-                }),
-              ],
-            }),
-          ],
-        })
-    ),
+  /** @type {Paragraph[]} */
+  const out = []
+  rows.forEach(([k, v], idx) => {
+    out.push(...fieldStack(k, v, { tightTop: idx === 0 }))
   })
+  return out
 }
 
-/**
- * One readable two column table for a single document row (label 24 percent, value 76 percent).
- * @param {Record<string, unknown>} r enriched row
- */
-function documentDetailTable(r) {
+/** @param {Record<string, unknown>} r enriched row */
+function documentDetailParagraphs(r) {
+  /** @type {{ label: string, value: string, longValue?: boolean }[]} */
   const pairs = [
-    { label: 'File name', value: trimCell(r.fileName, 900) },
+    { label: 'File name', value: trimCell(r.fileName, 900), longValue: true },
     { label: 'Upload date', value: fmtDate(r.uploadIso) },
     { label: 'MLS number', value: trimCell(r.mls || '—', 80) },
     { label: 'Folder', value: trimCell(r.folderDisplay || '—', 80) },
     { label: 'Form type', value: kindFriendlyLabel(r.kind) },
     { label: 'Execution guess', value: trimCell(r.execLabel || '—', 200) },
-    { label: 'Reviewer notes', value: trimCell(r.execNotes || r.execDetail || '—', 3500) },
-    { label: 'Signatory hints', value: trimCell(r.signers || '—', 2500) },
-    { label: 'PDF pipeline', value: trimCell(r.pipelineCell || r.pdfFlags || '—', 4500) },
+    { label: 'Reviewer notes', value: trimCell(r.execNotes || r.execDetail || '—', 3500), longValue: true },
+    { label: 'Signatory hints', value: trimCell(r.signers || '—', 2500), longValue: true },
+    { label: 'PDF pipeline', value: trimCell(r.pipelineCell || r.pdfFlags || '—', 4500), longValue: true },
   ]
-  return kvDetailTable(pairs)
+  /** @type {Paragraph[]} */
+  const out = []
+  pairs.forEach((pair, idx) => {
+    out.push(
+      ...fieldStack(pair.label, pair.value, {
+        longValue: Boolean(pair.longValue),
+        tightTop: idx === 0,
+      })
+    )
+  })
+  return out
 }
 
-/**
- * @param {{ label: string, value: string }[]} rows
- */
-function kvDetailTable(rows) {
-  const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
-  const labelPct = 24
-  const valuePct = 76
-  return new Table({
-    layout: TableLayoutType.FIXED,
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: rows.map(
-      (row) =>
-        new TableRow({
-          children: [
-            new TableCell({
-              verticalAlign: VerticalAlign.TOP,
-              width: pct(labelPct),
-              margins: { top: 120, bottom: 120, left: 160, right: 120 },
-              shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
-              children: [
-                new Paragraph({
-                  spacing: { after: 80, line: 300, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: row.label, bold: true, size: FONT_DETAIL_LABEL })],
-                }),
-              ],
-            }),
-            new TableCell({
-              verticalAlign: VerticalAlign.TOP,
-              width: pct(valuePct),
-              margins: { top: 120, bottom: 120, left: 120, right: 160 },
-              children: [
-                new Paragraph({
-                  spacing: { after: 80, line: 300, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: String(row.value), size: FONT_DETAIL_VALUE })],
-                }),
-              ],
-            }),
-          ],
-        })
-    ),
+/** @param {{ label: string, value: string }[]} rows */
+function kvDetailParagraphs(rows) {
+  /** @type {Paragraph[]} */
+  const out = []
+  rows.forEach((row, idx) => {
+    const long =
+      row.label === 'Offer and RSA file context' ||
+      row.label === 'Sellers (sale API)' ||
+      row.label === 'Buyers (sale API)' ||
+      row.label === 'Title company (sale API)' ||
+      row.label === 'Escrow contact label (sale API)'
+    out.push(
+      ...fieldStack(row.label, row.value, {
+        longValue: long,
+        tightTop: idx === 0,
+      })
+    )
   })
+  return out
 }
 
 /**
  * @param {Record<string, unknown>[]} rows
- * @returns {(Paragraph|Table)[]}
+ * @returns {Paragraph[]}
  */
 function documentBlocksForRows(rows) {
-  /** @type {(Paragraph|Table)[]} */
+  /** @type {Paragraph[]} */
   const blocks = []
   for (let i = 0; i < rows.length; i++) {
     blocks.push(
@@ -419,7 +385,7 @@ function documentBlocksForRows(rows) {
         ],
       })
     )
-    blocks.push(documentDetailTable(rows[i]))
+    blocks.push(...documentDetailParagraphs(rows[i]))
     blocks.push(new Paragraph({ spacing: { after: 240 }, children: [] }))
   }
   return blocks
@@ -652,7 +618,7 @@ async function main() {
       { italics: true }
     ),
     h(2, 'Run summary'),
-    tableExecutiveSummary({
+    ...executiveSummaryParagraphs({
       generatedUtc,
       buyerRows: buyerRows.length,
       listingRows: listingRows_.length,
@@ -670,7 +636,7 @@ async function main() {
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 1. Buyer representation agreements'),
     p(
-      'Grouped by property address. Newest upload date first within each address. Each file is its own label and value table so nothing is squeezed into tiny columns.',
+      'Grouped by property address. Newest upload date first within each address. Each file is stacked paragraphs with a bold field name then the value on the next line at full width.',
       { italics: true }
     )
   )
@@ -695,7 +661,7 @@ async function main() {
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 2. Listing agreements and initial agency disclosures'),
     p(
-      'Grouped by property address. Newest upload date first within each address. Each file is its own label and value table.',
+      'Grouped by property address. Newest upload date first within each address. Each file uses the same stacked paragraph layout as Part 1.',
       { italics: true }
     )
   )
@@ -720,7 +686,7 @@ async function main() {
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 3. Transactions by property address'),
     p(
-      'Addresses are ordered by the most recent contract or file activity on record, newest first. Under each address you will see a short overview, then each SkySlope folder, then one label and value table per document grouped by sale agreement number when the script could read a number from the PDF or file name.',
+      'Addresses are ordered by the most recent contract or file activity on record, newest first. Under each address you will see a short overview in the same stacked paragraph style, then each SkySlope folder, then one stacked block per document grouped by sale agreement number when the script could read a number from the PDF or file name.',
       { italics: true }
     )
   )
@@ -798,7 +764,7 @@ async function main() {
 
     children.push(
       h(3, 'Snapshot for this address'),
-      kvDetailTable([
+      ...kvDetailParagraphs([
         { label: 'Offer and RSA file context', value: offerNarrative.trim() },
         { label: 'Listing price', value: listingPrice || 'n/a' },
         { label: 'Sale price', value: salePrice || 'n/a' },
