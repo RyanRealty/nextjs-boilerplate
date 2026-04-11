@@ -23,7 +23,6 @@ import {
   LineRuleType,
   Packer,
   PageBreak,
-  PageOrientation,
   Paragraph,
   ShadingType,
   Table,
@@ -33,8 +32,6 @@ import {
   TextRun,
   VerticalAlign,
   WidthType,
-  createPageSize,
-  sectionPageSizeDefaults,
 } from 'docx'
 
 import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
@@ -204,6 +201,9 @@ const FONT_BODY = 24
 const FONT_SMALL = 22
 const FONT_TABLE = 26
 const FONT_TABLE_HEAD = 28
+/** Label value blocks for each document (half points). */
+const FONT_DETAIL_LABEL = 26
+const FONT_DETAIL_VALUE = 28
 const FONT_H1 = 36
 const FONT_H2 = 30
 const FONT_H3 = 26
@@ -287,8 +287,8 @@ function glossaryParagraphs() {
       'SkySlope internal IDs are hidden in this Word version on purpose. Use file name and date. Sale agreement numbers come from PDF text or the file name when the script can read them. If a number is blank, open the Residential Sale Agreement in SkySlope and read the number on the top right of the OREF form.'
     ),
     pBoldLead(
-      'Tables.',
-      'From Part 1 onward the document switches to landscape so nine columns fit. One header row lists Date, MLS, Folder, File, Form, Status, Signatories, Notes, and Pipeline. Pipeline merges OCR stats with pdf.js thin layer hints when present.'
+      'Document blocks.',
+      'Each uploaded file appears as its own two column label and value table in portrait. Labels stay narrow so values use most of the page width. There is no wide multi column grid.'
     ),
     new Paragraph({ spacing: { after: 280 }, children: [] }),
   ]
@@ -342,37 +342,58 @@ function tableExecutiveSummary(meta) {
 }
 
 /**
+ * One readable two column table for a single document row (label 24 percent, value 76 percent).
+ * @param {Record<string, unknown>} r enriched row
+ */
+function documentDetailTable(r) {
+  const pairs = [
+    { label: 'File name', value: trimCell(r.fileName, 900) },
+    { label: 'Upload date', value: fmtDate(r.uploadIso) },
+    { label: 'MLS number', value: trimCell(r.mls || '—', 80) },
+    { label: 'Folder', value: trimCell(r.folderDisplay || '—', 80) },
+    { label: 'Form type', value: kindFriendlyLabel(r.kind) },
+    { label: 'Execution guess', value: trimCell(r.execLabel || '—', 200) },
+    { label: 'Reviewer notes', value: trimCell(r.execNotes || r.execDetail || '—', 3500) },
+    { label: 'Signatory hints', value: trimCell(r.signers || '—', 2500) },
+    { label: 'PDF pipeline', value: trimCell(r.pipelineCell || r.pdfFlags || '—', 4500) },
+  ]
+  return kvDetailTable(pairs)
+}
+
+/**
  * @param {{ label: string, value: string }[]} rows
  */
-function kvSnapshotTable(rows) {
+function kvDetailTable(rows) {
   const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
+  const labelPct = 24
+  const valuePct = 76
   return new Table({
     layout: TableLayoutType.FIXED,
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: rows.map(
-      (r) =>
+      (row) =>
         new TableRow({
           children: [
             new TableCell({
               verticalAlign: VerticalAlign.TOP,
-              width: pct(30),
-              margins: { top: 100, bottom: 100, left: 140, right: 100 },
+              width: pct(labelPct),
+              margins: { top: 120, bottom: 120, left: 160, right: 120 },
               shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
               children: [
                 new Paragraph({
-                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: r.label, bold: true, size: FONT_TABLE })],
+                  spacing: { after: 80, line: 300, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: row.label, bold: true, size: FONT_DETAIL_LABEL })],
                 }),
               ],
             }),
             new TableCell({
               verticalAlign: VerticalAlign.TOP,
-              width: pct(70),
-              margins: { top: 100, bottom: 100, left: 100, right: 140 },
+              width: pct(valuePct),
+              margins: { top: 120, bottom: 120, left: 120, right: 160 },
               children: [
                 new Paragraph({
-                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
-                  children: [new TextRun({ text: String(r.value), size: FONT_TABLE })],
+                  spacing: { after: 80, line: 300, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: String(row.value), size: FONT_DETAIL_VALUE })],
                 }),
               ],
             }),
@@ -382,74 +403,26 @@ function kvSnapshotTable(rows) {
   })
 }
 
-function tableProfessionalBrief(rows) {
-  const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
-  /** Landscape tuned widths (sum 100). File and Notes get more room. */
-  const w = [9, 7, 8, 22, 12, 10, 11, 13, 8]
-  const headerLabels = [
-    'Date',
-    'MLS',
-    'Folder',
-    'File name',
-    'Form',
-    'Status',
-    'Signatories',
-    'Notes',
-    'Pipeline',
-  ]
-  const headerRow = new TableRow({
-    tableHeader: true,
-    children: headerLabels.map(
-      (text, i) =>
-        new TableCell({
-          verticalAlign: VerticalAlign.TOP,
-          width: pct(w[i]),
-          margins: { top: 120, bottom: 100, left: 110, right: 110 },
-          shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
-          children: [
-            new Paragraph({
-              spacing: { after: 80, line: 276, lineRule: LineRuleType.AUTO },
-              children: [new TextRun({ text, bold: true, size: FONT_TABLE_HEAD })],
-            }),
-          ],
-        })
-    ),
-  })
-  function cell(text, i, maxLen = 420) {
-    const body = trimCell(String(text || ''), maxLen)
-    return new TableCell({
-      verticalAlign: VerticalAlign.TOP,
-      width: pct(w[i]),
-      margins: { top: 100, bottom: 100, left: 110, right: 110 },
-      children: [
-        new Paragraph({
-          spacing: { after: 40, line: 276, lineRule: LineRuleType.AUTO },
-          children: [new TextRun({ text: body, size: FONT_TABLE })],
-        }),
-      ],
-    })
-  }
-  const dataRows = rows.map(
-    (r) =>
-      new TableRow({
+/**
+ * @param {Record<string, unknown>[]} rows
+ * @returns {(Paragraph|Table)[]}
+ */
+function documentBlocksForRows(rows) {
+  /** @type {(Paragraph|Table)[]} */
+  const blocks = []
+  for (let i = 0; i < rows.length; i++) {
+    blocks.push(
+      new Paragraph({
+        spacing: { before: i === 0 ? 120 : 280, after: 140 },
         children: [
-          cell(fmtDate(r.uploadIso), 0, 40),
-          cell(r.mls || '—', 1, 24),
-          cell(r.folderDisplay || '—', 2, 32),
-          cell(r.fileName, 3, 180),
-          cell(kindFriendlyLabel(r.kind), 4, 120),
-          cell(r.execLabel, 5, 80),
-          cell(r.signers, 6, 160),
-          cell(r.execNotes || '—', 7, 320),
-          cell(r.pipelineCell || r.pdfFlags || '—', 8, 380),
+          new TextRun({ text: `Document ${i + 1} of ${rows.length}`, bold: true, size: FONT_H3 }),
         ],
       })
-  )
-  return new Table({
-    layout: TableLayoutType.FIXED,
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [headerRow, ...dataRows],
-  })
+    )
+    blocks.push(documentDetailTable(rows[i]))
+    blocks.push(new Paragraph({ spacing: { after: 240 }, children: [] }))
+  }
+  return blocks
 }
 
 async function main() {
@@ -670,10 +643,9 @@ async function main() {
     Math.max(1, Number.parseInt(String(process.env.SKYSLOPE_PDF_MAX_PAGES || '80'), 10) || 80)
   )
 
-  const portraitChildren = []
-  const landscapeChildren = []
+  const children = []
 
-  portraitChildren.push(
+  children.push(
     h(1, 'SkySlope Forms principal brief'),
     p(
       'This Word file is generated from your SkySlope Forms listing and sale file cabinets. It is not SkySlope Suite. Part 1 groups buyer representation PDFs by property. Part 2 groups listing agreements and agency pamphlets by property. Part 3 groups transaction PDFs by property then by SkySlope folder and sale agreement number. Every sampled PDF uses the dual text layer plus mandatory OCR standard described in How to read this brief. Confirm money, dates, and signatures in SkySlope and with escrow.',
@@ -691,23 +663,20 @@ async function main() {
     }),
     new Paragraph({ spacing: { after: 320 }, children: [] }),
     ...glossaryParagraphs(),
-    p(
-      'Parts 1 through 3 use landscape orientation and fixed column widths so wide tables stay readable in Word and print.',
-      { italics: true }
-    ),
     new Paragraph({ spacing: { after: 200 }, children: [] })
   )
 
-  landscapeChildren.push(
+  children.push(
+    new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 1. Buyer representation agreements'),
     p(
-      'Grouped by property address. Newest upload date first within each address. One table per address.',
+      'Grouped by property address. Newest upload date first within each address. Each file is its own label and value table so nothing is squeezed into tiny columns.',
       { italics: true }
     )
   )
 
   if (!buyerRows.length) {
-    landscapeChildren.push(p('No documents matched buyer representation or buyer agency filename patterns.'))
+    children.push(p('No documents matched buyer representation or buyer agency filename patterns.'))
   } else {
     const buyerByAddr = new Map()
     for (const r of buyerRows) {
@@ -717,22 +686,22 @@ async function main() {
     }
     const buyerAddrOrder = [...new Set(buyerRows.map((r) => r.address || 'Unknown address'))]
     for (const addr of buyerAddrOrder) {
-      landscapeChildren.push(h(2, addr))
-      landscapeChildren.push(tableProfessionalBrief(buyerByAddr.get(addr) || []))
-      landscapeChildren.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
+      children.push(h(2, addr))
+      children.push(...documentBlocksForRows(buyerByAddr.get(addr) || []))
     }
   }
 
-  landscapeChildren.push(
+  children.push(
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 2. Listing agreements and initial agency disclosures'),
-    p('Grouped by property address. Newest upload date first within each address. One table per address.', {
-      italics: true,
-    })
+    p(
+      'Grouped by property address. Newest upload date first within each address. Each file is its own label and value table.',
+      { italics: true }
+    )
   )
 
   if (!listingRows_.length) {
-    landscapeChildren.push(p('No listing agreement or agency pamphlet documents were classified in the file names.'))
+    children.push(p('No listing agreement or agency pamphlet documents were classified in the file names.'))
   } else {
     const listingByAddr = new Map()
     for (const r of listingRows_) {
@@ -742,17 +711,16 @@ async function main() {
     }
     const listingAddrOrder = [...new Set(listingRows_.map((r) => r.address || 'Unknown address'))]
     for (const addr of listingAddrOrder) {
-      landscapeChildren.push(h(2, addr))
-      landscapeChildren.push(tableProfessionalBrief(listingByAddr.get(addr) || []))
-      landscapeChildren.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
+      children.push(h(2, addr))
+      children.push(...documentBlocksForRows(listingByAddr.get(addr) || []))
     }
   }
 
-  landscapeChildren.push(
+  children.push(
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 3. Transactions by property address'),
     p(
-      'Addresses are ordered by the most recent contract or file activity on record, newest first. Under each address you will see a short overview in plain sentences, then each sale or listing file with transaction documents, then tables grouped by sale agreement number when the script could read a number from the PDF or file name.',
+      'Addresses are ordered by the most recent contract or file activity on record, newest first. Under each address you will see a short overview, then each SkySlope folder, then one label and value table per document grouped by sale agreement number when the script could read a number from the PDF or file name.',
       { italics: true }
     )
   )
@@ -761,7 +729,7 @@ async function main() {
     const groupFolders = foldersByAddr.get(addrKey) || []
     if (!groupFolders.length) continue
     const displayAddr = groupFolders[0].address || 'Unknown address'
-    landscapeChildren.push(h(2, displayAddr))
+    children.push(h(2, displayAddr))
 
     const sellers = new Set()
     const buyers = new Set()
@@ -828,9 +796,9 @@ async function main() {
       offerNarrative += `Compare offer upload dates to the RSA upload dates in the subsections below to see which offer round aligns with the contract stack. `
     }
 
-    landscapeChildren.push(
+    children.push(
       h(3, 'Snapshot for this address'),
-      kvSnapshotTable([
+      kvDetailTable([
         { label: 'Offer and RSA file context', value: offerNarrative.trim() },
         { label: 'Listing price', value: listingPrice || 'n/a' },
         { label: 'Sale price', value: salePrice || 'n/a' },
@@ -852,7 +820,7 @@ async function main() {
         sf.kind === 'sale'
           ? `Sale file · escrow ${s?.escrowNumber || 'n/a'} · MLS ${s?.mlsNumber || 'n/a'} · acceptance ${s?.contractAcceptanceDate ? fmtDate(s.contractAcceptanceDate) : 'n/a'}`
           : `Listing file (transaction documents on file) · MLS ${s?.mlsNumber || 'n/a'} · status ${s?.status || 'n/a'} · expires ${s?.expirationDate ? fmtDate(s.expirationDate) : 'n/a'}`
-      landscapeChildren.push(h(3, title))
+      children.push(h(3, title))
 
       const docsHere = txRows
         .filter((r) => r.folderGuid === sf.guid)
@@ -872,9 +840,8 @@ async function main() {
       })
 
       for (const sa of saKeys) {
-        landscapeChildren.push(h4(`Sale agreement number ${sa}`))
-        landscapeChildren.push(tableProfessionalBrief(bySa.get(sa) || []))
-        landscapeChildren.push(new Paragraph({ spacing: { after: 200 }, children: [] }))
+        children.push(h4(`Sale agreement number ${sa}`))
+        children.push(...documentBlocksForRows(bySa.get(sa) || []))
       }
     }
   }
@@ -900,20 +867,7 @@ async function main() {
             margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
           },
         },
-        children: portraitChildren,
-      },
-      {
-        properties: {
-          page: {
-            margin: { top: 720, right: 720, bottom: 720, left: 720 },
-            size: createPageSize({
-              orientation: PageOrientation.LANDSCAPE,
-              width: sectionPageSizeDefaults.WIDTH,
-              height: sectionPageSizeDefaults.HEIGHT,
-            }),
-          },
-        },
-        children: landscapeChildren,
+        children,
       },
     ],
   })
