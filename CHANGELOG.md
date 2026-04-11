@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.3 (2026-04-11)
+
+### Bug Fixes
+- fix(skyslope): readable principal brief Word layout
+
+---
+
+
 ## v1.32.2 (2026-04-11)
 
 ### Maintenance
