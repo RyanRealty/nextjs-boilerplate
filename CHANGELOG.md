@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.1 (2026-04-11)
+
+### Maintenance
+- chore(skyslope): unify PDF analysis on pdf-insight dual pipeline
+
+---
+
+
 ## v1.32.0 (2026-04-11)
 
 ### Features
