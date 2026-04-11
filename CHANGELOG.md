@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.8 (2026-04-11)
+
+### Maintenance
+- docs(skyslope): research note on PDF extraction vs AI reasoning layer
+
+---
+
+
 ## v1.32.7 (2026-04-11)
 
 ### Bug Fixes
