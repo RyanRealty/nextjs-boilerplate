@@ -17,20 +17,24 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createRequire } from 'module'
 import {
   Document,
   HeadingLevel,
   LineRuleType,
   Packer,
   PageBreak,
+  PageOrientation,
   Paragraph,
   ShadingType,
   Table,
   TableCell,
+  TableLayoutType,
   TableRow,
   TextRun,
+  VerticalAlign,
   WidthType,
+  createPageSize,
+  sectionPageSizeDefaults,
 } from 'docx'
 
 import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
@@ -44,7 +48,6 @@ import {
   notSampledPdfInsight,
 } from './skyslope-pdf-insight.mjs'
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 const DEFAULT_OUT = path.join(ROOT, 'docs', 'skyslope-forms-principal-brief.docx')
@@ -196,8 +199,11 @@ async function mapPool(items, concurrency, fn) {
   return ret
 }
 
+/** Half-points: Word `w:sz` (20 = 10 pt). */
 const FONT_BODY = 24
 const FONT_SMALL = 22
+const FONT_TABLE = 26
+const FONT_TABLE_HEAD = 28
 const FONT_H1 = 36
 const FONT_H2 = 30
 const FONT_H3 = 26
@@ -282,7 +288,7 @@ function glossaryParagraphs() {
     ),
     pBoldLead(
       'Tables.',
-      'Each group uses a two level header. Document identity lists date, MLS, folder lane, file, and form. Automated PDF read lists status, parties, short notes, and the full pipeline line including dual OCR stats and pdf.js text layer hints.'
+      'From Part 1 onward the document switches to landscape so nine columns fit. One header row lists Date, MLS, Folder, File, Form, Status, Signatories, Notes, and Pipeline. Pipeline merges OCR stats with pdf.js thin layer hints when present.'
     ),
     new Paragraph({ spacing: { after: 280 }, children: [] }),
   ]
@@ -300,21 +306,34 @@ function tableExecutiveSummary(meta) {
     ['Max pages read per sampled PDF', String(meta.pagesPerPdfCap)],
   ]
   return new Table({
+    layout: TableLayoutType.FIXED,
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: rows.map(
       ([k, v]) =>
         new TableRow({
           children: [
             new TableCell({
+              verticalAlign: VerticalAlign.TOP,
               width: pct(34),
               margins: { top: 100, bottom: 100, left: 140, right: 120 },
               shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
-              children: [new Paragraph({ children: [new TextRun({ text: k, bold: true, size: FONT_SMALL })] })],
+              children: [
+                new Paragraph({
+                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: k, bold: true, size: FONT_TABLE })],
+                }),
+              ],
             }),
             new TableCell({
+              verticalAlign: VerticalAlign.TOP,
               width: pct(66),
               margins: { top: 100, bottom: 100, left: 120, right: 140 },
-              children: [new Paragraph({ children: [new TextRun({ text: v, size: FONT_SMALL })] })],
+              children: [
+                new Paragraph({
+                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: v, size: FONT_TABLE })],
+                }),
+              ],
             }),
           ],
         })
@@ -328,27 +347,32 @@ function tableExecutiveSummary(meta) {
 function kvSnapshotTable(rows) {
   const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
   return new Table({
+    layout: TableLayoutType.FIXED,
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: rows.map(
       (r) =>
         new TableRow({
           children: [
             new TableCell({
+              verticalAlign: VerticalAlign.TOP,
               width: pct(30),
               margins: { top: 100, bottom: 100, left: 140, right: 100 },
               shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: r.label, bold: true, size: FONT_SMALL })],
+                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: r.label, bold: true, size: FONT_TABLE })],
                 }),
               ],
             }),
             new TableCell({
+              verticalAlign: VerticalAlign.TOP,
               width: pct(70),
               margins: { top: 100, bottom: 100, left: 100, right: 140 },
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: String(r.value), size: FONT_SMALL })],
+                  spacing: { after: 60, line: 276, lineRule: LineRuleType.AUTO },
+                  children: [new TextRun({ text: String(r.value), size: FONT_TABLE })],
                 }),
               ],
             }),
@@ -360,53 +384,47 @@ function kvSnapshotTable(rows) {
 
 function tableProfessionalBrief(rows) {
   const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
-  const w = [10, 8, 9, 22, 11, 11, 12, 9, 8]
-  const groupRow = new TableRow({
-    tableHeader: true,
-    children: [
-      new TableCell({
-        columnSpan: 5,
-        width: { size: 60, type: WidthType.PERCENTAGE },
-        margins: { top: 120, bottom: 80, left: 140, right: 120 },
-        shading: { fill: 'D9D9D9', type: ShadingType.CLEAR },
-        children: [
-          new Paragraph({
-            children: [new TextRun({ text: 'Document identity', bold: true, size: FONT_SMALL })],
-          }),
-        ],
-      }),
-      new TableCell({
-        columnSpan: 4,
-        width: { size: 40, type: WidthType.PERCENTAGE },
-        margins: { top: 120, bottom: 80, left: 120, right: 140 },
-        shading: { fill: 'D9D9D9', type: ShadingType.CLEAR },
-        children: [
-          new Paragraph({
-            children: [new TextRun({ text: 'Automated PDF read', bold: true, size: FONT_SMALL })],
-          }),
-        ],
-      }),
-    ],
-  })
+  /** Landscape tuned widths (sum 100). File and Notes get more room. */
+  const w = [9, 7, 8, 22, 12, 10, 11, 13, 8]
+  const headerLabels = [
+    'Date',
+    'MLS',
+    'Folder',
+    'File name',
+    'Form',
+    'Status',
+    'Signatories',
+    'Notes',
+    'Pipeline',
+  ]
   const headerRow = new TableRow({
     tableHeader: true,
-    children: ['Date', 'MLS', 'Folder', 'File', 'Form', 'Status', 'Parties', 'Notes', 'Pipeline'].map(
+    children: headerLabels.map(
       (text, i) =>
         new TableCell({
+          verticalAlign: VerticalAlign.TOP,
           width: pct(w[i]),
-          margins: { top: 100, bottom: 100, left: 130, right: 130 },
+          margins: { top: 120, bottom: 100, left: 110, right: 110 },
           shading: { fill: 'EEEEEE', type: ShadingType.CLEAR },
-          children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: FONT_SMALL })] })],
+          children: [
+            new Paragraph({
+              spacing: { after: 80, line: 276, lineRule: LineRuleType.AUTO },
+              children: [new TextRun({ text, bold: true, size: FONT_TABLE_HEAD })],
+            }),
+          ],
         })
     ),
   })
-  function cell(text, i) {
+  function cell(text, i, maxLen = 420) {
+    const body = trimCell(String(text || ''), maxLen)
     return new TableCell({
+      verticalAlign: VerticalAlign.TOP,
       width: pct(w[i]),
-      margins: { top: 90, bottom: 90, left: 130, right: 130 },
+      margins: { top: 100, bottom: 100, left: 110, right: 110 },
       children: [
         new Paragraph({
-          children: [new TextRun({ text: String(text).slice(0, 8000), size: FONT_SMALL })],
+          spacing: { after: 40, line: 276, lineRule: LineRuleType.AUTO },
+          children: [new TextRun({ text: body, size: FONT_TABLE })],
         }),
       ],
     })
@@ -415,21 +433,22 @@ function tableProfessionalBrief(rows) {
     (r) =>
       new TableRow({
         children: [
-          cell(fmtDate(r.uploadIso), 0),
-          cell(r.mls || '—', 1),
-          cell(r.folderDisplay || '—', 2),
-          cell(r.fileName, 3),
-          cell(kindFriendlyLabel(r.kind), 4),
-          cell(r.execLabel, 5),
-          cell(r.signers, 6),
-          cell(r.execNotes || '—', 7),
-          cell(r.pipelineCell || r.pdfFlags || '—', 8),
+          cell(fmtDate(r.uploadIso), 0, 40),
+          cell(r.mls || '—', 1, 24),
+          cell(r.folderDisplay || '—', 2, 32),
+          cell(r.fileName, 3, 180),
+          cell(kindFriendlyLabel(r.kind), 4, 120),
+          cell(r.execLabel, 5, 80),
+          cell(r.signers, 6, 160),
+          cell(r.execNotes || '—', 7, 320),
+          cell(r.pipelineCell || r.pdfFlags || '—', 8, 380),
         ],
       })
   )
   return new Table({
+    layout: TableLayoutType.FIXED,
     width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [groupRow, headerRow, ...dataRows],
+    rows: [headerRow, ...dataRows],
   })
 }
 
@@ -591,7 +610,7 @@ async function main() {
     const ex = buildExecutionAssessment(row.kind, insight, row.fileName)
     row.execLabel = ex.label
     row.execDetail = ex.detail
-    row.execNotes = trimCell(ex.detail, 560)
+    row.execNotes = trimCell(ex.detail, 340)
     const hintText = `${insight.text || ''}\n${insight.ocrSnippet || ''}`
     row.signers = extractSignatoryHints(hintText).join(', ') || '—'
     const fromPdf = extractSaleAgreementNumber(insight.combinedForSa || insight.text || '')
@@ -600,7 +619,7 @@ async function main() {
     row.textLayerNote = insight.lowTextPageRanges || ''
     row.pipelineCell = trimCell(
       [insight.flagsLine, row.textLayerNote].filter((x) => x && String(x).trim()).join(' · '),
-      920
+      420
     )
   }
 
@@ -651,9 +670,10 @@ async function main() {
     Math.max(1, Number.parseInt(String(process.env.SKYSLOPE_PDF_MAX_PAGES || '80'), 10) || 80)
   )
 
-  const children = []
+  const portraitChildren = []
+  const landscapeChildren = []
 
-  children.push(
+  portraitChildren.push(
     h(1, 'SkySlope Forms principal brief'),
     p(
       'This Word file is generated from your SkySlope Forms listing and sale file cabinets. It is not SkySlope Suite. Part 1 groups buyer representation PDFs by property. Part 2 groups listing agreements and agency pamphlets by property. Part 3 groups transaction PDFs by property then by SkySlope folder and sale agreement number. Every sampled PDF uses the dual text layer plus mandatory OCR standard described in How to read this brief. Confirm money, dates, and signatures in SkySlope and with escrow.',
@@ -671,8 +691,14 @@ async function main() {
     }),
     new Paragraph({ spacing: { after: 320 }, children: [] }),
     ...glossaryParagraphs(),
-    new Paragraph({ children: [new PageBreak()] }),
+    p(
+      'Parts 1 through 3 use landscape orientation and fixed column widths so wide tables stay readable in Word and print.',
+      { italics: true }
+    ),
+    new Paragraph({ spacing: { after: 200 }, children: [] })
+  )
 
+  landscapeChildren.push(
     h(1, 'Part 1. Buyer representation agreements'),
     p(
       'Grouped by property address. Newest upload date first within each address. One table per address.',
@@ -681,7 +707,7 @@ async function main() {
   )
 
   if (!buyerRows.length) {
-    children.push(p('No documents matched buyer representation or buyer agency filename patterns.'))
+    landscapeChildren.push(p('No documents matched buyer representation or buyer agency filename patterns.'))
   } else {
     const buyerByAddr = new Map()
     for (const r of buyerRows) {
@@ -691,13 +717,13 @@ async function main() {
     }
     const buyerAddrOrder = [...new Set(buyerRows.map((r) => r.address || 'Unknown address'))]
     for (const addr of buyerAddrOrder) {
-      children.push(h(2, addr))
-      children.push(tableProfessionalBrief(buyerByAddr.get(addr) || []))
-      children.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
+      landscapeChildren.push(h(2, addr))
+      landscapeChildren.push(tableProfessionalBrief(buyerByAddr.get(addr) || []))
+      landscapeChildren.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
     }
   }
 
-  children.push(
+  landscapeChildren.push(
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 2. Listing agreements and initial agency disclosures'),
     p('Grouped by property address. Newest upload date first within each address. One table per address.', {
@@ -706,7 +732,7 @@ async function main() {
   )
 
   if (!listingRows_.length) {
-    children.push(p('No listing agreement or agency pamphlet documents were classified in the file names.'))
+    landscapeChildren.push(p('No listing agreement or agency pamphlet documents were classified in the file names.'))
   } else {
     const listingByAddr = new Map()
     for (const r of listingRows_) {
@@ -716,13 +742,13 @@ async function main() {
     }
     const listingAddrOrder = [...new Set(listingRows_.map((r) => r.address || 'Unknown address'))]
     for (const addr of listingAddrOrder) {
-      children.push(h(2, addr))
-      children.push(tableProfessionalBrief(listingByAddr.get(addr) || []))
-      children.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
+      landscapeChildren.push(h(2, addr))
+      landscapeChildren.push(tableProfessionalBrief(listingByAddr.get(addr) || []))
+      landscapeChildren.push(new Paragraph({ spacing: { after: 280 }, children: [] }))
     }
   }
 
-  children.push(
+  landscapeChildren.push(
     new Paragraph({ children: [new PageBreak()] }),
     h(1, 'Part 3. Transactions by property address'),
     p(
@@ -735,7 +761,7 @@ async function main() {
     const groupFolders = foldersByAddr.get(addrKey) || []
     if (!groupFolders.length) continue
     const displayAddr = groupFolders[0].address || 'Unknown address'
-    children.push(h(2, displayAddr))
+    landscapeChildren.push(h(2, displayAddr))
 
     const sellers = new Set()
     const buyers = new Set()
@@ -802,7 +828,7 @@ async function main() {
       offerNarrative += `Compare offer upload dates to the RSA upload dates in the subsections below to see which offer round aligns with the contract stack. `
     }
 
-    children.push(
+    landscapeChildren.push(
       h(3, 'Snapshot for this address'),
       kvSnapshotTable([
         { label: 'Offer and RSA file context', value: offerNarrative.trim() },
@@ -826,7 +852,7 @@ async function main() {
         sf.kind === 'sale'
           ? `Sale file · escrow ${s?.escrowNumber || 'n/a'} · MLS ${s?.mlsNumber || 'n/a'} · acceptance ${s?.contractAcceptanceDate ? fmtDate(s.contractAcceptanceDate) : 'n/a'}`
           : `Listing file (transaction documents on file) · MLS ${s?.mlsNumber || 'n/a'} · status ${s?.status || 'n/a'} · expires ${s?.expirationDate ? fmtDate(s.expirationDate) : 'n/a'}`
-      children.push(h(3, title))
+      landscapeChildren.push(h(3, title))
 
       const docsHere = txRows
         .filter((r) => r.folderGuid === sf.guid)
@@ -846,9 +872,9 @@ async function main() {
       })
 
       for (const sa of saKeys) {
-        children.push(h4(`Sale agreement number ${sa}`))
-        children.push(tableProfessionalBrief(bySa.get(sa) || []))
-        children.push(new Paragraph({ spacing: { after: 200 }, children: [] }))
+        landscapeChildren.push(h4(`Sale agreement number ${sa}`))
+        landscapeChildren.push(tableProfessionalBrief(bySa.get(sa) || []))
+        landscapeChildren.push(new Paragraph({ spacing: { after: 200 }, children: [] }))
       }
     }
   }
@@ -874,7 +900,20 @@ async function main() {
             margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
           },
         },
-        children,
+        children: portraitChildren,
+      },
+      {
+        properties: {
+          page: {
+            margin: { top: 720, right: 720, bottom: 720, left: 720 },
+            size: createPageSize({
+              orientation: PageOrientation.LANDSCAPE,
+              width: sectionPageSizeDefaults.WIDTH,
+              height: sectionPageSizeDefaults.HEIGHT,
+            }),
+          },
+        },
+        children: landscapeChildren,
       },
     ],
   })
