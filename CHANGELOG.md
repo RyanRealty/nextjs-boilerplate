@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.0 (2026-04-11)
+
+### Features
+- feat: dual PDF pipeline for every page (pdf.js + mandatory OCR)
+
+---
+
+
 ## v1.31.0 (2026-04-11)
 
 ### Features
