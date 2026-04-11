@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.31.0 (2026-04-11)
+
+### Features
+- feat: mandatory PDF OCR (CLI or tesseract.js render)
+
+---
+
+
 ## v1.30.0 (2026-04-11)
 
 ### Features
