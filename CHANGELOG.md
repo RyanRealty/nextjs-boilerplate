@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.6 (2026-04-11)
+
+### Bug Fixes
+- fix(skyslope): principal brief uses paragraph stacks instead of Word tables
+
+---
+
+
 ## v1.32.5 (2026-04-11)
 
 ### Bug Fixes
