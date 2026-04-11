@@ -1,0 +1,43 @@
+---
+description: Thorough PDF analysis for SkySlope Forms scripts (pdf.js, widgets, e-sign vendors, optional OCR).
+alwaysApply: false
+---
+
+# SkySlope Forms PDF analysis
+
+When improving or debugging SkySlope Forms PDF tooling, treat **filename plus one text dump** as insufficient.
+
+## What the repo does today
+
+Shared module: `scripts/skyslope-pdf-insight.mjs`
+
+1. **Mozilla pdf.js (legacy build)** in Node — walks each page (up to `SKYSLOPE_PDF_MAX_PAGES`, default 80) for `getTextContent` and `getAnnotations`.
+2. **Per-page density** — flags pages with very little extractable text (common for signature blocks, stamps, or scanned pages).
+3. **Annotation inventory** — counts widget and other subtypes; surfaces signature-like **form field names** when present.
+4. **Vendor and certificate language** — DigiSign, DocuSign, Adobe Sign, OneSpan, RightSignature, Notarize, generic “Signed by” and “Digitally signed by” patterns.
+5. **Optional OCR** — set `SKYSLOPE_PDF_OCR=1` and install **Poppler** (`pdftoppm`) and **Tesseract** on the PATH. The script OCRs at most two thin pages per PDF to avoid runaway time. No OCR npm bundle is required for the default path.
+
+Principal broker Word brief (`npm run skyslope:forms-brief`) imports this module and adds a **Flags** column plus richer assessment copy. It also samples **buyer** and **listing** PDFs, not only transaction stacks.
+
+## What this does not replace
+
+- **Principal Broker judgment** on whether a form is fully executed under Oregon and office standards.
+- **Human review** of initials, counterparties, and firm lines on the authoritative file in SkySlope.
+
+## If you need even more depth
+
+- **Full-document OCR** for scan-heavy files: batch outside Node (e.g. `ocrmypdf`) or a dedicated service, then merge text back into your workflow.
+- **Adobe PDF Services / AWS Textract** for production-scale extraction — not wired in this repo; use when local CPU and open-source stack are not enough.
+
+## Environment knobs
+
+| Variable | Role |
+|----------|------|
+| `SKYSLOPE_BRIEF_MAX_PDFS` | How many PDFs the brief analyzes (priority queue). |
+| `SKYSLOPE_PDF_MAX_PAGES` | Max pages read per PDF in `analyzePdfBuffer`. |
+| `SKYSLOPE_PDF_OCR` | Set to `1` to attempt `pdftoppm` + `tesseract` on thin pages. |
+| `SKYSLOPE_MAX_PDF_BYTES` | Download size cap before skipping. |
+
+## Agent behavior
+
+When the user asks for “better PDF reading” or “more thorough execution detection,” **extend `skyslope-pdf-insight.mjs` and wire consumers** (brief, workbook, comprehensive log, audit) instead of adding one-off regex only in a single script.

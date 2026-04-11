@@ -8,7 +8,9 @@
  *
  * Omits internal SkySlope document GUIDs. Sale agreement numbers come from PDF
  * text when extractable (verify in forms). Env: SKYSLOPE_*; optional
- * SKYSLOPE_BRIEF_MAX_PDFS (default 320) for SA# / execution text sampling.
+ * SKYSLOPE_BRIEF_MAX_PDFS (default 320) for how many PDFs get deep read;
+ * SKYSLOPE_PDF_MAX_PAGES (default 80) caps pages per file; SKYSLOPE_PDF_OCR=1
+ * enables optional Poppler plus Tesseract OCR on thin pages.
  */
 import fs from 'fs'
 import crypto from 'crypto'
@@ -32,6 +34,14 @@ import {
 
 import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
 import { inferKind, parseDate, fmtDate, wordSectionForKind } from './skyslope-forms-document-taxonomy.mjs'
+import {
+  analyzePdfBuffer,
+  buildExecutionAssessment,
+  emptyPdfInsight,
+  extractSaleAgreementNumber,
+  extractSignatoryHints,
+  notSampledPdfInsight,
+} from './skyslope-pdf-insight.mjs'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -127,97 +137,6 @@ async function fetchDocuments(session, kind, guid) {
   if (!r.ok) return []
   const j = await r.json()
   return j?.value?.documents ?? []
-}
-
-function redactContacts(s) {
-  if (!s || typeof s !== 'string') return s
-  return s
-    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email redacted]')
-    .replace(/\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/g, '[phone redacted]')
-}
-
-function extractSignatoryHints(text, max = 8) {
-  const t = redactContacts(String(text || '').replace(/\s+/g, ' '))
-  const names = new Set()
-  const reDigi = /DigiSign Verified[^\n]{0,80}?([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g
-  let m
-  while ((m = reDigi.exec(t)) !== null) {
-    const n = m[1]?.trim()
-    if (n && n.length < 50 && !/Verified|DigiSign/i.test(n)) names.add(n)
-    if (names.size >= max) break
-  }
-  return [...names].slice(0, max)
-}
-
-function executionBrief(kind, text, fileName) {
-  const t = `${text || ''} ${fileName || ''}`
-  const digi = (t.match(/DigiSign Verified/gi) || []).length
-  const hasSigLabels = /Seller Initial|Buyer Initial|Signature|By:/i.test(t)
-  const thin = String(text || '').replace(/\s+/g, '').length < 80
-
-  if (kind === 'listing_agreement' || kind === 'agency_disclosure_pamphlet') {
-    if (thin)
-      return { label: 'Scanned or little text', detail: 'Open the PDF in SkySlope to confirm seller and firm signatures.' }
-    if (digi >= 2 || hasSigLabels)
-      return {
-        label: 'Looks like seller side may be done',
-        detail: 'The file text shows signature language or e-sign stamps. You still confirm every line that must be signed.',
-      }
-    return { label: 'Could not tell from text', detail: 'Open the PDF to confirm seller and firm execution.' }
-  }
-  if (kind === 'buyer_representation_agreement') {
-    if (thin)
-      return { label: 'Scanned or little text', detail: 'Open the PDF to confirm buyer and firm signatures.' }
-    if (digi >= 1)
-      return {
-        label: 'Looks like buyer side activity',
-        detail: 'E-sign stamps appeared in the text layer. Confirm buyer and firm lines on the form.',
-      }
-    return { label: 'Could not tell from text', detail: 'Open the PDF to confirm buyer and firm execution.' }
-  }
-  if (
-    kind === 'buyer_offer_or_package' ||
-    kind === 'sale_agreement_or_rsa' ||
-    kind === 'numbered_counter' ||
-    kind === 'counter_or_counteroffer' ||
-    kind === 'addendum'
-  ) {
-    if (thin)
-      return {
-        label: 'Scanned or image heavy',
-        detail: 'Little readable text. Mutual deals need you to open the PDF and check both sides.',
-      }
-    if (digi >= 4 && hasSigLabels)
-      return {
-        label: 'Looks like several parties signed',
-        detail: 'Many e-sign markers. Map each to buyer, seller, and firm blocks in the PDF.',
-      }
-    if (digi >= 1)
-      return {
-        label: 'Some e-sign activity',
-        detail: 'Not all initials may be done. Compare to the checklist in SkySlope.',
-      }
-    return { label: 'Could not tell from text', detail: 'Open the PDF for buyer versus seller obligations.' }
-  }
-  if (kind === 'lender_financing') {
-    return { label: 'Lender or buyer side form', detail: 'Usually buyer or lender signs. Match to the form instructions.' }
-  }
-  return { label: 'Open in SkySlope', detail: 'Classify by the form title and your office checklist.' }
-}
-
-function extractSaleAgreementNumber(text) {
-  const t = String(text || '').replace(/\s+/g, ' ')
-  const patterns = [
-    /SALE\s+AGREEMENT\s*#\s*([A-Za-z0-9\-._/]+)/i,
-    /Sale\s+Agreement\s*#\s*([A-Za-z0-9\-._/]+)/i,
-    /RSA\s*#\s*([A-Za-z0-9\-._/]+)/i,
-    /Transaction\s*ID\s*[:#]?\s*([A-Za-z0-9\-._]+)/i,
-  ]
-  for (const re of patterns) {
-    const m = t.match(re)
-    if (m?.[1]) return m[1].slice(0, 120).trim()
-  }
-  return ''
 }
 
 function extractSaFromFilename(fn) {
@@ -346,21 +265,24 @@ function glossaryParagraphs() {
     h(2, 'How to read this brief'),
     pBoldLead(
       'What is the automated signature check?',
-      'The script reads the text layer inside many PDFs (when it is not a flat scan) and looks for e-sign vendor stamps such as DigiSign and words like Signature or Initial. That produces a plain English guess in the table. It is only a filing aid so you can spot which documents might need review first. It is not a determination that a form is fully executed under Oregon practice, and it is not a substitute for you confirming every required signature and initial on the original in SkySlope.'
+      'Each sampled PDF is parsed with Mozilla pdf.js in Node. The script walks every page for extractable text, counts signature-like form widgets when present, and scans for major e-sign vendors (DigiSign, DocuSign, Adobe Sign, OneSpan, and similar) plus generic certificate language. Optional OCR runs only when you set SKYSLOPE_PDF_OCR=1 and install Poppler plus Tesseract on the machine running the script. Output is still a filing aid so you can triage faster. It is not a determination that a form is fully executed under Oregon practice, and it is not a substitute for you confirming every required signature and initial in SkySlope.'
     ),
     pBoldLead(
       'Why you do not see internal document IDs here.',
       'SkySlope internal IDs are hidden in this Word version on purpose. Use file name and date. Sale agreement numbers come from PDF text or the file name when the script can read them. If a number is blank, open the Residential Sale Agreement in SkySlope and read the number on the top right of the OREF form.'
     ),
-    pBoldLead('Tables.', 'Each property or sale agreement block uses a table with clear columns so you can scan down one row per document.'),
+    pBoldLead(
+      'Tables.',
+      'Each property or sale agreement block uses a table with clear columns so you can scan down one row per document. The Flags column summarizes page count, text density, low-text pages, form widgets, and vendor hits in one line.'
+    ),
     new Paragraph({ spacing: { after: 280 }, children: [] }),
   ]
 }
 
 function tableForDocuments(rows) {
   const pct = (n) => ({ size: n, type: WidthType.PERCENTAGE })
-  const headers = ['Date', 'File name', 'Form type', 'Automated signature check', 'Names seen in PDF text']
-  const widths = [10, 28, 14, 30, 18]
+  const headers = ['Date', 'File name', 'Form type', 'Automated signature check', 'Names in text', 'Flags']
+  const widths = [9, 22, 12, 22, 14, 21]
   const headerRow = new TableRow({
     tableHeader: true,
     children: headers.map(
@@ -397,6 +319,7 @@ function tableForDocuments(rows) {
           cell(kindFriendlyLabel(r.kind), 2),
           cell(`${r.execLabel}. ${r.execDetail}`, 3),
           cell(r.signers, 4),
+          cell(r.pdfFlags || '—', 5),
         ],
       })
   )
@@ -411,14 +334,6 @@ async function main() {
   let outPath = DEFAULT_OUT
   const oi = argv.indexOf('--out')
   if (oi >= 0 && argv[oi + 1]) outPath = path.resolve(argv[oi + 1])
-
-  let pdfParse = null
-  try {
-    pdfParse = require('pdf-parse')
-  } catch {
-    console.error('Install pdf-parse for SA# and execution sampling: npm i pdf-parse')
-    process.exit(1)
-  }
 
   const env = loadEnvLocal(ENV_PATH)
   const session = await login(env)
@@ -492,13 +407,13 @@ async function main() {
         execDetail: '',
         signers: '',
         saHint: extractSaFromFilename(fn),
+        pdfFlags: '',
       })
     }
   }
 
   const pdfJobs = []
   for (const row of enriched) {
-    if (row.section !== 'transaction') continue
     const doc = folders
       .find((f) => f.guid === row.folderGuid)
       ?.documents?.find((d) => (d.fileName || d.name) === row.fileName)
@@ -506,53 +421,70 @@ async function main() {
     const ext = (doc.extension || '').toLowerCase()
     const isPdf = ext === 'pdf' || row.fileName.toLowerCase().endsWith('.pdf')
     if (!isPdf) continue
-    let pr = 10
-    if (row.kind === 'sale_agreement_or_rsa') pr = 100
-    else if (row.kind === 'counter_or_counteroffer' || row.kind === 'numbered_counter') pr = 90
-    else if (row.kind === 'buyer_offer_or_package') pr = 85
-    else if (row.kind === 'addendum') pr = 75
-    else if (row.kind === 'title_or_hoa') pr = 50
+
+    let pr = 8
+    if (row.section === 'buyer') pr = 92
+    else if (row.section === 'listing') pr = 86
+    else if (row.section === 'transaction') {
+      pr = 10
+      if (row.kind === 'sale_agreement_or_rsa') pr = 100
+      else if (row.kind === 'counter_or_counteroffer' || row.kind === 'numbered_counter') pr = 90
+      else if (row.kind === 'buyer_offer_or_package') pr = 85
+      else if (row.kind === 'addendum') pr = 75
+      else if (row.kind === 'title_or_hoa') pr = 50
+    }
     pdfJobs.push({ row, doc, pr })
   }
   pdfJobs.sort((a, b) => b.pr - a.pr)
 
-  const textByKey = new Map()
+  const insightByKey = new Map()
   const slice = pdfJobs.slice(0, MAX_PDFS)
-  await mapPool(slice, 5, async ({ row, doc }) => {
+  await mapPool(slice, 3, async ({ row, doc }) => {
     const key = `${row.folderGuid}::${row.fileName}`
     try {
       const r = await fetch(doc.url)
       const buf = Buffer.from(await r.arrayBuffer())
       if (buf.length > MAX_PDF_BYTES || buf.slice(0, 4).toString() !== '%PDF') {
-        textByKey.set(key, '')
+        insightByKey.set(key, emptyPdfInsight(buf.length > MAX_PDF_BYTES ? 'oversize' : 'not_pdf_bytes'))
         return
       }
-      const log = console.log
-      const err = console.error
-      console.log = () => {}
-      console.error = () => {}
-      let data
-      try {
-        data = await pdfParse(buf)
-      } finally {
-        console.log = log
-        console.error = err
-      }
-      textByKey.set(key, data.text || '')
-    } catch {
-      textByKey.set(key, '')
+      const insight = await analyzePdfBuffer(buf)
+      insightByKey.set(key, insight)
+    } catch (e) {
+      insightByKey.set(key, emptyPdfInsight(e?.message || String(e)))
     }
   })
 
   for (const row of enriched) {
     const key = `${row.folderGuid}::${row.fileName}`
-    const text = textByKey.get(key) || ''
-    const ex = executionBrief(row.kind, text, row.fileName)
+    const docMeta = folders
+      .find((f) => f.guid === row.folderGuid)
+      ?.documents?.find((x) => (x.fileName || x.name) === row.fileName)
+    const ext = (docMeta?.extension || '').toLowerCase()
+    const isPdf = ext === 'pdf' || row.fileName.toLowerCase().endsWith('.pdf')
+
+    if (!isPdf) {
+      row.execLabel = 'Not a PDF'
+      row.execDetail = 'Open the attachment in SkySlope. Automated read targets PDF text and fields.'
+      row.signers = '—'
+      row.pdfFlags = 'n/a'
+      continue
+    }
+
+    const inPdfJobs = pdfJobs.some((j) => `${j.row.folderGuid}::${j.row.fileName}` === key)
+    let insight = insightByKey.get(key)
+    if (!insight) {
+      insight = inPdfJobs ? notSampledPdfInsight() : emptyPdfInsight('no_download_url')
+    }
+
+    const ex = buildExecutionAssessment(row.kind, insight, row.fileName)
     row.execLabel = ex.label
     row.execDetail = ex.detail
-    row.signers = extractSignatoryHints(text).join(', ') || '—'
-    const fromPdf = extractSaleAgreementNumber(text)
+    const hintText = `${insight.text || ''}\n${insight.ocrSnippet || ''}`
+    row.signers = extractSignatoryHints(hintText).join(', ') || '—'
+    const fromPdf = extractSaleAgreementNumber(insight.combinedForSa || insight.text || '')
     row.saHint = fromPdf || row.saHint || ''
+    row.pdfFlags = insight.flagsLine || '—'
   }
 
   const listingRows_ = enriched.filter((r) => r.section === 'listing').sort((a, b) => {
