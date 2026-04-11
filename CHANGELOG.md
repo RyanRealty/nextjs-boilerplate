@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.35.0 (2026-04-11)
+
+### Features
+- feat(geocode): more-coverage mode, keyset pagination, progress report
+
+---
+
+
 ## v1.34.0 (2026-04-11)
 
 ### Features
