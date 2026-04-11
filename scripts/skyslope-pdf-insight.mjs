@@ -1,14 +1,14 @@
 /**
  * Structured PDF analysis for SkySlope Forms scripts (Node, ESM).
  *
- * Uses Mozilla pdf.js (legacy build) for one consistent pass per file:
- * per-page text length, annotation inventory (widgets, links, stamps),
- * and expanded e-sign vendor markers. This complements filename rules;
- * it does not replace Principal Broker review of execution.
+ * Uses Mozilla pdf.js (legacy build) for per-page text, annotations, and
+ * e-sign vendor markers, then **mandatory OCR** on image-heavy pages (and
+ * on every page when the whole document text layer is thin) so scanned
+ * contracts are read the same way as text-born PDFs.
  *
- * Optional deeper OCR is not bundled here. If you need text from flat
- * scans, install Poppler (`pdftoppm`) and Tesseract locally and set
- * `SKYSLOPE_PDF_OCR=1` (see `.cursor/rules/skyslope-pdf-analysis.mdc`).
+ * OCR engines (first that works per page): Poppler `pdftoppm` + Tesseract
+ * CLI when on PATH; otherwise pdf.js canvas render + `tesseract.js` (ships
+ * with the repo). See `.cursor/rules/skyslope-pdf-analysis.mdc`.
  */
 import { spawnSync } from 'child_process'
 import fs from 'fs'
@@ -36,6 +36,8 @@ const DEFAULT_MAX_PAGES = Math.min(
  *   widgetFieldSample: string[]
  *   esign: Record<string, number>
  *   ocrSnippet: string
+ *   ocrPageCount: number
+ *   ocrEngineNote: string
  *   flagsLine: string
  *   combinedForSa: string
  * }} PdfInsight
@@ -118,6 +120,21 @@ export async function analyzePdfBuffer(buf, opts = {}) {
     pageTexts.push(pageText)
   }
 
+  let mergedPageTexts = pageTexts
+  let ocrPageCount = 0
+  let ocrSnippet = ''
+  let ocrEngineNote = ''
+  try {
+    const ocrOut = await runMandatoryPageOcr(buf, doc, perPageChars, pagesToRead, pageTexts)
+    mergedPageTexts = ocrOut.mergedPageTexts
+    ocrPageCount = ocrOut.ocrPageCount
+    ocrSnippet = ocrOut.ocrSnippet
+    ocrEngineNote = ocrOut.ocrEngineNote
+  } catch (e) {
+    console.error('[skyslope-pdf-insight] mandatory OCR phase failed', e)
+    ocrEngineNote = `OCR failed: ${e?.message || String(e)}`
+  }
+
   try {
     await doc.cleanup()
     await doc.destroy()
@@ -125,14 +142,14 @@ export async function analyzePdfBuffer(buf, opts = {}) {
     /* ignore */
   }
 
-  const text = pageTexts.join('\n\n')
+  const text = mergedPageTexts.join('\n\n')
+  const mergedPerPageChars = mergedPageTexts.map((s) => s.replace(/\s/g, '').length)
   const nonWhitespaceCharCount = text.replace(/\s/g, '').length
   const charCount = text.length
   const textDensity = densityLabel(nonWhitespaceCharCount, pageCount || pagesToRead)
-  const lowTextPageRanges = formatLowTextPages(perPageChars)
+  const lowTextPageRanges = formatLowTextPages(mergedPerPageChars)
   const esign = scanEsignMarkers(text)
-  const ocrSnippet = maybeOcrThinPages(buf, perPageChars, pagesToRead)
-  const combinedForSa = ocrSnippet ? `${text}\n${ocrSnippet}` : text
+  const combinedForSa = text
 
   const flagsLine = buildFlagsLine({
     pageCount,
@@ -142,7 +159,9 @@ export async function analyzePdfBuffer(buf, opts = {}) {
     annotationSubtypeCounts,
     widgetSignLikeCount,
     esign,
-    ocrSnippet,
+    ocrPageCount,
+    ocrEngineNote,
+    hasOcrSnippet: Boolean(ocrSnippet),
   })
 
   return {
@@ -159,8 +178,9 @@ export async function analyzePdfBuffer(buf, opts = {}) {
     widgetFieldSample,
     esign,
     ocrSnippet,
+    ocrPageCount,
+    ocrEngineNote,
     flagsLine,
-    /** Expose SA extraction input (text + optional OCR) */
     combinedForSa,
   }
 }
@@ -190,6 +210,8 @@ export function emptyPdfInsight(reason) {
     widgetFieldSample: [],
     esign: {},
     ocrSnippet: '',
+    ocrPageCount: 0,
+    ocrEngineNote: '',
     flagsLine:
       reason === 'not_in_pdf_sample_for_this_run'
         ? 'PDF not analyzed this run. Raise SKYSLOPE_BRIEF_MAX_PDFS to include more files.'
@@ -288,7 +310,9 @@ function buildFlagsLine(p) {
   if (e.genericSignedBy) hits.push(`SignedBy×${e.genericSignedBy}`)
   if (e.digitalCert) hits.push(`DigCert×${e.digitalCert}`)
   if (hits.length) parts.push(hits.join(' '))
-  if (p.ocrSnippet) parts.push('OCR snippet added')
+  if (p.ocrPageCount > 0) parts.push(`OCR ${p.ocrPageCount} pg`)
+  if (p.ocrEngineNote) parts.push(shorten(p.ocrEngineNote, 100))
+  else if (p.hasOcrSnippet) parts.push('OCR text merged')
   const line = parts.join(' · ')
   return shorten(line, 380)
 }
@@ -303,47 +327,112 @@ function shorten(s, n) {
   return t.slice(0, n - 1) + '…'
 }
 
+function commandOnPath(cmd) {
+  const r = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { encoding: 'utf8' })
+  return r.status === 0
+}
+
 /**
- * Optional OCR for very thin PDFs when Poppler + Tesseract are on PATH.
+ * Mandatory OCR: all pages when the document text layer is globally thin;
+ * otherwise every page whose extractable text falls below the threshold.
  * @param {Buffer} buf
- * @param {number[]} perPageChars
- * @param {number} pagesAnalyzed
+ * @param {unknown} doc pdf.js document
+ * @param {number[]} perPageChars non-whitespace char count per page from text layer
+ * @param {number} pagesToRead
+ * @param {string[]} pageTexts
  */
-function maybeOcrThinPages(buf, perPageChars, pagesAnalyzed) {
-  if (process.env.SKYSLOPE_PDF_OCR !== '1') return ''
-  const which = (cmd) => {
-    const r = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { encoding: 'utf8' })
-    return r.status === 0
-  }
-  if (!which('pdftoppm') || !which('tesseract')) return ''
+async function runMandatoryPageOcr(buf, doc, perPageChars, pagesToRead, pageTexts) {
+  const thinTh = Math.max(
+    20,
+    Number.parseInt(String(process.env.SKYSLOPE_PDF_THIN_PAGE_CHARS || '45'), 10) || 45
+  )
+  const ocrMax = Math.min(
+    pagesToRead,
+    Math.max(1, Number.parseInt(String(process.env.SKYSLOPE_PDF_OCR_MAX_PAGES || '60'), 10) || 60)
+  )
+  const docTotal = perPageChars.reduce((a, b) => a + b, 0)
+  const allThin = perPageChars.length > 0 && perPageChars.every((c) => c < thinTh)
+  const docWideThin = docTotal < 220 || allThin
 
-  const thinPages = []
-  for (let i = 0; i < perPageChars.length; i++) {
-    if (perPageChars[i] < 35) thinPages.push(i + 1)
+  /** @type {number[]} */
+  let pagesToOcr = []
+  if (docWideThin) {
+    for (let p = 1; p <= ocrMax; p++) pagesToOcr.push(p)
+  } else {
+    for (let i = 0; i < perPageChars.length; i++) {
+      if (perPageChars[i] < thinTh) pagesToOcr.push(i + 1)
+    }
+    if (pagesToOcr.length > ocrMax) pagesToOcr = pagesToOcr.slice(0, ocrMax)
   }
-  if (!thinPages.length) return ''
 
-  const maxOcrPages = Math.min(2, thinPages.length)
+  const merged = [...pageTexts]
+  if (pagesToOcr.length === 0) {
+    return {
+      mergedPageTexts: merged,
+      ocrPageCount: 0,
+      ocrSnippet: '',
+      ocrEngineNote: 'no OCR pages (text layer dense on every page)',
+    }
+  }
+
+  const useCli = commandOnPath('pdftoppm') && commandOnPath('tesseract')
+  /** @type {import('tesseract.js').Worker | null} */
+  let worker = null
+  const ensureWorker = async () => {
+    if (worker) return worker
+    try {
+      const Tesseract = await import('tesseract.js')
+      worker = await Tesseract.createWorker('eng', 1, { logger: () => {} })
+      return worker
+    } catch (e) {
+      console.error('[skyslope-pdf-insight] tesseract.js worker failed', e)
+      return null
+    }
+  }
+
+  if (!useCli) {
+    await ensureWorker()
+  }
+  if (!useCli && !worker) {
+    return {
+      mergedPageTexts: merged,
+      ocrPageCount: 0,
+      ocrSnippet: '',
+      ocrEngineNote: 'OCR unavailable (install Poppler + Tesseract CLI, or reinstall node deps for tesseract.js)',
+    }
+  }
+
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rr-pdf-ocr-'))
   const pdfPath = path.join(tmp, 'in.pdf')
   fs.writeFileSync(pdfPath, buf)
 
-  const snippets = []
+  const ocrChunks = []
+  let ocrPageCount = 0
+  let usedCli = 0
+  let usedRender = 0
+
   try {
-    for (let k = 0; k < maxOcrPages; k++) {
-      const pageNum = thinPages[k]
-      const base = path.join(tmp, `ocr-${k}`)
-      const r1 = spawnSync('pdftoppm', ['-f', String(pageNum), '-l', String(pageNum), '-png', '-r', '150', pdfPath, base], {
-        encoding: 'utf8',
-      })
-      if (r1.status !== 0) continue
-      const png = fs.readdirSync(tmp).find((f) => f.startsWith(`ocr-${k}-`) && f.endsWith('.png'))
-      if (!png) continue
-      const pngPath = path.join(tmp, png)
-      const r2 = spawnSync('tesseract', [pngPath, 'stdout', '-l', 'eng'], { encoding: 'utf8', maxBuffer: 4_000_000 })
-      if (r2.status === 0 && r2.stdout) {
-        snippets.push(`[OCR page ${pageNum}] ${r2.stdout.replace(/\s+/g, ' ').trim()}`)
+    for (const pageNum of pagesToOcr) {
+      let ocrText = ''
+      if (useCli) {
+        ocrText = ocrOnePageWithCli(pdfPath, tmp, pageNum)
+        if (ocrText.trim()) usedCli += 1
       }
+      if (!ocrText.trim()) {
+        const w = await ensureWorker()
+        if (w) {
+          ocrText = await ocrOnePageWithRender(doc, pageNum, w)
+          if (ocrText.trim()) usedRender += 1
+        }
+      }
+      if (!ocrText.trim()) continue
+
+      const idx = pageNum - 1
+      const wasThin = perPageChars[idx] < thinTh
+      const prev = merged[idx] || ''
+      merged[idx] = wasThin ? ocrText.trim() : `${prev}\n\n[OCR]\n${ocrText.trim()}`
+      ocrChunks.push(`[p${pageNum}] ${ocrText.replace(/\s+/g, ' ').trim().slice(0, 1500)}`)
+      ocrPageCount += 1
     }
   } finally {
     try {
@@ -351,10 +440,96 @@ function maybeOcrThinPages(buf, perPageChars, pagesAnalyzed) {
     } catch {
       /* ignore */
     }
+    if (worker) {
+      try {
+        await worker.terminate()
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
-  const joined = snippets.join('\n')
-  return joined.length > 3500 ? joined.slice(0, 3500) + '…' : joined
+  const ocrSnippet = ocrChunks.join('\n')
+  const trimmedSnippet = ocrSnippet.length > 4000 ? ocrSnippet.slice(0, 4000) + '…' : ocrSnippet
+  const engine =
+    usedCli > 0 && usedRender > 0
+      ? 'Poppler+Tesseract CLI and tesseract.js render'
+      : usedCli > 0
+        ? 'Poppler + Tesseract CLI'
+        : usedRender > 0
+          ? 'tesseract.js (pdf.js render)'
+          : 'OCR ran but no text returned'
+
+  return {
+    mergedPageTexts: merged,
+    ocrPageCount,
+    ocrSnippet: trimmedSnippet,
+    ocrEngineNote: `${engine} · ${ocrPageCount} page(s)`,
+  }
+}
+
+/**
+ * @param {string} pdfPath
+ * @param {string} tmpDir
+ * @param {number} pageNum 1-based
+ */
+function ocrOnePageWithCli(pdfPath, tmpDir, pageNum) {
+  const stem = path.join(tmpDir, `pg${pageNum}`)
+  const r1 = spawnSync(
+    'pdftoppm',
+    ['-f', String(pageNum), '-l', String(pageNum), '-png', '-r', '200', pdfPath, stem],
+    { encoding: 'utf8' }
+  )
+  if (r1.status !== 0) return ''
+  const hits = fs
+    .readdirSync(tmpDir)
+    .filter((f) => f.startsWith(`pg${pageNum}-`) && f.endsWith('.png'))
+    .sort()
+  const fname = hits[0]
+  if (!fname) return ''
+  const pngPath = path.join(tmpDir, fname)
+  try {
+    const r2 = spawnSync('tesseract', [pngPath, 'stdout', '-l', 'eng'], { encoding: 'utf8', maxBuffer: 6_000_000 })
+    return r2.status === 0 && r2.stdout ? String(r2.stdout) : ''
+  } finally {
+    try {
+      fs.unlinkSync(pngPath)
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/**
+ * @param {unknown} doc
+ * @param {number} pageNum
+ * @param {import('tesseract.js').Worker} worker
+ */
+async function ocrOnePageWithRender(doc, pageNum, worker) {
+  try {
+    const { createCanvas } = await import('@napi-rs/canvas')
+    const dpi = Math.min(300, Math.max(144, Number.parseInt(String(process.env.SKYSLOPE_PDF_OCR_DPI || '200'), 10) || 200))
+    const scale = dpi / 72
+    const page = await /** @type {{ getPage: (n: number) => Promise<unknown> }} */ (doc).getPage(pageNum)
+    const p = /** @type {{ getViewport: (o: { scale: number }) => { width: number; height: number }; render: (o: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }) => { promise: Promise<void> } }} */ (
+      page
+    )
+    const viewport = p.getViewport({ scale })
+    const w = Math.max(1, Math.ceil(viewport.width))
+    const h = Math.max(1, Math.ceil(viewport.height))
+    const canvas = createCanvas(w, h)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return ''
+    await p.render({ canvasContext: ctx, viewport }).promise
+    const png = canvas.toBuffer('image/png')
+    const {
+      data: { text },
+    } = await worker.recognize(png)
+    return String(text || '')
+  } catch (e) {
+    console.error(`[skyslope-pdf-insight] render OCR failed page ${pageNum}`, e?.message || e)
+    return ''
+  }
 }
 
 /**

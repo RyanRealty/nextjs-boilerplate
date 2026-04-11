@@ -1,43 +1,49 @@
 ---
-description: Thorough PDF analysis for SkySlope Forms scripts (pdf.js, widgets, e-sign vendors, optional OCR).
+description: Mandatory OCR plus pdf.js for SkySlope Forms PDF scripts (CLI or tesseract.js fallback).
 alwaysApply: false
 ---
 
 # SkySlope Forms PDF analysis
 
-When improving or debugging SkySlope Forms PDF tooling, treat **filename plus one text dump** as insufficient.
+When improving or debugging SkySlope Forms PDF tooling, treat **filename plus text layer only** as insufficient for scanned or hybrid PDFs.
 
 ## What the repo does today
 
 Shared module: `scripts/skyslope-pdf-insight.mjs`
 
 1. **Mozilla pdf.js (legacy build)** in Node — walks each page (up to `SKYSLOPE_PDF_MAX_PAGES`, default 80) for `getTextContent` and `getAnnotations`.
-2. **Per-page density** — flags pages with very little extractable text (common for signature blocks, stamps, or scanned pages).
-3. **Annotation inventory** — counts widget and other subtypes; surfaces signature-like **form field names** when present.
-4. **Vendor and certificate language** — DigiSign, DocuSign, Adobe Sign, OneSpan, RightSignature, Notarize, generic “Signed by” and “Digitally signed by” patterns.
-5. **Optional OCR** — set `SKYSLOPE_PDF_OCR=1` and install **Poppler** (`pdftoppm`) and **Tesseract** on the PATH. The script OCRs at most two thin pages per PDF to avoid runaway time. No OCR npm bundle is required for the default path.
+2. **Mandatory OCR** — not optional:
+   - If the **whole document** text layer is thin (total extractable characters very low, or every page below the thin threshold), **OCR every page** up to `SKYSLOPE_PDF_OCR_MAX_PAGES` (default 60).
+   - Otherwise **OCR each page** whose extractable text falls below `SKYSLOPE_PDF_THIN_PAGE_CHARS` (default 45 non-whitespace characters), capped by the same max.
+3. **OCR engines (per page, first success)**  
+   - **Preferred:** Poppler `pdftoppm` + **Tesseract** CLI (higher throughput on a dev machine with Homebrew installs).  
+   - **Fallback:** `@napi-rs/canvas` render of the page + **`tesseract.js`** (installed as a devDependency so OCR always runs without system tools).
+4. **Merge policy** — on pages that were “thin” before OCR, OCR text **replaces** the weak text layer for downstream SA extraction and vendor scans. On denser pages where OCR is still run as a supplement, OCR is **appended** under an `[OCR]` block.
+5. **Annotation inventory** and **e-sign vendor markers** run on the **merged** text.
 
-Principal broker Word brief (`npm run skyslope:forms-brief`) imports this module and adds a **Flags** column plus richer assessment copy. It also samples **buyer** and **listing** PDFs, not only transaction stacks.
+Principal broker Word brief (`npm run skyslope:forms-brief`) imports this module and surfaces OCR in the **Flags** column and glossary.
 
 ## What this does not replace
 
 - **Principal Broker judgment** on whether a form is fully executed under Oregon and office standards.
 - **Human review** of initials, counterparties, and firm lines on the authoritative file in SkySlope.
 
-## If you need even more depth
+## If you need more than local OCR
 
-- **Full-document OCR** for scan-heavy files: batch outside Node (e.g. `ocrmypdf`) or a dedicated service, then merge text back into your workflow.
-- **Adobe PDF Services / AWS Textract** for production-scale extraction — not wired in this repo; use when local CPU and open-source stack are not enough.
+- **Full pipeline at scale** (hundreds of long scans): consider Adobe PDF Services, AWS Textract, or batch `ocrmypdf` outside Node, then feed text back in.
+- **Higher accuracy** on poor scans: raise `SKYSLOPE_PDF_OCR_DPI` (default 200, max 300) at the cost of runtime and memory.
 
 ## Environment knobs
 
 | Variable | Role |
 |----------|------|
 | `SKYSLOPE_BRIEF_MAX_PDFS` | How many PDFs the brief analyzes (priority queue). |
-| `SKYSLOPE_PDF_MAX_PAGES` | Max pages read per PDF in `analyzePdfBuffer`. |
-| `SKYSLOPE_PDF_OCR` | Set to `1` to attempt `pdftoppm` + `tesseract` on thin pages. |
+| `SKYSLOPE_PDF_MAX_PAGES` | Max pages read per PDF for text and annotations. |
+| `SKYSLOPE_PDF_OCR_MAX_PAGES` | Max pages that may receive OCR per file (default 60). |
+| `SKYSLOPE_PDF_THIN_PAGE_CHARS` | Per-page threshold (non-whitespace chars) for treating a page as image-heavy (default 45). |
+| `SKYSLOPE_PDF_OCR_DPI` | Render scale for the tesseract.js path (default 200, clamped 144 to 300). |
 | `SKYSLOPE_MAX_PDF_BYTES` | Download size cap before skipping. |
 
 ## Agent behavior
 
-When the user asks for “better PDF reading” or “more thorough execution detection,” **extend `skyslope-pdf-insight.mjs` and wire consumers** (brief, workbook, comprehensive log, audit) instead of adding one-off regex only in a single script.
+When the user asks for “better PDF reading” or “OCR,” **extend `skyslope-pdf-insight.mjs`** and wire consumers (brief, workbook, comprehensive log, audit) instead of duplicating OCR logic.

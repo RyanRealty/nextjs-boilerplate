@@ -9,8 +9,9 @@
  * Omits internal SkySlope document GUIDs. Sale agreement numbers come from PDF
  * text when extractable (verify in forms). Env: SKYSLOPE_*; optional
  * SKYSLOPE_BRIEF_MAX_PDFS (default 320) for how many PDFs get deep read;
- * SKYSLOPE_PDF_MAX_PAGES (default 80) caps pages per file; SKYSLOPE_PDF_OCR=1
- * enables optional Poppler plus Tesseract OCR on thin pages.
+ * SKYSLOPE_PDF_MAX_PAGES (default 80) caps pages per file. Mandatory OCR uses
+ * Poppler plus Tesseract when installed, otherwise bundled tesseract.js with
+ * pdf.js page render. See SKYSLOPE_PDF_OCR_MAX_PAGES, SKYSLOPE_PDF_THIN_PAGE_CHARS.
  */
 import fs from 'fs'
 import crypto from 'crypto'
@@ -265,7 +266,7 @@ function glossaryParagraphs() {
     h(2, 'How to read this brief'),
     pBoldLead(
       'What is the automated signature check?',
-      'Each sampled PDF is parsed with Mozilla pdf.js in Node. The script walks every page for extractable text, counts signature-like form widgets when present, and scans for major e-sign vendors (DigiSign, DocuSign, Adobe Sign, OneSpan, and similar) plus generic certificate language. Optional OCR runs only when you set SKYSLOPE_PDF_OCR=1 and install Poppler plus Tesseract on the machine running the script. Output is still a filing aid so you can triage faster. It is not a determination that a form is fully executed under Oregon practice, and it is not a substitute for you confirming every required signature and initial in SkySlope.'
+      'Each sampled PDF is parsed with Mozilla pdf.js in Node for text and form widgets, then mandatory OCR on image-heavy pages and on the full page range when the text layer is globally thin. OCR prefers Poppler pdftoppm plus the Tesseract CLI when those are on PATH; otherwise it renders each needed page with pdf.js and reads it with tesseract.js bundled in this repo. Output is still a filing aid so you can triage faster. It is not a determination that a form is fully executed under Oregon practice, and it is not a substitute for you confirming every required signature and initial in SkySlope.'
     ),
     pBoldLead(
       'Why you do not see internal document IDs here.',
