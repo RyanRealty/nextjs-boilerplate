@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.33.0 (2026-04-11)
+
+### Features
+- feat(skyslope): multi-step PDF advisory agent for principal brief
+
+---
+
+
 ## v1.32.8 (2026-04-11)
 
 ### Maintenance
