@@ -57,6 +57,7 @@
     "github:secrets:skyslope": "node scripts/sync-github-secrets-from-local.mjs SKYSLOPE_ACCESS_KEY SKYSLOPE_ACCESS_SECRET --optional SKYSLOPE_CLIENT_ID SKYSLOPE_CLIENT_SECRET",
     "skyslope:forms-audit": "node scripts/skyslope-forms-master-audit.mjs",
     "skyslope:forms-comprehensive-log": "node scripts/skyslope-forms-comprehensive-log.mjs",
+    "skyslope:forms-rename-documents": "node scripts/skyslope-forms-rename-documents.mjs",
     "prepare": "husky"
   },
   "dependencies": {

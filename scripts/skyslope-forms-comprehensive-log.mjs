@@ -8,13 +8,21 @@
  *   (add npm --silent if your npm prints lifecycle lines into the redirected file)
  *
  * Requires .env.local SKYSLOPE_* and devDependency pdf-parse.
- * Optional: SKYSLOPE_INCLUDE_ARCHIVED=1, SKYSLOPE_LOG_CONCURRENCY=6
+ * Optional: SKYSLOPE_INCLUDE_ARCHIVED=1, SKYSLOPE_LOG_CONCURRENCY=6,
+ * SKYSLOPE_PAGE_PACE_MS (default 250) between folder-list pages to reduce 429s.
  */
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
+import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
+import {
+  fmtDate,
+  inferKind,
+  parseDate,
+  suggestStandardName,
+} from './skyslope-forms-document-taxonomy.mjs'
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -53,7 +61,7 @@ async function login(env) {
     .createHmac('sha256', env.SKYSLOPE_ACCESS_SECRET.trim())
     .update(`${env.SKYSLOPE_CLIENT_ID.trim()}:${env.SKYSLOPE_CLIENT_SECRET.trim()}:${timestamp}`)
     .digest('base64')
-  const res = await fetch(`${BASE}/auth/login`, {
+  const res = await skyslopeFetchWithRetry(`${BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -79,46 +87,26 @@ function apiHeaders(session) {
   }
 }
 
-function isSkySlopeFilesRowArchived(row) {
-  if (!row || typeof row !== 'object') return false
-  if (row.isArchived === true || row.archived === true) return true
-  const hay = [row.status, row.stage, row.mlsStatus, row.fileStatus]
-    .filter(Boolean)
-    .map((x) => String(x))
-    .join(' ')
-    .toLowerCase()
-  return /\barchiv/.test(hay)
-}
-
-async function fetchPaged(session, kind) {
-  const all = []
-  for (let page = 1; page <= 200; page++) {
-    const u = `${BASE}/api/files/${kind}?fromDate=2000-01-01&toDate=2035-12-31&page=${page}&pageSize=50`
-    const r = await fetch(u, { headers: apiHeaders(session) })
-    if (!r.ok) throw new Error(`${kind} page ${page}: ${r.status}`)
-    const j = await r.json()
-    const rows = j?.value?.[kind] ?? []
-    const kept = INCLUDE_ARCHIVED ? rows : rows.filter((row) => !isSkySlopeFilesRowArchived(row))
-    all.push(...kept)
-    if (rows.length < 50) break
-  }
-  return all
-}
-
 async function fetchListingDetail(session, listingGuid) {
-  const r = await fetch(`${BASE}/api/files/listings/${listingGuid}`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/listings/${listingGuid}`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return null
   return r.json()
 }
 
 async function fetchSaleDetail(session, saleGuid) {
-  const r = await fetch(`${BASE}/api/files/sales/${saleGuid}`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/sales/${saleGuid}`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return null
   return r.json()
 }
 
 async function fetchDocuments(session, kind, guid) {
-  const r = await fetch(`${BASE}/api/files/${kind}/${guid}/documents`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/${kind}/${guid}/documents`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return []
   const j = await r.json()
   return j?.value?.documents ?? []
@@ -142,63 +130,6 @@ function safeAddress(prop) {
   const line = [n, s, u].filter(Boolean).join(' ').trim()
   const tail = [c, st, z].filter(Boolean).join(', ')
   return [line, tail].filter(Boolean).join(', ')
-}
-
-function parseDate(d) {
-  if (!d || d === '0001-01-01T00:00:00') return null
-  const t = Date.parse(d)
-  return Number.isFinite(t) ? t : null
-}
-
-function fmtDate(iso) {
-  const t = parseDate(iso)
-  if (!t) return 'n/a'
-  return new Date(t).toISOString().slice(0, 10)
-}
-
-function inferKind(fileName, name) {
-  const t = `${fileName || ''} ${name || ''}`.toLowerCase()
-  const rules = [
-    [/termination|terminate|mutual.*rescission|withdrawn|withdraw|rescind|release of earnest|release of buyer/i, 'termination_or_release'],
-    [/counter|counteroffer/i, 'counter_or_counteroffer'],
-    [/addendum/i, 'addendum'],
-    [
-      /residential sale agreement|sale agreement|rsa\b|oref 101|oref101|oref.?001|residential_real_estate_sale|rrea|sale_agreement\.pdf/i,
-      'sale_agreement_or_rsa',
-    ],
-    [/listing agreement|listing contract|exclusive|oref 015|oref015/i, 'listing_agreement'],
-    [/initial agency|042|pamphlet|disclosure pamphlet|orea_pamphlet/i, 'agency_disclosure_pamphlet'],
-    [/disclosure|spd|seller.*property|property disclosure/i, 'seller_property_disclosure'],
-    [/inspection|repair|request for repair/i, 'inspection_or_repair'],
-    [/pre[-\s]?approval|prequal|approval letter|underwrit|loan/i, 'lender_financing'],
-    [/earnest|wire|deposit|em_/i, 'earnest_or_wire'],
-    [/hoa|ccr|title|preliminary|title report/i, 'title_or_hoa'],
-    [/offer|purchase agreement/i, 'buyer_offer_or_package'],
-    [/counteroffer no|seller.?s counter|buyer.?s counter/i, 'numbered_counter'],
-    [/amendment|notice/i, 'amendment_or_notice'],
-    [/walk|final|verification|signing|closing statement|seller.*statement/i, 'closing_adjacent'],
-  ]
-  for (const [re, k] of rules) {
-    if (re.test(t)) return k
-  }
-  if (t.includes('.pdf')) return 'other_pdf'
-  return 'other'
-}
-
-function sanitizeStem(s) {
-  return String(s || 'document')
-    .replace(/\.pdf$/i, '')
-    .replace(/[^\w.-]+/g, '-')
-    .replace(/-+/g, '-')
-    .slice(0, 72)
-}
-
-function suggestStandardName({ lane, uploadIso, mls, category, seq, origName }) {
-  const d = fmtDate(uploadIso)
-  const m = String(mls || 'none').replace(/[^\w.-]/g, '') || 'none'
-  const cat = String(category || 'misc').replace(/_/g, '-').slice(0, 28)
-  const stem = sanitizeStem(origName)
-  return `${d}__${lane}__MLS-${m}__${cat}__${String(seq).padStart(3, '0')}__${stem}.pdf`
 }
 
 function negotiationOutcomeHint(text, fileName) {
@@ -329,8 +260,20 @@ async function main() {
   const env = loadEnvLocal(ENV_PATH)
   const session = await login(env)
 
-  const listingRows = await fetchPaged(session, 'listings')
-  const saleRows = await fetchPaged(session, 'sales')
+  const listingRows = await fetchSkyslopeFileFolderRows(
+    session,
+    BASE,
+    'listings',
+    () => apiHeaders(session),
+    INCLUDE_ARCHIVED
+  )
+  const saleRows = await fetchSkyslopeFileFolderRows(
+    session,
+    BASE,
+    'sales',
+    () => apiHeaders(session),
+    INCLUDE_ARCHIVED
+  )
 
   const folders = []
   for (const L of listingRows) {
@@ -441,7 +384,10 @@ async function main() {
   lines.push(`Generated (UTC): ${now}`)
   lines.push(``)
   lines.push(
-    `**Scope:** SkySlope **Forms** transaction files via \`${BASE}\` (\`/api/files/listings\` and \`/api/files/sales\`), **not** SkySlope Suite. Archived rows excluded unless \`SKYSLOPE_INCLUDE_ARCHIVED=1\`.`
+    `**Scope:** SkySlope **Forms** transaction files via \`${BASE}\` (\`GET /api/files/listings\` and \`GET /api/files/sales\`). This is the **Forms file cabinet** integration surface, **not** SkySlope Suite (different product). Archived folder rows excluded unless \`SKYSLOPE_INCLUDE_ARCHIVED=1\`.`
+  )
+  lines.push(
+    `**Inventory accuracy:** Folder lists use swagger-correct query params (\`earliestDate\` / \`latestDate\` as Unix seconds, \`pageNumber\`, **10 rows per page**). Older scripts that used \`fromDate\` / \`page\` / \`pageSize\` stopped after the first page and under-counted folders.`
   )
   lines.push(
     `**You are the final say** on whether a document is fully executed and on any rename. This log is an **educated first pass** from PDF text plus filenames.`

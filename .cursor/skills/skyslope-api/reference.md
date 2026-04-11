@@ -11,6 +11,8 @@
 
 **Archived files:** For Files API **folder lists**, exclude archived rows in tooling (e.g. filter `status`/`stage` text for “archived” or boolean flags). The unified `GET /api/files` endpoint documents an `archived` **status** filter but can omit active under-contract listings depending on filters—prefer **`/api/files/listings`** and **`/api/files/sales`** for a full Forms folder inventory.
 
+**Listings/sales folder list pagination (critical):** Swagger defines **`earliestDate`** and **`latestDate`** as Unix **seconds** (not `fromDate`/`toDate` strings), **`pageNumber`** (1-based, max 1000), and **10 items per page**—there is **no** `pageSize` query parameter. Scripts that pass undocumented params and stop when `rows.length < 50` only retrieve the **first page** (~10 folders) and massively under-count inventory. Use `scripts/skyslope-files-api.mjs` (`fetchSkyslopeFileFolderRows`) in this repo.
+
 ---
 
 ## Fully executed (what that means for Ryan Realty work)

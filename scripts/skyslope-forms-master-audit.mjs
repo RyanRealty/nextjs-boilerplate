@@ -14,6 +14,7 @@ import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
+import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
 
 const require = createRequire(import.meta.url)
 
@@ -53,7 +54,7 @@ async function login(env) {
     .createHmac('sha256', env.SKYSLOPE_ACCESS_SECRET.trim())
     .update(`${env.SKYSLOPE_CLIENT_ID.trim()}:${env.SKYSLOPE_CLIENT_SECRET.trim()}:${timestamp}`)
     .digest('base64')
-  const res = await fetch(`${BASE}/auth/login`, {
+  const res = await skyslopeFetchWithRetry(`${BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -80,47 +81,26 @@ function apiHeaders(session, extra = {}) {
   }
 }
 
-/** Transaction file row from `GET /api/files/listings` or `.../sales` — treat as archived when status/stage says so. */
-function isSkySlopeFilesRowArchived(row) {
-  if (!row || typeof row !== 'object') return false
-  if (row.isArchived === true || row.archived === true) return true
-  const hay = [row.status, row.stage, row.mlsStatus, row.fileStatus]
-    .filter(Boolean)
-    .map((x) => String(x))
-    .join(' ')
-    .toLowerCase()
-  return /\barchiv/.test(hay)
-}
-
-async function fetchPaged(session, kind) {
-  const all = []
-  for (let page = 1; page <= 200; page++) {
-    const u = `${BASE}/api/files/${kind}?fromDate=2000-01-01&toDate=2035-12-31&page=${page}&pageSize=50`
-    const r = await fetch(u, { headers: apiHeaders(session) })
-    if (!r.ok) throw new Error(`${kind} page ${page}: ${r.status}`)
-    const j = await r.json()
-    const rows = j?.value?.[kind] ?? []
-    const kept = INCLUDE_ARCHIVED ? rows : rows.filter((row) => !isSkySlopeFilesRowArchived(row))
-    all.push(...kept)
-    if (rows.length < 50) break
-  }
-  return all
-}
-
 async function fetchListingDetail(session, listingGuid) {
-  const r = await fetch(`${BASE}/api/files/listings/${listingGuid}`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/listings/${listingGuid}`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return null
   return r.json()
 }
 
 async function fetchSaleDetail(session, saleGuid) {
-  const r = await fetch(`${BASE}/api/files/sales/${saleGuid}`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/sales/${saleGuid}`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return null
   return r.json()
 }
 
 async function fetchDocuments(session, kind, guid) {
-  const r = await fetch(`${BASE}/api/files/${kind}/${guid}/documents`, { headers: apiHeaders(session) })
+  const r = await skyslopeFetchWithRetry(`${BASE}/api/files/${kind}/${guid}/documents`, {
+    headers: apiHeaders(session),
+  })
   if (!r.ok) return []
   const j = await r.json()
   return j?.value?.documents ?? []
@@ -303,8 +283,20 @@ async function main() {
   const env = loadEnvLocal(ENV_PATH)
   const session = await login(env)
 
-  const listingRows = await fetchPaged(session, 'listings')
-  const saleRows = await fetchPaged(session, 'sales')
+  const listingRows = await fetchSkyslopeFileFolderRows(
+    session,
+    BASE,
+    'listings',
+    () => apiHeaders(session),
+    INCLUDE_ARCHIVED
+  )
+  const saleRows = await fetchSkyslopeFileFolderRows(
+    session,
+    BASE,
+    'sales',
+    () => apiHeaders(session),
+    INCLUDE_ARCHIVED
+  )
 
   const folders = []
 
@@ -446,6 +438,9 @@ async function main() {
   )
   lines.push(
     `- **Archived files:** Rows are **dropped** when status/stage text matches archive heuristics (or \`isArchived\` / \`archived\` is true). Set \`SKYSLOPE_INCLUDE_ARCHIVED=1\` to include them. Note: \`GET /api/files\` (unified search) supports an \`archived\` **status** filter but, in practice, can **omit** active under-contract listings (e.g. **Transaction**); this script keeps using **\`/api/files/listings\`** and **\`/api/files/sales\`** so the inventory matches SkySlope Forms file folders.`
+  )
+  lines.push(
+    `- **Pagination (API contract):** Folder lists use \`earliestDate\` / \`latestDate\` (**Unix seconds**), \`pageNumber\` (1-based), and return **10 rows per page** per SkySlope swagger. Query params like \`fromDate\` / \`page\` / \`pageSize\` are not documented for these endpoints and will **under-fetch** (often stopping after the first page).`
   )
   lines.push(
     `- **${totalDocs} documents** existed at generation time across **${listingRows.length}** listing files + **${saleRows.length}** sale files. Fully OCR-reading every scanned PDF is a batch job; this report uses **API metadata for 100% of documents** and **PDF text extraction for a prioritized subset** (${selected.length} PDFs) focused on offers, counters, RSA/sale agreement language, and termination/release patterns.`
