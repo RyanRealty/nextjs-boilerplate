@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.7 (2026-04-11)
+
+### Bug Fixes
+- fix(skyslope): authenticate PDF downloads and explain read failures
+
+---
+
+
 ## v1.32.6 (2026-04-11)
 
 ### Bug Fixes
