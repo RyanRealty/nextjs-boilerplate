@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.4 (2026-04-11)
+
+### Maintenance
+- docs(agents): never delegate terminal work to the owner
+
+---
+
+
 ## v1.32.3 (2026-04-11)
 
 ### Bug Fixes
