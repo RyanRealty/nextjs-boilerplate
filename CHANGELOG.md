@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.32.2 (2026-04-11)
+
+### Maintenance
+- docs(skyslope): regenerate comprehensive log and master audit
+
+---
+
+
 ## v1.32.1 (2026-04-11)
 
 ### Maintenance
