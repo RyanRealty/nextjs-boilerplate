@@ -196,6 +196,52 @@ export function notSampledPdfInsight() {
 }
 
 /**
+ * After HTTP download, decide whether the buffer is a real PDF or a known failure mode.
+ * @param {Buffer} buf
+ * @param {number} status
+ * @param {string} contentType from Content-Type header (any case)
+ * @param {number} maxBytes
+ * @returns {{ ok: true } | { ok: false, reason: string }}
+ */
+export function classifyPdfDownload(buf, status, contentType, maxBytes) {
+  const ct = String(contentType || '').toLowerCase()
+  if (!buf || buf.length === 0) return { ok: false, reason: 'download_empty_body' }
+  if (buf.length > maxBytes) return { ok: false, reason: `oversize_${buf.length}` }
+  if (buf.slice(0, 4).toString() === '%PDF') return { ok: true }
+  if (status === 401) return { ok: false, reason: 'download_http_401' }
+  if (status === 403) return { ok: false, reason: 'download_http_403' }
+  const sniff = buf.slice(0, 400).toString('utf8').toLowerCase()
+  if (ct.includes('text/html') || sniff.includes('<!doctype') || sniff.includes('<html'))
+    return { ok: false, reason: 'download_html_not_pdf' }
+  if (ct.includes('json') || /^\s*\{/.test(sniff)) return { ok: false, reason: 'download_json_not_pdf' }
+  return { ok: false, reason: 'not_pdf_bytes' }
+}
+
+function flagsLineForPdfFailureReason(reason) {
+  if (reason === 'not_in_pdf_sample_for_this_run')
+    return 'PDF not analyzed this run. Raise SKYSLOPE_BRIEF_MAX_PDFS (or the script-specific PDF cap) and re-run to include more files.'
+  if (reason === 'no_download_url')
+    return 'No download URL on the document row. Open the attachment from the listing or sale file in SkySlope.'
+  if (reason === 'not_pdf') return 'SkySlope lists this row as not a PDF extension. Open the attachment in SkySlope.'
+  if (reason === 'oversize' || String(reason).startsWith('oversize_'))
+    return 'File is larger than SKYSLOPE_MAX_PDF_BYTES. Open the PDF in SkySlope or raise that env var for local batch runs.'
+  if (reason === 'download_empty_body')
+    return 'Download returned zero bytes. Re-run the generator. If it repeats, open the PDF in SkySlope (the hosted link may be short-lived).'
+  if (reason === 'download_http_401' || reason === 'download_http_403')
+    return 'Download was denied for this file URL. The generator sends your SkySlope Session header on document downloads. Re-run after updating. If it still fails, open the PDF inside SkySlope.'
+  if (reason === 'download_html_not_pdf')
+    return 'Download returned a web page instead of PDF bytes (session or link issue). Re-run with the current script. If it persists, open the file in SkySlope; automated download may not be allowed for that row.'
+  if (reason === 'download_json_not_pdf')
+    return 'Download returned JSON instead of a PDF body. Open the file in SkySlope for manual review.'
+  if (reason === 'not_pdf_bytes')
+    return 'Response was not a PDF header after download. Open the file in SkySlope. If the filename ends in .pdf but the stored file is another format, treat it as manual review only.'
+  if (reason && String(reason).startsWith('pdfjs_'))
+    return `PDF engine could not open this file (${reason}). Try opening in SkySlope or re-save as PDF from source.`
+  if (reason) return `Could not read this PDF automatically (${reason}). Open in SkySlope for the authoritative copy.`
+  return 'Could not read this PDF automatically. Open in SkySlope for the authoritative copy.'
+}
+
+/**
  * @param {string} reason
  * @returns {PdfInsight}
  */
@@ -218,16 +264,7 @@ export function emptyPdfInsight(reason) {
     ocrPageCount: 0,
     ocrPagesAttempted: 0,
     ocrEngineNote: '',
-    flagsLine:
-      reason === 'not_in_pdf_sample_for_this_run'
-        ? 'PDF not analyzed this run. Raise SKYSLOPE_BRIEF_MAX_PDFS to include more files.'
-        : reason === 'no_download_url'
-          ? 'No download URL on the document row'
-          : reason === 'not_pdf'
-            ? 'Not a PDF'
-            : reason
-              ? `Unreadable PDF (${reason})`
-              : 'Unreadable PDF',
+    flagsLine: flagsLineForPdfFailureReason(reason),
     combinedForSa: '',
   }
 }

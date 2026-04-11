@@ -15,8 +15,12 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
-import { analyzePdfBuffer } from './skyslope-pdf-insight.mjs'
+import {
+  fetchSkyslopeDocumentBinary,
+  fetchSkyslopeFileFolderRows,
+  skyslopeFetchWithRetry,
+} from './skyslope-files-api.mjs'
+import { analyzePdfBuffer, classifyPdfDownload, emptyPdfInsight } from './skyslope-pdf-insight.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
@@ -372,20 +376,18 @@ async function main() {
 
   await mapPool(selected, CONCURRENCY, async (job) => {
     try {
-      const r = await fetch(job.url)
-      const buf = Buffer.from(await r.arrayBuffer())
-      if (buf.length > MAX_PDF_BYTES) {
+      const dl = await fetchSkyslopeDocumentBinary(job.url, () => apiHeaders(session))
+      const classified = classifyPdfDownload(dl.buf, dl.status, dl.contentType, MAX_PDF_BYTES)
+      if (!classified.ok) {
+        const ins = emptyPdfInsight(classified.reason)
         deepByKey.set(`${job.folderKey}::${job.docId}`, {
           ok: false,
-          reason: `pdf too large (${buf.length} bytes)`,
+          reason: classified.reason,
+          flagsLine: ins.flagsLine,
         })
         return
       }
-      if (buf.slice(0, 4).toString() !== '%PDF') {
-        deepByKey.set(`${job.folderKey}::${job.docId}`, { ok: false, reason: 'not_pdf_bytes' })
-        return
-      }
-      const insight = await analyzePdfBuffer(buf, {
+      const insight = await analyzePdfBuffer(dl.buf, {
         maxPages: AUDIT_PDF_MAX_PAGES,
         ocrMaxPages: AUDIT_PDF_MAX_PAGES,
       })

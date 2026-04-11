@@ -19,6 +19,30 @@ async function sleep(ms) {
 }
 
 /**
+ * Download a Forms cabinet document from `doc.url` using the same Session
+ * header as other SkySlope Files API calls. A plain browser-style fetch
+ * without Session often returns HTML, JSON errors, or empty bodies instead
+ * of raw PDF bytes.
+ *
+ * @param {string} url
+ * @param {() => Record<string, string>} getHeaders Same factory as folder list calls (Session, timestamp, etc.)
+ * @returns {Promise<{ ok: boolean, status: number, contentType: string, buf: Buffer }>}
+ */
+export async function fetchSkyslopeDocumentBinary(url, getHeaders) {
+  const base = getHeaders()
+  /** Do not forward JSON Content-Type on GET; some stacks treat it oddly for binary. */
+  const headers = {
+    Session: base.Session,
+    timestamp: base.timestamp || new Date().toISOString(),
+    Accept: 'application/pdf, application/octet-stream, */*',
+  }
+  const r = await skyslopeFetchWithRetry(url, { headers, redirect: 'follow' })
+  const buf = Buffer.from(await r.arrayBuffer())
+  const contentType = (r.headers.get('content-type') || '').toLowerCase()
+  return { ok: r.ok, status: r.status, contentType, buf }
+}
+
+/**
  * @param {string} url
  * @param {RequestInit} init
  * @param {{ maxAttempts?: number }} [opts]

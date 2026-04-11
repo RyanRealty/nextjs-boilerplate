@@ -17,7 +17,11 @@ import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
+import {
+  fetchSkyslopeDocumentBinary,
+  fetchSkyslopeFileFolderRows,
+  skyslopeFetchWithRetry,
+} from './skyslope-files-api.mjs'
 import {
   fmtDate,
   inferKind,
@@ -27,6 +31,7 @@ import {
 import {
   analyzePdfBuffer,
   buildExecutionAssessment,
+  classifyPdfDownload,
   emptyPdfInsight,
   extractSignatoryHints,
   registerExcerpt,
@@ -301,25 +306,17 @@ async function main() {
       return
     }
     try {
-      const r = await fetch(doc.url)
-      const buf = Buffer.from(await r.arrayBuffer())
-      if (buf.length > MAX_PDF_BYTES) {
+      const dl = await fetchSkyslopeDocumentBinary(doc.url, () => apiHeaders(session))
+      const classified = classifyPdfDownload(dl.buf, dl.status, dl.contentType, MAX_PDF_BYTES)
+      if (!classified.ok) {
         doc._parseOk = false
-        doc._parseReason = `oversize_${buf.length}`
+        doc._parseReason = classified.reason
         doc._text = ''
         doc._pages = 0
-        doc._insight = emptyPdfInsight(`oversize_${buf.length}`)
+        doc._insight = emptyPdfInsight(classified.reason)
         return
       }
-      if (buf.slice(0, 4).toString() !== '%PDF') {
-        doc._parseOk = false
-        doc._parseReason = 'not_pdf_bytes'
-        doc._text = ''
-        doc._pages = 0
-        doc._insight = emptyPdfInsight('not_pdf_bytes')
-        return
-      }
-      const insight = await analyzePdfBuffer(buf, {
+      const insight = await analyzePdfBuffer(dl.buf, {
         maxPages: LOG_PDF_MAX_PAGES,
         ocrMaxPages: LOG_PDF_MAX_PAGES,
       })

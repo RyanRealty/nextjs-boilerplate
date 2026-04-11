@@ -21,9 +21,18 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import XLSX from 'xlsx'
 
-import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
+import {
+  fetchSkyslopeDocumentBinary,
+  fetchSkyslopeFileFolderRows,
+  skyslopeFetchWithRetry,
+} from './skyslope-files-api.mjs'
 import { inferKind, parseDate } from './skyslope-forms-document-taxonomy.mjs'
-import { analyzePdfBuffer, emptyPdfInsight, registerExcerpt } from './skyslope-pdf-insight.mjs'
+import {
+  analyzePdfBuffer,
+  classifyPdfDownload,
+  emptyPdfInsight,
+  registerExcerpt,
+} from './skyslope-pdf-insight.mjs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 const DEFAULT_OUT = path.join(ROOT, 'docs', 'skyslope-forms-transaction-workbook.xlsx')
@@ -741,16 +750,13 @@ async function main() {
       let reason = ''
       let insight = emptyPdfInsight('')
       try {
-        const r = await fetch(doc.url)
-        const buf = Buffer.from(await r.arrayBuffer())
-        if (buf.length > MAX_PDF_BYTES) {
-          reason = `oversize_${buf.length}`
-          insight = emptyPdfInsight(reason)
-        } else if (buf.slice(0, 4).toString() !== '%PDF') {
-          reason = 'not_pdf'
-          insight = emptyPdfInsight('not_pdf_bytes')
+        const dl = await fetchSkyslopeDocumentBinary(doc.url, () => apiHeaders(session))
+        const classified = classifyPdfDownload(dl.buf, dl.status, dl.contentType, MAX_PDF_BYTES)
+        if (!classified.ok) {
+          reason = classified.reason
+          insight = emptyPdfInsight(classified.reason)
         } else {
-          insight = await analyzePdfBuffer(buf, {
+          insight = await analyzePdfBuffer(dl.buf, {
             maxPages: WORKBOOK_PDF_MAX_PAGES,
             ocrMaxPages: WORKBOOK_PDF_MAX_PAGES,
           })

@@ -6,6 +6,10 @@
  *   npm run skyslope:forms-brief
  *   npm run skyslope:forms-brief -- --out ~/Downloads/brief.docx
  *
+ * Document downloads use your SkySlope Session header on each file URL so the
+ * response is PDF bytes, not an HTML shell (bare fetch often failed with
+ * not_pdf_bytes before this).
+ *
  * Omits internal SkySlope document GUIDs. Sale agreement numbers come from PDF
  * text when extractable (verify in forms). Env: SKYSLOPE_*; optional
  * SKYSLOPE_BRIEF_MAX_PDFS (default 320) for how many PDFs get deep read;
@@ -19,11 +23,16 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { Document, HeadingLevel, LineRuleType, Packer, PageBreak, Paragraph, TextRun } from 'docx'
 
-import { fetchSkyslopeFileFolderRows, skyslopeFetchWithRetry } from './skyslope-files-api.mjs'
+import {
+  fetchSkyslopeDocumentBinary,
+  fetchSkyslopeFileFolderRows,
+  skyslopeFetchWithRetry,
+} from './skyslope-files-api.mjs'
 import { inferKind, parseDate, fmtDate, wordSectionForKind } from './skyslope-forms-document-taxonomy.mjs'
 import {
   analyzePdfBuffer,
   buildExecutionAssessment,
+  classifyPdfDownload,
   emptyPdfInsight,
   extractSaleAgreementNumber,
   extractSignatoryHints,
@@ -508,13 +517,13 @@ async function main() {
   await mapPool(slice, 3, async ({ row, doc }) => {
     const key = `${row.folderGuid}::${row.fileName}`
     try {
-      const r = await fetch(doc.url)
-      const buf = Buffer.from(await r.arrayBuffer())
-      if (buf.length > MAX_PDF_BYTES || buf.slice(0, 4).toString() !== '%PDF') {
-        insightByKey.set(key, emptyPdfInsight(buf.length > MAX_PDF_BYTES ? 'oversize' : 'not_pdf_bytes'))
+      const dl = await fetchSkyslopeDocumentBinary(doc.url, () => apiHeaders(session))
+      const classified = classifyPdfDownload(dl.buf, dl.status, dl.contentType, MAX_PDF_BYTES)
+      if (!classified.ok) {
+        insightByKey.set(key, emptyPdfInsight(classified.reason))
         return
       }
-      const insight = await analyzePdfBuffer(buf)
+      const insight = await analyzePdfBuffer(dl.buf)
       insightByKey.set(key, insight)
     } catch (e) {
       insightByKey.set(key, emptyPdfInsight(e?.message || String(e)))
