@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.27.15 (2026-04-11)
+
+### Bug Fixes
+- fix(skyslope): paginate Forms folder lists per swagger and add rename automation
+
+---
+
+
 ## v1.27.14 (2026-04-10)
 
 ### Maintenance
