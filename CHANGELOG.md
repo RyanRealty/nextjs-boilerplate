@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.35.1 (2026-04-12)
+
+### Maintenance
+- docs: handoff prompt for SkySlope PDF and brief expansion
+
+---
+
+
 ## v1.35.0 (2026-04-11)
 
 ### Features
