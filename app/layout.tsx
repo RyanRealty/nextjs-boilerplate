@@ -155,7 +155,10 @@ export default function RootLayout({
           </a>
           <GoogleAnalytics />
           <MetaPixel />
-          <PageViewTracker />
+          {/* PageViewTracker uses useSearchParams — must be in a Suspense boundary so static generation doesn't bail. */}
+          <Suspense fallback={null}>
+            <PageViewTracker />
+          </Suspense>
           <JsonLd />
           {/* Header streams in independently — doesn't block page content */}
           <Suspense fallback={<div className="h-16 bg-primary" />}>
