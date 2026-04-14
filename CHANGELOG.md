@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.36.1 (2026-04-14)
+
+### Other
+- Add Meta domain verification meta tag for ryan-realty.com
+- Wire Meta Conversions API: route handler, SHA-256 PII hashing, event dedup, route-change PageView
+
+---
+
+
 ## v1.36.0 (2026-04-14)
 
 ### Features
