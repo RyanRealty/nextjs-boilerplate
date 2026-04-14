@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.37.0 (2026-04-14)
+
+### Features
+- feat(schema): add 98 pre-computed listing columns, unified mapper, and app_config
+
+---
+
+
 ## v1.36.2 (2026-04-14)
 
 ### Bug Fixes
