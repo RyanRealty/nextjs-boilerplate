@@ -62,6 +62,8 @@
     "skyslope:forms-brief": "node scripts/skyslope-forms-principal-brief-docx.mjs",
     "geocode:easy-missing": "node scripts/geocode-easy-missing-listings.mjs",
     "geocode:easy-missing:report": "node scripts/geocode-easy-progress-report.mjs",
+    "backfill:close-price:history": "node scripts/backfill-close-price-from-history.mjs",
+    "backfill:close-price:spark": "npx tsx scripts/backfill-close-price-from-spark.ts",
     "prepare": "husky"
   },
   "dependencies": {

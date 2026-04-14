@@ -53,6 +53,10 @@ export type SparkStandardFields = {
   ListingKey?: string
   ListingId?: string
   ListPrice?: number
+  /** Final sale price when closed; RESO ClosePrice. */
+  ClosePrice?: number
+  /** Original list at contract; used for sale-to-list. */
+  OriginalListPrice?: number
   StreetNumber?: string
   StreetName?: string
   StreetDirPrefix?: string | null
@@ -714,6 +718,8 @@ export function sparkListingToSupabaseRow(
     ListingKey: f.ListingKey ?? result.Id,
     ListNumber: f.ListingId ?? result.Id,
     ListPrice: toNum(f.ListPrice),
+    ClosePrice: toNum(f.ClosePrice),
+    OriginalListPrice: toNum(f.OriginalListPrice),
     StreetNumber: f.StreetNumber ?? null,
     StreetName: f.StreetName ?? null,
     City: f.City ?? null,
