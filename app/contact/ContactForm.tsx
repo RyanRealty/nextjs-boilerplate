@@ -35,7 +35,13 @@ export default function ContactForm({ defaultInquiryType }: { defaultInquiryType
     const result = await submitContactForm(formData)
     setLoading(false)
     setState(result)
-    if (result.success) {
+    if (result.success && result.eventId) {
+      // Fire fbq with matching eventId for CAPI dedup
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'Lead', {
+          content_name: formData.get('inquiryType'),
+        }, { eventID: result.eventId })
+      }
       trackEvent('generate_lead', { source: 'contact_page', inquiry: formData.get('inquiryType') })
     }
   }

@@ -1,11 +1,12 @@
 'use server'
 
+import { generateEventId } from '@/lib/meta-pixel-helpers'
 import { sendEvent } from '@/lib/followupboss'
 import { sendContactNotification } from '@/lib/resend'
 
 const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryan-realty.com').replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase()
 
-export type ContactFormState = { error?: string; success?: boolean }
+export type ContactFormState = { error?: string; success?: boolean; eventId?: string }
 
 export async function submitContactForm(formData: FormData): Promise<ContactFormState> {
   const name = formData.get('name')?.toString()?.trim() ?? ''
@@ -33,5 +34,24 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
   await sendContactNotification({ name, email, phone, inquiryType, message }).catch(() => {})
 
-  return { success: true }
+  // Send to Meta CAPI for deduplication with browser pixel
+  const eventId = generateEventId()
+  await fetch(`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://localhost:3000'}/api/meta-capi`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventName: 'Lead',
+      email,
+      phone,
+      firstName: name.split(/\s+/)[0] ?? undefined,
+      lastName: name.split(/\s+/).slice(1).join(' ') || undefined,
+      eventId,
+      customData: { inquiry_type: inquiryType },
+      eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://localhost:3000'}/contact`,
+    }),
+  }).catch((err) => {
+    console.warn('[Contact Form] CAPI call failed:', err)
+  })
+
+  return { success: true, eventId }
 }

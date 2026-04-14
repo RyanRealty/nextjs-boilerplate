@@ -16,6 +16,7 @@ import FubIdentityBridge from "../components/FubIdentityBridge";
 import AgentAttributionBridge from "../components/AgentAttributionBridge";
 import GoogleAnalytics from "../components/GoogleAnalytics";
 import MetaPixel from "../components/MetaPixel";
+import PageViewTracker from "../components/PageViewTracker";
 import SignUpTracker from "../components/tracking/SignUpTracker";
 import AdminHashRedirect from "../components/AdminHashRedirect";
 import GTMHead from "../components/GTMHead";
@@ -149,6 +150,7 @@ export default function RootLayout({
           </a>
           <GoogleAnalytics />
           <MetaPixel />
+          <PageViewTracker />
           <JsonLd />
           {/* Header streams in independently — doesn't block page content */}
           <Suspense fallback={<div className="h-16 bg-primary" />}>

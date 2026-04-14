@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 
 export default function ValuationForm() {
-  const [state, setState] = useState<{ error?: string; success?: boolean; cmaSent?: boolean }>({})
+  const [state, setState] = useState<{ error?: string; success?: boolean; cmaSent?: boolean; eventId?: string }>({})
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -19,7 +19,13 @@ export default function ValuationForm() {
     const result = await submitValuationRequest(formData)
     setLoading(false)
     setState(result)
-    if (result.success) {
+    if (result.success && result.eventId) {
+      // Fire fbq with matching eventId for CAPI dedup
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'Lead', {
+          content_name: 'home_valuation',
+        }, { eventID: result.eventId })
+      }
       trackEvent('generate_lead', { source: 'home_valuation', cma_sent: result.cmaSent ?? false })
     }
   }

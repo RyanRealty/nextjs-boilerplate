@@ -3,6 +3,7 @@
 import React from 'react'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient } from '@supabase/supabase-js'
+import { generateEventId } from '@/lib/meta-pixel-helpers'
 import { sendEvent } from '@/lib/followupboss'
 import { sendEmail } from '@/lib/resend'
 import { getCachedCMA, computeCMA } from '@/lib/cma'
@@ -13,7 +14,7 @@ const source = (process.env.NEXT_PUBLIC_SITE_URL ?? 'ryan-realty.com').replace(/
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ryan-realty.com').replace(/\/$/, '')
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? process.env.RESEND_ADMIN_EMAIL ?? ''
 
-export type ValuationFormState = { error?: string; success?: boolean; cmaSent?: boolean }
+export type ValuationFormState = { error?: string; success?: boolean; cmaSent?: boolean; eventId?: string }
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -189,5 +190,24 @@ export async function submitValuationRequest(formData: FormData): Promise<Valuat
     console.warn('[valuation] Auto-CMA failed:', e)
   }
 
-  return { success: true, cmaSent }
+  // Send to Meta CAPI for deduplication with browser pixel
+  const eventId = generateEventId()
+  await fetch(`${siteUrl}/api/meta-capi`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventName: 'Lead',
+      email,
+      phone,
+      firstName: name.split(/\s+/)[0] ?? undefined,
+      lastName: name.split(/\s+/).slice(1).join(' ') || undefined,
+      eventId,
+      customData: { property_address: fullAddress },
+      eventSourceUrl: `${siteUrl}/home-valuation`,
+    }),
+  }).catch((err) => {
+    console.warn('[Valuation Form] CAPI call failed:', err)
+  })
+
+  return { success: true, cmaSent, eventId }
 }
