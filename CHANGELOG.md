@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.36.0 (2026-04-14)
+
+### Features
+- feat(listings): persist DOM metrics and backfill for reporting
+
+---
+
+
 ## v1.35.2 (2026-04-14)
 
 ### Bug Fixes
