@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { resolveListingKeyFromRow } from '@/lib/pick-video-from-details'
 
 export const LISTING_VIDEO_SELECT_MAIN =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp, has_virtual_tour'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, City, StreetNumber, StreetName, PhotoURL, StandardStatus, details, ModificationTimestamp, has_virtual_tour, year_built, price_per_sqft'
 
 export type VideoListingRowShape = {
   listing_key: string

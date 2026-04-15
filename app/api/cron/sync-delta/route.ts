@@ -6,6 +6,7 @@ import {
   type SparkListingHistoryItem,
 } from '@/lib/spark'
 import { syncAuxiliaryTablesForFinalization } from '@/app/api/admin/sync/_shared/listing-completeness'
+import { sparkToListingRow, sparkHistoryItemToRow as mapHistoryItem } from '@/lib/listing-mapper'
 
 /**
  * Delta Sync Cron — runs every 15 minutes.
@@ -91,125 +92,8 @@ async function fetchPhotoForListing(accessToken: string, listingKey: string): Pr
   }
 }
 
-type SparkStandardFields = {
-  ListingKey?: string
-  ListNumber?: string
-  ListingId?: string
-  ListPrice?: number | null
-  StandardStatus?: string | null
-  MlsStatus?: string | null
-  ModificationTimestamp?: string | null
-  CloseDate?: string | null
-  ClosePrice?: number | null
-  OriginalListPrice?: number | null
-  DaysOnMarket?: number | null
-  CumulativeDaysOnMarket?: number | null
-  StreetNumber?: string | null
-  StreetName?: string | null
-  City?: string | null
-  State?: string | null
-  PostalCode?: string | null
-  SubdivisionName?: string | null
-  BedroomsTotal?: number | null
-  BathroomsTotal?: number | null
-  TotalLivingAreaSqFt?: number | null
-  PropertyType?: string | null
-  Latitude?: number | null
-  Longitude?: number | null
-  ListDate?: string | null
-  OnMarketDate?: string | null
-  ListOfficeName?: string | null
-  ListAgentName?: string | null
-  ListAgentFirstName?: string | null
-  ListAgentLastName?: string | null
-  OpenHouses?: Array<{ Date?: string; StartTime?: string; EndTime?: string }>
-  Photos?: Array<{ Primary?: boolean; Uri1600?: string; Uri1280?: string; Uri1024?: string; Uri800?: string; Uri640?: string; Uri300?: string }>
-  Videos?: Array<{ Uri?: string }>
-  [key: string]: unknown
-}
-
-function mapSparkToRow(fields: SparkStandardFields) {
-  const photos = fields.Photos ?? []
-  const firstPhoto = photos.find(p => p.Primary) ?? photos[0]
-  const photoUrl = firstPhoto?.Uri1600 ?? firstPhoto?.Uri1280 ?? firstPhoto?.Uri1024 ?? firstPhoto?.Uri800 ?? firstPhoto?.Uri640 ?? firstPhoto?.Uri300 ?? null
-
-  const agentFirst = (fields.ListAgentFirstName ?? '').toString().trim()
-  const agentLast = (fields.ListAgentLastName ?? '').toString().trim()
-  const listAgentName = [agentFirst, agentLast].filter(Boolean).join(' ') || fields.ListAgentName || null
-
-  const status = (fields.StandardStatus ?? fields.MlsStatus ?? '').toString()
-  const isClosed = /closed/i.test(status)
-
-  const listNumber = fields.ListNumber ?? fields.ListingId ?? null
-
-  return {
-    ListingKey: fields.ListingKey ?? null,
-    ListNumber: listNumber,
-    ListPrice: fields.ListPrice ?? null,
-    StandardStatus: fields.StandardStatus ?? null,
-    StreetNumber: fields.StreetNumber ?? null,
-    StreetName: fields.StreetName ?? null,
-    City: fields.City ?? null,
-    State: fields.State ?? null,
-    PostalCode: fields.PostalCode ?? null,
-    SubdivisionName: fields.SubdivisionName ?? null,
-    BedroomsTotal: fields.BedroomsTotal ?? null,
-    BathroomsTotal: fields.BathroomsTotal ?? null,
-    TotalLivingAreaSqFt: fields.TotalLivingAreaSqFt ?? null,
-    PropertyType: fields.PropertyType ?? null,
-    Latitude: fields.Latitude ?? null,
-    Longitude: fields.Longitude ?? null,
-    PhotoURL: photoUrl,
-    ModificationTimestamp: fields.ModificationTimestamp ?? null,
-    ListDate: fields.ListDate ?? fields.OnMarketDate ?? null,
-    OnMarketDate: fields.OnMarketDate ?? fields.ListDate ?? null,
-    CloseDate: fields.CloseDate ?? null,
-    ClosePrice: fields.ClosePrice ?? null,
-    OriginalListPrice: fields.OriginalListPrice ?? null,
-    DaysOnMarket: fields.DaysOnMarket ?? null,
-    CumulativeDaysOnMarket: fields.CumulativeDaysOnMarket ?? null,
-    ListOfficeName: fields.ListOfficeName ?? null,
-    ListAgentName: listAgentName,
-    OpenHouses: fields.OpenHouses ?? null,
-    details: {
-      Videos: fields.Videos ?? [],
-      Photos: photos,
-      OpenHouses: fields.OpenHouses ?? [],
-    },
-    // Keep this explicit for inserts; column is NOT NULL.
-    // Closed listings can be marked finalized for media, active ones remain false.
-    media_finalized: isClosed,
-  }
-}
-
-/** Convert one Spark history item to a row for listing_history table. */
-function sparkHistoryItemToRow(listingKey: string, item: SparkListingHistoryItem) {
-  const dateRaw = item.ModificationTimestamp ?? item.Date
-  let eventDate: string | null = null
-  if (typeof dateRaw === 'string' && dateRaw.trim()) {
-    const d = new Date(dateRaw.trim())
-    if (!isNaN(d.getTime())) eventDate = d.toISOString()
-  }
-  const priceNum =
-    typeof item.Price === 'number' ? item.Price
-    : typeof item.PriceAtEvent === 'number' ? item.PriceAtEvent
-    : typeof item.Price === 'string' ? parseFloat(String(item.Price)) : null
-  const priceVal = priceNum ?? (typeof item.PriceAtEvent === 'string' ? parseFloat(String(item.PriceAtEvent)) : null)
-  const description =
-    typeof item.Description === 'string' ? item.Description
-    : item.Field != null && item.PreviousValue != null && item.NewValue != null
-      ? `${item.Field}: ${String(item.PreviousValue)} → ${String(item.NewValue)}`
-      : null
-  return {
-    listing_key: listingKey,
-    event_date: eventDate,
-    event: typeof item.Event === 'string' ? item.Event : null,
-    description: description ?? null,
-    price: typeof priceVal === 'number' && !Number.isNaN(priceVal) ? priceVal : null,
-    price_change: typeof item.PriceChange === 'number' ? item.PriceChange : typeof item.PriceChange === 'string' ? parseFloat(String(item.PriceChange)) : null,
-    raw: item as Record<string, unknown>,
-  }
-}
+// Local SparkStandardFields, mapSparkToRow, and sparkHistoryItemToRow removed —
+// now imported from @/lib/listing-mapper (sparkToListingRow, sparkHistoryItemToRow)
 
 /**
  * Fetch listing history from Spark and insert into listing_history table.
@@ -235,7 +119,7 @@ async function fetchAndInsertHistory(
   const hadSuccessfulFetch = response.ok && response.partial !== true
 
   if (response.items.length > 0) {
-    const rows = response.items.map(item => sparkHistoryItemToRow(listingKey, item))
+    const rows = response.items.map(item => mapHistoryItem(listingKey, item))
 
     // Delete existing history for this listing to avoid duplicates, then insert fresh
     await supabase.from('listing_history').delete().eq('listing_key', listingKey)
@@ -294,7 +178,7 @@ export async function GET(request: Request) {
       if (!response?.D?.Results?.length) break
 
       if (response.D.Pagination) totalPages = response.D.Pagination.TotalPages
-      const results = response.D.Results as Array<{ StandardFields: SparkStandardFields }>
+      const results = response.D.Results as Array<{ StandardFields: Record<string, unknown> }>
       totalFetched += results.length
 
       // Get existing listings to detect changes
@@ -345,7 +229,11 @@ export async function GET(request: Request) {
       const queuedForFinalization = new Set<string>()
 
       for (const result of results) {
-        const f = result.StandardFields
+        const f = result.StandardFields as Record<string, unknown> & {
+          ListingKey?: string; ListNumber?: string; ListingId?: string
+          ListPrice?: number | null; StandardStatus?: string | null
+          ClosePrice?: number | null; City?: string; SubdivisionName?: string
+        }
         const listNumber = f?.ListNumber ?? f?.ListingId
         if (!listNumber) continue
 
@@ -357,7 +245,7 @@ export async function GET(request: Request) {
           continue
         }
 
-        const row = mapSparkToRow(f)
+        const row = sparkToListingRow(f)
         // Remove undefined fields
         const cleanRow: Record<string, unknown> = {}
         for (const [k, v] of Object.entries(row)) {

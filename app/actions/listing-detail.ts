@@ -807,7 +807,7 @@ export async function getListingDetailData(listingKey: string): Promise<ListingD
   // Query the actual PascalCase listings table — NO properties(*) join
   let listingRow: AnyRow | null = null
   const DETAIL_LISTING_SELECT =
-    'ListingKey, ListNumber, ListPrice, OriginalListPrice, ClosePrice, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, PropertyType, StreetNumber, StreetName, City, State, PostalCode, Latitude, Longitude, PhotoURL, OpenHouses, details'
+    'ListingKey, ListNumber, ListPrice, OriginalListPrice, ClosePrice, StandardStatus, OnMarketDate, CloseDate, ModificationTimestamp, BedroomsTotal, BathroomsTotal, TotalLivingAreaSqFt, SubdivisionName, PropertyType, StreetNumber, StreetName, City, State, PostalCode, Latitude, Longitude, PhotoURL, OpenHouses, details, year_built, price_per_sqft, close_price_per_sqft, sale_to_list_ratio, sale_to_final_list_ratio, total_price_change_pct, total_price_change_amt, estimated_monthly_piti, lot_size_acres, lot_size_sqft, garage_yn, garage_spaces, pool_yn, fireplace_yn, waterfront_yn, basement_yn, stories_total, property_sub_type, architectural_style, new_construction_yn, county, school_district, elementary_school, middle_school, high_school, tax_annual_amount, tax_assessed_value, tax_rate, hoa_monthly, hoa_annual_cost, property_age, listing_quality_score, photos_count, virtual_tour_url, public_remarks, DaysOnMarket, price_drop_count'
 
   const { data: byKey } = await supabase
     .from('listings')

@@ -13,6 +13,7 @@ import { fetchListings } from '@/lib/spark-odata'
 import type { SparkListing } from '@/lib/spark-odata'
 import { processSparkListing } from '@/lib/listing-processor'
 import { syncAuxiliaryTablesForFinalization } from '@/app/api/admin/sync/_shared/listing-completeness'
+import { sparkToListingRow, sparkHistoryItemToRow as unifiedHistoryItemToRow } from '@/lib/listing-mapper'
 import * as Sentry from '@sentry/nextjs'
 
 export type SyncDeltaResult = {
@@ -93,33 +94,12 @@ async function syncListingVideosForRows(
   }
 }
 
-/** Convert one Spark history item to a row for listing_history table. Uses Event, ModificationTimestamp/Date, PriceAtEvent/Price, etc. */
-function sparkHistoryItemToRow(listingKey: string, item: SparkListingHistoryItem) {
-  const dateRaw = item.ModificationTimestamp ?? item.Date
-  let eventDate: string | null = null
-  if (typeof dateRaw === 'string' && dateRaw.trim()) {
-    const d = new Date(dateRaw.trim())
-    if (!isNaN(d.getTime())) eventDate = d.toISOString()
-  }
-  const priceNum =
-    typeof item.Price === 'number' ? item.Price
-    : typeof item.PriceAtEvent === 'number' ? item.PriceAtEvent
-    : typeof item.Price === 'string' ? parseFloat(String(item.Price)) : null
-  const priceVal = priceNum ?? (typeof item.PriceAtEvent === 'string' ? parseFloat(String(item.PriceAtEvent)) : null)
-  const description =
-    typeof item.Description === 'string' ? item.Description
-    : item.Field != null && item.PreviousValue != null && item.NewValue != null
-      ? `${item.Field}: ${String(item.PreviousValue)} → ${String(item.NewValue)}`
-      : null
-  return {
-    listing_key: listingKey,
-    event_date: eventDate,
-    event: typeof item.Event === 'string' ? item.Event : null,
-    description: description ?? null,
-    price: typeof priceVal === 'number' && !Number.isNaN(priceVal) ? priceVal : null,
-    price_change: typeof item.PriceChange === 'number' ? item.PriceChange : typeof item.PriceChange === 'string' ? parseFloat(String(item.PriceChange)) : null,
-    raw: item as Record<string, unknown>,
-  }
+// Local sparkHistoryItemToRow removed — using unifiedHistoryItemToRow from @/lib/listing-mapper
+const sparkHistoryItemToRow = unifiedHistoryItemToRow
+
+/** Wrap unified mapper to accept SparkListingResult (same signature as old sparkListingToSupabaseRow) */
+function unifiedSparkToRow(result: Parameters<typeof sparkListingToSupabaseRow>[0]): Record<string, unknown> {
+  return sparkToListingRow(result.StandardFields ?? {}, result.Id) as unknown as Record<string, unknown>
 }
 
 export type SyncSparkResult = {
@@ -204,7 +184,7 @@ export async function syncSparkListings(options?: {
         totalPages = pagination.TotalPages
       }
 
-      const rows = D.Results.map(sparkListingToSupabaseRow)
+      const rows = D.Results.map(unifiedSparkToRow)
       totalFetched += rows.length
 
       for (let i = 0; i < rows.length; i += UPSERT_CHUNK_SIZE) {
@@ -700,7 +680,7 @@ export async function syncSparkListingsDelta(options?: {
         break
       }
       if (D.Pagination) totalPages = D.Pagination.TotalPages
-      const rows = D.Results.map(sparkListingToSupabaseRow) as Array<{
+      const rows = D.Results.map(unifiedSparkToRow) as Array<{
         ListNumber?: string
         ListingKey?: string
         StandardStatus?: string | null
@@ -974,7 +954,7 @@ export async function syncPhotosOnly(options?: {
 
       const updateResults = await Promise.all(
         results.map(async (result) => {
-          const row = sparkListingToSupabaseRow(result) as Record<string, unknown>
+          const row = unifiedSparkToRow(result)
           const listNumber = row.ListNumber
           if (listNumber == null || listNumber === '') return false
           const { error } = await supabase

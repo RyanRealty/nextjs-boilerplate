@@ -97,6 +97,14 @@ export type HomeTileRow = ListingTileRow & {
   OnMarketDate?: string | null
   OpenHouses?: Array<{ Date?: string; StartTime?: string; EndTime?: string }> | null
   has_virtual_tour?: boolean | null
+  year_built?: number | null
+  price_per_sqft?: number | null
+  lot_size_acres?: number | null
+  garage_spaces?: number | null
+  pool_yn?: boolean | null
+  estimated_monthly_piti?: number | null
+  price_drop_count?: number | null
+  DaysOnMarket?: number | null
 }
 
 /** Same shape as ListingTileRow so similar listings can use ListingTile. */
@@ -123,6 +131,9 @@ export type SimilarListingRow = {
   ListOfficeName?: string | null
   ListAgentName?: string | null
   has_virtual_tour?: boolean | null
+  year_built?: number | null
+  price_per_sqft?: number | null
+  lot_size_acres?: number | null
 }
 
 /**
@@ -137,9 +148,7 @@ export async function getOtherListingsInSubdivision(
   if (!supabase) return []
   const { data } = await supabase
     .from('listings')
-    .select(
-      'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
-    )
+    .select(SIMILAR_SELECT)
     .ilike('SubdivisionName', subdivisionName)
     .neq('ListingKey', excludeListingKey)
     .neq('ListNumber', excludeListingKey)
@@ -149,7 +158,7 @@ export async function getOtherListingsInSubdivision(
 }
 
 const SIMILAR_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, OnMarketDate, OpenHouses, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, has_virtual_tour, year_built, price_per_sqft, lot_size_acres'
 
 /**
  * Similar listings for detail page: same subdivision first, then fill to minCount with recent in city.

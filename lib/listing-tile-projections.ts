@@ -4,7 +4,7 @@
  * Do not add `details` JSONB here; use `has_virtual_tour` and dedicated video queries for media.
  */
 export const HOME_TILE_SELECT =
-  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, CloseDate, has_virtual_tour'
+  'ListingKey, ListNumber, ListPrice, BedroomsTotal, BathroomsTotal, StreetNumber, StreetName, City, State, PostalCode, SubdivisionName, PhotoURL, StandardStatus, TotalLivingAreaSqFt, ListOfficeName, ListAgentName, OnMarketDate, OpenHouses, CloseDate, has_virtual_tour, year_built, price_per_sqft, lot_size_acres, garage_spaces, pool_yn, estimated_monthly_piti, price_drop_count, DaysOnMarket'
 
 /** Community pages: base tile + map coords + HOA columns (no `details` JSONB). */
 export const COMMUNITY_LISTING_TILE_SELECT = `${HOME_TILE_SELECT}, Latitude, Longitude, AssociationYN, AssociationFee, AssociationFeeFrequency`

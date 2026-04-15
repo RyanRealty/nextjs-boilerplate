@@ -275,6 +275,14 @@ export type ListingRow = {
   AssociationYN?: boolean | null
   AssociationFee?: number | null
   AssociationFeeFrequency?: string | null
+  year_built?: number | null
+  price_per_sqft?: number | null
+  lot_size_acres?: number | null
+  garage_spaces?: number | null
+  pool_yn?: boolean | null
+  estimated_monthly_piti?: number | null
+  price_drop_count?: number | null
+  DaysOnMarket?: number | null
 }
 
 /** Active listings in a community (city + subdivision), newest first, limit 24. */
