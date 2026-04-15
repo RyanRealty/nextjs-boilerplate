@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.40.1 (2026-04-15)
+
+### Bug Fixes
+- fix: resolve pool/waterfront/basement/school from feature objects when masked
+
+---
+
+
 ## v1.40.0 (2026-04-15)
 
 ### Features
