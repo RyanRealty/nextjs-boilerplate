@@ -65,16 +65,34 @@ export function toBool(v: unknown): boolean | null {
   return null
 }
 
-/** Safe text extraction. Returns null for masked, empty, or non-string values. */
+/** Safe text extraction. Returns null for masked, empty, or non-string values.
+ *  Handles Spark JSON feature objects like {"Frame": true, "Concrete": true} → "Frame, Concrete"
+ */
 export function toText(v: unknown): string | null {
   if (v == null) return null
-  if (typeof v !== 'string') {
-    // Handle arrays from Spark (e.g., ConstructionMaterials might be ["Frame", "Stone"])
-    if (Array.isArray(v)) return v.filter(Boolean).join(', ') || null
-    return String(v)
+  if (typeof v === 'string') {
+    if (/^\*+$/.test(v) || v.trim() === '') return null
+    // Try parsing JSON objects stored as strings (from JSONB extraction)
+    if (v.startsWith('{') && v.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(v)
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          const keys = Object.keys(parsed).filter(k => parsed[k] === true)
+          return keys.length > 0 ? keys.join(', ') : null
+        }
+      } catch { /* not JSON, return as-is */ }
+    }
+    return v.trim()
   }
-  if (/^\*+$/.test(v) || v.trim() === '') return null
-  return v.trim()
+  // Handle arrays from Spark (e.g., ["Frame", "Stone"])
+  if (Array.isArray(v)) return v.filter(Boolean).join(', ') || null
+  // Handle Spark JSON feature objects like {Frame: true, Concrete: true}
+  if (typeof v === 'object' && v !== null) {
+    const obj = v as Record<string, unknown>
+    const keys = Object.keys(obj).filter(k => obj[k] === true)
+    return keys.length > 0 ? keys.join(', ') : null
+  }
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -96,59 +114,63 @@ function isMasked(v: unknown): boolean {
   return typeof v === 'string' && /^\*+$/.test(v)
 }
 
-/** Check if a JSON feature object contains a key (e.g., {"Pool": true}). */
-function featureHas(f: Fields, fieldKey: string, featureName: string): boolean | null {
+/** Parse a Spark feature field into a plain object. Handles both objects and JSON strings. */
+function parseFeatureObj(f: Fields, fieldKey: string): Record<string, unknown> | null {
   const raw = f[fieldKey]
   if (raw == null || isMasked(raw)) return null
   if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
-    return (raw as Record<string, unknown>)[featureName] === true
+    return raw as Record<string, unknown>
   }
   if (typeof raw === 'string') {
     try {
       const parsed = JSON.parse(raw)
-      if (typeof parsed === 'object' && parsed !== null) {
-        return parsed[featureName] === true
-      }
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) return parsed
     } catch { /* not JSON */ }
   }
   return null
 }
 
+/** Check if a JSON feature object contains a specific key (e.g., {"Pool": true}). */
+function featureHas(f: Fields, fieldKey: string, featureName: string): boolean | null {
+  const obj = parseFeatureObj(f, fieldKey)
+  if (obj == null) return null
+  return obj[featureName] === true
+}
+
+/** Check if a feature object has ANY truthy key except the excluded ones (e.g., "None"). */
+function featureHasAnyExcept(f: Fields, fieldKey: string, exclude: string[]): boolean | null {
+  const obj = parseFeatureObj(f, fieldKey)
+  if (obj == null) return null
+  const keys = Object.keys(obj).filter(k => obj[k] === true)
+  if (keys.length === 0) return null
+  const meaningful = keys.filter(k => !exclude.includes(k))
+  return meaningful.length > 0 ? true : false
+}
+
 /**
- * Resolve pool_yn: prefer PoolYN, fall back to AssociationAmenities/CommunityFeatures/PoolFeatures.
+ * Resolve pool_yn: prefer PoolYN, fall back to PoolFeatures/AssociationAmenities/CommunityFeatures.
+ * Private pools (In Ground, Above Ground, Private, Outdoor Pool) won't be in association data.
  */
 function resolvePoolYn(f: Fields): boolean | null {
   const direct = toBool(pick(f, 'PoolYN', 'PoolPrivateYN'))
   if (direct !== null) return direct
-  // Check feature objects for "Pool" key
-  if (featureHas(f, 'PoolFeatures', 'In Ground') === true
-    || featureHas(f, 'PoolFeatures', 'Above Ground') === true
-    || featureHas(f, 'PoolFeatures', 'Community') === true
-    || featureHas(f, 'PoolFeatures', 'Private') === true) return true
-  const fromAmenities = featureHas(f, 'AssociationAmenities', 'Pool')
-  if (fromAmenities === true) return true
-  const fromCommunity = featureHas(f, 'CommunityFeatures', 'Pool')
-  if (fromCommunity === true) return true
-  // If PoolFeatures exists and is a non-empty non-masked object, there's a pool
-  const pf = f['PoolFeatures']
-  if (pf != null && !isMasked(pf) && typeof pf === 'object' && Object.keys(pf as object).length > 0) return true
+  // Check PoolFeatures — any key besides "None" means there's a pool
+  const hasPool = featureHasAnyExcept(f, 'PoolFeatures', ['None'])
+  if (hasPool === true) return true
+  if (hasPool === false) return false  // PoolFeatures exists with only "None"
+  // Fall back to amenities/community features
+  if (featureHas(f, 'AssociationAmenities', 'Pool') === true) return true
+  if (featureHas(f, 'CommunityFeatures', 'Pool') === true) return true
   return null
 }
 
 /**
- * Resolve waterfront_yn: prefer WaterfrontYN, fall back to WaterFrontYN (Spark casing variant).
+ * Resolve waterfront_yn: prefer WaterfrontYN, fall back to WaterFrontYN and WaterfrontFeatures.
  */
 function resolveWaterfrontYn(f: Fields): boolean | null {
   const direct = toBool(pick(f, 'WaterfrontYN', 'WaterFrontYN'))
   if (direct !== null) return direct
-  // Check WaterfrontFeatures — if it has any non-None entry, it's waterfront
-  const wf = f['WaterfrontFeatures']
-  if (wf != null && !isMasked(wf) && typeof wf === 'object') {
-    const keys = Object.keys(wf as object)
-    if (keys.length > 0 && !keys.every(k => k === 'None')) return true
-    if (keys.length > 0 && keys.every(k => k === 'None')) return false
-  }
-  return null
+  return featureHasAnyExcept(f, 'WaterfrontFeatures', ['None'])
 }
 
 /**
@@ -157,13 +179,34 @@ function resolveWaterfrontYn(f: Fields): boolean | null {
 function resolveBasementYn(f: Fields): boolean | null {
   const direct = toBool(pick(f, 'BasementYN'))
   if (direct !== null) return direct
-  const basement = f['Basement']
-  if (basement != null && !isMasked(basement) && typeof basement === 'object') {
-    const keys = Object.keys(basement as object)
-    if (keys.length > 0 && !keys.every(k => k === 'None')) return true
-    if (keys.length > 0 && keys.every(k => k === 'None')) return false
-  }
-  return null
+  return featureHasAnyExcept(f, 'Basement', ['None'])
+}
+
+/**
+ * Resolve fireplace_yn: prefer FireplaceYN, fall back to FireplaceFeatures.
+ */
+function resolveFireplaceYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'FireplaceYN'))
+  if (direct !== null) return direct
+  return featureHasAnyExcept(f, 'FireplaceFeatures', ['None'])
+}
+
+/**
+ * Resolve heating_yn: prefer HeatingYN, fall back to Heating feature object.
+ */
+function resolveHeatingYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'HeatingYN'))
+  if (direct !== null) return direct
+  return featureHasAnyExcept(f, 'Heating', ['None'])
+}
+
+/**
+ * Resolve cooling_yn: prefer CoolingYN, fall back to Cooling feature object.
+ */
+function resolveCoolingYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'CoolingYN'))
+  if (direct !== null) return direct
+  return featureHasAnyExcept(f, 'Cooling', ['None'])
 }
 
 /**
@@ -478,7 +521,7 @@ export function sparkToListingRow(
     lot_features: toText(pick(fields, 'LotFeatures')),
     pool_yn: resolvePoolYn(fields),
     spa_yn: toBool(pick(fields, 'SpaYN')),
-    fireplace_yn: toBool(pick(fields, 'FireplaceYN')),
+    fireplace_yn: resolveFireplaceYn(fields),
     fireplaces_total: toInt(pick(fields, 'FireplacesTotal')),
     fencing: toText(pick(fields, 'Fencing')),
     waterfront_yn: resolveWaterfrontYn(fields),
@@ -493,8 +536,8 @@ export function sparkToListingRow(
     parking_total: toInt(pick(fields, 'ParkingTotal')),
 
     // --- Tier 2: Systems ---
-    heating_yn: toBool(pick(fields, 'HeatingYN')),
-    cooling_yn: toBool(pick(fields, 'CoolingYN')),
+    heating_yn: resolveHeatingYn(fields),
+    cooling_yn: resolveCoolingYn(fields),
     sewer: toText(pick(fields, 'Sewer')),
     water: toText(pick(fields, 'Water')),
 
