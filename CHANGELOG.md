@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.40.0 (2026-04-15)
+
+### Features
+- feat: enhanced market metrics — 18 new market_pulse_live columns + refresh function
+
+---
+
+
 ## v1.39.0 (2026-04-15)
 
 ### Features
