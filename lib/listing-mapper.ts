@@ -91,6 +91,90 @@ function pick(f: Fields, ...keys: string[]): unknown {
   return null
 }
 
+/** Check if a value is masked (Spark sends "********" for restricted fields). */
+function isMasked(v: unknown): boolean {
+  return typeof v === 'string' && /^\*+$/.test(v)
+}
+
+/** Check if a JSON feature object contains a key (e.g., {"Pool": true}). */
+function featureHas(f: Fields, fieldKey: string, featureName: string): boolean | null {
+  const raw = f[fieldKey]
+  if (raw == null || isMasked(raw)) return null
+  if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
+    return (raw as Record<string, unknown>)[featureName] === true
+  }
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw)
+      if (typeof parsed === 'object' && parsed !== null) {
+        return parsed[featureName] === true
+      }
+    } catch { /* not JSON */ }
+  }
+  return null
+}
+
+/**
+ * Resolve pool_yn: prefer PoolYN, fall back to AssociationAmenities/CommunityFeatures/PoolFeatures.
+ */
+function resolvePoolYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'PoolYN', 'PoolPrivateYN'))
+  if (direct !== null) return direct
+  // Check feature objects for "Pool" key
+  if (featureHas(f, 'PoolFeatures', 'In Ground') === true
+    || featureHas(f, 'PoolFeatures', 'Above Ground') === true
+    || featureHas(f, 'PoolFeatures', 'Community') === true
+    || featureHas(f, 'PoolFeatures', 'Private') === true) return true
+  const fromAmenities = featureHas(f, 'AssociationAmenities', 'Pool')
+  if (fromAmenities === true) return true
+  const fromCommunity = featureHas(f, 'CommunityFeatures', 'Pool')
+  if (fromCommunity === true) return true
+  // If PoolFeatures exists and is a non-empty non-masked object, there's a pool
+  const pf = f['PoolFeatures']
+  if (pf != null && !isMasked(pf) && typeof pf === 'object' && Object.keys(pf as object).length > 0) return true
+  return null
+}
+
+/**
+ * Resolve waterfront_yn: prefer WaterfrontYN, fall back to WaterFrontYN (Spark casing variant).
+ */
+function resolveWaterfrontYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'WaterfrontYN', 'WaterFrontYN'))
+  if (direct !== null) return direct
+  // Check WaterfrontFeatures — if it has any non-None entry, it's waterfront
+  const wf = f['WaterfrontFeatures']
+  if (wf != null && !isMasked(wf) && typeof wf === 'object') {
+    const keys = Object.keys(wf as object)
+    if (keys.length > 0 && !keys.every(k => k === 'None')) return true
+    if (keys.length > 0 && keys.every(k => k === 'None')) return false
+  }
+  return null
+}
+
+/**
+ * Resolve basement_yn: prefer BasementYN, fall back to Basement feature object.
+ */
+function resolveBasementYn(f: Fields): boolean | null {
+  const direct = toBool(pick(f, 'BasementYN'))
+  if (direct !== null) return direct
+  const basement = f['Basement']
+  if (basement != null && !isMasked(basement) && typeof basement === 'object') {
+    const keys = Object.keys(basement as object)
+    if (keys.length > 0 && !keys.every(k => k === 'None')) return true
+    if (keys.length > 0 && keys.every(k => k === 'None')) return false
+  }
+  return null
+}
+
+/**
+ * Resolve school_district: prefer SchoolDistrict, fall back to district-specific fields.
+ */
+function resolveSchoolDistrict(f: Fields): string | null {
+  const direct = toText(pick(f, 'SchoolDistrict'))
+  if (direct !== null) return direct
+  return toText(pick(f, 'HighSchoolDistrict', 'ElementarySchoolDistrict', 'MiddleOrJuniorSchoolDistrict'))
+}
+
 // ---------------------------------------------------------------------------
 // HOA monthly normalization
 // ---------------------------------------------------------------------------
@@ -386,18 +470,18 @@ export function sparkToListingRow(
     rooms_total: roomsTotal,
     construction_materials: toText(pick(fields, 'ConstructionMaterials')),
     roof: toText(pick(fields, 'Roof')),
-    basement_yn: toBool(pick(fields, 'BasementYN')),
+    basement_yn: resolveBasementYn(fields),
 
     // --- Tier 2: Lot & Exterior ---
     lot_size_acres: lotAcres,
     lot_size_sqft: lotSqft,
     lot_features: toText(pick(fields, 'LotFeatures')),
-    pool_yn: toBool(pick(fields, 'PoolYN')),
+    pool_yn: resolvePoolYn(fields),
     spa_yn: toBool(pick(fields, 'SpaYN')),
     fireplace_yn: toBool(pick(fields, 'FireplaceYN')),
     fireplaces_total: toInt(pick(fields, 'FireplacesTotal')),
     fencing: toText(pick(fields, 'Fencing')),
-    waterfront_yn: toBool(pick(fields, 'WaterfrontYN')),
+    waterfront_yn: resolveWaterfrontYn(fields),
     horse_yn: toBool(pick(fields, 'HorseYN')),
     direction_faces: toText(pick(fields, 'DirectionFaces')),
 
@@ -434,7 +518,7 @@ export function sparkToListingRow(
     elementary_school: toText(pick(fields, 'ElementarySchool')),
     middle_school: toText(pick(fields, 'MiddleOrJuniorSchool')),
     high_school: toText(pick(fields, 'HighSchool')),
-    school_district: toText(pick(fields, 'SchoolDistrict')),
+    school_district: resolveSchoolDistrict(fields),
     view_description: toText(pick(fields, 'View')),
     parcel_number: toText(pick(fields, 'ParcelNumber')),
     walk_score: toInt(pick(fields, 'WalkScore')),
