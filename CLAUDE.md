@@ -54,6 +54,27 @@ The `_style_backup/` directory contains retired styling artifacts and is exclude
 
 ---
 
+## Opus Orchestrator Policy (MANDATORY)
+
+This agent runs on Opus. Opus is ~15× the per-token cost of Haiku. **Do not burn Opus context on mechanical/bulk work.** Delegate to subagents via the `Agent` tool (`model: "sonnet"` or `"haiku"`).
+
+**Always delegate:**
+- Codebase enumeration and grep sweeps across many files (`Explore` subagent)
+- Bulk refactors / rename-across-repo tasks
+- Reading/parsing >10 files to understand a module
+- Running long test suites, builds, or deployments
+- Data extraction from Supabase / large CSVs / logs
+
+**Opus keeps:**
+- Architecture decisions (ADRs), system design
+- The final code review before ship
+- User-facing product decisions and trade-offs
+- Complex debugging where context across multiple systems matters
+
+Launch parallel subagents in a single message when work is independent. Use `isolation: "worktree"` for any code-mutating work. See memory: `feedback_orchestrator_pattern.md`.
+
+---
+
 ## Work Standards
 
 - **No shortcuts, no assumptions.** When coding, implement the full solution from start to finish. Never stop halfway and present partial work as complete. When answering questions about the codebase, trace the logic all the way through to a confirmed answer — no surface-level glances, no guesses.
@@ -64,3 +85,13 @@ The `_style_backup/` directory contains retired styling artifacts and is exclude
 - **Never ask Matt to run anything manually.** You handle ALL git operations, ALL terminal commands, ALL deployments, everything. Matt never touches the terminal. If something needs to be done, you do it.
 - **Proactively clear git locks.** Before ANY git operation (commit, merge, rebase, pull, push), check for .git/index.lock and remove it if it's stale. Never let a lock file block progress. Never report a lock file to Matt as a blocker — just fix it.
 - **No blocked builds or commits.** Builds must never back up. Commits must never be blocked. If something is in the way, fix it yourself. Exhaust every option before reporting an issue.
+
+---
+
+## Skill Routing
+
+**Mandatory:** `engineering:code-review` on every meaningful change before ship. `engineering:deploy-checklist` before any production deploy. `design:design-system` audits whenever shadcn/ui compliance is in question.
+
+**Data work:** `data:*` skills fire automatically on any Supabase / SQL / analytics task.
+
+Everything else (debugging, architecture, testing-strategy, documentation, incident-response, tech-debt, accessibility-review, ux-copy, web-artifacts-builder) fires on trigger match — no table needed.
