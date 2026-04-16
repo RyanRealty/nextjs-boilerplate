@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.40.4 (2026-04-16)
+
+### Maintenance
+- docs: add ClosePrice coverage fix brief and update CLAUDE.md
+
+---
+
+
 ## v1.40.3 (2026-04-16)
 
 ### Bug Fixes
