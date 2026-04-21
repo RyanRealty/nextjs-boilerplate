@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.41.0 (2026-04-21)
+
+### Features
+- feat: add Meta Graph API publishing infrastructure for IG + Facebook
+
+### Maintenance
+- chore(rules): reconcile cursor rules with code reality (governance purge ch.1)
+
+---
+
+
 ## v1.40.4 (2026-04-16)
 
 ### Maintenance
