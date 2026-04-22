@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.42.0 (2026-04-22)
+
+### Features
+- feat: add cascade peaks remotion project and fix headless font loading
+
+---
+
+
 ## v1.41.7 (2026-04-22)
 
 ### Other
