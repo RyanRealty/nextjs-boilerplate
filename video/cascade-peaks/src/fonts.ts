@@ -1,27 +1,44 @@
-// Headless-safe Google Fonts via @remotion/google-fonts (FontFace API + bounded
-// timeouts). The old <link rel=stylesheet> + document.fonts.ready path often
-// never fired `onload` in Chromium during `remotion render`, leaving
-// delayRender() open until the global timeout (~238s).
+// Font loader — inject @font-face from local files (same as Cowork `work/cascade_peaks`).
+// Requires in `public/`: Amboqia_Boriango.otf, AzoSans-Medium.ttf (not committed — copy from
+// BRAND MANAGER / jackstraw_video public on the VM, or from the other agent’s `public/`).
 
-import { continueRender, delayRender } from 'remotion';
-import { loadFont as loadCormorant } from '@remotion/google-fonts/CormorantGaramond';
-import { loadFont as loadBarlow } from '@remotion/google-fonts/Barlow';
+import { staticFile } from 'remotion';
+import { FONT_BODY, FONT_SERIF } from './brand';
 
-const handle = delayRender('cascade-peaks-fonts');
+type FontSpec = {
+  family: string;
+  url: string;
+  weight?: string;
+};
 
-const { waitUntilDone: serifNormal } = loadCormorant('normal', {
-  weights: ['400', '600'],
-  subsets: ['latin'],
+const loadRobust = ({ family, url, weight = '400' }: FontSpec) => {
+  if (typeof document === 'undefined') return;
+
+  const styleId = `font-face-${family.replace(/\s+/g, '-')}`;
+  if (document.getElementById(styleId)) return;
+
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = `
+    @font-face {
+      font-family: '${family}';
+      src: url('${url}') format('opentype'), url('${url}') format('truetype');
+      font-weight: ${weight};
+      font-style: normal;
+      font-display: block;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+loadRobust({
+  family: FONT_SERIF,
+  url: staticFile('Amboqia_Boriango.otf'),
+  weight: '400',
 });
-const { waitUntilDone: serifItalic } = loadCormorant('italic', {
-  weights: ['400'],
-  subsets: ['latin'],
-});
-const { waitUntilDone: body } = loadBarlow('normal', {
-  weights: ['500', '600'],
-  subsets: ['latin'],
-});
 
-void Promise.all([serifNormal(), serifItalic(), body()])
-  .then(() => continueRender(handle))
-  .catch(() => continueRender(handle));
+loadRobust({
+  family: FONT_BODY,
+  url: staticFile('AzoSans-Medium.ttf'),
+  weight: '500',
+});

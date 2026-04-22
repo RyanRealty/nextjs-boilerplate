@@ -27,9 +27,9 @@ export const SAFE_BOTTOM = 1520;
 export const SAFE_LEFT = 60;
 export const SAFE_RIGHT = 1020;
 
-// Fonts: Google Fonts (see fonts.ts). Names must match CSS family strings.
-export const FONT_SERIF = 'Cormorant Garamond';
-export const FONT_BODY = 'Barlow';
+// Fonts — match Cowork / jackstraw pattern (local files in `public/`).
+export const FONT_SERIF = 'Amboqia Boriango';
+export const FONT_BODY = 'Azo Sans';
 
 // Ryan Realty contact line (appears on the closing card only — NOT on
 // interior scenes per the "no branding in viral video" rule, though the
