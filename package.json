@@ -62,7 +62,6 @@
     "skyslope:forms-rename-documents": "node scripts/skyslope-forms-rename-documents.mjs",
     "skyslope:forms-workbook": "node scripts/skyslope-forms-transaction-workbook.mjs",
     "skyslope:forms-brief": "node scripts/skyslope-forms-principal-brief-docx.mjs",
-    "master-deal:regenerate": "node scripts/regenerate-master-deal-from-canonical.mjs",
     "geocode:easy-missing": "node scripts/geocode-easy-missing-listings.mjs",
     "geocode:easy-missing:report": "node scripts/geocode-easy-progress-report.mjs",
     "backfill:close-price:history": "node scripts/backfill-close-price-from-history.mjs",
