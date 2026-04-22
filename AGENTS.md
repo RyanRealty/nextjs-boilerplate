@@ -22,6 +22,7 @@ Matt alternates between **Claude Code** and **Cursor**. Both are the same repo a
 1. **No saved-but-unpushed work on `main`.** If you commit, you **push to `origin/main` in the same session** (resolve rebase/stash conflicts yourself). Do not end with `main` ahead of `origin/main` unless the network failed — and then say that explicitly; do not call the work “live.”
 2. **Production follows Git.** Pushing `main` triggers Vercel production; “shipped” means remote `main` is updated and, when app code changed, the production deploy is **READY** (see `.cursor/rules/deploy-verify-before-done.mdc`).
 3. **No hanging migrations.** New files under `supabase/migrations/` are not real until they run on **hosted** Supabase. Apply them in the **same delivery effort** as the code that needs them — never “commit now, migrate later” (`.cursor/rules/supabase-migrations-auto.mdc`, `.cursor/rules/production-parity.mdc`).
+4. **Trunk only — `main` and nothing else.** Do not create local or remote feature branches, release branches, or PR flows for routine work. Do not use **`git worktree`** on this repo (no second checkouts, no parallel trees on disk). One working copy, one branch: **`main`**, always tracking **`origin/main`** after pull/push. If a stray branch or worktree appears, delete it and return to a single clean `main` before doing more work.
 
 ### What the other environment should read
 
@@ -307,9 +308,9 @@ git commit -m "feat: <short description of what was done>"
 git push origin main
 ```
 
-## CRITICAL: Push to Main
+## CRITICAL: Push to Main (trunk only)
 
-**Always push directly to `main`.** Do NOT create feature branches. Do NOT create pull requests. Push to main and let CI validate. The orchestrator and task registry handle coordination — branches are unnecessary overhead.
+**Always push directly to `main`.** Do NOT create feature branches. Do NOT create pull requests. Do NOT add **`git worktree`** checkouts for this project. Push to `main` and let CI validate. The orchestrator and task registry handle coordination — extra branches or worktrees are forbidden overhead and hide state from the other tool.
 
 ```bash
 # CORRECT
@@ -319,6 +320,7 @@ git push origin main
 git checkout -b feat/some-branch
 git push origin feat/some-branch
 gh pr create
+git worktree add ../RyanRealty-side feature/foo
 ```
 
 ## Production parity (code + database + Vercel)

@@ -103,7 +103,7 @@ This agent runs on Opus. Opus is ~15× the per-token cost of Haiku. **Do not bur
 - User-facing product decisions and trade-offs
 - Complex debugging where context across multiple systems matters
 
-Launch parallel subagents in a single message when work is independent. Use `isolation: "worktree"` for any code-mutating work. See memory: `feedback_orchestrator_pattern.md`.
+Launch parallel subagents in a single message when work is independent. **Never use `git worktree` or a non-`main` branch for this repo** — all code changes land in the single checked-out `main` working tree. See memory: `feedback_orchestrator_pattern.md`.
 
 ---
 
@@ -113,7 +113,7 @@ Launch parallel subagents in a single message when work is independent. Use `iso
 - **Always verify your own work.** Before saying something is done or something is true, confirm it. Run the code, check the output, read the actual files. Never assume. Every claim about code behavior must be verified by actually reading the relevant code. Every fix must be tested to confirm it works before reporting it's done.
 - **Truthful and accurate, always.** If you're not sure, say so. Never state something as fact unless you've confirmed it. If you got something wrong, own it immediately.
 - **No partial answers.** When asked about status, where things stand, or how something works, go all the way through to the end to figure out the exact answer. There are never any assumptions being made — always confirm.
-- **Always push directly to main.** No worktrees, no feature branches unless explicitly asked.
+- **Always push directly to main.** No **`git worktree`**, no extra local or remote branches, no feature branches unless explicitly asked — one checkout, **`main` only**.
 - **Same pipeline as Cursor.** Matt switches between Claude Code and Cursor on one repo. Before work: `git pull --rebase origin main`. After every commit on `main`: **push to `origin` immediately** — no “saved locally” commits. **Migrations:** apply to hosted Supabase in the same delivery as code that depends on them (see `AGENTS.md` *Claude Code ↔ Cursor*, `.cursor/rules/production-parity.mdc`, `.cursor/rules/supabase-migrations-auto.mdc`). Optional continuity: `~/.claude/plans/HANDOFF-*.md` + `docs/plans/task-registry.json`.
 - **Never ask Matt to run anything manually.** You handle ALL git operations, ALL terminal commands, ALL deployments, everything. Matt never touches the terminal. If something needs to be done, you do it.
 - **Proactively clear git locks.** Before ANY git operation (commit, merge, rebase, pull, push), check for .git/index.lock and remove it if it's stale. Never let a lock file block progress. Never report a lock file to Matt as a blocker — just fix it.
