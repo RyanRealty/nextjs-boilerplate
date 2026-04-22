@@ -125,9 +125,13 @@ Launch parallel subagents in a single message when work is independent. **Never 
 
 Durable cross-session notes live in **`.auto-memory/`** (same pattern as Cowork `feedback_*.md` references in video skills). **Cascade Peaks video (in flight):** append status to `.auto-memory/memory_cascade_peaks_video_handoff.md` — do not let handoff notes live only in chat.
 
+**Hand off to Cursor / the other Claude agent:** Before Matt switches tools, update **`docs/plans/CROSS_AGENT_HANDOFF.md`** (Current block: what shipped, what is next, commit SHA, skills you read). The other side pulls `main` and reads that file first. See **`AGENTS.md`** (*Cross-agent handoff* + *Skills*).
+
 ---
 
 ## Skill Routing
+
+**Load skills first:** If a task might match any **`SKILL.md`** in this repo (`.cursor/skills/`, `video_production_skills/`) or in Cursor’s bundled skill paths, **read that skill file before doing the work**—same bar as Cursor agents (`AGENTS.md` *Skills*).
 
 **Mandatory:** `engineering:code-review` on every meaningful change before ship. `engineering:deploy-checklist` before any production deploy. `design:design-system` audits whenever shadcn/ui compliance is in question.
 

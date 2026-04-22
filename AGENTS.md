@@ -31,8 +31,27 @@ Matt alternates between **Claude Code** and **Cursor**. Both are the same repo a
 | What actually shipped | `git log origin/main` |
 | Backlog / next task | `docs/plans/task-registry.json` and `npx tsx scripts/orchestrate.ts next` |
 | Optional handoff notes | `~/.claude/plans/HANDOFF-*.md` — add or update when switching tools with context the repo does not carry |
+| **Cross-agent continuity (required when switching)** | **`docs/plans/CROSS_AGENT_HANDOFF.md`** — update the **Current** table before you stop or when Matt moves to the other tool. The other agent must **read it after `git pull`** before deep work. |
 
 **Cursor:** `.cursor/rules/` as usual. **Claude Code:** `CLAUDE.md` in this repo mirrors ship discipline; stay aligned with this section.
+
+### Cross-agent handoff (mandatory when work spans tools)
+
+1. **Push `main` first** (nothing handoff-worthy should be unpushed).
+2. Open **`docs/plans/CROSS_AGENT_HANDOFF.md`** and replace the **Current** block: surface, time, commit SHA, what finished, what is next, blockers, which **`SKILL.md` files you actually read**.
+3. Optionally also write narrative under **`~/.claude/plans/HANDOFF-*.md`** for Claude Desktop-only context (paths on disk, local-only experiments)—still assume the other agent only **pulls git** and reads **`CROSS_AGENT_HANDOFF.md`**.
+
+### Skills (load before substantive work)
+
+If a workspace **skill** might apply—even slightly—**read its `SKILL.md` first** (use the Read tool on the full path), then follow it. Do not improvise domain workflows (Supabase, deploy, Oregon brokerage, SkySlope, video skills, etc.) without loading the matching skill.
+
+**Where to look**
+
+- **This repo:** `.cursor/skills/**/SKILL.md` (e.g. Oregon OREF, OREA PB, SkySlope, professional Word, etc.)
+- **Cursor-bundled / plugin skills:** paths under `~/.cursor/plugins/.../skills/**/SKILL.md` when the task matches their description (Next.js, Vercel, Supabase, TDD, debugging, etc.)
+- **Repo `video_production_skills/**/SKILL.md`** when the task is video production
+
+**Heuristic:** Task mentions migrations → read Supabase skill; task mentions ship → read deploy / verification skills; task mentions rules → read `create-rule` skill before authoring rules. When unsure, grep `SKILL.md` titles or ask once; prefer loading an extra skill over skipping.
 
 ---
 
