@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.42.2 (2026-04-22)
+
+### Maintenance
+- docs: add Cowork paste block for cascade peaks task 106 pickup
+
+---
+
+
 ## v1.42.1 (2026-04-22)
 
 ### Bug Fixes
