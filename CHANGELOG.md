@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.41.5 (2026-04-22)
+
+### Maintenance
+- docs: cross-agent handoff file + mandatory skill loading
+
+---
+
+
 ## v1.41.4 (2026-04-22)
 
 ### Maintenance
