@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.42.1 (2026-04-22)
+
+### Bug Fixes
+- fix: restore Amboqia and Azo Sans fonts for cascade peaks remotion
+
+---
+
+
 ## v1.42.0 (2026-04-22)
 
 ### Features
