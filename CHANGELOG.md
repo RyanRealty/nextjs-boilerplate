@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.41.3 (2026-04-22)
+
+### Maintenance
+- docs(rules): trunk-only main — no branches, no git worktrees
+
+---
+
+
 ## v1.41.2 (2026-04-22)
 
 ### Maintenance
