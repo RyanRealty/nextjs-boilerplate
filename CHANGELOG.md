@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.41.6 (2026-04-22)
+
+### Other
+- Add global skills registry for Cursor and Claude agents
+
+---
+
+
 ## v1.41.5 (2026-04-22)
 
 ### Maintenance
