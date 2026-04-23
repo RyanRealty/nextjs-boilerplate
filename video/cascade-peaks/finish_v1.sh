@@ -9,10 +9,15 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="$HERE/out"
-RAW="$OUT/cascade_peaks_v1_raw.mp4"
 FINAL="$OUT/cascade_peaks_v1.mp4"
-
-[ -f "$RAW" ] || { echo "Missing raw MP4: $RAW"; exit 1; }
+RAW=""
+for candidate in cascade_peaks_v1_raw.mp4 cascade_peaks_raw.mp4; do
+  if [ -f "$OUT/$candidate" ]; then RAW="$OUT/$candidate"; break; fi
+done
+[ -n "$RAW" ] || {
+  echo "Missing raw MP4 in $OUT (expected cascade_peaks_raw.mp4 from npm run build, or cascade_peaks_v1_raw.mp4)"
+  exit 1
+}
 
 echo "== Compressing raw MP4 =="
 ffmpeg -y -i "$RAW" \

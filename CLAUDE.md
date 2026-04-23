@@ -123,7 +123,7 @@ Launch parallel subagents in a single message when work is independent. **Never 
 
 ## Persistent memory (repo)
 
-Durable cross-session notes live in **`.auto-memory/`** (same pattern as Cowork `feedback_*.md` references in video skills). **Cascade Peaks video (in flight):** append status to `.auto-memory/memory_cascade_peaks_video_handoff.md` — do not let handoff notes live only in chat.
+Durable cross-session notes live in **`.auto-memory/`** (same pattern as Cowork `feedback_*.md` references in video skills). **Cascade Peaks video (in flight):** append status to `.auto-memory/memory_cascade_peaks_video_handoff.md` — do not let handoff notes live only in chat. **Local Remotion env (Mac / Cursor, parity with Cowork `work/cascade_peaks`):** `npm run video:cascade-peaks:setup` then `video/cascade-peaks/README.md`.
 
 **Hand off to Cursor / the other Claude agent:** Before Matt switches tools, update **`docs/plans/CROSS_AGENT_HANDOFF.md`** (Current block: what shipped, what is next, commit SHA, skills you read). The other side pulls `main` and reads that file first. See **`AGENTS.md`** (*Cross-agent handoff* + *Skills*).
 

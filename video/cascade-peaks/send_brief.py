@@ -5,12 +5,14 @@ Phone-first mobile responsive HTML. Wikimedia images load via URL;
 owned photos attached as inline cid: images so they render in-email.
 """
 import base64
+import os
 import sys
 from pathlib import Path
 
 import requests
 
-ROOT = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty")
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[2]  # repo root
 ENV_PATH = ROOT / ".env.local"
 
 RESEND_KEY = None
@@ -20,12 +22,67 @@ for line in ENV_PATH.read_text().splitlines():
         break
 assert RESEND_KEY, "No RESEND_API_KEY found"
 
-# Owned photos for inline cid attachment
-OWNED = {
-    "mountain_peak": Path("/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/BRAND MANAGER/Historical_Oregon_Carousel/sunriver_unsplash/photos/mountain_peak.jpg"),
-    "mountain_starry": Path("/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/BRAND MANAGER/Historical_Oregon_Carousel/sunriver_unsplash/photos/mountain_starry.jpg"),
-    "sunset_high_desert": Path("/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/ASSET_LIBRARY/PHOTOS/by_subject/sunriver/approved/vandevert_community/sunset_high_desert_01_1570452073.jpg"),
+# Owned photos for inline cid attachment — Cowork VM paths, then Mac overrides.
+_LEGACY_OWNED = {
+    "mountain_peak": Path(
+        "/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/BRAND MANAGER/"
+        "Historical_Oregon_Carousel/sunriver_unsplash/photos/mountain_peak.jpg"
+    ),
+    "mountain_starry": Path(
+        "/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/BRAND MANAGER/"
+        "Historical_Oregon_Carousel/sunriver_unsplash/photos/mountain_starry.jpg"
+    ),
+    "sunset_high_desert": Path(
+        "/sessions/stoic-sweet-dirac/mnt/Documents/Claude/Projects/ASSET_LIBRARY/PHOTOS/"
+        "by_subject/sunriver/approved/vandevert_community/sunset_high_desert_01_1570452073.jpg"
+    ),
 }
+_OWNED_NAMES = {
+    "mountain_peak": ("mountain_peak.jpg",),
+    "mountain_starry": ("mountain_starry.jpg",),
+    "sunset_high_desert": ("sunset_high_desert_01_1570452073.jpg", "sunset_high_desert.jpg"),
+}
+
+
+def _resolve_owned() -> dict[str, Path]:
+    bases: list[Path] = []
+    env_dir = os.environ.get("CASCADE_PEAKS_BRAND_ASSETS_DIR")
+    if env_dir:
+        bases.append(Path(env_dir))
+    bases.append(HERE / ".brand-attachments")
+    out: dict[str, Path] = {}
+    for cid, names in _OWNED_NAMES.items():
+        found: Path | None = None
+        for base in bases:
+            for name in names:
+                p = base / name
+                if p.is_file():
+                    found = p
+                    break
+            if found:
+                break
+        if not found and _LEGACY_OWNED[cid].is_file():
+            found = _LEGACY_OWNED[cid]
+        if found:
+            out[cid] = found
+    return out
+
+
+OWNED = _resolve_owned()
+_required = ("mountain_peak", "mountain_starry", "sunset_high_desert")
+_missing = [k for k in _required if k not in OWNED]
+if _missing:
+    print(
+        "send_brief: missing owned inline images:",
+        ", ".join(_missing),
+        file=sys.stderr,
+    )
+    print(
+        "Add files under video/cascade-peaks/.brand-attachments/ or set "
+        "CASCADE_PEAKS_BRAND_ASSETS_DIR (see video/cascade-peaks/README.md).",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 attachments = []
 for cid, path in OWNED.items():

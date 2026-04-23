@@ -9,9 +9,12 @@ import json
 import os
 import sys
 import urllib.request
+from pathlib import Path
 
-ENV_PATH = "/sessions/stoic-sweet-dirac/mnt/RyanRealty/.env.local"
-PEAK_DIR = "/sessions/stoic-sweet-dirac/mnt/RyanRealty/peak_options"
+_HERE = Path(__file__).resolve().parent
+_REPO = _HERE.parents[2]
+ENV_PATH = str(_REPO / ".env.local")
+PEAK_DIR = str(_REPO / "peak_options")
 
 def load_env():
     env = {}

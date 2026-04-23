@@ -9,9 +9,9 @@ from pathlib import Path
 
 import requests
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
-ROOT = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty")
+ROOT = HERE.parents[2]  # repo root (video/cascade-peaks -> video -> RyanRealty)
 ENV_PATH = ROOT / ".env.local"
 
 RESEND_KEY = None

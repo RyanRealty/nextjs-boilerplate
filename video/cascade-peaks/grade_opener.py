@@ -26,8 +26,9 @@ import sys
 
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageChops
 
-SRC = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty/peak_options/jefferson_unsplash_2.jpg")
-OUT_DIR = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty/peak_options/graded")
+_REPO = Path(__file__).resolve().parents[2]
+SRC = _REPO / "peak_options" / "jefferson_unsplash_2.jpg"
+OUT_DIR = _REPO / "peak_options" / "graded"
 OUT_DIR.mkdir(exist_ok=True)
 
 

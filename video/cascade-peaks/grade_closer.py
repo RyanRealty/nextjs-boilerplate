@@ -16,13 +16,15 @@ another scroll-stopper on its own.
 from pathlib import Path
 import sys
 
-# Reuse grading primitives from grade_opener.
-sys.path.insert(0, "/sessions/stoic-sweet-dirac/work/cascade_peaks")
+_HERE = Path(__file__).resolve().parent
+_REPO = _HERE.parents[2]
+# Reuse grading primitives from grade_opener (same folder as this script).
+sys.path.insert(0, str(_HERE))
 from grade_opener import s_curve, split_tone, vignette_v2, fit_with_blurred_fill
 from PIL import Image, ImageEnhance, ImageFilter
 
-SRC = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty/peak_options/washington_unsplash_1.jpg")
-OUT_DIR = Path("/sessions/stoic-sweet-dirac/mnt/RyanRealty/peak_options/graded")
+SRC = _REPO / "peak_options" / "washington_unsplash_1.jpg"
+OUT_DIR = _REPO / "peak_options" / "graded"
 OUT_DIR.mkdir(exist_ok=True)
 
 
