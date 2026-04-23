@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.47.0 (2026-04-23)
+
+### Features
+- feat: unsplash placeholder stills when listing tour has no mls photos
+
+---
+
+
 ## v1.46.5 (2026-04-23)
 
 ### Bug Fixes
