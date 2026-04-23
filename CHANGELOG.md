@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.46.0 (2026-04-23)
+
+### Features
+- feat(cascade-peaks): white PNG closer, wide orbit no zoom, IG FactCard, lighter Aubrey
+
+---
+
+
 ## v1.45.0 (2026-04-23)
 
 ### Features
