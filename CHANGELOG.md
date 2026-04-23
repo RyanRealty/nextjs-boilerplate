@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.48.0 (2026-04-23)
+
+### Features
+- feat: caldera springs b-roll json for listing tour act4 tail
+
+---
+
+
 ## v1.47.0 (2026-04-23)
 
 ### Features
