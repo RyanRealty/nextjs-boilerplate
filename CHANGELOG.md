@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.43.0 (2026-04-23)
+
+### Features
+- feat: bootstrap cascade peaks video env for local cursor parity
+
+---
+
+
 ## v1.42.4 (2026-04-22)
 
 ### Other
