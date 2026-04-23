@@ -1,7 +1,9 @@
 /**
  * Place/hero photos from Unsplash.
  * Search: city page = "City Oregon", community page = "Community City Oregon".
- * Set UNSPLASH_ACCESS_KEY in .env.local (https://unsplash.com/developers).
+ * Env: UNSPLASH_ACCESS_KEY (.env.local / Vercel). https://unsplash.com/developers
+ * Admin JSON search (same key, server-only): GET /api/admin/stock/unsplash/search?query=...
+ * Licensed stock: SHUTTERSTOCK_* — lib/shutterstock-api.ts and /api/admin/stock/shutterstock/search
  */
 
 export type PlacePhotoResult = {

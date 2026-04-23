@@ -1,6 +1,6 @@
 /**
  * Environment Variable Verification Script
- * Tests all 29 env vars — connectivity for APIs, format for client-side keys, presence for secrets.
+ * Tests core env vars — connectivity for APIs, format for client-side keys, presence for secrets.
  * Run: npm run env:verify   (loads `.env.local` via dotenv)
  * Non-destructive: no writes, no emails, no video generation.
  */
@@ -340,6 +340,47 @@ async function checkUnsplash() {
   }
 }
 
+// ─── 9b. Shutterstock ───────────────────────────────────────────────────────
+
+async function checkShutterstock() {
+  const key = env('SHUTTERSTOCK_API_KEY')
+  const secret = env('SHUTTERSTOCK_API_SECRET')
+  if (!key) {
+    fail('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', 'Not set')
+    if (!secret) fail('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Not set')
+    else warn('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Set — cannot verify without API key')
+    return
+  }
+  if (!secret) {
+    fail('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Not set')
+    fail('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', 'Set — secret missing; cannot authenticate')
+    return
+  }
+
+  const token = Buffer.from(`${key}:${secret}`, 'utf8').toString('base64')
+  try {
+    const res = await fetch('https://api.shutterstock.com/v2/images/search?query=Oregon+Three+Sisters&per_page=1', {
+      headers: { Authorization: `Basic ${token}` },
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { data?: unknown[] }
+      const hits = data.data?.length ?? 0
+      pass('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', `Connected — image search returned ${hits} hit(s)`)
+      pass('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Key pair accepted by api.shutterstock.com')
+    } else if (res.status === 401 || res.status === 403) {
+      fail('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', `Auth rejected (${res.status}) — check key/secret in Shutterstock developer portal`)
+      fail('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', `Auth rejected (${res.status})`)
+    } else {
+      const body = await res.text().catch(() => '')
+      fail('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', `HTTP ${res.status}: ${body.slice(0, 120)}`)
+      warn('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Request failed — see key line detail')
+    }
+  } catch (e) {
+    fail('Shutterstock API Key', 'SHUTTERSTOCK_API_KEY', `Connection error: ${e instanceof Error ? e.message : String(e)}`)
+    fail('Shutterstock API Secret', 'SHUTTERSTOCK_API_SECRET', 'Same request failed')
+  }
+}
+
 // ─── 10. Google Maps ────────────────────────────────────────────────────────
 
 async function checkGoogleMaps() {
@@ -552,7 +593,7 @@ async function checkMisc() {
 
 async function main() {
   console.log('\n🔍 Environment Variable Verification\n')
-  console.log('Testing all 29 environment variables...\n')
+  console.log('Testing configured environment variables...\n')
 
   // Run all checks (API calls in parallel where possible)
   await Promise.all([
@@ -565,6 +606,7 @@ async function main() {
     checkSynthesia(),
     checkResend(),
     checkUnsplash(),
+    checkShutterstock(),
     checkGoogleMaps(),
   ])
 
@@ -588,6 +630,7 @@ async function main() {
     { title: 'Synthesia', vars: ['SYNTHESIA_API_KEY'] },
     { title: 'Resend', vars: ['RESEND_API_KEY'] },
     { title: 'Unsplash', vars: ['UNSPLASH_ACCESS_KEY'] },
+    { title: 'Shutterstock', vars: ['SHUTTERSTOCK_API_KEY', 'SHUTTERSTOCK_API_SECRET'] },
     { title: 'Google Maps', vars: ['NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'] },
     { title: 'Google OAuth', vars: ['GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET'] },
     { title: 'Analytics & Tracking', vars: ['NEXT_PUBLIC_GA4_MEASUREMENT_ID', 'GOOGLE_GA4_PROPERTY_ID', 'NEXT_PUBLIC_GTM_CONTAINER_ID', 'NEXT_PUBLIC_ADSENSE_CLIENT_ID', 'NEXT_PUBLIC_META_PIXEL_ID'] },
