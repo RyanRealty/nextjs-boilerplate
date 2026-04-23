@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.44.1 (2026-04-23)
+
+### Bug Fixes
+- fix(cascade-peaks): inline closing SVG so headless render completes
+
+---
+
+
 ## v1.44.0 (2026-04-23)
 
 ### Features
