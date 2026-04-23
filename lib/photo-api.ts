@@ -4,6 +4,7 @@
  * Env: UNSPLASH_ACCESS_KEY (.env.local / Vercel). https://unsplash.com/developers
  * Admin JSON search (same key, server-only): GET /api/admin/stock/unsplash/search?query=...
  * Licensed stock: SHUTTERSTOCK_* — lib/shutterstock-api.ts and /api/admin/stock/shutterstock/search
+ * Pexels: PEXELS_API_KEY — lib/pexels-api.ts and /api/admin/stock/pexels/search
  */
 
 export type PlacePhotoResult = {
@@ -116,4 +117,4 @@ async function fetchUnsplashPage(
   }
 }
 
-// Pexels fallback removed; using Unsplash only for hero images.
+// Pexels: see lib/pexels-api.ts and /api/admin/stock/pexels/search (hero flow remains Unsplash-only unless you extend fetchPlacePhoto).

@@ -381,6 +381,32 @@ async function checkShutterstock() {
   }
 }
 
+// ─── 9c. Pexels (optional) ───────────────────────────────────────────────────
+
+async function checkPexels() {
+  const key = env('PEXELS_API_KEY')
+  if (!key) {
+    warn('Pexels', 'PEXELS_API_KEY', 'Not set — admin /api/admin/stock/pexels/search disabled until set')
+    return
+  }
+  try {
+    const res = await fetch('https://api.pexels.com/v1/search?query=Oregon+mountain&per_page=1&orientation=landscape', {
+      headers: { Authorization: key },
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { total_results?: number; page?: number }
+      pass('Pexels', 'PEXELS_API_KEY', `Connected — total_results hint: ${data.total_results?.toLocaleString() ?? 'ok'}`)
+    } else if (res.status === 401) {
+      fail('Pexels', 'PEXELS_API_KEY', 'Invalid API key (401 Unauthorized)')
+    } else {
+      const body = await res.text().catch(() => '')
+      fail('Pexels', 'PEXELS_API_KEY', `HTTP ${res.status}: ${body.slice(0, 120)}`)
+    }
+  } catch (e) {
+    fail('Pexels', 'PEXELS_API_KEY', `Connection error: ${e instanceof Error ? e.message : String(e)}`)
+  }
+}
+
 // ─── 10. Google Maps ────────────────────────────────────────────────────────
 
 async function checkGoogleMaps() {
@@ -607,6 +633,7 @@ async function main() {
     checkResend(),
     checkUnsplash(),
     checkShutterstock(),
+    checkPexels(),
     checkGoogleMaps(),
   ])
 
@@ -631,6 +658,7 @@ async function main() {
     { title: 'Resend', vars: ['RESEND_API_KEY'] },
     { title: 'Unsplash', vars: ['UNSPLASH_ACCESS_KEY'] },
     { title: 'Shutterstock', vars: ['SHUTTERSTOCK_API_KEY', 'SHUTTERSTOCK_API_SECRET'] },
+    { title: 'Pexels', vars: ['PEXELS_API_KEY'] },
     { title: 'Google Maps', vars: ['NEXT_PUBLIC_GOOGLE_MAPS_API_KEY'] },
     { title: 'Google OAuth', vars: ['GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET'] },
     { title: 'Analytics & Tracking', vars: ['NEXT_PUBLIC_GA4_MEASUREMENT_ID', 'GOOGLE_GA4_PROPERTY_ID', 'NEXT_PUBLIC_GTM_CONTAINER_ID', 'NEXT_PUBLIC_ADSENSE_CLIENT_ID', 'NEXT_PUBLIC_META_PIXEL_ID'] },

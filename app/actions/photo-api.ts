@@ -4,7 +4,7 @@ import { fetchPlacePhoto } from '../../lib/photo-api'
 
 /**
  * Get a dynamic place photo URL (and attribution) for use as hero/banner fallback.
- * Uses Unsplash or Pexels if API keys are set — real photos instead of AI-generated.
+ * Uses Unsplash if UNSPLASH_ACCESS_KEY is set (Pexels is wired for admin stock search; extend here if you want Pexels in hero fallback).
  * Call when no custom banner/hero exists for the city or subdivision.
  */
 export async function getPlacePhotoFallback(query: string): Promise<{

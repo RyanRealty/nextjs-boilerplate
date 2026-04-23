@@ -12,8 +12,9 @@ export default async function BannersPage() {
       <h1 className="text-2xl font-bold text-foreground">Banner images</h1>
       <p className="mt-2 text-muted-foreground">
         Hero banners from Unsplash (search by city or community). Set <code className="rounded bg-muted px-1">UNSPLASH_ACCESS_KEY</code> in .env.local (and in Vercel for production). Optional: <code className="rounded bg-muted px-1">SHUTTERSTOCK_API_KEY</code> + <code className="rounded bg-muted px-1">SHUTTERSTOCK_API_SECRET</code> for licensed previews via{' '}
-        <code className="rounded bg-muted px-1">GET /api/admin/stock/unsplash/search</code> and{' '}
-        <code className="rounded bg-muted px-1">GET /api/admin/stock/shutterstock/search</code> (admin session, preview URLs only). Generate once; the same URL is used on web and mobile. Create a <strong>public</strong> Storage bucket named <code className="rounded bg-muted px-1">banners</code> in Supabase Dashboard → Storage if you haven’t.
+          <code className="rounded bg-muted px-1">GET /api/admin/stock/unsplash/search</code>,{' '}
+          <code className="rounded bg-muted px-1">GET /api/admin/stock/pexels/search</code>, and{' '}
+          <code className="rounded bg-muted px-1">GET /api/admin/stock/shutterstock/search</code> (admin session, preview URLs only). UI: <code className="rounded bg-muted px-1">/admin/stock-photos</code>. Generate once; the same URL is used on web and mobile. Create a <strong>public</strong> Storage bucket named <code className="rounded bg-muted px-1">banners</code> in Supabase Dashboard → Storage if you haven’t.
       </p>
 
       <div className="mt-6 rounded-lg border border-border bg-muted p-4">
