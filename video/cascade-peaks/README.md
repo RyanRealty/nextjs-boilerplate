@@ -47,7 +47,7 @@ Or from this directory: `npm run start`, `npm run build`.
 
 ## Closing card logo
 
-`ClosingCard` uses `public/ryan_realty_closing_logo.svg` (committed wordmark). To use a raster lockup from your other videos, add e.g. `ryan_realty_closing_logo.png` to `public/` and switch the `staticFile(...)` path in `src/ClosingCard.tsx`.
+`ClosingCard` renders **`src/RyanRealtyClosingLogo.tsx`** (inline SVG) so headless `remotion render` does not depend on loading `.svg` through `<Img>` (that path often fails in Chromium offscreen). The file `public/ryan_realty_closing_logo.svg` is kept as a design reference; swap the React SVG for a raster only if you switch to a pattern Remotion supports reliably (e.g. embedded PNG via `staticFile('*.png')`).
 
 ## Post-render pipeline
 

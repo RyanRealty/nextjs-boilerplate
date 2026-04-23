@@ -6,6 +6,8 @@
 
 import React from 'react';
 import { staticFile, useCurrentFrame, Img } from 'remotion';
+
+import { RyanRealtyClosingLogo } from './RyanRealtyClosingLogo';
 import {
   DOMAIN,
   FONT_BODY,
@@ -58,7 +60,7 @@ export const ClosingCard: React.FC<ClosingCardProps> = ({ frameOffset }) => {
             'linear-gradient(to bottom, rgba(10,23,40,0.65) 0%, rgba(10,23,40,0.12) 35%, rgba(10,23,40,0.18) 60%, rgba(10,23,40,0.92) 100%)',
         }}
       />
-      {/* Logo — vector wordmark (replace `ryan_realty_closing_logo.png` in public if you have a raster lockup). */}
+      {/* Logo — inline SVG (Remotion headless + staticFile SVG is unreliable). */}
       <div
         style={{
           position: 'absolute',
@@ -71,16 +73,7 @@ export const ClosingCard: React.FC<ClosingCardProps> = ({ frameOffset }) => {
           transform: `translateY(${(1 - tLogo) * 16}px)`,
         }}
       >
-        <Img
-          src={staticFile('ryan_realty_closing_logo.svg')}
-          style={{
-            width: 'min(92%, 480px)',
-            height: 'auto',
-            maxHeight: 130,
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 4px 24px rgba(0,0,0,0.55))',
-          }}
-        />
+        <RyanRealtyClosingLogo width="min(92%, 480px)" maxHeight={130} />
       </div>
       {/* Contact block — sits above TikTok / IG bottom UI */}
       <div
