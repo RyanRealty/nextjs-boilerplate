@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.46.1 (2026-04-23)
+
+### Other
+- Wire Shutterstock and Unsplash env into stock APIs and verification.
+
+---
+
+
 ## v1.46.0 (2026-04-23)
 
 ### Features
