@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.43.1 (2026-04-23)
+
+### Maintenance
+- chore: gitignore cascade peaks brand font binaries
+
+---
+
+
 ## v1.43.0 (2026-04-23)
 
 ### Features
