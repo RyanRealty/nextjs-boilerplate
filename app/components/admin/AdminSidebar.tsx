@@ -40,6 +40,7 @@ export default function AdminSidebar({ role, brokerId }: AdminSidebarProps) {
       navItem('/admin/site-pages', 'Site pages', '📄'),
       navItem('/admin/media', 'Media', '🗂'),
       navItem('/admin/banners', 'Banners', '🖼'),
+      navItem('/admin/stock-photos', 'Stock photos', '📷'),
       navItem('/admin/query-builder', 'Query builder', '🔍'),
     )
   }

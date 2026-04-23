@@ -35,6 +35,7 @@ export async function GET(req: Request) {
       source: 'unsplash',
       query,
       data: data.map((d) => ({
+        id: d.unsplashId ?? null,
         url: d.url,
         thumbUrl: d.thumbUrl,
         attribution: d.attribution,

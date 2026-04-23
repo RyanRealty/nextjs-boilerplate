@@ -12,7 +12,7 @@ export type PlacePhotoResult = {
   sourceUrl?: string
 }
 
-export type PlacePhotoOption = PlacePhotoResult & { thumbUrl: string }
+export type PlacePhotoOption = PlacePhotoResult & { thumbUrl: string; /** Unsplash photo id (for attribution / download links) */ unsplashId?: string }
 
 /**
  * Fetch one landscape photo from Unsplash for the given search query.
@@ -91,6 +91,7 @@ async function fetchUnsplashPage(
     if (!res.ok) return []
     const data = (await res.json()) as {
       results?: Array<{
+        id?: string
         urls?: { regular?: string; thumb?: string; small?: string }
         user?: { name?: string; links?: { html?: string } }
       }>
@@ -106,6 +107,7 @@ async function fetchUnsplashPage(
         thumbUrl: thumb ?? regular,
         attribution: `Photo by ${name} on Unsplash`,
         sourceUrl: photo.user?.links?.html ?? 'https://unsplash.com',
+        unsplashId: photo.id,
       })
     }
     return results
