@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.44.0 (2026-04-23)
+
+### Features
+- feat(cascade-peaks): safe zones, skyline panel, fly-in orbits, closing logo
+
+---
+
+
 ## v1.43.1 (2026-04-23)
 
 ### Maintenance
