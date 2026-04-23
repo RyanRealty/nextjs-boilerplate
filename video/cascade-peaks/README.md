@@ -34,6 +34,17 @@ Place these next to the graded JPEGs in **`public/`**:
 
 Copy from Cowork `work/cascade_peaks/public/` or your brand vault. Without them, renders use fallback faces.
 
+## How to watch the video
+
+1. **While editing (interactive)**  
+   From repo root: `npm run video:cascade-peaks:studio` → open **http://localhost:3000** (watch the CLI if that port is in use). Scrub **CascadePeaks**. Studio streams tiles live, so motion can look softer than the final encode.
+
+2. **Finished file (full quality)**  
+   After `npm run video:cascade-peaks:render`, open **`video/cascade-peaks/out/cascade_peaks_raw.mp4`** in Finder or run `open video/cascade-peaks/out/cascade_peaks_raw.mp4`. Optional: `cp video/cascade-peaks/out/cascade_peaks_raw.mp4 outputs/`.
+
+3. **Compressed v1 + email pipeline**  
+   `npm run video:cascade-peaks:finish` → **`out/cascade_peaks_v1.mp4`** plus thumbnails (needs `ffmpeg` and `RESEND_API_KEY` for `send_v1.py`).
+
 ## Daily commands (repo root)
 
 | Command | Purpose |
