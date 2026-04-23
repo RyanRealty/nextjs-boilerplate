@@ -9,15 +9,14 @@ import { staticFile, useCurrentFrame, Img } from 'remotion';
 import {
   DOMAIN,
   FONT_BODY,
-  FONT_SERIF,
   GOLD,
   GOLD_SOFT,
   IG_HANDLE,
   NAVY_DEEP,
   PHONE,
+  SAFE_BOTTOM_INSET,
   SAFE_LEFT,
   SAFE_RIGHT,
-  TEXT_SHADOW,
   WHITE,
 } from './brand';
 import { CLOSING_CARD_SEC, FPS } from './config';
@@ -35,8 +34,8 @@ export const ClosingCard: React.FC<ClosingCardProps> = ({ frameOffset }) => {
   const tEntry = clamp(local / (0.5 * FPS), 0, 1);
   const alpha = easeOutCubic(tEntry);
 
-  const tH = clamp((local - 6) / (0.7 * FPS), 0, 1);
-  const tC = clamp((local - 22) / (0.7 * FPS), 0, 1);
+  const tLogo = clamp((local - 6) / (0.55 * FPS), 0, 1);
+  const tC = clamp((local - 18) / (0.65 * FPS), 0, 1);
 
   return (
     <div style={{ position: 'absolute', inset: 0, opacity: alpha, overflow: 'hidden' }}>
@@ -59,89 +58,54 @@ export const ClosingCard: React.FC<ClosingCardProps> = ({ frameOffset }) => {
             'linear-gradient(to bottom, rgba(10,23,40,0.65) 0%, rgba(10,23,40,0.12) 35%, rgba(10,23,40,0.18) 60%, rgba(10,23,40,0.92) 100%)',
         }}
       />
-      {/* Closing headline */}
+      {/* Logo — vector wordmark (replace `ryan_realty_closing_logo.png` in public if you have a raster lockup). */}
       <div
         style={{
           position: 'absolute',
           left: SAFE_LEFT,
           right: 1080 - SAFE_RIGHT,
-          top: 360,
-          opacity: tH,
-          transform: `translateY(${(1 - tH) * 18}px)`,
+          top: 380,
+          display: 'flex',
+          justifyContent: 'center',
+          opacity: tLogo,
+          transform: `translateY(${(1 - tLogo) * 16}px)`,
         }}
       >
-        <div
+        <Img
+          src={staticFile('ryan_realty_closing_logo.svg')}
           style={{
-            fontFamily: FONT_BODY,
-            fontSize: 26,
-            fontWeight: 700,
-            letterSpacing: 3,
-            color: GOLD,
-            marginBottom: 22,
+            width: 'min(92%, 480px)',
+            height: 'auto',
+            maxHeight: 130,
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 4px 24px rgba(0,0,0,0.55))',
           }}
-        >
-          10 PEAKS · ONE SKYLINE · FROM BEND
-        </div>
-        <div
-          style={{
-            fontFamily: FONT_SERIF,
-            fontSize: 92,
-            lineHeight: 1.02,
-            color: WHITE,
-            textShadow: TEXT_SHADOW,
-          }}
-        >
-          Now you can name them all.
-        </div>
+        />
       </div>
-      {/* Contact block — bottom safe, navy solid band */}
+      {/* Contact block — sits above TikTok / IG bottom UI */}
       <div
         style={{
           position: 'absolute',
           left: 0,
           right: 0,
-          bottom: 180,
-          padding: '36px 60px 44px',
+          bottom: SAFE_BOTTOM_INSET + 40,
+          padding: `28px ${SAFE_LEFT}px 20px`,
           background: NAVY_DEEP,
           borderTop: `3px solid ${GOLD}`,
           opacity: tC,
           transform: `translateY(${(1 - tC) * 18}px)`,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-          <div
-            style={{
-              width: 120,
-              height: 120,
-              borderRadius: 8,
-              background: 'rgba(255,255,255,0.08)',
-              border: `2px solid ${GOLD}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: FONT_SERIF,
-              fontSize: 46,
-              fontWeight: 600,
-              color: WHITE,
-              letterSpacing: -2,
-              flexShrink: 0,
-              boxShadow: '0 2px 12px rgba(0,0,0,0.45)',
-            }}
-            aria-hidden
-          >
-            RR
-          </div>
-          <div style={{ flex: 1 }}>
-            <ContactLine label="INSTAGRAM" value={IG_HANDLE} />
-            <ContactLine label="WEB" value={DOMAIN} />
-            <ContactLine label="CALL" value={PHONE} last />
-          </div>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <ContactLine label="INSTAGRAM" value={IG_HANDLE} />
+          <ContactLine label="WEB" value={DOMAIN} />
+          <ContactLine label="CALL" value={PHONE} last />
         </div>
         <div
           style={{
-            marginTop: 22,
+            marginTop: 18,
             fontFamily: FONT_BODY,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 500,
             color: GOLD_SOFT,
             letterSpacing: 2,

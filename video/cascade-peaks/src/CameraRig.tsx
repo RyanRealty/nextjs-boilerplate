@@ -125,6 +125,13 @@ export type OrbitRigProps = {
   frameOffset?: number;
   /** Zoom-in envelope: camera starts at radiusM*zoomStart, ends at radiusM. */
   zoomStart?: number; // default 1.35
+  /**
+   * Seconds at scene start: dolly from `orbitRadiusM * approachRadiusMult`
+   * toward the orbit start radius while holding start azimuth (fly-toward).
+   */
+  approachSec?: number;
+  /** Far radius multiplier used only during `approachSec`. Default 2.5. */
+  approachRadiusMult?: number;
   fov?: number;
   near?: number;
   far?: number;
@@ -155,6 +162,8 @@ export const OrbitCameraRig: React.FC<OrbitRigProps> = ({
   durationSec,
   frameOffset = 0,
   zoomStart = 1.35,
+  approachSec = 0,
+  approachRadiusMult = 2.5,
   fov = 36,
   near = 50,
   far = 80_000,
@@ -203,14 +212,31 @@ export const OrbitCameraRig: React.FC<OrbitRigProps> = ({
     if (!cam) return;
     const localFrame = frame - frameOffset;
     const totalFrames = durationSec * FPS;
-    const tRaw = clamp(localFrame / totalFrames, 0, 1);
-    const tOrbit = easeInOutQuart(tRaw);
-    const tZoom = easeOutCubic(tRaw);
+    const approachFrames = Math.min(
+      Math.round(Math.max(0, approachSec) * FPS),
+      Math.max(0, totalFrames - 2),
+    );
+    const orbitFrames = Math.max(1, totalFrames - approachFrames);
 
-    const azDeg = startAzimuthDeg + sweepDeg * tOrbit;
+    let azDeg: number;
+    let radius: number;
+
+    if (approachFrames > 0 && localFrame < approachFrames) {
+      const ta = easeOutCubic(clamp(localFrame / approachFrames, 0, 1));
+      const rFar = orbitRadiusM * approachRadiusMult;
+      const rNear = orbitRadiusM * zoomStart;
+      radius = rFar + (rNear - rFar) * ta;
+      azDeg = startAzimuthDeg;
+    } else {
+      const lf = localFrame - approachFrames;
+      const tRaw = clamp(lf / orbitFrames, 0, 1);
+      const tOrbit = easeInOutQuart(tRaw);
+      const tZoom = easeOutCubic(tRaw);
+      azDeg = startAzimuthDeg + sweepDeg * tOrbit;
+      radius = orbitRadiusM * (zoomStart + (1 - zoomStart) * tZoom);
+    }
+
     const az = (azDeg * Math.PI) / 180;
-
-    const radius = orbitRadiusM * (zoomStart + (1 - zoomStart) * tZoom);
 
     const camX = target[0] + Math.sin(az) * radius;
     const camY = target[1] + Math.cos(az) * radius;

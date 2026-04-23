@@ -17,6 +17,10 @@ import {
   GOLD,
   GOLD_SOFT,
   NAVY_DEEP,
+  SAFE_BOTTOM_INSET,
+  SAFE_LEFT,
+  SAFE_RIGHT,
+  SAFE_TOP,
   TEXT_SHADOW,
   WHITE,
 } from './brand';
@@ -34,8 +38,8 @@ type FactCardProps = {
   displayOrder: number;
 };
 
-// Vertical split: 3D hero occupies top 55% of 1920, info panel bottom 45%.
-const PANEL_TOP = 1050;
+// More 3D hero + panel stops higher above TikTok/IG caption + side controls.
+const PANEL_TOP = 1080;
 
 export const FactCard: React.FC<FactCardProps> = ({
   peak,
@@ -62,7 +66,7 @@ export const FactCard: React.FC<FactCardProps> = ({
 
   // Sequential reveal for facts — one bullet per 0.7s after stats arrive
   const panelArriveFrame = 0.8 * FPS;
-  const perFactFrames = 0.7 * FPS;
+  const perFactFrames = 0.88 * FPS;
   const factAlpha = (i: number) => {
     const start = panelArriveFrame + i * perFactFrames;
     return clamp((local - start) / (0.4 * FPS), 0, 1);
@@ -89,9 +93,9 @@ export const FactCard: React.FC<FactCardProps> = ({
       <div
         style={{
           position: 'absolute',
-          left: 60,
-          right: 60,
-          top: 80 + entryY,
+          left: SAFE_LEFT,
+          right: 1080 - SAFE_RIGHT,
+          top: SAFE_TOP - 24 + entryY,
         }}
       >
         {/* Order badge */}
@@ -116,7 +120,7 @@ export const FactCard: React.FC<FactCardProps> = ({
         <div
           style={{
             fontFamily: FONT_SERIF,
-            fontSize: 128,
+            fontSize: 112,
             lineHeight: 1.0,
             color: WHITE,
             textShadow:
@@ -138,10 +142,10 @@ export const FactCard: React.FC<FactCardProps> = ({
           top: PANEL_TOP,
           bottom: 0,
           background: `linear-gradient(to bottom, rgba(10,23,40,0.92) 0%, ${NAVY_DEEP} 8%, ${NAVY_DEEP} 100%)`,
-          padding: '38px 60px 52px 60px',
+          padding: `32px ${SAFE_LEFT}px ${SAFE_BOTTOM_INSET + 36}px ${SAFE_LEFT}px`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 18,
+          gap: 14,
         }}
       >
         {/* Thin gold divider at the top edge */}
@@ -179,8 +183,8 @@ export const FactCard: React.FC<FactCardProps> = ({
         <div
           style={{
             fontFamily: FONT_SERIF,
-            fontSize: 40,
-            lineHeight: 1.22,
+            fontSize: 34,
+            lineHeight: 1.25,
             color: GOLD_SOFT,
             marginTop: 2,
           }}
@@ -219,12 +223,12 @@ export const FactCard: React.FC<FactCardProps> = ({
                   boxShadow: `0 0 10px ${GOLD_SOFT}`,
                 }}
               />
-              <div
+                <div
                 style={{
                   fontFamily: FONT_BODY,
-                  fontSize: 30,
+                  fontSize: 26,
                   fontWeight: 500,
-                  lineHeight: 1.3,
+                  lineHeight: 1.32,
                   color: WHITE,
                 }}
               >
@@ -261,8 +265,8 @@ export const FactCard: React.FC<FactCardProps> = ({
           <div
             style={{
               fontFamily: FONT_SERIF,
-              fontSize: 28,
-              lineHeight: 1.3,
+              fontSize: 25,
+              lineHeight: 1.32,
               color: WHITE,
             }}
           >

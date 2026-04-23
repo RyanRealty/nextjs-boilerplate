@@ -45,6 +45,10 @@ Copy from Cowork `work/cascade_peaks/public/` or your brand vault. Without them,
 
 Or from this directory: `npm run start`, `npm run build`.
 
+## Closing card logo
+
+`ClosingCard` uses `public/ryan_realty_closing_logo.svg` (committed wordmark). To use a raster lockup from your other videos, add e.g. `ryan_realty_closing_logo.png` to `public/` and switch the `staticFile(...)` path in `src/ClosingCard.tsx`.
+
 ## Post-render pipeline
 
 1. **`npm run video:cascade-peaks:render`** → `out/cascade_peaks_raw.mp4`

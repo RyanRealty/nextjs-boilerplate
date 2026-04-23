@@ -13,6 +13,7 @@ import {
   GOLD_SOFT,
   SAFE_LEFT,
   SAFE_RIGHT,
+  SAFE_TOP,
   TEXT_SHADOW,
   WHITE,
 } from './brand';
@@ -68,7 +69,7 @@ export const OpeningCard: React.FC<OpeningCardProps> = ({ frameOffset }) => {
       <div
         style={{
           position: 'absolute',
-          top: 300,
+          top: SAFE_TOP,
           left: SAFE_LEFT,
           opacity: tH1,
           transform: `translateY(${(1 - tH1) * 18}px)`,
@@ -90,7 +91,7 @@ export const OpeningCard: React.FC<OpeningCardProps> = ({ frameOffset }) => {
           position: 'absolute',
           left: SAFE_LEFT,
           right: 1080 - SAFE_RIGHT,
-          bottom: 520,
+          bottom: 540,
         }}
       >
         <div

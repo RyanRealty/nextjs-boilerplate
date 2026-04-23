@@ -53,7 +53,9 @@ export const PeakOrbit: React.FC<Props> = ({ peak, displayOrder, frameOffset }) 
           sweepDeg={peak.camera.sweepDeg}
           durationSec={PER_PEAK_SEC}
           frameOffset={0}
-          zoomStart={1.25}
+          zoomStart={1.48}
+          approachSec={2.4}
+          approachRadiusMult={2.65}
           viewOffsetYPx={DEFAULT_VIEW_OFFSET_Y}
         />
       </TilesScene>

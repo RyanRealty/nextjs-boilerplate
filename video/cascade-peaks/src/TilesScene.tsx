@@ -66,9 +66,9 @@ export const TilesScene: React.FC<TilesSceneProps> = ({
   // some peak configs (Washington's plug-dome spire, North Sister's jagged
   // summit) need more LOD detail in the foreground — early release produced
   // tile-tear artifacts and missing summit geometry.
-  const MIN_LOADS = 60;
+  const MIN_LOADS = 95;
   // Quiet period with no new loads that signals "stable for now".
-  const QUIET_MS = 7000;
+  const QUIET_MS = 10_000;
 
   useEffect(() => {
     handleRef.current = delayRender('cascade-peaks-tiles-loading', {
@@ -142,8 +142,8 @@ export const TilesScene: React.FC<TilesSceneProps> = ({
 
       <TilesRenderer
         url="https://tile.googleapis.com/v1/3dtiles/root.json"
-        errorTarget={4}
-        errorThreshold={60}
+        errorTarget={2.5}
+        errorThreshold={48}
         lruCache-minBytesSize={50 * 1024 * 1024}
         lruCache-maxBytesSize={180 * 1024 * 1024}
         downloadQueue-maxJobs={20}

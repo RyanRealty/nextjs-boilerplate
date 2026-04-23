@@ -32,34 +32,22 @@ ls -lh "$FINAL"
 
 echo
 echo "== Extracting scene thumbnails =="
-# FPS=30, scene midpoints (in seconds):
-#   open     f48   -> 1.60s
-#   aubrey   f216  -> 7.20s
-#   paulina  f460  -> 15.33s
-#   bach     f720  -> 24.00s
-#   broken   f975  -> 32.50s
-#   south    f1225 -> 40.83s
-#   middle   f1480 -> 49.33s
-#   north    f1735 -> 57.83s
-#   wash     f1995 -> 66.50s
-#   jack     f2250 -> 75.00s
-#   black    f2505 -> 83.50s
-#   jeff     f2760 -> 92.00s
-#   close    f2930 -> 97.67s
+# FPS=30, scene midpoints (in seconds) — keep in sync with config.ts
+# (OPENING_CARD_SEC, AUBREY_PAN_SEC, PER_PEAK_SEC, CLOSING_CARD_SEC).
 declare -A SCENES=(
   ["thumb_open.jpg"]=1.60
   ["thumb_aubrey.jpg"]=7.20
-  ["thumb_paulina.jpg"]=15.33
-  ["thumb_bachelor.jpg"]=24.00
-  ["thumb_broken_top.jpg"]=32.50
-  ["thumb_south.jpg"]=40.83
-  ["thumb_middle.jpg"]=49.33
-  ["thumb_north.jpg"]=57.83
-  ["thumb_wash.jpg"]=66.50
-  ["thumb_jack.jpg"]=75.00
-  ["thumb_black.jpg"]=83.50
-  ["thumb_jeff.jpg"]=92.00
-  ["thumb_close.jpg"]=97.67
+  ["thumb_paulina.jpg"]=16.20
+  ["thumb_bachelor.jpg"]=26.20
+  ["thumb_broken_top.jpg"]=36.20
+  ["thumb_south.jpg"]=46.20
+  ["thumb_middle.jpg"]=56.20
+  ["thumb_north.jpg"]=66.20
+  ["thumb_wash.jpg"]=76.20
+  ["thumb_jack.jpg"]=86.20
+  ["thumb_black.jpg"]=96.20
+  ["thumb_jeff.jpg"]=106.20
+  ["thumb_close.jpg"]=112.80
 )
 
 for name in "${!SCENES[@]}"; do

@@ -20,12 +20,15 @@ export const WHITE_GLASS = 'rgba(255,255,255,0.12)';
 export const TEXT_SHADOW =
   '0 0 12px rgba(10,23,40,0.95), 0 0 24px rgba(10,23,40,0.75), 0 2px 4px rgba(0,0,0,0.9)';
 
-// IG safe zones for 1080x1920 frame: text stays inside y=280..1520.
-// Top margin accounts for IG reels header overlay; bottom for caption pill.
-export const SAFE_TOP = 280;
-export const SAFE_BOTTOM = 1520;
-export const SAFE_LEFT = 60;
-export const SAFE_RIGHT = 1020;
+// IG + TikTok safe zones (1080×1920): keep copy out from under native UI
+// (handles, captions, side rails). Vertical band is the “readable” window.
+export const SAFE_TOP = 420;
+/** Lowest Y (from top) where anchored text/layout should comfortably end. */
+export const SAFE_BOTTOM = 1180;
+export const SAFE_LEFT = 72;
+export const SAFE_RIGHT = 1008;
+/** Reserve this many px from the physical bottom for TikTok/IG caption + controls. */
+export const SAFE_BOTTOM_INSET = 300;
 
 // Fonts — match Cowork / jackstraw pattern (local files in `public/`).
 export const FONT_SERIF = 'Amboqia Boriango';

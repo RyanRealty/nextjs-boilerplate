@@ -5,10 +5,10 @@
 // lives in the frame. This keeps the 2D overlay logic decoupled from the
 // Three.js canvas (no drei <Html>, no camera ref wiring through R3F context).
 
-import { HEIGHT, WIDTH } from './config';
+import { AUBREY_PAN_FOV, HEIGHT, WIDTH } from './config';
 
-// Matches the FOV used by PanCameraRig in AubreyButtePan (32°).
-const FOV_V_DEG = 32;
+// Must match PanCameraRig FOV in AubreyButtePan.
+const FOV_V_DEG = AUBREY_PAN_FOV;
 const ASPECT = WIDTH / HEIGHT;
 const FOV_V_RAD = (FOV_V_DEG * Math.PI) / 180;
 const TAN_HALF_V = Math.tan(FOV_V_RAD / 2);

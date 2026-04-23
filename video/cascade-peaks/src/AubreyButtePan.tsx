@@ -21,7 +21,7 @@ import {
   TEXT_SHADOW,
   WHITE,
 } from './brand';
-import { AUBREY_PAN_SEC, FPS } from './config';
+import { AUBREY_PAN_FOV, AUBREY_PAN_SEC, FPS } from './config';
 import { AUBREY_BUTTE, PEAKS } from './peaks';
 import { bearingDeg, tangentOffsetM } from './geo';
 import { clamp, easeInOutQuart, easeOutCubic } from './easing';
@@ -88,17 +88,17 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
           camera at the real ground elevation of Aubrey Butte + drone height. */}
       <TilesScene
         origin={{ lat: AUBREY_BUTTE.lat, lon: AUBREY_BUTTE.lon, height: 0 }}
-        fov={32}
+        fov={AUBREY_PAN_FOV}
         near={50}
         far={250_000}
       >
         <PanCameraRig
           startAzimuthDeg={PAN_START_AZ}
           endAzimuthDeg={PAN_END_AZ}
-          pitchDeg={-0.8}
+          pitchDeg={-1.05}
           heightM={CAMERA_ALT_M}
           durationSec={AUBREY_PAN_SEC}
-          fov={32}
+          fov={AUBREY_PAN_FOV}
           near={50}
           far={250_000}
         />
@@ -116,7 +116,7 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
           cameraAzimuthDeg: currentAz,
           // MUST match the pitch passed to <PanCameraRig/> above, or the JS-
           // projected dots will sit at a different y than the rendered peaks.
-          cameraPitchDeg: -0.8,
+          cameraPitchDeg: -1.05,
           cameraHeightM: CAMERA_ALT_M,
           target: [e, n, u],
         });
@@ -159,16 +159,23 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
         );
       })}
 
-      {/* Scene title — "Looking west from Aubrey Butte". Positioned high in
-          the frame and kept compact so HUD marker pills below have room to
-          land on the skyline without crashing into the title. */}
+      {/* Scene title — frosted panel so copy reads over 3D (not “floating on
+          a gold bar” alone). Tighter FOV above makes the skyline larger. */}
       <div
         style={{
           position: 'absolute',
           left: SAFE_LEFT,
-          top: 140,
+          top: SAFE_TOP + 8,
+          maxWidth: SAFE_RIGHT - SAFE_LEFT,
           opacity: overlayAlpha,
           zIndex: 1,
+          padding: '22px 26px 26px',
+          borderRadius: 8,
+          border: `1px solid rgba(212,175,55,0.55)`,
+          background: 'rgba(10,26,46,0.78)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.45)',
         }}
       >
         <div
@@ -190,11 +197,11 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
         <div
           style={{
             fontFamily: FONT_SERIF,
-            fontSize: 60,
-            lineHeight: 1.02,
+            fontSize: 56,
+            lineHeight: 1.05,
             color: WHITE,
             textShadow: TEXT_SHADOW,
-            maxWidth: SAFE_RIGHT - SAFE_LEFT,
+            maxWidth: SAFE_RIGHT - SAFE_LEFT - 52,
           }}
         >
           The Cascade skyline,
@@ -203,21 +210,15 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
         </div>
       </div>
 
-      {/* Tile-floor blackout. Everything below the visible Cascade silhouette
-          is distant tile LOD mush — valleys Bend→Sisters, green grid tiles
-          from Aubrey Butte's immediate foreground, and the LOD seam itself.
-          We kill it with a tight 100px transparent→navy gradient that lands
-          on a solid navy block covering the entire bottom half of the frame.
-          The skyline bottoms out around y=920 for distant peaks (3F Jack)
-          and y=860 for close-and-tall (Black Butte), so the fade starts at
-          y=940 to clear all silhouettes. */}
+      {/* Tile-floor blackout — fade starts slightly higher when FOV is
+          tighter so skyline silhouettes stay crisp above the stat deck. */}
       <div
         style={{
           position: 'absolute',
           left: 0,
           right: 0,
-          top: 940,
-          height: 100,
+          top: 900,
+          height: 110,
           background:
             'linear-gradient(to bottom, rgba(10,26,46,0) 0%, rgba(10,26,46,1) 100%)',
           pointerEvents: 'none',
@@ -228,7 +229,7 @@ export const AubreyButtePan: React.FC<Props> = ({ frameOffset }) => {
           position: 'absolute',
           left: 0,
           right: 0,
-          top: 1040,
+          top: 1010,
           bottom: 0,
           background: '#0a1a2e',
           pointerEvents: 'none',
@@ -264,7 +265,7 @@ const AubreyStatRow: React.FC<{ alpha: number }> = ({ alpha }) => {
         position: 'absolute',
         left: SAFE_LEFT,
         right: 1080 - SAFE_RIGHT,
-        bottom: 540,
+        bottom: 640,
         opacity: alpha,
         display: 'flex',
         flexDirection: 'column',
@@ -392,7 +393,7 @@ const CompassHud: React.FC<{ az: number; alpha: number }> = ({ az, alpha }) => {
       style={{
         position: 'absolute',
         left: SAFE_LEFT,
-        bottom: 260,
+        bottom: 360,
         right: 1080 - SAFE_RIGHT,
         opacity: alpha,
       }}
