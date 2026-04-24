@@ -144,7 +144,7 @@ Add `SPARK_API_KEY` to `.env.local` (and Vercel) when you have it; then you can 
 
 ### 4.4 Analytics and tracking
 
-- **GA4:** Optional `NEXT_PUBLIC_GA4_MEASUREMENT_ID` (direct) or GTM. See `docs/GTM_GA4_SETUP.md`, `docs/TRACKING_AND_ANALYTICS_AUDIT.md`.
+- **GA4:** Optional `NEXT_PUBLIC_GA4_MEASUREMENT_ID` (direct) or GTM. See `docs/GTM_ANALYTICS_SETUP.md`, `docs/TRACKING_AND_ANALYTICS_AUDIT.md`.
 - **Meta Pixel:** Optional `NEXT_PUBLIC_META_PIXEL_ID`; cookie consent respected.
 - **FUB identity bridge:** Optional `NEXT_PUBLIC_FUB_EMAIL_CLICK_PARAM` (e.g. `_fuid`) to link email-click visits to FUB contacts.
 
