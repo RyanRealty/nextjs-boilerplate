@@ -68,6 +68,15 @@ export async function getCachedStats(input: {
 export async function getLiveMarketPulse(input: {
   geoType: MarketGeoType
   geoSlug: string
+  /**
+   * MLS property type code. `market_pulse_live` is keyed by
+   * (geo_type, geo_slug, property_type) — `refresh_market_pulse()` upserts
+   * 6 rows per geo (A=Residential, B=Manufactured, C=Multi-Family, D=Land,
+   * E=Commercial, F=Farm/Ranch). For "homes for sale" surfaces (city/community
+   * pages, hero stats) the residential aggregate `'A'` is canonical.
+   * Default `'A'` keeps existing call sites working.
+   */
+  propertyType?: string
 }): Promise<MarketPulseRow | null> {
   const supabase = createServiceClient()
   const { data } = await supabase
@@ -75,6 +84,7 @@ export async function getLiveMarketPulse(input: {
     .select('geo_type, geo_slug, geo_label, active_count, pending_count, new_count_7d, new_count_30d, median_list_price, avg_list_price, market_health_score, market_health_label, updated_at')
     .eq('geo_type', input.geoType)
     .eq('geo_slug', input.geoSlug)
+    .eq('property_type', input.propertyType ?? 'A')
     .maybeSingle()
   return (data as MarketPulseRow | null) ?? null
 }
