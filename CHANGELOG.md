@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.51.4 (2026-04-24)
+
+### Maintenance
+- chore(docs): merge GTM_GA4_SETUP + GTM_TRIGGERS into GTM_ANALYTICS_SETUP.md
+
+---
+
+
 ## v1.51.3 (2026-04-24)
 
 ### Maintenance
