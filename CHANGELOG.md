@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.49.5 (2026-04-24)
+
+### Bug Fixes
+- fix(build): commit lib/tiktok.ts so Vercel builds pass
+
+---
+
+
 ## v1.49.4 (2026-04-24)
 
 ### Maintenance
