@@ -18,7 +18,7 @@ The dashboard at **/admin** is a single-page operational view: sync health, data
 
 ### Google Analytics (GA4) deep integration
 - **Placeholder panel** with short description of what will appear: real-time users, traffic overview, acquisition, organic search (Search Console), top content, conversion funnel, device/geography.
-- **Setup instructions**: Enable Google Analytics Data API, use a Service Account or OAuth client + refresh token, link to `docs/GOOGLE_APIS_WHERE_TO_GET.md`. Once the API is configured, this panel can be wired to fetch and display GA4 metrics for the selected date range.
+- **Setup instructions**: Enable Google Analytics Data API, use a Service Account or OAuth client + refresh token, link to `docs/GOOGLE_SETUP.md`. Once the API is configured, this panel can be wired to fetch and display GA4 metrics for the selected date range.
 
 ### Lead and contact intelligence
 - **Visit-based metrics**: Total visits, identified sessions (with `user_id`), identification rate, visits in last 24h (and identified in last 24h).
