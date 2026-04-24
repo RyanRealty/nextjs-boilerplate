@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.49.6 (2026-04-24)
+
+### Bug Fixes
+- fix(build): exclude video/ subproject from Next.js tsc type-check
+
+---
+
+
 ## v1.49.5 (2026-04-24)
 
 ### Bug Fixes
