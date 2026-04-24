@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.49.3 (2026-04-24)
+
+### Bug Fixes
+- fix: unblock /cities/bend + Lat/Lng projection + drop 22 orphan DB objects (governance purge ch.5)
+
+---
+
+
 ## v1.49.2 (2026-04-24)
 
 ### Maintenance
