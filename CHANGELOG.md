@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.49.1 (2026-04-24)
+
+### Maintenance
+- chore(docs): purge stale docs to archive; write new index (governance purge ch.3)
+
+---
+
+
 ## v1.49.0 (2026-04-23)
 
 ### Features
