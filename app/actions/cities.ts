@@ -203,7 +203,11 @@ async function _getCityBySlugUncached(slug: string): Promise<CityDetail | null> 
 
 export const getCityBySlug = unstable_cache(
   _getCityBySlugUncached,
-  ['city-by-slug-v1'],
+  // Bumped v1 -> v2 on 2026-04-21 to invalidate cache entries written before
+  // the getLiveMarketPulse property_type fix (commit 91b95cf). Old entries
+  // had activeCount=0 because the unfiltered .maybeSingle() returned null
+  // when market_pulse_live started carrying multiple rows per city.
+  ['city-by-slug-v2'],
   { revalidate: 300, tags: ['city-detail'] }
 )
 
