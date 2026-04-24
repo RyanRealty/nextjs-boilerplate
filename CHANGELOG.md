@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.51.2 (2026-04-24)
+
+### Maintenance
+- chore(docs): merge SEO_AUTHORING_CHECKLIST + ENTITY_OPTIMIZATION into SEO.md
+
+---
+
+
 ## v1.51.1 (2026-04-24)
 
 ### Bug Fixes
