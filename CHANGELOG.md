@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.49.2 (2026-04-24)
+
+### Maintenance
+- chore(claude): mark _style_backup/ directory as removed (governance purge ch.4)
+
+---
+
+
 ## v1.49.1 (2026-04-24)
 
 ### Maintenance
