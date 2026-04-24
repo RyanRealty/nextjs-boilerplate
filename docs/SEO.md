@@ -1,6 +1,9 @@
 # SEO & discoverability (Ryan Realty)
 
-This doc summarizes what’s in place so the site can compete for real estate searches and be a strong source for users and LLMs.
+> This file absorbed `SEO_AUTHORING_CHECKLIST.md` and `ENTITY_OPTIMIZATION.md` (2026-04-24 governance merge).
+> Archived URL architecture reference: `docs/archive/_stale-refs/URL_ARCHITECTURE.md`
+
+This doc summarizes what's in place so the site can compete for real estate searches and be a strong source for users and LLMs.
 
 ## Technical foundations
 
@@ -13,9 +16,9 @@ This doc summarizes what’s in place so the site can compete for real estate se
 
 - **Titles & descriptions** – City/subdivision pages use location-specific titles and meta descriptions (from `lib/city-content.ts` where defined). Listing pages use address and key stats.
 - **Open Graph & Twitter** – All main pages set `openGraph` and `twitter` (e.g. `summary_large_image`) with title, description, and image where available (banner for search pages, first listing photo for listing pages).
-- **Structured data (JSON-LD)**  
-  - **Root**: `RealEstateAgent` (Ryan Realty) and `WebSite` with `SearchAction` (in `components/JsonLd.tsx`).  
-  - **Search (city/subdivision)**: `WebPage` (with `primaryImageOfPage` when banner exists), `BreadcrumbList`, `Place`, and `ItemList` (first 10 listing URLs).  
+- **Structured data (JSON-LD)**
+  - **Root**: `RealEstateAgent` (Ryan Realty) and `WebSite` with `SearchAction` (in `components/JsonLd.tsx`).
+  - **Search (city/subdivision)**: `WebPage` (with `primaryImageOfPage` when banner exists), `BreadcrumbList`, `Place`, and `ItemList` (first 10 listing URLs).
   - **Listing**: `Product` + `Offer` + `Place`, plus `image` (first photo), and `BreadcrumbList` (Home → Homes for Sale → City → [optional Neighborhood] → Community → Street Address). Google has no documented rich-result type for `RealEstateListing`; `Product` + `Offer` is the documented path for listing-page enrichment.
 
 ## Images & Core Web Vitals
@@ -29,14 +32,75 @@ This doc summarizes what’s in place so the site can compete for real estate se
 
 - **City/subdivision content** – `lib/city-content.ts` provides descriptions and meta text for key cities; add more for better relevance.
 - **Place schema** – Search pages output a `Place` with name, description, and address (locality, region, country) so search engines understand the geographic focus.
-- **Internal links** – “Browse by subdivision” and listing cards link to other city/subdivision and listing pages to reinforce structure.
+- **Internal links** – "Browse by subdivision" and listing cards link to other city/subdivision and listing pages to reinforce structure.
 
 ## What you should do
 
 1. **Set `NEXT_PUBLIC_SITE_URL`** in production to your live domain (e.g. `https://ryan-realty.com`).
 2. **Google Search Console** – Add the property and submit the sitemap (`/sitemap.xml`).
 3. **Google Business Profile** – Keep NAP and business info consistent with the site; link to the site.
-4. **Content** – Expand `lib/city-content.ts` (and subdivision blurbs) for more cities/neighborhoods to target long-tail “homes for sale in [place]” queries.
+4. **Content** – Expand `lib/city-content.ts` (and subdivision blurbs) for more cities/neighborhoods to target long-tail "homes for sale in [place]" queries.
 5. **Monitor** – Use Search Console and Core Web Vitals (LCP, INP, CLS) to catch regressions.
 
 No shortcuts were taken in the implementation above; it follows current best practices for real estate and general SEO.
+
+---
+
+## Per-page authoring contract
+
+Use this checklist for every new or updated public page route.
+
+### Metadata contract
+- Export `metadata` or `generateMetadata` in each public route page (`app/**/page.tsx`).
+- For dynamic public routes (`[slug]`, `[...slug]`, `[id]`), define `alternates.canonical`.
+- Keep canonical URLs on helper contracts:
+  - Listings browse: `listingsBrowsePath()`
+  - Team: `teamPath()`
+  - Valuation: `valuationPath()`
+
+### Indexation policy
+- Canonical pages should be indexable.
+- Filtered and paginated variants must be `noindex,follow`.
+  - Search variants: `shouldNoIndexSearchVariant(...)`
+  - Blog index variants: `shouldNoIndexBlogIndex(...)`
+
+### URL and linking rules
+- Never hardcode legacy canonical paths in new code:
+  - `/listings`
+  - `/agents`
+  - `/home-valuation`
+- Use canonical helper paths in navigation, metadata, and JSON-LD.
+
+### Sitemap and structured data
+- Include only canonical URLs in `app/sitemap.ts`.
+- Structured data URLs must align with canonical helpers.
+
+### Required validation
+- Run `npm run lint:seo-routes` before committing.
+- Run `npm test` to keep SEO contracts green.
+
+---
+
+## Entity / structured-data reference
+
+This section is the single reference for how key entities appear in schema.org JSON-LD and meta tags so the site is optimized for search and AI Overviews (SGE).
+
+### Entities
+
+- **Ryan Realty** — Root `RealEstateAgent` and `WebSite` with `SearchAction` in [components/JsonLd.tsx](components/JsonLd.tsx). Name, areaServed (GeoCircle Central Oregon), sameAs (social URLs when set).
+- **Listings** — Each listing page outputs `Product` + `Offer` + `Place` and `RealEstateListing` with `offeredBy` (RealEstateAgent when ListAgentName/ListOfficeName exist), `amenityFeature` from listings.amenities when present. See [components/listing/ListingJsonLd.tsx](components/listing/ListingJsonLd.tsx). **Important**: All URLs in structured data MUST match the canonical URL generated by `listingDetailPath()` which uses MLS number (ListNumber) + address slug with optional neighborhood hierarchy. Google has no documented rich-result type for `RealEstateListing`; `Product` + `Offer` is the primary enrichment path.
+- **Brokers** — Team profile pages output `Person`/`RealEstateAgent` with name, image, url, worksFor (brokerage). Brokers table: display_name, title, bio, photo_url, email, phone.
+- **Cities and subdivisions** — Search pages output `WebPage`, `BreadcrumbList`, `Place`, `ItemList`. Resort communities additionally get Resort/GolfCourse/AmenityFeature via [ResortCommunityJsonLd](app/search/[...slug]/ResortCommunityJsonLd.tsx).
+- **Market reports** — Report pages use appropriate schema for Article/Report and BreadcrumbList.
+
+### Consistency rules
+
+- Use the same organization name ("Ryan Realty") in all JsonLd and meta tags.
+- Broker and listing agent names should match exactly between listing detail, team page, and schema.
+- Key phrases (e.g. "homes for sale in Bend", "Central Oregon real estate") appear in titles, descriptions, and schema where relevant.
+- Breadcrumb JSON-LD must mirror visible breadcrumbs and always start with "Home".
+
+### SGE / AI Overviews
+
+- Ensure every entity has a clear `name` and `description` or `url` so AI can cite the site.
+- Keep required and recommended schema.org properties populated; avoid empty optional arrays.
