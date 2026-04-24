@@ -36,25 +36,21 @@ Last curated: 2026-04-21 (governance purge ch.3). Obsolete/snapshot docs moved t
 - `SPARK_FIELDS_AUDIT.md` — Spark field → Supabase column mapping
 
 ### SEO
-- `SEO.md` — SEO implementation overview
-- `SEO_AUTHORING_CHECKLIST.md` — per-page metadata contract
-- `ENTITY_OPTIMIZATION.md` — schema.org / JSON-LD entity reference
+- `SEO.md` — SEO overview, per-page authoring contract, and entity/JSON-LD reference (merged doc)
 - Authoritative URL spec: `.cursor/rules/seo-url-guardrails.mdc`
 
 ### Reporting + analytics
 - `REPORTING_AND_ANALYTICS.md` — reporting architecture (cache tables, RPCs)
 - `TRACKING_AND_ANALYTICS_AUDIT.md` — what fires, what doesn't
 - `GA4_SERVICE_ACCOUNT_SETUP.md` — GA4 Data API service account setup
-- `GTM_GA4_SETUP.md` — GTM/GA4 env-only setup
-- `GTM_TRIGGERS.md` — dataLayer event / trigger reference
+- `GTM_ANALYTICS_SETUP.md` — GTM/GA4 env-only setup and dataLayer event/trigger reference (merged doc)
 
 ### Integrations
 - `FOLLOWUPBOSS-SETUP.md` — FUB CRM integration
 - `FUB_CUSTOM_FIELDS.md` — FUB custom field configuration
 - `GOOGLE_MAPS_SETUP.md` — Google Maps API setup
 - `GOOGLE_ADS_SETUP.md` — Google Ads / conversion setup
-- `GOOGLE_APIS_WHERE_TO_GET.md` — where to find Google IDs (GA4, GTM, OAuth)
-- `GOOGLE_VERIFICATION.md` — Google IDs verification checklist
+- `GOOGLE_SETUP.md` — where to find each Google ID and verification checklist (merged doc)
 
 ### Auth + admin
 - `AUTH_AND_CRM.md` — Supabase Auth + CRM webhook pattern
