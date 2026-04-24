@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getListingDetailData, getSimilarListingsForDetailPage, getSubdivisionListings } from '@/app/actions/listing-detail'
 import type { ListingDetailData } from '@/app/actions/listing-detail'
@@ -181,6 +181,32 @@ export default async function ListingDetailPage({ params }: PageProps) {
   if (!data) notFound()
 
   const { listing, property, photos, agents, priceHistory, listingHistory, openHouses, community, videos, virtualTours } = data
+
+  // BL-011: legacy /listing/[listingKey] URLs 301-redirect to the canonical
+  // /homes-for-sale/{city}/[{neighborhood}/]{community}/{address-slug}-{mlsNumber}
+  // pattern. The fallback (no location data) lands at /homes-for-sale/listing/{mls},
+  // which is the documented short-form canonical. Skip when the canonical path
+  // somehow resolves to the current URL (defensive — should not happen in
+  // practice because this route lives at /listing/, not /homes-for-sale/).
+  const canonicalPathForRedirect = listingDetailPath(
+    listing.listing_key,
+    {
+      streetNumber: property?.street_number ?? null,
+      streetName: property?.street_name ?? null,
+      city: property?.city ?? null,
+      state: property?.state ?? null,
+      postalCode: property?.postal_code ?? null,
+    },
+    {
+      city: property?.city ?? null,
+      neighborhood: community?.neighborhood_name ?? null,
+      subdivision: listing.subdivision_name ?? null,
+    },
+    { mlsNumber: listing.list_number ?? listing.listing_id ?? null }
+  )
+  if (canonicalPathForRedirect && !canonicalPathForRedirect.startsWith('/listing/')) {
+    permanentRedirect(canonicalPathForRedirect)
+  }
   const subdivisionName = community?.name ?? listing.subdivision_name ?? null
   const [saved, liked, engagement, similarListings, subdivisionListings, session] = await Promise.all([
     withTimeout(isListingSaved(listing.listing_key), false, 1200),

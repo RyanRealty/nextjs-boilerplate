@@ -877,13 +877,14 @@
       "priority": "high",
       "category": "seo",
       "source": "docs/plans/data-architecture-plan.md",
-      "status": "open",
+      "status": "complete",
       "owner": "engagement",
       "files": [
         "lib/slug.ts",
         "next.config.ts",
         "app/sitemap.ts",
         "app/listing/by-address/[...slug]/page.tsx",
+        "app/listing/[listingKey]/page.tsx",
         "components/ListingTile.tsx"
       ],
       "acceptanceCriteria": [
