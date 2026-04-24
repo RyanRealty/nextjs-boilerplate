@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.51.1 (2026-04-24)
+
+### Bug Fixes
+- fix(cache): bump getCityBySlug cache key v1 -> v2 to invalidate poisoned entries
+
+---
+
+
 ## v1.51.0 (2026-04-24)
 
 ### Features
