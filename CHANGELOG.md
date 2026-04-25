@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.67.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.7 — final approved closing lines
+
+---
+
+
 ## v1.66.0 (2026-04-25)
 
 ### Features
