@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.60.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.2 — trim historic to 5 + wide rockpile pan
+
+---
+
+
 ## v1.59.0 (2026-04-25)
 
 ### Features
