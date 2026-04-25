@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.69.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.9 — home-only viral cut, no music, new hook
+
+---
+
+
 ## v1.68.0 (2026-04-25)
 
 ### Features
