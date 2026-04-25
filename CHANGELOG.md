@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.52.1 (2026-04-25)
+
+### Maintenance
+- docs(handoff): record Schoolhouse v5 Gate 1 complete + next-agent steps
+
+---
+
+
 ## v1.52.0 (2026-04-25)
 
 ### Features
