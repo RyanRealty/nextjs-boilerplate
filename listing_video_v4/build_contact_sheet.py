@@ -17,6 +17,7 @@ CAT_ORDER = [
     "Place Context (Snowdrift area guide)",
     "Vandevert Family (historic)",
     "Vandevert Ranch Life (historic)",
+    "The Schoolhouse / Harper School (historic)",
     "Architect — Jerry Locati",
 ]
 
