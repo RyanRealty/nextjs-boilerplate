@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.56.7 (2026-04-25)
+
+### Bug Fixes
+- fix(listing-video-v5): boundary draw v7 — Phase D combined, no lines, soft glow
+
+---
+
+
 ## v1.56.6 (2026-04-25)
 
 ### Maintenance
