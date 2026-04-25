@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.56.6 (2026-04-25)
+
+### Maintenance
+- chore(listing-video-v5): boundary comparison PNG, 4 polygon variants
+
+---
+
+
 ## v1.56.5 (2026-04-25)
 
 ### Maintenance
