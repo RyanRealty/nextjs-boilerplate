@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.66.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.6 — zero black anywhere, one elk photo, audio continuity
+
+---
+
+
 ## v1.65.0 (2026-04-25)
 
 ### Features
