@@ -238,6 +238,11 @@ HIST_EXTRA_WEB = OUT / "historic_extra_web"
 HIST_EXTRA_DRIVE = OUT / "historic_extra_drive"
 
 EXTRA_DESC = {
+    # Vandevert Ranch Life (historic_v2_extra — Pinterest / Ted Haynes board / vandevertranch.org)
+    "vr_elk_ford_little_deschutes.jpg":  ("Vandevert Ranch Life (historic)", "Elk herd fording the Little Deschutes River on Vandevert Ranch — wildlife endemic to the property. Photo by David M., source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)"),
+    "vr_barn_newberry_crater.jpg":       ("Vandevert Ranch Life (historic)", "Vandevert Ranch barn/arena seen from pasture with Newberry Crater on horizon. Source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)"),
+    # Schoolhouse (historic_v2_extra)
+    "vr_school_interior_restored.jpg":   ("The Schoolhouse / Harper School (historic)", "Interior of the restored one-room Vandevert School (originally Harper School, built 1925, moved to ranch 1929, restored 1990) -- student desks, chalkboard, potbelly stove, wall displays. Source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)"),
     # Vandevert Family
     "vr_sadie_girl.jpg":           ("Vandevert Family (historic)", "Sadie Vinceheller Vandevert, young woman, undated (pre-marriage 1880), source: vandevertranch.org/sadie_vincenheller.html"),
     "vr_sadie_one_hand.jpg":       ("Vandevert Family (historic)", "Sadie Vinceheller Vandevert, portrait, undated, source: vandevertranch.org/sadie_vincenheller.html"),
@@ -273,7 +278,9 @@ EXTRA_DESC = {
 
 extra_fam2, extra_life2, extra_school2 = [], [], []
 
-for src_dir in [HIST_EXTRA_WEB, HIST_EXTRA_DRIVE]:
+HIST_EXTRA_V2 = OUT / "historic_v2_extra"
+
+for src_dir in [HIST_EXTRA_WEB, HIST_EXTRA_DRIVE, HIST_EXTRA_V2]:
     if not src_dir.exists():
         continue
     for src in sorted(src_dir.glob("*.jpg")):

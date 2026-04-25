@@ -42,6 +42,20 @@ Drive zip sweep result: Vandevert HOA.zip (Drive id `1-QKtJljrk1rba1UdpjwwlHZVYc
 
 ---
 
+## historic_v2_extra — Additional photos added 2026-04-24
+
+Source institution: **Pinterest board "Vandevert Ranch" by Ted Haynes** (https://www.pinterest.com/haynes0977/vandevert-ranch/) — Ted Haynes is co-author of "Vandevert: The Hundred Year History of a Central Oregon Ranch" (2011). Photos sourced from vandevertranch.org and the Vandevert family archive per board descriptions.
+
+| filename | source_url | source_institution | caption_identification | category | license_note |
+|---|---|---|---|---|---|
+| vr_elk_ford_little_deschutes.jpg | https://www.pinterest.com/pin/529032287465443799/ (original source: vandevertranch.org per pin attribution) | Vandevert Ranch HOA / Ted Haynes Pinterest board / Photo by David M. | Elk herd fording the Little Deschutes River on Vandevert Ranch, Oregon — wildlife endemic to the property | Vandevert Ranch Life | Attribution: Photo by David M., sourced via vandevertranch.org. Public website, no copyright restriction stated on source. Pin saved by book co-author Ted Haynes. |
+| vr_school_interior_restored.jpg | https://www.pinterest.com/haynes0977/vandevert-ranch/ | Vandevert Ranch HOA / Ted Haynes Pinterest board | Interior of the one-room Vandevert School (originally Harper School, built 1925, moved to ranch 1929, restored 1990) — student desks, chalkboard, potbelly stove, wall displays | The Schoolhouse / Harper School | Pin by book co-author Ted Haynes. Source attributed to vandevertranch.org. Public, no copyright restriction stated. |
+| vr_barn_newberry_crater.jpg | https://www.pinterest.com/haynes0977/vandevert-ranch/ | Vandevert Ranch HOA / Ted Haynes Pinterest board | Vandevert Ranch barn/arena building seen from pasture with Newberry Crater visible on horizon — establishes ranch landscape context | Vandevert Ranch Life | Pin by book co-author Ted Haynes. Source attributed to vandevertranch.org. Public, no copyright restriction stated. |
+
+**W.P. Vandevert portrait (Pinterest board item 13d05c):** Located on Ted Haynes' board but only 136x165px — below minimum 600px threshold. Not downloaded. Caption reads "W.P. Vandevert." This same portrait appears on vandevertranch.org/williamp.html (page currently timing out). Flagged for future higher-res retrieval if vandevertranch.org becomes accessible.
+
+---
+
 ## Sources searched and outcome
 
 | Source | Result |
@@ -59,3 +73,14 @@ Drive zip sweep result: Vandevert HOA.zip (Drive id `1-QKtJljrk1rba1UdpjwwlHZVYc
 | centraloregondaily.com | 429 rate limited |
 | vandevertranch.org/photogallery/ | 403 Forbidden (directory listing blocked) |
 | OSU SCARC Forest Service Officers Collection | Physical archive only, not digitized for direct download |
+| vandevertranch.org/williamp.html, /structures.html, /ranch_life.html | Timeout (60s) — server unresponsive during this session. These pages likely have additional photos not yet captured. |
+| Ted Haynes Pinterest board (pinterest.com/haynes0977/vandevert-ranch/) | PARTIAL HIT — 3 qualifying photos downloaded (elk fording river, school interior, barn/Newberry). W.P. Vandevert portrait found but only 136x165px (below threshold). |
+| Find a Grave (findagrave.com) | 403 Forbidden — could not access William Plutarch Vandevert memorial page |
+| Wayback Machine (web.archive.org) | Blocked — Claude Code cannot fetch from web.archive.org |
+| Oregon Digital (oregondigital.org) | Bot detection active — no results returned for Vandevert |
+| OHS Digital Collections (digitalcollections.ohs.org) | 500 error |
+| Oregon State Archives historical photos (sos.oregon.gov) | No Vandevert-specific results |
+| Sunriver Resort history / Sunriver Magazine | No dedicated Vandevert photo archive found via search |
+| Wikipedia (en.wikipedia.org/wiki/Vandevert,_William) | No photos on the article page |
+| centraloregondaily.com Vandevert article | 429 rate limited |
+| Bend Magazine Vandevert article | 403 Forbidden |

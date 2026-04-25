@@ -1853,6 +1853,34 @@
         "orient": "portrait",
         "size_bytes": 475957,
         "source": "vandevertranch.org"
+      },
+      {
+        "key": "historic__vr_barn_newberry_crater.jpg",
+        "src": "v5_library/historic/vr_barn_newberry_crater.jpg",
+        "thumb": "v5_library/thumbs/historic__vr_barn_newberry_crater.jpg",
+        "filename": "vr_barn_newberry_crater.jpg",
+        "category": "Vandevert Ranch Life (historic)",
+        "description": "Vandevert Ranch barn/arena seen from pasture with Newberry Crater on horizon. Source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)",
+        "width": 532,
+        "height": 786,
+        "aspect": 0.677,
+        "orient": "portrait",
+        "size_bytes": 70352,
+        "source": "vandevertranch.org"
+      },
+      {
+        "key": "historic__vr_elk_ford_little_deschutes.jpg",
+        "src": "v5_library/historic/vr_elk_ford_little_deschutes.jpg",
+        "thumb": "v5_library/thumbs/historic__vr_elk_ford_little_deschutes.jpg",
+        "filename": "vr_elk_ford_little_deschutes.jpg",
+        "category": "Vandevert Ranch Life (historic)",
+        "description": "Elk herd fording the Little Deschutes River on Vandevert Ranch \u2014 wildlife endemic to the property. Photo by David M., source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)",
+        "width": 736,
+        "height": 568,
+        "aspect": 1.296,
+        "orient": "landscape",
+        "size_bytes": 74304,
+        "source": "vandevertranch.org"
       }
     ],
     "Architect \u2014 Jerry Locati": [
@@ -1884,20 +1912,34 @@
         "orient": "landscape",
         "size_bytes": 198803,
         "source": "vandevertranch.org"
+      },
+      {
+        "key": "historic__vr_school_interior_restored.jpg",
+        "src": "v5_library/historic/vr_school_interior_restored.jpg",
+        "thumb": "v5_library/thumbs/historic__vr_school_interior_restored.jpg",
+        "filename": "vr_school_interior_restored.jpg",
+        "category": "The Schoolhouse / Harper School (historic)",
+        "description": "Interior of the restored one-room Vandevert School (originally Harper School, built 1925, moved to ranch 1929, restored 1990) -- student desks, chalkboard, potbelly stove, wall displays. Source: vandevertranch.org via Pinterest (Ted Haynes board, 2026-04-24)",
+        "width": 736,
+        "height": 490,
+        "aspect": 1.502,
+        "orient": "landscape",
+        "size_bytes": 72849,
+        "source": "vandevertranch.org"
       }
     ]
   },
   "stats": {
-    "total_photos": 135,
+    "total_photos": 138,
     "groups": {
       "Modern Listing Photo": 72,
       "Modern Drone Aerial": 17,
       "Place Context (Snowdrift area guide)": 2,
       "Vandevert Family (historic)": 23,
-      "Vandevert Ranch Life (historic)": 19,
+      "Vandevert Ranch Life (historic)": 21,
       "Architect \u2014 Jerry Locati": 1,
-      "The Schoolhouse / Harper School (historic)": 1
+      "The Schoolhouse / Harper School (historic)": 2
     },
-    "generated_at": "2026-04-25T03:19:22.561103Z"
+    "generated_at": "2026-04-25T03:54:12.100343Z"
   }
 }
