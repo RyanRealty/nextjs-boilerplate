@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.59.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.1 — per-beat motion variety + documentary discipline
+
+---
+
+
 ## v1.58.0 (2026-04-25)
 
 ### Features
