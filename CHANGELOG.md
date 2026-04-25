@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.56.5 (2026-04-25)
+
+### Maintenance
+- docs(master-spec): correct monetization model — AdSense display ads, not native sponsorship
+
+---
+
+
 ## v1.56.4 (2026-04-25)
 
 ### Maintenance
