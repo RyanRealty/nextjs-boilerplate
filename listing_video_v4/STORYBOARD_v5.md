@@ -2,24 +2,28 @@
 
 **Asset:** 56111 School House Rd, Vandevert Ranch, Bend OR 97707
 **Listing status:** PENDING. $3,025,000. Verify against SkySlope/MLS before Gate 4 render.
-**Format:** 9:16 portrait, 1080×1920, 24fps target (matches the SchoolHouse_VirtualTour_Short_9x16 frame rate), ~118s total runtime.
+**Format:** 9:16 portrait, 1080×1920, 24fps target (matches the SchoolHouse_VirtualTour_Short_9x16 frame rate), ~143s total runtime including brand outro.
 **Photo picks (locked Gate 1, 2026-04-25):** 27 photos.
 **Motion language (locked Gate 2, 2026-04-25):** multi-point pan as default; vignette with subtle scale push for pure scenery without people; push + counter-translate for portrait historic.
+**Voice (locked Gate 2):** ElevenLabs voice id `4YYIPFl9wE5c4L2eu2Gb`, speed 0.88, ffmpeg apad inter-sentence silence padding.
+**Music (locked Gate 2):** ElevenLabs Music compose, ~145s, cinematic Western register, sparse piano + low strings, no percussion swell.
+**Boundary source (locked Gate 2):** Deschutes County GIS public portal, Vandevert Ranch parcel KML/GeoJSON.
 **VO script:** [vo_script_v5.txt](vo_script_v5.txt)
 
 ---
 
-## Cover frame (first 2.5-3s, locks the IG/TikTok thumbnail)
+## Cover frame (first 2.5s, locks the IG/TikTok thumbnail) — Option A hook (locked Gate 2)
 
 | # | Time | Visual | Text overlay | Notes |
 |---|---|---|---|---|
-| C | 0.0 - 2.5s | High-altitude Central Oregon satellite tile (Google Maps Static z=12, centered on 43.8383, -121.4428), warm color grade `sepia(0.05) saturate(1.08) brightness(0.96) contrast(1.06) hue-rotate(-3deg)`. Hold STILL — this is the thumbnail-lock frame. | **A RYAN REALTY REPRESENTATION** (Georgia serif, gold #C8A864, 64pt, top-third center) + **VANDEVERT RANCH** subtitle (Georgia italic, cream #F2EBDD, 36pt, below) | No motion. Hold long enough that IG/TikTok thumbnail snapshots cleanly here. |
+| C | 0.0 - 1.0s | Satellite tile darkened to ~30% brightness (vignette behind text), no motion | **`1892.`** (Georgia bold, gold #C8A864, ~200pt, centered) | The hook. Single year as the scroll-stopper. Specific, unusual, provokes "why 1892?" Resolves in the next beat. |
+| C2 | 1.0 - 2.5s | `1892.` dissolves out (300ms cross-fade); satellite tile brightens to full; **VANDEVERT RANCH** appears in Georgia serif gold #C8A864 ~64pt centered, subtle 200ms scale-up from 0.96 → 1.0 | **VANDEVERT RANCH** (place reveal) | Thumbnail likely locks here on the place name with the bright satellite tile underneath. Hold static long enough for IG/TikTok preview to capture this frame cleanly. |
 
 ## Open — Boundary draw
 
 | # | Time | Photo / Asset | Source aspect | 9:16 fit | Motion | Dwell | VO | Justification |
 |---|---|---|---|---|---|---|---|---|
-| 0 | 2.5 - 6.0s | Same satellite tile + animated SVG `<path>` of the Vandevert Ranch parcel boundary, gold #C8A864 stroke 2px, soft outer glow, dasharray draw-on animation | Tile is square, parcel polygon overlays | Full-bleed satellite tile, parcel polygon scaled to ~70% of frame, centered on subject parcel | Boundary draw (animated `<path>` strokeDasharray 0 → totalLength over 3s with `cubic-bezier(0.4, 0, 0.2, 1)` easing, 2px gold stroke, 8px gold drop-shadow glow) | 3.5s | (none, music only) | Round 4 of the locked critique: opening anchor is the boundary draw, NOT a satellite drill-down zoom. Reuse the BoundaryOverlay component pattern from Bend Hottest Communities. Vandevert Ranch parcel polygon to be pulled from Deschutes County GIS public portal. Hold the cover frame for 2.5s first, then start the draw, total open ~6s. |
+| 0 | 2.5 - 6.0s | Same satellite tile + animated SVG `<path>` of the Vandevert Ranch parcel boundary (Deschutes County GIS taxlot `201117C001000`, 98 vertices, saved to `public/v5_library/vandevert_parcel.geojson`), gold #C8A864 stroke 2px, soft outer glow, dasharray draw-on animation. **REVEAL** subtitle "REPRESENTED BY RYAN REALTY" (Montserrat semibold uppercase, gold, 24pt, letter-spacing +6) appears at 4.5s as boundary completes. | Tile is square, parcel polygon overlays | Full-bleed satellite tile (recommend z=16 in Gate 4 for parcel readability — z=14 makes lot too small), parcel polygon scaled to ~70% of frame, centered on subject parcel | Boundary draw (animated `<path>` strokeDasharray 0 → totalLength over 3s with `cubic-bezier(0.4, 0, 0.2, 1)` easing, 2px gold stroke, 8px gold drop-shadow glow) | 3.5s | (none, music only) | Round 4 of the locked critique: opening anchor is the boundary draw, NOT a satellite drill-down zoom. Reuses the BoundaryOverlay pattern from Bend Hottest Communities. Real Deschutes County GIS parcel pulled successfully via Gate 3. Open with `1892.` hook (cover frame) → resolves to `VANDEVERT RANCH` (place reveal) → boundary draws + brokerage credit appears (open complete). |
 
 ---
 
@@ -38,7 +42,7 @@
 | 4 | 24.0 - 29.0s | `vr_workshop_barn_looking_east.jpg` | 1118×895 | 1.25 (landscape) | Scale to fill height, slight overflow on width | Multi-point pan, 3 anchor points (workshop door → barn corner → eastern roofline), springTiming 5s | 5.0s | "They built the place by hand..." | Workshop+barn is the "built by hand" beat. Multi-point pan reads as a cinematographer surveying construction. |
 | 5 | 29.0 - 34.0s | `vr_people_with_surrey.jpg` | 800×462 | 1.73 (landscape, very wide) | Scale to fill height (height 1920, width overflows ~50%) | Multi-point pan, 3 anchors (driver → surrey body → far end), springTiming 5s, longer horizontal traverse to read as motion | 5.0s | "...moved by surrey..." | Surrey IS the visual on the line. Wide source aspect gets multi-point pan to handle the overflow without cropping anyone off. |
 | 6 | 34.0 - 39.0s | `07_sheep_with_cattle.jpg` | 662×438 | 1.51 (landscape) | Scale to fill height, modest overflow | Multi-point pan, 3 anchors (sheep cluster → cattle group → meadow horizon), springTiming 5s | 5.0s | "...ran cattle and sheep..." | Sheep+cattle visual on the line that names both. Multi-point pan reveals each animal group in turn. |
-| 7 | 39.0 - 44.0s | `vr_sheep_dip.jpg` | 783×295 | 2.65 (panoramic, very wide) | Scale to fill height (height 1920, width overflows to ~5085, 4.7× canvas width) | Multi-point pan ALL THE WAY across (4 anchors: dip apparatus → working hands → sheep queue → far end), springTiming 5s with slight ease-in | 5.0s | "...and worked the meadow by season. The family stayed until nineteen seventy." | Panoramic source REQUIRES the full traverse. The pan is the camera-as-witness moving along the dip line. End of S2 closing on this beat caps the historic ranch-life block. |
+| 7 | 39.0 - 46.5s | `vr_sheep_dip.jpg` | 783×295 | 2.65 (panoramic, very wide) | Scale to fill height (height 1920, width overflows to ~5085, 4.7× canvas width) | Multi-point pan ALL THE WAY across (4 anchors: dip apparatus → working hands → sheep queue → far end), springTiming 7.5s with slight ease-in for slower cinematic traverse | 7.5s | "...and worked the meadow by season. The family stayed until nineteen seventy." | Panoramic source REQUIRES the full traverse. Extended dwell to 7.5s (Matt locked Option B) so the camera moves at a witness pace, not a rushed slideshow pace. End of S2 closing on this beat caps the historic ranch-life block. |
 
 ## Act 3 — Bridge to modern (Beat 8, 7s)
 
@@ -59,7 +63,7 @@ All 12 modern interior beats use multi-point pan around architectural detail (ch
 
 | # | Time | Photo | Source dim | Source aspect | 9:16 fit | Motion | Dwell | VO sentence range | Justification |
 |---|---|---|---|---|---|---|---|---|---|
-| 11 | 63.0 - 67.0s | `2-web-or-mls-_DSC1055.jpg` | 2048×1366 | 1.50 | Fill height, 33% overflow | Multi-point pan (3 anchors), 4s | 4.0s | S5 first half: "Built in twenty seventeen. Four bedrooms, four and a half baths..." | Hero exterior establish (#2 source content visible in v5_library — TBD subagent visual confirm during render). |
+| 11 | 65.5 - 69.5s | `2-web-or-mls-_DSC1055.jpg` | 2048×1366 | 1.50 | Fill height, 33% overflow | Multi-point pan (3 anchors), 4s | 4.0s | S5 (revised, no short clips): "Built in twenty seventeen, four bedrooms and four and a half baths, with the full Cascade range out every west-facing window." | Hero exterior establish (#2 source content visible in v5_library — TBD subagent visual confirm during render). |
 | 12 | 67.0 - 71.0s | `8-web-or-mls-_DSC0792.jpg` | 2048×1366 | 1.50 | Fill height | Multi-point pan, 4s | 4.0s | S5 cont. | Modern interior continuation. |
 | 13 | 71.0 - 75.0s | `11-web-or-mls-_DSC0950.jpg` (window wall + Mt. Bachelor + pond + leather chairs) | 2048×1366 | 1.50 | Fill height | Push-in + counter-translate (1.00 → 1.10) — frame the mountain through the window, push viewer "into the seat" | 4.0s | S5 end: "...the full Cascade range out every west-facing window." | The line "Cascade range out every west-facing window" lands on the literal window-wall-with-Bachelor photo. Documentary discipline. |
 | 14 | 75.0 - 79.0s | `13-web-or-mls-_DSC0810.jpg` | 2048×1366 | 1.50 | Fill height | Multi-point pan, 4s | 4.0s | S6 first: "The kitchen opens to the dining..." | Modern interior anchor for kitchen-dining transition. |
