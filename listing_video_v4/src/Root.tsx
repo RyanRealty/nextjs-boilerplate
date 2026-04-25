@@ -2,6 +2,7 @@ import React from 'react';
 import { Composition } from 'remotion';
 import './fonts';
 import { Listing, LISTING_TOTAL_SEC } from './Listing';
+// LISTING_TOTAL_SEC = 122 (v5.1)
 import { BoundaryDrawTest } from './BoundaryDrawTest';
 
 const FPS = 30;
