@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.54.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): +3 ranch context photos, animal scan, vr_* cull list
+
+---
+
+
 ## v1.53.1 (2026-04-25)
 
 ### Bug Fixes
