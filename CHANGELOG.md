@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.53.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): add 28 more historic Vandevert photos (source: vandevertranch.org)
+
+---
+
+
 ## v1.52.1 (2026-04-25)
 
 ### Maintenance
