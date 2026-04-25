@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.56.8 (2026-04-25)
+
+### Bug Fixes
+- fix(listing-video-v5): boundary draw v8 — slower cover frame, breathing room
+
+---
+
+
 ## v1.56.7 (2026-04-25)
 
 ### Bug Fixes
