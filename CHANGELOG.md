@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.55.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): Gate 2 deliverable, VO script v5 + storyboard
+
+---
+
+
 ## v1.54.0 (2026-04-25)
 
 ### Features
