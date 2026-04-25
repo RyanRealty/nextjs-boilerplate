@@ -160,28 +160,34 @@ export const BoundaryDrawTest: React.FC = () => {
   const { fps } = useVideoConfig();
   const t = frame / fps;
 
-  // ── Timing v8 ─────────────────────────────────────────────────────────────
-  // Matt feedback v7: text → boundary handoff felt rushed. Added breathing.
-  // 0.0-2.0s: "1892." appears (0.4s in), holds 1.6s
-  // 2.0-3.0s: "1892." crossfades to "VANDEVERT RANCH" (1s transition)
-  // 3.0-4.5s: "VANDEVERT RANCH" holds clean (1.5s, locked thumbnail beat)
-  // 4.5-5.5s: text dissolves, satellite tile clear (1s breathing room, no text, no boundary)
-  // 5.5-7.5s: boundary glow fades in slowly (2.0s, cubic ease)
-  // 7.0-8.0s: "REPRESENTED BY RYAN REALTY" subtitle appears at 7.0s
-  // 7.5-8.0s: hold
+  // ── Timing v9 ─────────────────────────────────────────────────────────────
+  // Matt feedback v8: VANDEVERT RANCH didn't read (was tiny subtitle), then a
+  // dead gap of satellite-only before boundary appeared. Fix: VANDEVERT RANCH
+  // becomes HERO text at same position/size as 1892, and boundary fades in
+  // OVERLAPPING with text dissolve (no satellite-only gap).
+  //
+  // 0.0-0.3s: 1892. fades in
+  // 0.3-1.5s: 1892. holds (1.2s thumbnail-locking beat)
+  // 1.5-2.0s: 1892. crossfades to VANDEVERT RANCH (full hero size)
+  // 2.0-4.0s: VANDEVERT RANCH holds (2.0s clean)
+  // 3.5-5.5s: boundary glow fades in WHILE VANDEVERT RANCH is still up
+  // 4.0-4.7s: VANDEVERT RANCH fades out (boundary already half-visible)
+  // 5.5-6.2s: REPRESENTED BY RYAN REALTY appears
+  // 6.2-7.0s: hold
 
-  // "1892." text — appears 0-2.0s, dissolves 2.0-3.0s
-  const year1892Alpha = interpolate(t, [0, 0.4, 2.0, 3.0], [0, 1, 1, 0], {
+  // "1892." — fade in 0-0.3s, hold to 1.5s, fade out 1.5-2.0s
+  const year1892Alpha = interpolate(t, [0, 0.3, 1.5, 2.0], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // "VANDEVERT RANCH" — fades in 2.0-3.0s as 1892 fades out, holds 3.0-4.5s, dissolves 4.5-5.5s
-  const vanchTagAlpha = interpolate(t, [2.0, 3.0, 4.5, 5.5], [0, 1, 1, 0], {
+  // "VANDEVERT RANCH" hero — fade in 1.6-2.0s (overlap with 1892 fade-out), hold to 4.0s, fade 4.0-4.7s
+  const vanchTagAlpha = interpolate(t, [1.6, 2.0, 4.0, 4.7], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // Boundary glow fade — 5.5-7.5s, slower than v7
-  const rawBoundaryProg = interpolate(t, [5.5, 7.5], [0, 1], {
+  // Boundary glow — STARTS at 3.5s while VANDEVERT RANCH is still on screen.
+  // Boundary visible at half-alpha by the time text dissolves at 4.0-4.7s.
+  const rawBoundaryProg = interpolate(t, [3.5, 5.5], [0, 1], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
   const boundaryProg = easeFill(rawBoundaryProg);
@@ -191,12 +197,12 @@ export const BoundaryDrawTest: React.FC = () => {
   const fillAlphaEdge = boundaryProg * 0.18;
 
   // Subtle scale breathe on boundary: 1.00 → 1.015 over the boundary phase
-  const breatheScale = 1 + interpolate(t, [5.5, 8.0], [0, 0.015], {
+  const breatheScale = 1 + interpolate(t, [3.5, 7.0], [0, 0.015], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // "REPRESENTED BY RYAN REALTY" subtitle at 7.0s
-  const subtitleAlpha = interpolate(t, [7.0, 7.6], [0, 1], {
+  // "REPRESENTED BY RYAN REALTY" at 5.5s
+  const subtitleAlpha = interpolate(t, [5.5, 6.2], [0, 1], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
@@ -291,11 +297,10 @@ export const BoundaryDrawTest: React.FC = () => {
         </g>
       </svg>
 
-      {/* ── "1892." cover frame text ── */}
+      {/* ── "1892." cover frame (HERO, centered) ── */}
       <div style={{
         position: 'absolute', inset: 0,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         opacity: year1892Alpha, pointerEvents: 'none',
       }}>
         <div style={{
@@ -309,18 +314,26 @@ export const BoundaryDrawTest: React.FC = () => {
         }}>
           1892.
         </div>
+      </div>
+
+      {/* ── "VANDEVERT RANCH" (HERO, replaces 1892. at same center) ── */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        opacity: vanchTagAlpha, pointerEvents: 'none',
+      }}>
         <div style={{
           fontFamily: 'Georgia, serif',
-          fontSize: 36,
-          fontWeight: 400,
+          fontSize: 110,
+          fontWeight: 700,
           color: GOLD,
-          letterSpacing: '0.35em',
+          letterSpacing: '0.06em',
           textTransform: 'uppercase',
-          textShadow: '0 2px 16px rgba(0,0,0,0.9)',
-          marginTop: 24,
-          opacity: vanchTagAlpha,
+          textAlign: 'center',
+          textShadow: '0 4px 40px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.95)',
+          lineHeight: 1.05,
         }}>
-          VANDEVERT RANCH
+          VANDEVERT<br />RANCH
         </div>
       </div>
 

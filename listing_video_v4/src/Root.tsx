@@ -21,7 +21,7 @@ export const RemotionRoot: React.FC = () => (
     <Composition
       id="BoundaryDrawTest"
       component={BoundaryDrawTest}
-      durationInFrames={8 * FPS}
+      durationInFrames={7 * FPS}
       fps={FPS}
       width={W_PORT}
       height={H_PORT}
