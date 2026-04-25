@@ -63,6 +63,7 @@ type BeatDef = {
   cinemagraph?: CinemagraphMotion;
   vignetteLetterbox?: boolean;
   credit?: string;
+  objectPosition?: string;
 };
 
 const BEATS: BeatDef[] = [
@@ -166,18 +167,23 @@ const BEATS: BeatDef[] = [
     startSec: 83.5, durationSec: 4,
     move: { move: 'gimbal_walk', focal: 'center', intensity: 0.8, direction: 'lr' },
     historic: false },
-  // Beat 17 — fire patio. Cinemagraph: flame flicker mask on the fireplace.
+  // Beat 17 — fire patio. v5.4: objectPosition '88% 50%' biases the cover crop
+  // hard right so the fireplace (right edge of source) actually shows on screen.
+  // Smoothed flame_flicker (no longer jerky).
   { photo: 'v5_library/modern/52-web-or-mls-_DSC1022.jpg',
     startSec: 87.5, durationSec: 5,
-    move: { move: 'push_counter', focal: 'center', intensity: 0.5, counterDir: 'right' },
+    move: { move: 'push_in', focal: 'center', intensity: 0.4 },
     historic: false,
-    cinemagraph: { mask: 'v5_library/masks/mask_fire_patio.png', type: 'flame_flicker' } },
+    cinemagraph: { mask: 'v5_library/masks/mask_fire_patio.png', type: 'flame_flicker' },
+    objectPosition: '88% 50%' },
 
   // === Act 6: Outdoor / wildlife ==============================================
-  // Beat 18 — elk fording the river. Replaces the horse close-up. Cinemagraph: river flow.
+  // Beat 18 — elk fording the river. v5.4: gimbal_walk lr so camera traverses
+  // herd (left of source) to lone elk + bank (right). Cinemagraph water_flow
+  // stays on the river band.
   { photo: 'v5_library/historic/vr_elk_ford_little_deschutes.jpg',
     startSec: 92.5, durationSec: 4.5,
-    move: { move: 'push_in', focal: 'center', intensity: 0.5 },
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.6, direction: 'lr' },
     historic: false,
     cinemagraph: { mask: 'v5_library/masks/mask_elk_river.png', type: 'water_flow' },
     credit: ELK_CREDIT },
@@ -244,6 +250,7 @@ const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
       vignetteLetterbox={beat.vignetteLetterbox}
       cinemagraph={beat.cinemagraph}
       credit={beat.credit}
+      objectPosition={beat.objectPosition}
       scrim="none"
       crossfadeIn={0.5}
       crossfadeOut={0.5}
@@ -266,20 +273,23 @@ export const Listing: React.FC = () => {
   };
 
   // VO sequencing — start times tuned so no two adjacent sentences overlap.
+  // v5.4 VO sequencing — 5 sentences re-synthed, 1 new (Beat 14 looking-glass).
+  // All adjacent gaps verified positive to prevent overlap.
   const VO = [
     { src: 'audio/v51_s01.mp3',  startSec: 7.5  },   // 8.62s — Beats 1+2 family
     { src: 'audio/v51_s02.mp3',  startSec: 19.8 },   // 2.46s — Beat 3 rockpile
     { src: 'audio/v53_s03a.mp3', startSec: 26.5 },   // 4.49s — Beat 4 surrey
-    { src: 'audio/v53_s03b.mp3', startSec: 31.5 },   // 6.45s — Beat 5 footbridge
-    { src: 'audio/v53_s04.mp3',  startSec: 39.0 },   // 4.73s — Beat 6 barn
+    { src: 'audio/v54_s03b.mp3', startSec: 31.5 },   // 3.06s — Beat 5 footbridge (shorter)
+    { src: 'audio/v54_s04.mp3',  startSec: 38.5 },   // 5.15s — Beat 6 barn (anchor century to 1892)
     { src: 'audio/v51_s05.mp3',  startSec: 44.5 },   // 8.67s — Beats 7+8 architect+entry
     { src: 'audio/v53_s05b.mp3', startSec: 54.0 },   // 1.75s — Beat 9 hero ext
     { src: 'audio/v51_s06.mp3',  startSec: 57.0 },   // 10.68s — Beats 10+11 modern intro
-    { src: 'audio/v51_s07.mp3',  startSec: 79.5 },   // 4.60s — Beat 15 sunroom
+    { src: 'audio/v54_s06b.mp3', startSec: 75.5 },   // 3.34s — Beat 14 view doors HERO "looking glass"
+    { src: 'audio/v51_s07.mp3',  startSec: 79.7 },   // 4.60s — Beat 15 sunroom
     { src: 'audio/v51_s08.mp3',  startSec: 88.0 },   // 3.16s — Beat 17 fire patio
     { src: 'audio/v53_s09.mp3',  startSec: 93.0 },   // 2.82s — Beat 18 elk river
-    { src: 'audio/v53_s10.mp3',  startSec: 101.5 },  // 7.76s — Beat 20 Snowdrift
-    { src: 'audio/v51_s11.mp3',  startSec: 110.0 },  // 4.18s — Beat 21 closing line
+    { src: 'audio/v54_s10.mp3',  startSec: 101.5 },  // 7.60s — Beat 20 Snowdrift (Dish Shoots phonetic)
+    { src: 'audio/v54_s11.mp3',  startSec: 110.0 },  // 3.76s — Beat 21 "changes hands once a generation"
   ];
 
   return (

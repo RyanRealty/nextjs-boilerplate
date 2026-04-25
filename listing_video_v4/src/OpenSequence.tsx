@@ -178,8 +178,24 @@ export const OpenSequence: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: '#0a0a08', overflow: 'hidden' }}>
 
-      {/* Satellite tile: 1280x1280 at 1080px wide, centered vertically.
-          v5.3: B&W + deeper contrast so the gold boundary glow + line pop. */}
+      {/* v5.4: blurred backdrop fills the full frame in place of black bars.
+          Same satellite tile, B&W, heavy blur, dark — bleeds the map edges
+          out into the dead space above and below. */}
+      <Img
+        src={staticFile('images/maps_z15.png')}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          filter: 'grayscale(1) blur(38px) brightness(0.32) contrast(1.05)',
+          transform: 'scale(1.15)',
+        }}
+      />
+
+      {/* Sharp satellite tile: 1280x1280 at 1080px wide, centered vertically.
+          B&W + deeper contrast so the gold boundary glow + line pop. */}
       <div style={{
         position: 'absolute',
         left: 0,
@@ -198,16 +214,6 @@ export const OpenSequence: React.FC = () => {
           }}
         />
       </div>
-
-      {/* Black bars top/bottom */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0,
-        height: TILE_TOP_OFFSET, background: '#0a0a08',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        height: TILE_TOP_OFFSET, background: '#0a0a08',
-      }} />
 
       {/* Dark overlay for legibility — v5.3: deeper vignette so gold pops */}
       <div style={{
@@ -314,28 +320,9 @@ export const OpenSequence: React.FC = () => {
         </div>
       </div>
 
-      {/* "REPRESENTED BY RYAN REALTY" subtitle */}
-      <div style={{
-        position: 'absolute',
-        bottom: 280,
-        left: 0, right: 0,
-        display: 'flex', justifyContent: 'center',
-        opacity: subtitleAlpha, pointerEvents: 'none',
-      }}>
-        <div style={{
-          fontFamily: FONT_SANS || 'Montserrat, sans-serif',
-          fontSize: 24,
-          fontWeight: 600,
-          color: CREAM,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          textShadow: '0 2px 16px rgba(0,0,0,0.9)',
-        }}>
-          REPRESENTED BY RYAN REALTY
-        </div>
-      </div>
+      {/* v5.4: REPRESENTED BY RYAN REALTY subtitle removed per Matt. */}
 
-      {/* Vignette — v5.3: deeper to cradle the boundary glow */}
+      {/* Vignette — deeper to cradle the boundary glow */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 28%, rgba(0,0,0,0.72) 100%)',

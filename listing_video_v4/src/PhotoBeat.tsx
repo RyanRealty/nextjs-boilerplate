@@ -2,16 +2,13 @@
 // color grade + shared vignette + optional vignette-letterbox + optional
 // title card + optional cinemagraph mask layer for region-only motion.
 //
-// v5.3 additions:
-//   - wide-mode IMG sizing (height:100% width:auto, flex-centered) when the
-//     active motion expects to pan across a wide image. Eliminates the
-//     "pan into black space" failure mode.
-//   - vignette letterbox: top/bottom dead space filled with a soft
-//     gradient + film grain rather than pure black.
-//   - cinemagraph mask layer: a duplicate of the photo with a sin-wave
-//     translate, masked to a region (water, sky, fire) so motion only
-//     shows through that region while the rest of the frame stays static.
-//   - per-photo credit line as small white text at the bottom of frame.
+// v5.4 additions:
+//   - vignetteLetterbox: dead space above/below the photo is now a BLURRED
+//     copy of the same photo (heavy blur + dark + slight desaturation),
+//     not gradient bands. The photo bleeds out into the dead space.
+//   - objectPosition prop for cover-mode IMG so we can bias toward
+//     specific edge of source (e.g. fire patio fireplace at right edge).
+//   - flame_flicker smoothed: was high-frequency jerky, now slow compound sin.
 
 import React from 'react';
 import { Img, staticFile } from 'remotion';
@@ -52,8 +49,12 @@ type Props = {
   titlePosition?: 'top' | 'bottom' | 'center' | 'none';
   scrim?: 'none' | 'bottom' | 'top' | 'full';
   /** Vignette-letterbox: fits photo at native horizontal aspect (height auto)
-   *  with soft gradient bands top + bottom instead of crop-cover. */
+   *  with a BLURRED copy of the photo filling the dead space top + bottom
+   *  instead of black or gradient bands. */
   vignetteLetterbox?: boolean;
+  /** CSS object-position for cover-mode IMG (e.g. 'right center', '88% 50%').
+   *  Use to bias the cover crop toward a specific edge of the source. */
+  objectPosition?: string;
   /** Crossfade in/out durations override */
   crossfadeIn?: number;
   crossfadeOut?: number;
@@ -65,35 +66,32 @@ type Props = {
 function cinemagraphMotion(type: CinemagraphMotion['type'], frame: number): { tx: number; ty: number; scale: number } {
   switch (type) {
     case 'water_ripple': {
-      // Slow horizontal sway + tiny vertical, sub-pixel scale wobble
       const tx = Math.sin(frame / 38) * 1.2 + Math.sin(frame / 24) * 0.4;
       const ty = Math.cos(frame / 42) * 0.6;
       const scale = 1 + Math.sin(frame / 60) * 0.0015;
       return { tx, ty, scale };
     }
     case 'water_flow': {
-      // Steady horizontal drift + slight vertical for moving river
       const tx = Math.sin(frame / 50) * 1.6 + Math.sin(frame / 30) * 0.5;
       const ty = Math.cos(frame / 35) * 0.8;
       const scale = 1 + Math.sin(frame / 70) * 0.002;
       return { tx, ty, scale };
     }
     case 'sky_drift': {
-      // Very slow horizontal cloud drift, almost no vertical
-      const tx = (frame / 60) * 0.8 % 8 - 4; // gentle linear-ish drift, 8px range
+      const tx = (frame / 60) * 0.8 % 8 - 4;
       const ty = Math.cos(frame / 90) * 0.4;
       const scale = 1 + Math.sin(frame / 100) * 0.001;
       return { tx, ty, scale };
     }
     case 'flame_flicker': {
-      // Erratic small jitters + brightness pulse via scale wobble
-      const tx = (Math.sin(frame / 4) + Math.sin(frame / 7) * 0.6) * 0.5;
-      const ty = (Math.cos(frame / 5) + Math.sin(frame / 9) * 0.7) * 0.4;
-      const scale = 1 + Math.sin(frame / 3) * 0.004 + Math.cos(frame / 5) * 0.003;
+      // v5.4: smoothed. Was high-frequency (period ~4 frames = jerky).
+      // Now slow compound sin so flicker reads as warmth, not seizure.
+      const tx = Math.sin(frame / 22) * 0.5 + Math.sin(frame / 38) * 0.3;
+      const ty = Math.cos(frame / 26) * 0.35 + Math.sin(frame / 44) * 0.2;
+      const scale = 1 + Math.sin(frame / 18) * 0.0018 + Math.cos(frame / 30) * 0.0012;
       return { tx, ty, scale };
     }
     case 'pond_ripple': {
-      // Slow concentric-feeling wobble — small amplitude, dual-axis
       const tx = Math.sin(frame / 45) * 1.0;
       const ty = Math.sin(frame / 32 + 1.2) * 0.7;
       const scale = 1 + Math.sin(frame / 80) * 0.001;
@@ -115,6 +113,7 @@ export const PhotoBeat: React.FC<Props> = ({
   titlePosition = 'bottom',
   scrim = 'bottom',
   vignetteLetterbox = false,
+  objectPosition,
   crossfadeIn = 0.5,
   crossfadeOut = 0.5,
   cinemagraph,
@@ -150,39 +149,52 @@ export const PhotoBeat: React.FC<Props> = ({
     scrimGradient =
       'linear-gradient(180deg, rgba(15,10,6,0.45) 0%, rgba(15,10,6,0.22) 50%, rgba(15,10,6,0.65) 100%)';
 
-  // ─── IMG style by render mode ─────────────────────────────────────────
-  // wideMode: height:100% width:auto, flex-centered. Allows pan via
-  //   transform translate without exposing background.
-  // vignetteLetterbox: width:100% height:auto, top/bottom gradient bands.
-  //   Photo shown at its native horizontal aspect inside 9:16 frame.
-  // default (cover): inset:0 width:100% height:100% objectFit:cover.
-
   const renderPhoto = () => {
     if (vignetteLetterbox) {
       return (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
+        <>
+          {/* Blurred backdrop layer — same photo, full-frame cover, heavy blur,
+              dark + slightly desaturated. Fills the dead space above and below
+              the letterboxed sharp photo with a glass-blur extension instead of
+              black bars. */}
           <Img
             src={staticFile(`images/${photo}`)}
             style={{
+              position: 'absolute',
+              inset: 0,
               width: '100%',
-              height: 'auto',
-              display: 'block',
-              transform: cam.transform,
-              transformOrigin: cam.transformOrigin,
-              filter: finalFilter,
+              height: '100%',
+              objectFit: 'cover',
+              filter: `${finalFilter} blur(38px) brightness(0.42) saturate(0.85)`,
+              transform: 'scale(1.12)',
               opacity: photoAlpha,
             }}
           />
-        </div>
+          {/* Sharp letterboxed photo on top, native horizontal aspect */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            <Img
+              src={staticFile(`images/${photo}`)}
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                transform: cam.transform,
+                transformOrigin: cam.transformOrigin,
+                filter: finalFilter,
+                opacity: photoAlpha,
+              }}
+            />
+          </div>
+        </>
       );
     }
 
@@ -223,6 +235,7 @@ export const PhotoBeat: React.FC<Props> = ({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
+          objectPosition: objectPosition ?? '50% 50%',
           transform: cam.transform,
           transformOrigin: cam.transformOrigin,
           filter: finalFilter,
@@ -232,16 +245,9 @@ export const PhotoBeat: React.FC<Props> = ({
     );
   };
 
-  // ─── Cinemagraph mask overlay ────────────────────────────────────────
-  // A duplicate of the photo with a sin-wave motion, masked to a region.
-  // Renders on TOP of the base photo. Same camera transform as base, plus
-  // a tiny additional sin-wave translate. The mask hides everything outside
-  // the motion region so the static base shows through there.
   const renderCinemagraph = () => {
     if (!cinemagraph) return null;
     const m = cinemagraphMotion(cinemagraph.type, localFrame);
-    // Compose: base camera transform ON the same wrapper, then small
-    // additional sin-translate inside.
     const innerTransform = `translate(${m.tx.toFixed(3)}px, ${m.ty.toFixed(3)}px) scale(${m.scale.toFixed(4)})`;
     const maskUrl = `url(${staticFile(`images/${cinemagraph.mask}`)})`;
 
@@ -328,6 +334,7 @@ export const PhotoBeat: React.FC<Props> = ({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
+          objectPosition: objectPosition ?? '50% 50%',
           transform: `${cam.transform} ${innerTransform}`,
           transformOrigin: cam.transformOrigin,
           filter: finalFilter,
@@ -346,50 +353,6 @@ export const PhotoBeat: React.FC<Props> = ({
     );
   };
 
-  // Vignette-letterbox bands: gradient + film-grain texture on the dead
-  // space above and below the photo, NOT pure black.
-  const renderVignetteLetterboxBands = () => {
-    if (!vignetteLetterbox) return null;
-    return (
-      <>
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
-            background:
-              'linear-gradient(to bottom, #0a0805 0%, rgba(10,8,5,0.92) 50%, rgba(10,8,5,0) 100%)',
-            opacity: photoAlpha,
-            pointerEvents: 'none',
-            mixBlendMode: 'normal',
-            // The actual photo height in 1080 frame is much less than 50%,
-            // so this gradient lands on the dead space top + naturally
-            // fades over the photo edge.
-            mask: 'linear-gradient(to bottom, black 0%, black 35%, transparent 50%)',
-            WebkitMask: 'linear-gradient(to bottom, black 0%, black 35%, transparent 50%)',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
-            background:
-              'linear-gradient(to top, #0a0805 0%, rgba(10,8,5,0.92) 50%, rgba(10,8,5,0) 100%)',
-            opacity: photoAlpha,
-            pointerEvents: 'none',
-            mask: 'linear-gradient(to top, black 0%, black 35%, transparent 50%)',
-            WebkitMask: 'linear-gradient(to top, black 0%, black 35%, transparent 50%)',
-          }}
-        />
-      </>
-    );
-  };
-
   const titleColor = historic ? OFF_WHITE : OFF_WHITE;
   const subColor = GOLD;
 
@@ -402,10 +365,7 @@ export const PhotoBeat: React.FC<Props> = ({
         overflow: 'hidden',
       }}
     >
-      {/* Base photo */}
       {renderPhoto()}
-
-      {/* Cinemagraph masked motion layer (on top of base, same transform + small sine) */}
       {renderCinemagraph()}
 
       {/* Shared vignette */}
@@ -432,10 +392,6 @@ export const PhotoBeat: React.FC<Props> = ({
         }}
       />
 
-      {/* Vignette-letterbox bands (replaces black letterbox) */}
-      {renderVignetteLetterboxBands()}
-
-      {/* Bottom/top scrim for legibility */}
       {scrim !== 'none' ? (
         <div
           style={{
@@ -494,7 +450,6 @@ export const PhotoBeat: React.FC<Props> = ({
         </div>
       ) : null}
 
-      {/* Photo credit line — small white type, bottom of frame, centered */}
       {credit ? (
         <div
           style={{
