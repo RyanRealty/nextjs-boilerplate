@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.58.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): final v5 cinematic short film, ready for review
+
+---
+
+
 ## v1.57.0 (2026-04-25)
 
 ### Features
