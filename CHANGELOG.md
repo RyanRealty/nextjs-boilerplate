@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.57.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): full v5 composition — 27 beats + boundary open + reveal + brand outro
+
+---
+
+
 ## v1.56.9 (2026-04-25)
 
 ### Bug Fixes
