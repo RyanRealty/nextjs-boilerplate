@@ -160,40 +160,43 @@ export const BoundaryDrawTest: React.FC = () => {
   const { fps } = useVideoConfig();
   const t = frame / fps;
 
-  // ── Timing ────────────────────────────────────────────────────────────────
-  // 0.0-1.0s: "1892." appears
-  // 1.0-2.0s: "1892." holds, "VANDEVERT RANCH" fades in at 1.0s
-  // 2.0-2.5s: text dissolves out
-  // 2.5-4.5s: boundary fill + stroke fade in (2.0s fade, cubic ease)
-  // 4.5-6.0s: boundary holds, "REPRESENTED BY RYAN REALTY" appears at 4.5s
+  // ── Timing v8 ─────────────────────────────────────────────────────────────
+  // Matt feedback v7: text → boundary handoff felt rushed. Added breathing.
+  // 0.0-2.0s: "1892." appears (0.4s in), holds 1.6s
+  // 2.0-3.0s: "1892." crossfades to "VANDEVERT RANCH" (1s transition)
+  // 3.0-4.5s: "VANDEVERT RANCH" holds clean (1.5s, locked thumbnail beat)
+  // 4.5-5.5s: text dissolves, satellite tile clear (1s breathing room, no text, no boundary)
+  // 5.5-7.5s: boundary glow fades in slowly (2.0s, cubic ease)
+  // 7.0-8.0s: "REPRESENTED BY RYAN REALTY" subtitle appears at 7.0s
+  // 7.5-8.0s: hold
 
-  // "1892." text
-  const year1892Alpha = interpolate(t, [0, 0.4, 1.8, 2.5], [0, 1, 1, 0], {
+  // "1892." text — appears 0-2.0s, dissolves 2.0-3.0s
+  const year1892Alpha = interpolate(t, [0, 0.4, 2.0, 3.0], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // "VANDEVERT RANCH" tagline under 1892.
-  const vanchTagAlpha = interpolate(t, [1.0, 1.6, 1.8, 2.5], [0, 1, 1, 0], {
+  // "VANDEVERT RANCH" — fades in 2.0-3.0s as 1892 fades out, holds 3.0-4.5s, dissolves 4.5-5.5s
+  const vanchTagAlpha = interpolate(t, [2.0, 3.0, 4.5, 5.5], [0, 1, 1, 0], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // Boundary fill + stroke — 2.0s fade, cubic eased, holds after
-  const rawBoundaryProg = interpolate(t, [2.5, 4.5], [0, 1], {
+  // Boundary glow fade — 5.5-7.5s, slower than v7
+  const rawBoundaryProg = interpolate(t, [5.5, 7.5], [0, 1], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
   const boundaryProg = easeFill(rawBoundaryProg);
 
-  // Fill alpha: 0 → 0.45 (center) for radial gradient inner stop (v7 heavier per Matt)
+  // Fill alpha: 0 → 0.45 (center)
   const fillAlphaCenter = boundaryProg * 0.45;
   const fillAlphaEdge = boundaryProg * 0.18;
 
-  // Subtle scale breathe on boundary: 1.00 → 1.015 over 6s
-  const breatheScale = 1 + interpolate(t, [2.5, 6.0], [0, 0.015], {
+  // Subtle scale breathe on boundary: 1.00 → 1.015 over the boundary phase
+  const breatheScale = 1 + interpolate(t, [5.5, 8.0], [0, 0.015], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
-  // "REPRESENTED BY RYAN REALTY" subtitle at 4.5s
-  const subtitleAlpha = interpolate(t, [4.5, 5.2], [0, 1], {
+  // "REPRESENTED BY RYAN REALTY" subtitle at 7.0s
+  const subtitleAlpha = interpolate(t, [7.0, 7.6], [0, 1], {
     extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
   });
 
