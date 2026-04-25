@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.68.0 (2026-04-25)
+
+### Features
+- feat(listing-video-v5): v5.8 — viral Reels cut (45s, address-on-hero hook)
+
+---
+
+
 ## v1.67.0 (2026-04-25)
 
 ### Features
