@@ -327,4 +327,25 @@ If the quality gate is green, the video ships. If anything is red, fix it before
 
 ---
 
+## 10. Extension skills (optional capabilities)
+
+The five sub-skills under `video_production_skills/` plug into the same Remotion pipeline. None replace the rules above — they extend what's possible inside them. Each ships with its own SKILL.md. Read the relevant one before reaching for the capability.
+
+### `depth_parallax/` — 3D Ken Burns
+MiDaS depth map → bg / mid / fg alpha layers → `<DepthParallaxBeat>` renders with per-layer translate + scale so the foreground tracks the camera faster than the background. Drop-in replacement for `<PhotoBeat>` on hero exteriors and shots with strong depth (kitchen island looking through to mountains, trees in front of the house). Banned on flat photos and faces. Run `python video_production_skills/depth_parallax/generate_depth_map.py --input photo.jpg --output-dir public/images/v5_library/depth/<key>/` once per photo, then point the BeatDef at the depth dir. Skill file: `video_production_skills/depth_parallax/SKILL.md`.
+
+### `gaussian_splat/` — flythrough renders for premium listings
+COLMAP camera poses → nerfstudio splatfacto training → camera-path render → 5–10s MP4 clip dropped into the comp via `<OffthreadVideo>`. For $1M+ listings with 30+ photos or a phone walkthrough video. Apple Silicon training is experimental — recommended path is `--cloud-gpu` (rent a 4090 on RunPod / vast.ai for ~$0.40/scene). **Inherited rule: any clip used in a viral cut must obey the 4-second per-beat cap.** Splat is reserved for the cinematic-cut deliverables, not the 45s viral reels. Wrapper: `python scripts/gaussian_flythrough.py --photos ./photos --output flythrough.mp4 [--cloud-gpu]`. Skill file: `video_production_skills/gaussian_splat/SKILL.md`.
+
+### `cinematic_transitions/` — Crossfade / LightLeak / WhipPan / Push / Slide
+Five drop-in Remotion transition components under `listing_video_v4/src/components/` exported via `./components/index`. Each runs 0.3–0.5s. **Default to Crossfade.** LightLeak and WhipPan are register-changing transitions — once or twice per video maximum, anchored to the 25% and 50% pattern interrupts. WhipPan banned on $1M+ register; LightLeak banned on $1M+ (too "gram-y"). All transitions render over a transparent background so the existing Sequence-overlap pattern in Section 7 #1 keeps working — they do NOT paint solid black or charcoal at any point. Skill file: `video_production_skills/cinematic_transitions/SKILL.md`.
+
+### `audio_sync/` — beat-aligned cuts
+`librosa` beat-tracker writes `beats.json`. The Remotion comp loads it via `listing_video_v4/src/lib/beats.ts` and snaps `BeatDef.startSec` to the nearest detected beat within ±0.15s tolerance. `enforceBeatBounds()` keeps the snapped sequence inside the 2s–4s per-beat constraint from Section 1. Use loosely on luxury (snap re-hooks only); use aggressively on sub-$500K (snap every cut). Skip entirely on VO-only cuts. Run: `python scripts/detect_beats.py --audio music_bed.mp3 --output beats.json`. Skill file: `video_production_skills/audio_sync/SKILL.md`.
+
+### `social_calendar/` — 3 posts/week per active listing
+`scripts/generate_content_calendar.py` reads a listing manifest (or inline flags) and produces a JSON calendar of 3 posts/week × N weeks. Mix per week: 1 full-tour video, 1 single-room highlight (15s), 1 lifestyle moment. Captions are template-based (no LLM call), brand-voice compliant, and fail loudly if any banned word slips in. Numbers come from the manifest — never invented (Section 0 of `CLAUDE.md`, data accuracy rule). Skill file: `video_production_skills/social_calendar/SKILL.md`.
+
+---
+
 How to apply: every video skill invocation, every Remotion composition, every `Listing.tsx` rewrite opens this file. No exceptions. Don't wait for review — self-enforce on every build.
