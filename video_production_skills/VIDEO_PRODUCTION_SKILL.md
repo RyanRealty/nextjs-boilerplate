@@ -2,7 +2,12 @@
 
 **This is non-negotiable. Every agent reads this BEFORE writing any video code or Remotion composition. No exceptions.**
 
-**Pair-required reading: `video_production_skills/ANTI_SLOP_MANIFESTO.md`.** The manifesto is the ship/no-ship gate for every piece of content Ryan Realty publishes. This file (the master skill) codifies the *how* of video production. The manifesto codifies the *what's banned* across video, image, copy, caption, comment, DM, ad, email, and automated post. Both files are loaded before any build.
+**Pair-required reading (load all three before any build):**
+1. **[`ANTI_SLOP_MANIFESTO.md`](ANTI_SLOP_MANIFESTO.md)** — banned-content gate. Twelve hard rules. Voice rules, fair-housing, AI disclosure, brand visual standards.
+2. **[`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md)** — pre-publish virality gate. 100-point scorecard, format-specific minimum scores, frame-by-frame hook spec, platform-specific length / aspect / cadence specs. Every piece scores against this gate before it ships. Default ship floor: 80/100. Format minimums: listing video 85, market data 80, neighborhood 80, meme 75, earth zoom 85.
+3. **This file** (the master skill) — codifies the *how* of video production.
+
+The manifesto codifies *what's banned*. The viral guardrails codify *what's required to publish*. The master skill codifies *how the video is built*. All three are loaded before any build. They do not contradict — they layer.
 
 This file replaces ad-hoc decisions across the v5 series of Schoolhouse listing videos and codifies what shipped vs what didn't. Every cinematic-short-film instinct that ate 130 seconds of a 45-second slot is documented here as a banned pattern. Every viral retention rule that landed is locked.
 
@@ -238,6 +243,13 @@ Cannot ship without all of these green:
 
 If any item is unchecked, the video is not ready. Fix and re-render.
 
+**This quality gate is the production-correctness check. It does NOT replace the virality gate in [`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md).** Every piece runs both gates before publish:
+
+1. **§6 quality gate (above)** — does the video render correctly? No black bars, no frozen frames, motion engaged, brand-compliant frame.
+2. **VIRAL_GUARDRAILS.md scorecard** — is the video engineered to win? 100-point scorecard, hook spec, retention structure, engagement triggers, format-specific minimum score.
+
+A piece that passes §6 but scores under the format minimum on the virality scorecard does not ship — the bones may be technically correct but the piece is not engineered for distribution. Run both. Pass both. Ship.
+
 ---
 
 ## 7. Common failures + the fix
@@ -317,15 +329,18 @@ The v5.7 → v5.8 → v5.9 jump is the most important lesson: a brokerage-credib
 **Every video build begins with this file.** Before scaffolding a `Listing.tsx` BEATS array, before synthing VO, before picking photos:
 
 1. Read this entire file top to bottom.
-2. Open `VIRAL_VIDEO_CONSTRAINTS.md` (the quick-reference card) and pin it next to your editor.
-3. Read the Cowork session memory at `feedback_short_form_retention_rules.md`, `feedback_no_branding_in_viral_video.md`, `reference_listing_video_spec.md`, `reference_viral_video_stats_verified.md`. They are the research underneath this file.
-4. Scaffold the BEATS array against Section 2 (Creative direction).
-5. Synth VO with `previous_text` chaining.
-6. Render with `concurrency=1`.
-7. Run Section 6 quality gate. Fix anything red.
-8. Compress, push to `main`, email Matt.
+2. Read [`ANTI_SLOP_MANIFESTO.md`](ANTI_SLOP_MANIFESTO.md) — the banned-content gate.
+3. Read [`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md) — the pre-publish scorecard. Internalize the 100-point rubric and the format-specific minimum score for the format you are building.
+4. Open `VIRAL_VIDEO_CONSTRAINTS.md` (the production quick-reference card) and `VIRAL_SCORECARD_QUICKREF.md` (the scoring quick-reference card) and pin both next to your editor.
+5. Read the Cowork session memory at `feedback_short_form_retention_rules.md`, `feedback_no_branding_in_viral_video.md`, `reference_listing_video_spec.md`, `reference_viral_video_stats_verified.md`. They are the research underneath this file.
+6. Scaffold the BEATS array against Section 2 (Creative direction). Engineer against the VIRAL_GUARDRAILS scorecard from beat 0 — do not "score later."
+7. Synth VO with `previous_text` chaining.
+8. Render with `concurrency=1`.
+9. Run Section 6 quality gate (production correctness). Fix anything red.
+10. Run VIRAL_GUARDRAILS.md scorecard. Compute the score, write `out/<deliverable>/scorecard.json`. If under format minimum, identify the lowest category, re-cut, re-score.
+11. Compress, push to `main`, email Matt.
 
-If the quality gate is green, the video ships. If anything is red, fix it before delivery — no "good enough."
+If both gates are green, the video ships. If anything is red, fix it before delivery — no "good enough."
 
 ---
 
@@ -337,7 +352,9 @@ All sub-skills live under `video_production_skills/`. None replace the rules abo
 
 - **[`AGENT_HANDOFF.md`](AGENT_HANDOFF.md)** — operations manual. API key inventory, ENV vars, DB schemas, priority tasks, mount instructions for the Cowork agent flow. The "first read on a fresh session" file.
 - **[`ASSET_LOCATIONS.md`](ASSET_LOCATIONS.md)** — index of where rendered MP4s live on disk (BRAND MANAGER, SOCIAL MEDIA MANAGER folders). Updated 2026-04-26.
-- **[`VIRAL_VIDEO_CONSTRAINTS.md`](VIRAL_VIDEO_CONSTRAINTS.md)** — 30-second checklist version of this master skill. Pin next to the editor.
+- **[`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md)** — **mandatory pre-publish virality gate**. 100-point scorecard with format-specific minimum scores. Frame-by-frame hook spec, retention-structure timing, platform specs, engagement-trigger menu, real-estate viral patterns. Every piece scores against this before it ships. Default ship floor: 80/100; format minimums per §10 of that file.
+- **[`VIRAL_SCORECARD_QUICKREF.md`](VIRAL_SCORECARD_QUICKREF.md)** — index-card version of the scorecard. Pin next to the editor for ship-day pre-flight.
+- **[`VIRAL_VIDEO_CONSTRAINTS.md`](VIRAL_VIDEO_CONSTRAINTS.md)** — 30-second production checklist (the *building* gate, not the *publishing* gate). Pin next to the editor.
 
 ### Hard gate (mandatory on every AI clip)
 

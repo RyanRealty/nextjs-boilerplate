@@ -1,6 +1,8 @@
 # Viral Video Constraints — Quick Reference
 
-**This is the 30-second scan card.** The full master skill is in `VIDEO_PRODUCTION_SKILL.md` — read that before scaffolding. This file is for double-checking work in progress.
+**This is the 30-second scan card for production correctness.** The full master skill is in `VIDEO_PRODUCTION_SKILL.md` — read that before scaffolding. This file is for double-checking work in progress.
+
+**For the publish-day virality gate (the scoring rubric), see [`VIRAL_SCORECARD_QUICKREF.md`](VIRAL_SCORECARD_QUICKREF.md) and the full gate at [`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md).** This file is the *building* checklist. The scorecard is the *publishing* checklist. Run both.
 
 ---
 

@@ -13,6 +13,20 @@ skipped until Matt approves them at `/admin/post-queue`. Posts that pass review 
 their scheduled window. Failures are written to `post_failures` with exponential backoff up to 3
 retries, then an alert is sent to Matt via Resend.
 
+## Mandatory pre-publish gate
+
+Before any post is published, the scheduler verifies:
+
+1. **`ANTI_SLOP_MANIFESTO.md` Enforcement gate** — banned-word grep clean, citations.json present,
+   AI disclosure present if AI assets used, fair-housing scan clean.
+2. **`VIRAL_GUARDRAILS.md` scorecard** — `scorecard.json` exists next to the asset and shows
+   `total >= minimum_required` with no `auto_zero_hits`. Format minimums: listing video 85,
+   market data 80, neighborhood 80, meme 75, earth zoom 85; default 80.
+
+A post without `scorecard.json`, or with a score under the format minimum, or with any
+`auto_zero_hits`, is rejected back to `pending_human_review` and surfaced in `/admin/post-queue`
+with the failing scorecard categories highlighted. The scheduler refuses to publish it.
+
 ## Trigger
 
 ```

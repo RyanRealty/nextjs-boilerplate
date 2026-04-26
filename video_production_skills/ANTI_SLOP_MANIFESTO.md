@@ -2,6 +2,8 @@
 
 **This document is the ship/no-ship gate for every piece of content Ryan Realty publishes — video, image, copy, caption, comment, DM, ad, email, automated post.** Every skill in `video_production_skills/`, `social_media_skills/`, and `automation_skills/` references this file. If a deliverable violates a rule, it does not ship. There is no override. There is no "this one time."
 
+**Pair-required: [`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md).** This manifesto governs *what's banned* — the floor every piece must clear before it can be considered for publish. The viral guardrails govern *what's required to publish* — the 100-point scorecard with format-specific minimum scores. The two files layer: a piece that is manifesto-clean but scores under the format minimum on the viral scorecard does not ship, and a piece that scores 100 on the scorecard but hits any manifesto banned pattern also does not ship. Both gates fire before publish.
+
 The cost of slop is not aesthetic. Matt is a licensed Oregon principal broker. Ryan Realty's license, reputation, and lead pipeline are on the line every time a piece of content goes out. AI slop, generic real estate language, and unverified data are the three fastest ways to look like every other agent in Bend and to torch trust we cannot rebuild.
 
 This file outranks speed, style, cost, and every other instruction. Read it before you write a caption. Read it before you scaffold a Remotion comp. Read it before you queue a post.
@@ -342,6 +344,7 @@ Before any deliverable ships, sends, posts, renders, or commits, the orchestrato
 7. **Voice grader pass** (does it sound like Matt, not like ChatGPT).
 8. **Engagement honesty pass** (thumbnail/hook/content match).
 9. **Format-review-window check** (still in 30-day window? human approval present?).
+10. **Viral guardrails scorecard pass.** Score against [`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md) §3 rubric. Total >= format-specific minimum (§10 of that file). No auto-zero hits. `scorecard.json` written next to the render.
 
 A single failure = no ship. Fix the failure. Do not override. Do not "this one is special."
 
