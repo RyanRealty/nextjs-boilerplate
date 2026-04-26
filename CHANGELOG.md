@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.82.0 (2026-04-26)
+
+### Features
+- feat(listing-video): viral rebuild — news clips with motion, captions, branded chrome
+
+---
+
+
 ## v1.81.1 (2026-04-26)
 
 ### Bug Fixes
