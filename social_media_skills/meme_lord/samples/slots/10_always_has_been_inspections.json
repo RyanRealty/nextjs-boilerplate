@@ -1,0 +1,12 @@
+{
+  "template": "always_has_been",
+  "friction": "inspection_drama",
+  "slots": {
+    "front": "Wait, the inspection is going to find SOMETHING wrong with EVERY house?",
+    "back": "Always has been"
+  },
+  "caption_draft": {
+    "ig": "Spoiler: yes.",
+    "x": ""
+  }
+}

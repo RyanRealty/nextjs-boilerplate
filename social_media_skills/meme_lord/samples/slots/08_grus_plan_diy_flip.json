@@ -1,0 +1,14 @@
+{
+  "template": "grus_plan",
+  "friction": "buyer_behavior",
+  "slots": {
+    "panel_1": "We'll buy a fixer-upper",
+    "panel_2": "Renovate it on weekends",
+    "panel_3": "While we both work 50 hours a week and have never used a saw",
+    "panel_4": "While we both work 50 hours a week and have never used a saw"
+  },
+  "caption_draft": {
+    "ig": "The HGTV-to-reality pipeline.",
+    "x": ""
+  }
+}

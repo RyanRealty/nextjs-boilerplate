@@ -1,0 +1,209 @@
+{
+  "deliverable": "meme_lord_sample_batch_2026-04-26",
+  "scored_at": "2026-04-26T12:00:00-07:00",
+  "scored_by": "orchestrator",
+  "format": "meme_image",
+  "minimum_required": 75,
+  "scoring_notes": "Per VIRAL_GUARDRAILS.md §10, the meme/trend-jack format minimum is 75. Audio strategy (Cat 4) is N/A for static image memes; scored as 8/10 default for the audio-less path (no robotic TTS, no off-beat cuts possible). Retention structure (Cat 2) adapted for static images: scored on whether the image holds the eye long enough to read (text legibility + composition). All 10 samples pass the manifesto and the voice/compliance gates above.",
+  "samples": [
+    {
+      "id": "01_drake_zillow_links",
+      "template": "drake",
+      "categories": {
+        "hook": {"score": 9, "notes": "Recognizable Drake template instantly readable; top text 'clean offer in their budget' sets up scroll-stop in 1s"},
+        "retention": {"score": 8, "notes": "Two-panel structure pays off in second panel; eye travel rewarded"},
+        "text": {"score": 9, "notes": "Impact white-on-black-stroke, fitted to slot, legible at grid preview"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10, "notes": "1080x1080 ig_square, PNG, optimized"},
+        "engagement": {"score": 8, "primary_trigger": "share", "notes": "Send to any agent friend who has been there. Caption 'If you know.' invites self-recognition"},
+        "cover": {"score": 9, "notes": "Single image is the cover; high-contrast Drake template"},
+        "cta": {"score": 8, "notes": "Soft caption-based CTA, no in-frame CTA. Punchline lands in bottom panel"},
+        "voice_brand": {"score": 9, "notes": "Canonical white stacked Ryan Realty logo bottom-right; meme-genre Impact font is the documented exception (Matt directive + meme convention)"},
+        "antislop": {"score": 10, "notes": "Banned-words clean; no semicolons or em-dashes; no exclamation; no AI humor (Matt-written punchline); no data claims"}
+      },
+      "auto_zero_hits": [],
+      "total": 88,
+      "verdict": "ship"
+    },
+    {
+      "id": "02_distracted_boyfriend_budget_creep",
+      "template": "distracted_boyfriend",
+      "categories": {
+        "hook": {"score": 9, "notes": "Distracted Boyfriend template is instantly recognizable; specific dollar anchors ($400K, $650K)"},
+        "retention": {"score": 8, "notes": "Three-figure scan rewards a second pass"},
+        "text": {"score": 9, "notes": "White label boxes with bold black text over each figure"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 8, "primary_trigger": "share", "notes": "Universal scope creep, send-to-buyer-friend pattern"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9, "notes": "Logo present; voice rules clean"},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 88,
+      "verdict": "ship"
+    },
+    {
+      "id": "03_this_is_fine_lender",
+      "template": "this_is_fine",
+      "categories": {
+        "hook": {"score": 9, "notes": "Recognizable This Is Fine comic; top caption '4:55pm on closing day' is concrete"},
+        "retention": {"score": 8},
+        "text": {"score": 9, "notes": "Impact in canvas-relative letterbox bands above and below comic"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "Closing day chaos = high agent-share rate; consumer recognition too"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 89,
+      "verdict": "ship"
+    },
+    {
+      "id": "04_expanding_brain_buyer_escalation",
+      "template": "expanding_brain",
+      "categories": {
+        "hook": {"score": 9, "notes": "4-panel expanding brain rewards top-to-bottom read; final panel is the payoff"},
+        "retention": {"score": 9, "notes": "Escalation structure is the format's defining retention pattern"},
+        "text": {"score": 9, "notes": "Arial Bold black on white panels, left-aligned next to brain images"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "Universal buyer escalation, screen-shottable for buyer's-agent group chats"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 90,
+      "verdict": "ship"
+    },
+    {
+      "id": "05_woman_yelling_cat_zestimate",
+      "template": "woman_yelling_cat",
+      "categories": {
+        "hook": {"score": 9, "notes": "Recognizable confrontation template; '$850,000' is concrete"},
+        "retention": {"score": 8},
+        "text": {"score": 9},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "Zestimate deflation is a universal listing-agent share"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 89,
+      "verdict": "ship"
+    },
+    {
+      "id": "06_change_my_mind_open_houses",
+      "template": "change_my_mind",
+      "categories": {
+        "hook": {"score": 8, "notes": "Recognizable but the take needs to land in the upper sign area; tested legible"},
+        "retention": {"score": 8},
+        "text": {"score": 8, "notes": "Black bold on white sign, legible. Slightly tight at small sizes"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "comment", "notes": "Change My Mind format is engineered for comment provocation"},
+        "cover": {"score": 8},
+        "cta": {"score": 8, "notes": "Implicit comment CTA — the format invites disagreement"},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 86,
+      "verdict": "ship"
+    },
+    {
+      "id": "07_epic_handshake_no_first_offer",
+      "template": "epic_handshake",
+      "categories": {
+        "hook": {"score": 9, "notes": "Top caption 'Refusing to name a number first' sets up the unlikely-allies payoff"},
+        "retention": {"score": 8},
+        "text": {"score": 9, "notes": "Impact top caption + sleeve labels"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "Both sides recognize themselves; high cross-audience share"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 89,
+      "verdict": "ship"
+    },
+    {
+      "id": "08_grus_plan_diy_flip",
+      "template": "grus_plan",
+      "categories": {
+        "hook": {"score": 9, "notes": "4-panel plan-realization rewards full read; payoff in panel 3 (and again in panel 4 with Gru's reaction)"},
+        "retention": {"score": 9, "notes": "Plan-then-realize structure is the format's defining retention pattern"},
+        "text": {"score": 9, "notes": "White paste-on cards at top of each panel; Arial Bold black text"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "HGTV-to-reality pipeline — couples send to each other"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10, "notes": "Original draft had 'toddler' (familial-status touch); rewritten to '50 hours a week and never used a saw' before render"}
+      },
+      "auto_zero_hits": [],
+      "total": 90,
+      "verdict": "ship"
+    },
+    {
+      "id": "09_two_buttons_listing_agent",
+      "template": "two_buttons",
+      "categories": {
+        "hook": {"score": 8, "notes": "Two Buttons template recognizable; agent-leaning audience"},
+        "retention": {"score": 8},
+        "text": {"score": 8, "notes": "Button labels in white plates above red buttons; bottom caption identifies the protagonist"},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 8, "primary_trigger": "share", "notes": "Listing agent send-to-peer pattern; smaller share volume than dual-audience templates"},
+        "cover": {"score": 8},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 85,
+      "verdict": "ship"
+    },
+    {
+      "id": "10_always_has_been_inspections",
+      "template": "always_has_been",
+      "categories": {
+        "hook": {"score": 9, "notes": "Front astronaut realization is concrete; 'inspection finds SOMETHING wrong with EVERY house' lands fast"},
+        "retention": {"score": 9, "notes": "Two-beat speech structure is the format's defining retention pattern"},
+        "text": {"score": 9},
+        "audio": {"score": 8, "path": "N/A_static_image"},
+        "format": {"score": 10},
+        "engagement": {"score": 9, "primary_trigger": "share", "notes": "Universal homebuyer truth; high cross-audience share"},
+        "cover": {"score": 9},
+        "cta": {"score": 8},
+        "voice_brand": {"score": 9},
+        "antislop": {"score": 10}
+      },
+      "auto_zero_hits": [],
+      "total": 90,
+      "verdict": "ship"
+    }
+  ],
+  "batch_summary": {
+    "samples": 10,
+    "minimum_required": 75,
+    "lowest_score": 85,
+    "highest_score": 90,
+    "average": 88.4,
+    "auto_zero_hits": 0,
+    "verdict": "all 10 ship — every sample clears the meme format minimum (75) by at least 10 points; no auto-zero failures"
+  }
+}

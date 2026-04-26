@@ -1,0 +1,13 @@
+{
+  "template": "distracted_boyfriend",
+  "friction": "buyer_behavior",
+  "slots": {
+    "girlfriend": "The 3-bed in their budget",
+    "boyfriend": "Buyer pre-approved at $400K",
+    "other_woman": "The $650K house with a wine cellar"
+  },
+  "caption_draft": {
+    "ig": "Every. Single. Time.",
+    "x": ""
+  }
+}

@@ -16,12 +16,14 @@ description: "Image-format viral real estate memes for Instagram and X. Surfaces
 A workflow for shipping image memes (PNG/JPG, single image or carousel) tuned for Instagram feed, IG Stories, and X (Twitter). The skill does five things:
 
 1. Pulls live trending meme formats and current real estate friction points.
-2. Maps each friction point to 3-5 candidate templates from a registry.
-3. Pre-renders the template with empty slots (the meme image with blank top/bottom/labels).
-4. Hands the empty template to Matt with the friction context, the verified data anchor, and the voice calibration examples.
+2. Maps each friction point to 3-5 candidate templates from a registry of **actual recognizable meme images** (Drake, Distracted Boyfriend, This Is Fine, Expanding Brain, Woman Yelling at Cat, Change My Mind, Epic Handshake, Gru's Plan, Two Buttons, Always Has Been).
+3. Hands Matt the chosen template's slot schema with the friction context, the verified data anchor (when applicable), and voice calibration examples.
+4. Composites Matt's punchline onto the real template image using classic meme typography — Impact font, all caps, white fill with black stroke (or template-appropriate label boxes).
 5. Renders the final meme to the right platform aspect ratio and queues it for the 30-day human-review window.
 
 The skill never writes the punchline. It surfaces structure, context, and constraint. Matt writes the words.
+
+**The humor is universal real estate, not Bend-specific.** Bend angles get sprinkled in occasionally. The default is broad agent / buyer / seller pain that any RE pro or homebuyer instantly recognizes. Specificity beats locality — "buyers who send 47 Zillow links at 2am" lands everywhere; "Westside Bend buyers who send a Cessna over Drake Park" lands nowhere.
 
 **Output platforms and sizes:**
 - Instagram feed: 1080×1080 (square) or 1080×1350 (4:5 portrait, preferred for reach)
@@ -86,7 +88,7 @@ Image memes are cheaper to produce, faster to ship on a breaking trend, and fill
 | Friction map | This skill's `friction_topics.md` library | $0 | — |
 | Template registry | `templates/registry.json` | $0 | — |
 | Data anchor | Supabase `ryan-realty-platform` (live) | $0 | Service role key |
-| Image render | Python + Pillow (`scripts/render_meme.py`) | $0 | Local |
+| Image render | Python + Pillow (`scripts/render_meme.py`) compositing onto real template images in `templates/base_images/` | $0 | Local |
 | Voice grader | `voice_grader.md` checklist + manual judgment | $0 | Matt |
 | Compliance gate | `compliance_gate.md` checklist | $0 | Matt or reviewer |
 | Queue | `automation_skills/automation/post_scheduler` pending_review | $0 | — |
@@ -148,18 +150,18 @@ The registry currently includes:
 
 | Template ID | Format | Best for |
 |---|---|---|
-| `drake_yes_no` | Two-panel reject/accept | Behavior contrast, decision gates |
-| `distracted_boyfriend` | Three-label image | Choosing between options, switching attention |
-| `pov_youre_a` | Single image, top text | Insider scenarios, day-in-the-life |
-| `tell_me_without_telling_me` | Single image, top text | Identity tells, regional callouts |
-| `imessage_screenshot` | Fake text screenshot | Client conversations, agent-to-agent gripes |
-| `spiderman_pointing` | Two-character mirror | Industry self-reflection |
-| `pull_quote_card` | White-on-cream, bold serif | One-line insider zinger, carousel slide 1 |
-| `nobody_me_at_3am` | Two-line text on plain bg | Self-deprecating agent moments |
-| `expectation_vs_reality` | Two-panel image | Listing photo vs reality, marketing vs truth |
-| `this_is_fine_dog` | Cartoon dog in burning room | Closing day chaos, deal going sideways |
+| `drake` | Drake Hotline Bling, two-panel reject/approve | Behavior contrast, decision gates |
+| `distracted_boyfriend` | Three-figure label image | Choosing between options, scope creep |
+| `this_is_fine` | Cartoon dog in burning room | Closing chaos, deal sideways |
+| `expanding_brain` | Four-panel escalating brain | Buyer/seller escalation, absurdity ramps |
+| `woman_yelling_cat` | Two-panel confrontation | Seller delusion, agent vs client |
+| `change_my_mind` | Steven Crowder sign | Provocative single-take |
+| `epic_handshake` | Two arms gripping with shared label | Unlikely allies, both sides agreeing |
+| `grus_plan` | Four-panel plan-realization | Plans that fall apart on the third step |
+| `two_buttons` | Sweating man at impossible choice | Agent dilemmas, no good option |
+| `always_has_been` | Astronaut speech / "always has been" | Dark realizations about how the system works |
 
-Each template has a JSON spec with image path, slot schema, brand-overlay rules, and current `last_used` date.
+Each template has a JSON spec in `templates/registry.json` with the base image path, slot schema, format-fit scores per friction category, and current `last_used` date. Base template images live in `templates/base_images/`.
 
 ### Step 4 — Data anchor (when applicable)
 
@@ -219,9 +221,9 @@ Build a `brief.md` for Matt with:
 - [second example, different account]
 
 ## Candidate templates (pick one, fill the slots, voice-check it)
-1. drake_yes_no — slots: top_panel_text, bottom_panel_text
-2. pov_youre_a — slots: pov_line
-3. imessage_screenshot — slots: contact_name, message_1, message_2
+1. drake — slots: top, bottom
+2. expanding_brain — slots: panel_1, panel_2, panel_3, panel_4 (escalating)
+3. woman_yelling_cat — slots: woman, cat
 
 ## Reminders before you write
 - Specific beats relatable. Use a number, a street name, an MLS field, a brokerage name.
@@ -236,20 +238,34 @@ Matt fills the slots. Returns the filled brief.
 
 ### Step 6 — Render
 
-Run `scripts/render_meme.py` with the filled brief, the chosen template, and the target platform size:
+Save the filled punchline as a `slots.json` file:
+
+```json
+{
+  "template": "drake",
+  "friction": "buyer_behavior",
+  "slots": {
+    "top": "Buyers who send a clean offer in their budget",
+    "bottom": "Buyers who send 47 Zillow links at 2am asking 'thoughts?'"
+  }
+}
+```
+
+Then run `scripts/render_meme.py`:
 
 ```bash
 python3 scripts/render_meme.py \
-  --template drake_yes_no \
-  --brief out/meme_lord/2026-04-26-rate-wait/brief.md \
-  --platform ig_portrait \
-  --out out/meme_lord/2026-04-26-rate-wait/render.png
+  --template drake \
+  --slots out/meme_lord/2026-04-26-zillow-links/slots.json \
+  --platform ig_square \
+  --out out/meme_lord/2026-04-26-zillow-links/render_ig_square.png
 ```
 
 Renderer rules:
-- Brand fonts loaded from `assets/fonts/Amboqia-*.otf` and `assets/fonts/AzoSans-*.otf`. Render fails if fonts are missing.
-- Brand color tokens from `templates/brand_tokens.json`. No hex literals in slot text.
-- Logo lockup applied to bottom-right corner at minimum 60px on a 1080-wide canvas (smaller than video-end-card minimum because the meme image is the primary content). Logo color: white-on-navy or navy-on-white only.
+- The base meme image lives in `templates/base_images/<id>.jpg`. The renderer scales it to fill the platform canvas, letterboxing on whichever axis doesn't match.
+- Classic meme typography: Impact font, all caps, white fill with black stroke, fitted to the slot box. Templates with label-box semantics (Distracted Boyfriend, Expanding Brain, Change My Mind, Two Buttons) use Arial Bold black on white instead.
+- Slot positions are template-specific and live in `scripts/render_meme.py` per renderer (e.g., `render_drake`, `render_expanding_brain`). Adding a template = a new base image + a new renderer fn + a registry entry.
+- Subtle `@ryanrealty` watermark on the bottom-right. Small enough that the meme reads as a meme, not as branded content. No big logo bars or footers — that kills shareability.
 - Output dimensions match `--platform`:
   - `ig_square` → 1080×1080
   - `ig_portrait` → 1080×1350
@@ -331,10 +347,12 @@ The `performance_loop` automation skill ingests this weekly to score template pe
 - `friction_topics.md` — the friction taxonomy library
 - `voice_grader.md` — the 8-question voice checklist
 - `compliance_gate.md` — the Fair Housing + misrepresentation checklist
-- `templates/registry.json` — template registry with cooldowns and slot schemas
-- `templates/brand_tokens.json` — color and font tokens
-- `scripts/render_meme.py` — Pillow renderer
-- `samples/` — five sample memes proving the workflow ships
+- `templates/registry.json` — template registry with cooldowns, slot schemas, and format-fit scores per friction
+- `templates/base_images/` — the actual meme template images (Drake, This Is Fine, Expanding Brain, etc.)
+- `templates/brand_tokens.json` — platform sizes and brand color tokens (used by some renderers for caption bars)
+- `scripts/render_meme.py` — Pillow compositor: loads base image, fits to platform canvas, overlays Impact-style caption text per template-specific slot positions
+- `samples/slots/` — slot files for each sample (template + filled punchline + caption draft)
+- `samples/renders/` — 10 rendered sample memes proving each template ships clean output
 
 ---
 

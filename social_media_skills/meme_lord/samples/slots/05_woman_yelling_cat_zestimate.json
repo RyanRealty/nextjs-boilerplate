@@ -1,0 +1,12 @@
+{
+  "template": "woman_yelling_cat",
+  "friction": "seller_delusion",
+  "slots": {
+    "woman": "ZILLOW SAYS MY HOUSE IS WORTH $850,000",
+    "cat": "Zillow has never been inside your house"
+  },
+  "caption_draft": {
+    "ig": "Comps > Zestimate. Always.",
+    "x": ""
+  }
+}

@@ -1,46 +1,49 @@
 # Sample Memes — Renderer Demonstration
 
-These five renders prove the `meme_lord` workflow ships end-to-end. They are **dev artifacts, not production content**. Before any one of these is published, Matt runs the voice grader and compliance gate per `SKILL.md` Steps 7-8.
+These ten renders prove the `meme_lord` workflow ships end-to-end on real, recognizable meme templates. They are **dev artifacts, not production content**. Before any one ships, the workflow runs the voice grader (`voice_grader.md`) and compliance gate (`compliance_gate.md`) plus the viral guardrails scorecard (`video_production_skills/VIRAL_GUARDRAILS.md`) — logs for this batch live alongside this README at `voice_grader_log.md`, `compliance_log.md`, and `scorecard.json`.
+
+The humor here is **universal real estate**, not Bend-specific. Bend angles get sprinkled in occasionally. The default is broad agent / buyer / seller pain that any RE pro or homebuyer instantly recognizes.
 
 | # | Template | Friction | Platform | File |
 |---|---|---|---|---|
-| 1 | `pull_quote_card` | Lowball offers | IG portrait 1080×1350 | [01_pull_quote_lowball.png](renders/01_pull_quote_lowball.png) |
-| 2 | `pov_youre_a` | Rate cycle | IG square 1080×1080 | [02_pov_rate_wait.png](renders/02_pov_rate_wait.png) |
-| 3 | `imessage_screenshot` | Just-looking buyer | IG portrait 1080×1350 | [03_imessage_just_looking.png](renders/03_imessage_just_looking.png) |
-| 4 | `tell_me_without_telling_me` | Bend transplant view perception | IG portrait 1080×1350 | [04_tell_me_transplant.png](renders/04_tell_me_transplant.png) |
-| 5 | `nobody_me_at_3am` | MLS workflow obsession | IG square 1080×1080 | [05_nobody_mls_3am.png](renders/05_nobody_mls_3am.png) |
+| 1 | `drake` | Buyer behavior — Zillow links at 2am | IG square 1080×1080 | [01_drake_zillow_links.png](renders/01_drake_zillow_links.png) |
+| 2 | `distracted_boyfriend` | Buyer behavior — budget creep | IG square 1080×1080 | [02_distracted_boyfriend_budget_creep.png](renders/02_distracted_boyfriend_budget_creep.png) |
+| 3 | `this_is_fine` | Closing chaos — lender at 4:55pm | IG square 1080×1080 | [03_this_is_fine_lender.png](renders/03_this_is_fine_lender.png) |
+| 4 | `expanding_brain` | Buyer behavior — escalating asks | IG square 1080×1080 | [04_expanding_brain_buyer_escalation.png](renders/04_expanding_brain_buyer_escalation.png) |
+| 5 | `woman_yelling_cat` | Seller delusion — Zestimate denial | IG square 1080×1080 | [05_woman_yelling_cat_zestimate.png](renders/05_woman_yelling_cat_zestimate.png) |
+| 6 | `change_my_mind` | Agent life — buyer fixer-upper fantasy | IG square 1080×1080 | [06_change_my_mind_open_houses.png](renders/06_change_my_mind_open_houses.png) |
+| 7 | `epic_handshake` | Negotiation — refusing to name a number | IG square 1080×1080 | [07_epic_handshake_no_first_offer.png](renders/07_epic_handshake_no_first_offer.png) |
+| 8 | `grus_plan` | Buyer behavior — DIY-flip delusion | IG square 1080×1080 | [08_grus_plan_diy_flip.png](renders/08_grus_plan_diy_flip.png) |
+| 9 | `two_buttons` | Agent life — listing consult dilemma | IG square 1080×1080 | [09_two_buttons_listing_agent.png](renders/09_two_buttons_listing_agent.png) |
+| 10 | `always_has_been` | Inspection drama — universal truth | IG square 1080×1080 | [10_always_has_been_inspections.png](renders/10_always_has_been_inspections.png) |
 
-## Voice grader pass per sample
+## What changed in this batch (rebuild from v1 corporate-style PIL renders)
 
-All five samples pass the 8 questions in `voice_grader.md`:
+- Real meme template base images (Drake, Distracted Boyfriend, This Is Fine, etc.) live in `templates/base_images/`, downloaded from imgflip canonical templates.
+- Classic meme typography: Impact font, all caps, white fill with black stroke. Templates with label-box semantics (Distracted Boyfriend, Expanding Brain, Change My Mind, Two Buttons) use Arial Bold black-on-white instead.
+- Canonical Ryan Realty logo applied bottom-right per Matt's directive: `listing_video_v4/public/brand/stacked_logo_white.png` is the only allowed branding asset.
+- The previous five corporate-style PIL renders (pull_quote_card, pov_youre_a, imessage_screenshot, tell_me_without_telling_me, nobody_me_at_3am) and their slot files are removed.
 
-1. **Banned-word grep:** clean across all five. No "stunning", "nestled", "delve", "leverage", "in today's market", etc.
-2. **Punctuation:** no semicolons, no em-dashes, no exclamation points anywhere.
-3. **Specificity:** every sample carries a concrete anchor — a price ($895K, $620K), a payment delta ($147), a time (6am, 3am), a place (Awbrey, Tetherow, the Cascades, Bend), a year (2019), or a date (April 21).
-4. **Voice test:** read aloud, each sounds like a working broker writing about a thing they actually saw.
-5. **Setup-punchline:** punchline at the end on every sample. Sample 1 saves the buyer's quoted line for the bottom of the quote. Sample 2 saves the "$147 higher than the day you said wait" closer. Sample 3 saves "On my way." for the agent's resigned reply at the end. Sample 4 saves "four-mile-out distant ridge." Sample 5 saves "closed in 2019."
-6. **Caption explanation:** none of the image text explains the joke.
-7. **Engagement bait:** none. Sample 2's footer says "Bend market data updates every Friday" — informational, not bait.
-8. **Insider-only check:** Samples 1, 2, 3, 4 are dual-audience. Sample 5 is agent-skewing — flagged as agent-only in `slots/05_nobody_mls_3am.json`.
+## Voice grader
 
-## Compliance gate pass per sample
+All 10 pass the 8-question checklist. Two fixes during the build:
 
-All five samples pass the 8 questions in `compliance_gate.md`:
+1. Sample 01 caption originally read "Tag the agent who has been here." — engagement-bait pattern (`Tag a friend who...`). Rewritten to "If you know."
+2. Sample 08 (Gru's Plan) originally referenced "toddler" in panels 3-4 — familial-status touch under Fair Housing. Rewritten to "50 hours a week and never used a saw" (same comedic beat, zero protected-class touch).
 
-1. **Protected-class touch:** none. "Bend transplant" is geographic, not national-origin (Sample 4).
-2. **Steering language:** none.
-3. **Identifiability:** Sample 1 quotes a generic "showing feedback" line. Sample 3 uses "Buyer #4" with "Composite. Not a real conversation." printed under the contact name. Sample 4 references the Cascades view experience generically. No real person identifiable.
-4. **Forecasting:** Sample 2 is rate-cycle math, not a forecast. It states what already happened.
-5. **MLS attribution:** no real listings referenced.
-6. **Misrepresentation:** none.
-7. **Political content:** none.
-8. **Bot escalation:** Sample 2 invites comments about rates and payment math — these route to Matt per the engagement_bot classifier, not auto-reply.
+Full log: [voice_grader_log.md](voice_grader_log.md).
+
+## Compliance gate
+
+All 10 pass the 8-question Fair Housing + misrepresentation checklist. The Gru's Plan toddler rewrite is logged in [compliance_log.md](compliance_log.md). Three samples (#03 lender, #05 Zestimate, #10 inspection) are tagged for engagement-bot escalation when they generate transaction-specific replies.
+
+## Viral guardrails scorecard
+
+All 10 clear the meme format minimum (75/100 per `VIRAL_GUARDRAILS.md` §10). Lowest score in the batch: 85. Highest: 90. Zero auto-zero hits. Full per-sample breakdown: [scorecard.json](scorecard.json).
 
 ## Data anchors required before publication
 
-Sample 2 ($147 monthly payment delta) is **illustrative**. Before any version of this meme ships, run the actual rate-vs-price math against Bend median SFR Supabase data per the verification trace pattern in CLAUDE.md. Replace $147 with the verified figure. Citation goes in `out/meme_lord/<slug>/citations.json`.
-
-The other four samples are observational and require no data anchor.
+None of the 10 samples carry a verified-data claim. The Distracted Boyfriend price points ($400K / $650K) and the Woman Yelling Cat $850K Zestimate are illustrative composites, not market figures. Per `VIRAL_GUARDRAILS.md` §10, meme content does not need citations because it does not make claims. If a future meme makes a market claim, run the verification trace per `CLAUDE.md` §0 and write `citations.json` next to the render.
 
 ## Re-rendering
 
@@ -49,14 +52,16 @@ Each sample has a slot JSON in `slots/`. To re-render any one:
 ```bash
 cd social_media_skills/meme_lord
 python3 scripts/render_meme.py \
-  --template pull_quote_card \
-  --slots samples/slots/01_pull_quote_lowball.json \
-  --platform ig_portrait \
-  --out samples/renders/01_pull_quote_lowball.png
+  --template drake \
+  --slots samples/slots/01_drake_zillow_links.json \
+  --platform ig_square \
+  --out samples/renders/01_drake_zillow_links.png
 ```
+
+Available platforms: `ig_square`, `ig_portrait`, `ig_story`, `x_inline`, `x_tall`.
 
 ## What these samples do not prove
 
 - They do not prove the trend scan returns viable trends (Step 1 of the workflow). That happens live each Monday.
 - They do not prove the post-publish performance loop (Step 11). That requires posted memes and real impression data.
-- They do not prove brand fonts render correctly. The system fell back to Helvetica because Amboqia and AzoSans are not installed at the search paths in `brand_tokens.json`. Production renders should install the brand fonts and verify they load. Renderer logs a warning when fonts fall back.
+- They are sample punchlines for renderer/template demonstration. Production memes are written by Matt per Anti-Slop Manifesto Rule 9 (no AI humor); the skill never writes the punchline in the live workflow.

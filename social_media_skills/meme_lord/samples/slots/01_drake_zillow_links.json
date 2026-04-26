@@ -1,0 +1,12 @@
+{
+  "template": "drake",
+  "friction": "buyer_behavior",
+  "slots": {
+    "top": "Buyers who send a clean offer in their budget",
+    "bottom": "Buyers who send 47 Zillow links at 2am asking 'thoughts?'"
+  },
+  "caption_draft": {
+    "ig": "If you know.",
+    "x": ""
+  }
+}

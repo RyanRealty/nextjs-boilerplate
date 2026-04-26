@@ -1,0 +1,13 @@
+{
+  "template": "epic_handshake",
+  "friction": "buyer_behavior",
+  "slots": {
+    "top": "Refusing to name a number first",
+    "left": "Buyers",
+    "right": "Sellers"
+  },
+  "caption_draft": {
+    "ig": "Every negotiation, ever.",
+    "x": ""
+  }
+}

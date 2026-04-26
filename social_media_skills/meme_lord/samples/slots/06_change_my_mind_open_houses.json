@@ -1,0 +1,11 @@
+{
+  "template": "change_my_mind",
+  "friction": "agent_life",
+  "slots": {
+    "sign": "Every buyer says they want a fixer-upper until they see one"
+  },
+  "caption_draft": {
+    "ig": "",
+    "x": ""
+  }
+}
