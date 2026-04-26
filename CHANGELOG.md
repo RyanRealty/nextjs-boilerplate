@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.74.0 (2026-04-26)
+
+### Features
+- feat(content-engine): autonomous viral content engine — 47 skills + ANTI-SLOP manifesto
+
+---
+
+
 ## v1.73.0 (2026-04-26)
 
 ### Features
