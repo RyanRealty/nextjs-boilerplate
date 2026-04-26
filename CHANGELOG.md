@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.71.0 (2026-04-26)
+
+### Features
+- feat(listing-video): Tumalo Reservoir v2 — 16 beats, 45s
+
+---
+
+
 ## v1.70.0 (2026-04-26)
 
 ### Features
