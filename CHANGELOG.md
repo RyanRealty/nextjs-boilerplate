@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.78.1 (2026-04-26)
+
+### Bug Fixes
+- fix(listing-video): Tumalo v3 — 7 critical fixes after diagnostic review
+
+---
+
+
 ## v1.78.0 (2026-04-26)
 
 ### Features
