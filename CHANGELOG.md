@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.81.0 (2026-04-26)
+
+### Features
+- feat(content): VIRAL_GUARDRAILS.md — pre-publish virality gate (100-point scorecard)
+
+---
+
+
 ## v1.80.0 (2026-04-26)
 
 ### Features
