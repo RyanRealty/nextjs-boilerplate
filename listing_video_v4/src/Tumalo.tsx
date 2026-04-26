@@ -1,27 +1,33 @@
-// Tumalo.tsx — 19496 Tumalo Reservoir Rd VIRAL CUT v2 (45s, 16 beats + reveal)
-// 1080x1920 portrait, 30fps. List price $1,350,000, Active.
+// Tumalo.tsx — 19496 Tumalo Reservoir Rd VIRAL CUT v3 ("Blonde Waterfall" build)
+// 1080x1920 portrait, 30fps, 45.0s. List price $1,350,000, Active.
 //
-// v2 changes (vs v1):
-//   - Added MLS photos #30 (kitchen wide), #45 (deck w/ view, hot tub),
-//     #56 (aerial 3/4 angle). 13 MLS picks total.
-//   - Removed lifestyle deer photo. 3 lifestyle photos remain
-//     (water feature, wildflowers, eagle).
-//   - 16 beats (was 14). #45 takes over the 50% pattern interrupt slot
-//     — daytime deck w/ mountain view after closed-room interiors.
-//   - Eagle moves to 27-29.5s as the back-half wildlife moment.
+// v3 changes vs v2:
+//   - DepthParallaxBeat on every photo beat (3-layer parallax via synthetic
+//     bg/mid/fg masks — see scripts/generate_synthetic_depth.py).
+//   - LightLeakTransition at 25% mark (beat 4→5 boundary, ~10.8s).
+//   - WhipPanTransition at 50% mark (beat 8→9 boundary, ~20.4s).
+//   - Beat-sync grid at 100 BPM (0.6s sub-beat). Cuts land on multiples of
+//     0.6s. Photo beats run 4–5 sub-beats (2.4–3.0s) per the master skill.
+//   - Camera moves never repeat back-to-back (push_in / pull_out / slow_pan_lr /
+//     slow_pan_rl / orbit_fake / gimbal_walk — 6 distinct types in rotation).
+//   - On-screen text at brand-mandated moments: address title at 0.5s,
+//     kinetic price flash 3.0–5.0s, kinetic reveal in final 5s.
 //
-// Photo plan (per VIDEO_PRODUCTION_SKILL.md):
-//   Hook (0-3s)         : #1 hero ext at dusk + address overlay
-//   Intrigue (3-8.2s)   : #16 Three Sisters thru window, #14 Sisters from deck
-//   Tour (8.2-20.1s)    : #26 great room, #28 kitchen, #30 kitchen wide,
-//                         #31 primary, #22 covered deck
-//   50% interrupt (#9)  : #45 open deck w/ view + hot tub + mountains
-//   Lifestyle (23-29.6s): water feature → wildflowers → eagle
-//   Aerials (29.6-40s)  : #56 3/4 → #58 top-down → #2 daytime → #9 dusk wide
-//   Reveal (40-45s)     : kinetic stat — $1,350,000 + 19496 Tumalo Reservoir Rd
+// DATA ACCURACY NOTE (per CLAUDE.md and ANTI_SLOP_MANIFESTO Rule 7):
+//   Verified figures (sources documented):
+//     - Address: 19496 TUMALO RESERVOIR RD (Supabase StreetNumber+StreetName)
+//     - Price:   $1,350,000 (Supabase ListPrice = 1350000)
+//     - Status:  FOR SALE (Supabase StandardStatus = "Active")
+//     - Specs:   4 BD / 3 BA / 3,218 SF / 5 Acres — confirmed by listing
+//                agent (Matt) on 2026-04-26. Top-level Supabase columns are
+//                null on this row but the agent has direct MLS access; this
+//                trace stands as the verification of record.
 //
-// All 16 photos are unique (no reuse rule). Seven distinct camera moves
-// across the BEATS array. No logo / no agent name / no phone in frame.
+// Photo set (16 unique, no reuse):
+//   13 MLS picks: 1, 2, 9, 14, 16, 22, 26, 28, 30, 31, 45, 56, 58
+//   3 personal:   water_feature, wildflowers, eagle (deer cut per v2 brief)
+//
+// All depth maps live in public/v5_library/depth/tumalo/<photo_slug>/.
 
 import React from 'react';
 import {
@@ -30,120 +36,370 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
-import { CHARCOAL, CREAM, GOLD, NAVY, FONT_SANS } from './brand';
+import { CHARCOAL, CREAM, GOLD, NAVY, FONT_SANS, FONT_SERIF } from './brand';
+import { DepthParallaxBeat } from './components/DepthParallaxBeat';
+import {
+  LightLeakTransition,
+  WhipPanTransition,
+} from './components';
 import { PhotoBeat } from './PhotoBeat';
 import { CameraMoveOpts } from './cameraMoves';
-import { clamp, easeOutCubic } from './easing';
+import { clamp, easeOutCubic, easeOutQuart } from './easing';
 
 const FPS = 30;
 export const TUMALO_TOTAL_SEC = 45.0;
 
+// 100 BPM = 1.667 beats/second = 0.6s per sub-beat.
+// Cuts snap to multiples of SUB_BEAT_SEC.
+const SUB_BEAT_SEC = 0.6;
+
 type BeatDef = {
-  photo: string;
-  startSec: number;
-  durationSec: number;
+  photo: string;        // path under public/images/ for blurred backdrop fallback
+  depthDir: string;     // path under public/images/ to bg.png/mid.png/fg.png
+  startSec: number;     // beat start, snapped to 0.6s grid
+  durationSec: number;  // beat duration, multiple of 0.6s
   move: CameraMoveOpts;
   vignetteLetterbox?: boolean;
   objectPosition?: string;
-  title?: string;
-  sub?: string;
-  titlePosition?: 'top' | 'bottom' | 'center' | 'none';
+  /** Disable built-in PhotoBeat crossfade in for this beat (used when wrapping
+   *  in WhipPanTransition which controls the entry animation). */
   crossfadeIn?: number;
   crossfadeOut?: number;
 };
 
+// All paths are relative to public/images/ (which symlinks v5_library → ../v5_library)
+const lib = (slug: string) => `v5_library/tumalo/${slug}`;
+const depth = (slug: string) => `v5_library/depth/tumalo/${slug}`;
+
 const BEATS: BeatDef[] = [
-  // === HOOK (0-3s) — address overlay on hero exterior at dusk =============
-  // Push_in engages by frame 12 (0.4s). vignetteLetterbox keeps the wide
-  // dusk-back-of-house intact with blurred extension into top/bottom dead
-  // space. Title fade lands by 0.5s.
-  { photo: 'v5_library/tumalo/1-DJI_aerial_hero.jpg',
-    startSec: 0, durationSec: 3,
+  // === HOOK (0.0 - 3.0s) — hero exterior at dusk + address overlay ========
+  // Beat 1: 5 sub-beats (3.0s). vignetteLetterbox preserves the wide DJI
+  // composition; mild push_in engages by frame 12 per master skill.
+  { photo: lib('1-DJI_aerial_hero.jpg'),
+    depthDir: depth('1-DJI_aerial_hero'),
+    startSec: 0.0, durationSec: 3.0,
     move: { move: 'push_in', focal: 'center', intensity: 0.7 },
     vignetteLetterbox: true,
-    title: '19496 TUMALO RESERVOIR',
-    sub: 'BEND · OREGON',
-    titlePosition: 'center',
     crossfadeIn: 0 },
 
-  // === INTRIGUE (3-8.2s) — the view that defines the property ============
-  // #16 = Three Sisters framed by interior window. THE hero shot.
-  // vignetteLetterbox keeps all three peaks visible (cover-mode would crop
-  // out the two left peaks).
-  { photo: 'v5_library/tumalo/16-twilight_DSC9560.jpg',
-    startSec: 3, durationSec: 2.7,
-    move: { move: 'push_in', focal: 'center', intensity: 0.5 },
+  // === INTRIGUE (3.0 - 8.4s) ==============================================
+  // Beat 2: pull_out on the Three Sisters thru-window — viewer is pulled
+  // back to see the wood-window framing reveal the snow peaks. Price flash
+  // overlay fires during this beat.
+  { photo: lib('16-twilight_DSC9560.jpg'),
+    depthDir: depth('16-twilight_DSC9560'),
+    startSec: 3.0, durationSec: 3.0,
+    move: { move: 'pull_out', focal: 'center', intensity: 0.7 },
     vignetteLetterbox: true },
-  // #14 = Three Sisters at sunrise from deck. Wide-aspect (1.78), slow
-  // horizontal pan reveals the full peak silhouette.
-  { photo: 'v5_library/tumalo/14-twilight_untitled.jpg',
-    startSec: 5.7, durationSec: 2.5,
+  // Beat 3: slow_pan_lr on Sisters from deck (wide aspect — uses pan range).
+  { photo: lib('14-twilight_untitled.jpg'),
+    depthDir: depth('14-twilight_untitled'),
+    startSec: 6.0, durationSec: 2.4,
     move: { move: 'slow_pan_lr', focal: 'center', intensity: 1.0 } },
 
-  // === TOUR (8.2-20.1s) — great room → kitchen x2 → primary → covered deck
-  // 25% mark of 45s = 11.25s lands inside Beat 5 (#28 kitchen). Fresh
-  // visual register after the great room.
-  { photo: 'v5_library/tumalo/26-int_DSC8932.jpg',
-    startSec: 8.2, durationSec: 2.5,
-    move: { move: 'gimbal_walk', focal: 'center', intensity: 1.0, direction: 'lr' } },
-  { photo: 'v5_library/tumalo/28-int_DSC8968.jpg',
-    startSec: 10.7, durationSec: 2.3,
+  // === TOUR (8.4 - 20.4s) =================================================
+  // Beat 4: push_in — great room with Cascade view through windows.
+  { photo: lib('26-int_DSC8932.jpg'),
+    depthDir: depth('26-int_DSC8932'),
+    startSec: 8.4, durationSec: 2.4,
     move: { move: 'push_in', focal: 'center', intensity: 1.0 } },
-  // #30 — second kitchen angle (island + appliances + window).
-  { photo: 'v5_library/tumalo/30-int_DSC8983.jpg',
-    startSec: 13.0, durationSec: 2.3,
-    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'rl' } },
-  { photo: 'v5_library/tumalo/31-int_DSC8994.jpg',
-    startSec: 15.3, durationSec: 2.5,
-    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'rl' } },
-  { photo: 'v5_library/tumalo/22-int_DSC8333.jpg',
-    startSec: 17.8, durationSec: 2.3,
+  // Beat 5: orbit_fake — kitchen narrow angle. (25% mark fires LightLeak
+  // overlay at the 4→5 boundary — see Tumalo render block below.)
+  { photo: lib('28-int_DSC8968.jpg'),
+    depthDir: depth('28-int_DSC8968'),
+    startSec: 10.8, durationSec: 2.4,
+    move: { move: 'orbit_fake', focal: 'center', intensity: 0.8 } },
+  // Beat 6: gimbal_walk lr — kitchen wide, walk through.
+  { photo: lib('30-int_DSC8983.jpg'),
+    depthDir: depth('30-int_DSC8983'),
+    startSec: 13.2, durationSec: 2.4,
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'lr' } },
+  // Beat 7: pull_out — primary suite opens up.
+  { photo: lib('31-int_DSC8994.jpg'),
+    depthDir: depth('31-int_DSC8994'),
+    startSec: 15.6, durationSec: 2.4,
+    move: { move: 'pull_out', focal: 'center', intensity: 0.6 } },
+  // Beat 8: slow_pan_lr — covered porch deck.
+  { photo: lib('22-int_DSC8333.jpg'),
+    depthDir: depth('22-int_DSC8333'),
+    startSec: 18.0, durationSec: 2.4,
     move: { move: 'slow_pan_lr', focal: 'center', intensity: 0.9 } },
 
-  // === 50% PATTERN INTERRUPT (20.1-23.1s) — open deck + hot tub + view ===
-  // 50% mark of 45s = 22.5s falls inside this beat. Sharp register shift
-  // from indoor architecture to wide-open daytime deck with the mountains
-  // peeking through. Slow R-to-L pan walks the eye across the deck and
-  // out to the view.
-  { photo: 'v5_library/tumalo/45-int_DSC9031.jpg',
-    startSec: 20.1, durationSec: 3.0,
-    move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 } },
+  // === 50% PATTERN INTERRUPT (20.4 - 23.4s) — open deck w/ view ===========
+  // WhipPanTransition wraps the incoming beat (and the outgoing beat 8 in a
+  // separate Sequence) — kinetic snap from indoor to outdoor register.
+  // Beat 9: slow_pan_rl. 5 sub-beats (3.0s) for dwell.
+  { photo: lib('45-int_DSC9031.jpg'),
+    depthDir: depth('45-int_DSC9031'),
+    startSec: 20.4, durationSec: 3.0,
+    move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 },
+    crossfadeIn: 0 },
 
-  // === LIFESTYLE (23.1-29.6s) — grounds + wildlife =======================
-  { photo: 'v5_library/tumalo/lifestyle_water_feature.jpg',
-    startSec: 23.1, durationSec: 2.0,
-    move: { move: 'slow_pan_bt', focal: 'center', intensity: 0.8 },
+  // === LIFESTYLE (23.4 - 31.0s) ==========================================
+  // Beat 10: push_in — water feature focus pull.
+  { photo: lib('lifestyle_water_feature.jpg'),
+    depthDir: depth('lifestyle_water_feature'),
+    startSec: 23.4, durationSec: 2.4,
+    move: { move: 'push_in', focal: 'center', intensity: 0.8 },
     objectPosition: '60% 50%' },
-  { photo: 'v5_library/tumalo/lifestyle_wildflowers.jpg',
-    startSec: 25.1, durationSec: 2.0,
+  // Beat 11: slow_pan_rl — wildflower garden.
+  { photo: lib('lifestyle_wildflowers.jpg'),
+    depthDir: depth('lifestyle_wildflowers'),
+    startSec: 25.8, durationSec: 2.4,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 } },
-  // Eagle: portrait-orientation photo. Mild push_in, biased crop.
-  { photo: 'v5_library/tumalo/lifestyle_eagle.jpg',
-    startSec: 27.1, durationSec: 2.5,
-    move: { move: 'push_in', focal: 'center', intensity: 0.6 },
+  // Beat 12: pull_out — bald eagle silhouette (portrait orientation, mild).
+  { photo: lib('lifestyle_eagle.jpg'),
+    depthDir: depth('lifestyle_eagle'),
+    startSec: 28.2, durationSec: 2.4,
+    move: { move: 'pull_out', focal: 'center', intensity: 0.4 },
     objectPosition: '50% 35%' },
 
-  // === CLOSING AERIALS (29.6-40s) ========================================
-  // 3/4 angle → top-down geometry → daytime full reveal → broad mountain
-  // landscape into reveal.
-  { photo: 'v5_library/tumalo/56-DJI_aerial_5.jpg',
-    startSec: 29.6, durationSec: 2.4,
-    move: { move: 'pull_out', focal: 'center', intensity: 0.5 } },
-  { photo: 'v5_library/tumalo/58-DJI_aerial_4.jpg',
-    startSec: 32.0, durationSec: 2.4,
+  // === CLOSING AERIALS (30.6 - 40.2s) ====================================
+  // Beat 13: push_in — aerial 3/4 angle.
+  { photo: lib('56-DJI_aerial_5.jpg'),
+    depthDir: depth('56-DJI_aerial_5'),
+    startSec: 30.6, durationSec: 2.4,
     move: { move: 'push_in', focal: 'center', intensity: 0.6 } },
-  { photo: 'v5_library/tumalo/2-DJI_aerial_2.jpg',
-    startSec: 34.4, durationSec: 2.6,
-    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.8, direction: 'lr' } },
-  // Final beat: dusk drone wide with the Three Sisters silhouette beyond
-  // the property. Slow R-to-L pan into the reveal.
-  { photo: 'v5_library/tumalo/9-DJI_aerial_3.jpg',
-    startSec: 37.0, durationSec: 3.0,
+  // Beat 14: orbit_fake — top-down geometry, subtle rotation.
+  { photo: lib('58-DJI_aerial_4.jpg'),
+    depthDir: depth('58-DJI_aerial_4'),
+    startSec: 33.0, durationSec: 2.4,
+    move: { move: 'orbit_fake', focal: 'center', intensity: 0.5 } },
+  // Beat 15: gimbal_walk rl — daytime back facade.
+  { photo: lib('2-DJI_aerial_2.jpg'),
+    depthDir: depth('2-DJI_aerial_2'),
+    startSec: 35.4, durationSec: 2.4,
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.8, direction: 'rl' } },
+  // Beat 16: slow_pan_rl — dusk wide w/ Sisters silhouette into reveal.
+  { photo: lib('9-DJI_aerial_3.jpg'),
+    depthDir: depth('9-DJI_aerial_3'),
+    startSec: 37.8, durationSec: 2.4,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 0.9 },
     crossfadeOut: 0 },
 ];
 
-// ─── Reveal — kinetic stat moment, no brand line ─────────────────────────
+// ─── Beat wrapper using DepthParallaxBeat ────────────────────────────────
+const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return (
+    <DepthParallaxBeat
+      photo={beat.photo}
+      depthDir={beat.depthDir}
+      local={frame / fps}
+      fps={fps}
+      durationSec={beat.durationSec}
+      move={beat.move}
+      vignetteLetterbox={beat.vignetteLetterbox}
+      objectPosition={beat.objectPosition}
+      titlePosition="none"
+      scrim="none"
+      crossfadeIn={beat.crossfadeIn ?? 0.5}
+      crossfadeOut={beat.crossfadeOut ?? 0.5}
+    />
+  );
+};
+
+// ─── Address title overlay — animates in over Beat 1 ─────────────────────
+const AddressTitle: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  // Title fades in 0–0.5s — fully visible by user-spec'd 0.5s mark.
+  const alpha = clamp(t / 0.5, 0, 1);
+  const ty = (1 - easeOutQuart(alpha)) * 22;
+  // Hold steady from 0.9s until beat 1 ends at 3.0s, then fade out 2.6–2.9s.
+  const exit = clamp((t - 2.6) / 0.4, 0, 1);
+  const opacity = alpha * (1 - exit);
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(180deg, rgba(15,10,6,0.45) 0%, rgba(15,10,6,0.18) 50%, rgba(15,10,6,0.55) 100%)',
+          opacity: opacity * 0.85,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: 90,
+          right: 90,
+          top: '50%',
+          transform: `translateY(calc(-50% + ${-ty}px))`,
+          opacity,
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_SERIF,
+            fontSize: 88,
+            lineHeight: 1.04,
+            color: '#F8F4EA',
+            letterSpacing: '-0.01em',
+            textShadow: '0 4px 24px rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.85)',
+          }}
+        >
+          19496 TUMALO RESERVOIR
+        </div>
+        <div
+          style={{
+            marginTop: 22,
+            fontFamily: FONT_SANS,
+            fontWeight: 700,
+            fontSize: 44,
+            color: GOLD,
+            letterSpacing: 5,
+            textTransform: 'uppercase',
+            textShadow: '0 2px 10px rgba(0,0,0,0.85)',
+          }}
+        >
+          BEND · OREGON
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ─── Price flash — fires 3.0–5.0s during Beat 2 ──────────────────────────
+const PriceFlash: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  // Sequence is 2s long. Bloom 0–0.5s, hold 0.5–1.5s, fade 1.5–2.0s.
+  const bloomIn = clamp(t / 0.45, 0, 1);
+  const fadeOut = clamp((t - 1.5) / 0.5, 0, 1);
+  const alpha = easeOutCubic(bloomIn) * (1 - fadeOut);
+  const scale = 0.94 + 0.06 * easeOutCubic(bloomIn);
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          paddingBottom: 280,
+        }}
+      >
+        <div
+          style={{
+            transform: `scale(${scale.toFixed(4)})`,
+            opacity: alpha,
+            padding: '24px 56px',
+            background: 'rgba(16, 39, 66, 0.78)',
+            borderRadius: 14,
+            border: `1px solid ${GOLD}`,
+            backdropFilter: 'blur(8px)',
+            textAlign: 'center',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.55)',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: FONT_SANS,
+              fontWeight: 700,
+              fontSize: 28,
+              color: GOLD,
+              letterSpacing: 6,
+              textTransform: 'uppercase',
+            }}
+          >
+            LIST PRICE
+          </div>
+          <div
+            style={{
+              marginTop: 10,
+              fontFamily: FONT_SERIF,
+              fontSize: 96,
+              lineHeight: 1,
+              color: '#F8F4EA',
+              letterSpacing: '-0.01em',
+              textShadow: '0 4px 18px rgba(0,0,0,0.55)',
+            }}
+          >
+            $1,350,000
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ─── Specs flash — 4 BD | 3 BA | 3,218 SF | 5 Acres, fires around beat 6 ─
+const SpecsFlash: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  // Sequence is 2s long (13.2 – 15.2s). Bloom 0–0.4s, hold, fade 1.5–2.0s.
+  const bloomIn = clamp(t / 0.4, 0, 1);
+  const fadeOut = clamp((t - 1.5) / 0.5, 0, 1);
+  const alpha = easeOutCubic(bloomIn) * (1 - fadeOut);
+  const ty = (1 - easeOutQuart(bloomIn)) * 22;
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          paddingBottom: 280,
+        }}
+      >
+        <div
+          style={{
+            transform: `translateY(${ty}px)`,
+            opacity: alpha,
+            padding: '20px 44px',
+            background: 'rgba(16, 39, 66, 0.78)',
+            borderRadius: 12,
+            border: `1px solid ${GOLD}`,
+            backdropFilter: 'blur(8px)',
+            textAlign: 'center',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.55)',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: FONT_SANS,
+              fontWeight: 700,
+              fontSize: 52,
+              color: '#F8F4EA',
+              letterSpacing: 4,
+              textTransform: 'uppercase',
+              lineHeight: 1.1,
+              textShadow: '0 2px 10px rgba(0,0,0,0.7)',
+            }}
+          >
+            4 BD &nbsp;·&nbsp; 3 BA
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              fontFamily: FONT_SANS,
+              fontWeight: 600,
+              fontSize: 38,
+              color: GOLD,
+              letterSpacing: 5,
+              textTransform: 'uppercase',
+              textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+            }}
+          >
+            3,218 SF &nbsp;·&nbsp; 5 ACRES
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ─── Reveal — final 5s, kinetic stat block on navy ───────────────────────
 const RevealInner: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -169,7 +425,7 @@ const RevealInner: React.FC = () => {
       >
         <div
           style={{
-            fontFamily: 'Georgia, serif',
+            fontFamily: FONT_SERIF,
             fontSize: 60,
             fontWeight: 700,
             color: GOLD,
@@ -183,7 +439,7 @@ const RevealInner: React.FC = () => {
         </div>
         <div
           style={{
-            fontFamily: 'Georgia, serif',
+            fontFamily: FONT_SERIF,
             fontSize: 124,
             fontWeight: 400,
             color: CREAM,
@@ -218,45 +474,113 @@ const RevealInner: React.FC = () => {
   );
 };
 
-const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  return (
-    <PhotoBeat
-      photo={beat.photo}
-      local={frame / fps}
-      fps={fps}
-      durationSec={beat.durationSec}
-      move={beat.move}
-      historic={false}
-      vignetteLetterbox={beat.vignetteLetterbox}
-      objectPosition={beat.objectPosition}
-      title={beat.title}
-      sub={beat.sub}
-      titlePosition={beat.titlePosition ?? 'none'}
-      scrim={beat.title ? 'full' : 'none'}
-      crossfadeIn={beat.crossfadeIn ?? 0.4}
-      crossfadeOut={beat.crossfadeOut ?? 0}
-    />
-  );
-};
-
+// ─── Composition ─────────────────────────────────────────────────────────
 export const Tumalo: React.FC = () => {
+  // 25% mark = 11.25s — fires LightLeak in the Beat 4 → Beat 5 transition
+  // window (Beat 5 starts 10.8s, transition centered ~11.0s, leak duration 0.35s).
+  const lightLeakStart = Math.round((10.8 - 0.05) * FPS);
+  const lightLeakDuration = Math.ceil(0.35 * FPS);
+
+  // 50% mark — WhipPan: outgoing Beat 8 and incoming Beat 9 BOTH fire in
+  // the same 0.3s window centered on Beat 9 start (20.4s). Window:
+  // 20.1–20.4s. Outgoing slides out to right; incoming slides in from left.
+  const whipDuration = 0.3;
+  const whipBoundarySec = 20.4;                 // Beat 9 start
+  const whipStart = Math.round((whipBoundarySec - whipDuration) * FPS);
+  const whipFrames = Math.round(whipDuration * FPS);
+
+  const beat8 = BEATS[7];
+  const beat9 = BEATS[8];
+
   return (
     <AbsoluteFill style={{ background: CHARCOAL }}>
-      {BEATS.map((beat, i) => (
-        <Sequence
-          key={i}
-          from={Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
-          durationInFrames={Math.round((beat.durationSec + 0.5) * FPS)}
-        >
-          <BeatWrapper beat={beat} />
-        </Sequence>
-      ))}
+      {/* Photo beats. Each beat's Sequence overlaps adjacent ones by 0.5s
+          per the v5.6 fix-pattern. Beat 8 and Beat 9 use 0 overlap because
+          the WhipPan handles their transition. */}
+      {BEATS.map((beat, i) => {
+        if (i === 7) {
+          // Beat 8 — render normally up to whipStart, then WhipPan-out
+          // takes over for the final 0.3s. End the normal Sequence at
+          // whipStart so it doesn't double-render under the slide.
+          return (
+            <Sequence
+              key={i}
+              from={Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
+              durationInFrames={whipStart - Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
+            >
+              <BeatWrapper beat={beat} />
+            </Sequence>
+          );
+        }
+        if (i === 8) {
+          // Beat 9 — render normally starting at whipBoundarySec (20.4s)
+          // through end of beat. WhipPan-in runs 20.1–20.4s in a separate
+          // Sequence below; the normal layer takes over at the boundary.
+          return (
+            <Sequence
+              key={i}
+              from={Math.round(beat.startSec * FPS)}
+              durationInFrames={Math.round((beat.durationSec + 0.5) * FPS)}
+            >
+              <BeatWrapper beat={beat} />
+            </Sequence>
+          );
+        }
+        // All other beats: 0.5s leading overlap with previous beat.
+        return (
+          <Sequence
+            key={i}
+            from={Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
+            durationInFrames={Math.round((beat.durationSec + 0.5) * FPS)}
+          >
+            <BeatWrapper beat={beat} />
+          </Sequence>
+        );
+      })}
 
-      <Sequence from={Math.round(40 * FPS)} durationInFrames={Math.round(5 * FPS)}>
+      {/* WhipPan window 20.1–20.4s — both layers fire simultaneously.
+          Outgoing Beat 8 slides off right; incoming Beat 9 slides in from
+          left. Render order: outgoing first, incoming on top so the new
+          content lands on top as the slide completes. */}
+      <Sequence from={whipStart} durationInFrames={whipFrames}>
+        <WhipPanTransition mode="out" direction="rl" durationSec={whipDuration}>
+          <BeatWrapper beat={beat8} />
+        </WhipPanTransition>
+      </Sequence>
+      <Sequence from={whipStart} durationInFrames={whipFrames}>
+        <WhipPanTransition mode="in" direction="rl" durationSec={whipDuration}>
+          <BeatWrapper beat={beat9} />
+        </WhipPanTransition>
+      </Sequence>
+
+      {/* 25% LightLeak overlay — bloom warm at the Beat 4 → 5 boundary. */}
+      <Sequence from={lightLeakStart} durationInFrames={lightLeakDuration}>
+        <LightLeakTransition durationSec={0.35} intensity="medium" position={{ x: '52%', y: '38%' }} />
+      </Sequence>
+
+      {/* Address title — 0.0–3.0s over Beat 1 */}
+      <Sequence from={0} durationInFrames={Math.round(3.0 * FPS)}>
+        <AddressTitle />
+      </Sequence>
+
+      {/* Price flash — 3.0–5.0s over Beat 2 */}
+      <Sequence from={Math.round(3.0 * FPS)} durationInFrames={Math.round(2.0 * FPS)}>
+        <PriceFlash />
+      </Sequence>
+
+      {/* Specs flash — 13.2–15.2s over Beat 6 (kitchen wide) */}
+      <Sequence from={Math.round(13.2 * FPS)} durationInFrames={Math.round(2.0 * FPS)}>
+        <SpecsFlash />
+      </Sequence>
+
+      {/* Reveal — final 5.0s on navy */}
+      <Sequence from={Math.round(40.0 * FPS)} durationInFrames={Math.round(5.0 * FPS)}>
         <RevealInner />
       </Sequence>
     </AbsoluteFill>
   );
 };
+
+// PhotoBeat is imported but unused in v3 — re-exported from PhotoBeat module
+// already, so the import line is here only for type-safe parity with v2.
+void PhotoBeat;
