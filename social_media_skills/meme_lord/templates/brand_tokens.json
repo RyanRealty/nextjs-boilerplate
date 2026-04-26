@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "colors": {
+    "navy": "#102742",
+    "gold": "#D4AF37",
+    "white": "#FFFFFF",
+    "charcoal": "#1A1A1A",
+    "cream": "#F5EFE0",
+    "imessage_blue": "#0B93F6",
+    "imessage_gray": "#E5E5EA"
+  },
+  "fonts": {
+    "headline": {
+      "family": "Amboqia",
+      "fallback_search_paths": [
+        "../../../public/fonts/Amboqia-Bold.otf",
+        "../../../public/fonts/Amboqia-Bold.ttf",
+        "/Library/Fonts/Amboqia-Bold.otf"
+      ],
+      "system_fallback": "Helvetica-Bold"
+    },
+    "body": {
+      "family": "AzoSans",
+      "fallback_search_paths": [
+        "../../../public/fonts/AzoSans-Regular.otf",
+        "../../../public/fonts/AzoSans-Regular.ttf",
+        "/Library/Fonts/AzoSans-Regular.otf"
+      ],
+      "system_fallback": "Helvetica"
+    },
+    "imessage": {
+      "family": "SF Pro Text",
+      "system_fallback": "Helvetica"
+    }
+  },
+  "platforms": {
+    "ig_square": {"width": 1080, "height": 1080},
+    "ig_portrait": {"width": 1080, "height": 1350},
+    "ig_story": {"width": 1080, "height": 1920},
+    "x_inline": {"width": 1200, "height": 675},
+    "x_tall": {"width": 1200, "height": 1500}
+  },
+  "logo": {
+    "min_width_on_1080_canvas_px": 60,
+    "clear_space_factor": 0.5,
+    "color_combos_allowed": ["white_on_navy", "navy_on_white"],
+    "color_combos_banned": ["gold_on_white", "gold_on_cream"]
+  },
+  "_notes": "Brand fonts must be installed locally. If Amboqia or AzoSans are missing, the renderer falls back to system fonts but logs a warning. The Anti-Slop Manifesto Rule 12 says renders should fail without brand fonts in production. For sample/dev renders, fallback is acceptable with a warning."
+}

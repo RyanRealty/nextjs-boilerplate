@@ -1,0 +1,147 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-04-26",
+  "cooldown_days": 30,
+  "templates": [
+    {
+      "id": "drake_yes_no",
+      "format": "two_panel_reject_accept",
+      "image_path": "templates/drake_yes_no.png",
+      "slot_schema": {
+        "top_panel_text": {"max_chars": 80, "lines": 2, "position": "right_top"},
+        "bottom_panel_text": {"max_chars": 80, "lines": 2, "position": "right_bottom"}
+      },
+      "best_for": ["rate_cycle", "buyer_behavior", "seller_delusion", "commission_conversation"],
+      "format_fit_score": {"rate_cycle": 0.85, "buyer_behavior": 0.90, "seller_delusion": 0.75},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "x_inline"],
+      "notes": "Both panels must be equally specific. Generic vs generic = lazy."
+    },
+    {
+      "id": "distracted_boyfriend",
+      "format": "three_label_image",
+      "image_path": "templates/distracted_boyfriend.png",
+      "slot_schema": {
+        "left_label": {"max_chars": 30, "lines": 1, "position": "left_figure"},
+        "center_label": {"max_chars": 30, "lines": 1, "position": "center_figure"},
+        "right_label": {"max_chars": 30, "lines": 1, "position": "right_figure"}
+      },
+      "best_for": ["inventory_tension", "buyer_behavior", "rate_cycle"],
+      "format_fit_score": {"inventory_tension": 0.80, "buyer_behavior": 0.85},
+      "last_used": null,
+      "platform_fit": ["ig_square", "x_inline"],
+      "notes": "Three specific nouns, not three categories."
+    },
+    {
+      "id": "pov_youre_a",
+      "format": "single_image_top_text",
+      "image_path": "templates/pov_youre_a.png",
+      "slot_schema": {
+        "pov_line": {"max_chars": 120, "lines": 3, "position": "top"}
+      },
+      "best_for": ["showing_logistics", "open_house", "mls_workflow", "bend_specific"],
+      "format_fit_score": {"showing_logistics": 0.90, "open_house": 0.85, "bend_specific": 0.80},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "ig_story", "x_inline"],
+      "notes": "Top text only. No bottom punchline. The image carries the rest."
+    },
+    {
+      "id": "tell_me_without_telling_me",
+      "format": "single_image_top_text",
+      "image_path": "templates/tell_me_without_telling_me.png",
+      "slot_schema": {
+        "tell_line": {"max_chars": 140, "lines": 4, "position": "top"}
+      },
+      "best_for": ["bend_specific", "buyer_behavior", "seller_delusion"],
+      "format_fit_score": {"bend_specific": 0.95, "buyer_behavior": 0.70},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "x_inline"],
+      "notes": "Specificity is the entire joke. 'You call them the Cascades not the mountains' beats anything generic."
+    },
+    {
+      "id": "imessage_screenshot",
+      "format": "fake_text_screenshot",
+      "image_path": "templates/imessage_screenshot.png",
+      "slot_schema": {
+        "contact_name": {"max_chars": 30, "lines": 1, "position": "header"},
+        "messages": {"max_messages": 6, "max_chars_per": 140, "alternating": true}
+      },
+      "best_for": ["buyer_behavior", "showing_logistics", "lowball_offers", "closing_chaos"],
+      "format_fit_score": {"buyer_behavior": 0.92, "lowball_offers": 0.88},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "x_tall"],
+      "notes": "Always use composite contact name (e.g., 'Buyer #4' not a real name). Never identifiable."
+    },
+    {
+      "id": "spiderman_pointing",
+      "format": "two_character_mirror",
+      "image_path": "templates/spiderman_pointing.png",
+      "slot_schema": {
+        "left_label": {"max_chars": 40, "lines": 2, "position": "left_figure"},
+        "right_label": {"max_chars": 40, "lines": 2, "position": "right_figure"}
+      },
+      "best_for": ["mls_workflow", "commission_conversation", "buyer_behavior"],
+      "format_fit_score": {"mls_workflow": 0.75, "commission_conversation": 0.70},
+      "last_used": null,
+      "platform_fit": ["ig_square", "x_inline"],
+      "notes": "Mirror format works for industry self-roasting. Both labels must be specific archetypes."
+    },
+    {
+      "id": "pull_quote_card",
+      "format": "white_on_cream_serif_quote",
+      "image_path": "templates/pull_quote_card.png",
+      "slot_schema": {
+        "quote_text": {"max_chars": 200, "lines": 5, "position": "center"},
+        "attribution": {"max_chars": 60, "lines": 1, "position": "bottom"}
+      },
+      "best_for": ["lowball_offers", "rate_cycle", "seller_delusion", "bend_specific", "commission_conversation"],
+      "format_fit_score": {"lowball_offers": 0.85, "rate_cycle": 0.80, "bend_specific": 0.85},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "ig_story", "x_inline"],
+      "notes": "Brand-friendly. Navy on cream or white. Amboqia for the quote."
+    },
+    {
+      "id": "nobody_me_at_3am",
+      "format": "two_line_text_plain",
+      "image_path": "templates/nobody_me_at_3am.png",
+      "slot_schema": {
+        "nobody_line": {"max_chars": 30, "lines": 1, "position": "top"},
+        "me_line": {"max_chars": 140, "lines": 3, "position": "below_nobody"}
+      },
+      "best_for": ["mls_workflow", "buyer_behavior", "rate_cycle"],
+      "format_fit_score": {"mls_workflow": 0.85, "buyer_behavior": 0.70},
+      "last_used": null,
+      "platform_fit": ["ig_square", "x_inline"],
+      "notes": "Self-deprecating only. Agent-on-self, never agent-on-client."
+    },
+    {
+      "id": "expectation_vs_reality",
+      "format": "two_panel_image",
+      "image_path": "templates/expectation_vs_reality.png",
+      "slot_schema": {
+        "expectation_label": {"max_chars": 40, "lines": 1, "position": "top_left"},
+        "reality_label": {"max_chars": 40, "lines": 1, "position": "top_right"},
+        "expectation_image_caption": {"max_chars": 60, "lines": 2, "position": "below_left"},
+        "reality_image_caption": {"max_chars": 60, "lines": 2, "position": "below_right"}
+      },
+      "best_for": ["listing_photo_fails", "seller_delusion", "showing_logistics"],
+      "format_fit_score": {"listing_photo_fails": 0.90, "seller_delusion": 0.80},
+      "last_used": null,
+      "platform_fit": ["ig_square", "ig_portrait", "x_inline"],
+      "notes": "Use sparingly. Saturated genre. Only ships when the gap is specific and visual."
+    },
+    {
+      "id": "this_is_fine_dog",
+      "format": "cartoon_dog_burning_room",
+      "image_path": "templates/this_is_fine_dog.png",
+      "slot_schema": {
+        "caption_line": {"max_chars": 100, "lines": 2, "position": "bottom"}
+      },
+      "best_for": ["closing_chaos", "inspection_drama", "showing_logistics"],
+      "format_fit_score": {"closing_chaos": 0.95, "inspection_drama": 0.85},
+      "last_used": null,
+      "platform_fit": ["ig_square", "x_inline"],
+      "notes": "Rare-use. Only when the situation actually warrants apocalyptic-but-pretending-it's-fine framing."
+    }
+  ]
+}

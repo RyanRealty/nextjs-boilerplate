@@ -1,0 +1,16 @@
+{
+  "_friction": "buyer_behavior_just_looking",
+  "_template": "imessage_screenshot",
+  "_platform": "ig_portrait",
+  "_status": "SAMPLE — renderer demo. Matt voice-check before any publication.",
+  "_compliance_note": "Composite buyer. Header text on the image confirms this. No real client identifiable.",
+  "contact_name": "Buyer #4",
+  "messages": [
+    {"text": "Just looking. Don't want to waste your time.", "from": "buyer"},
+    {"text": "No rush at all. Maybe sometime this fall.", "from": "buyer"},
+    {"text": "Hey it's 6am are you up", "from": "buyer"},
+    {"text": "We need to write on the Awbrey one. Cash. Today.", "from": "buyer"},
+    {"text": "Can you meet at 9", "from": "buyer"},
+    {"text": "On my way.", "from": "me"}
+  ]
+}

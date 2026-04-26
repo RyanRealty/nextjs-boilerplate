@@ -1,0 +1,348 @@
+---
+name: meme_lord
+description: "Image-format viral real estate memes for Instagram and X. Surfaces real templates, real friction points, real Bend market data. Matt writes every punchline. No AI humor (Anti-Slop Rule 9)."
+---
+
+# Meme Lord — Image Memes for Instagram and X
+
+**Read `video_production_skills/ANTI_SLOP_MANIFESTO.md` before invoking this skill. The manifesto is the ship gate. This skill enforces Rule 9 (no AI humor), Rule 11 (Matt's voice), Rule 12 (brand visuals), and Rule 13 (Oregon broker compliance, Fair Housing) at every step.**
+
+**Pair-skill:** `video_production_skills/meme_content/SKILL.md` (15-25s video memes via Vlipsy clips). This skill is image-only. If the trend wants a video format, route to `meme_content` instead.
+
+---
+
+## What it is
+
+A workflow for shipping image memes (PNG/JPG, single image or carousel) tuned for Instagram feed, IG Stories, and X (Twitter). The skill does five things:
+
+1. Pulls live trending meme formats and current real estate friction points.
+2. Maps each friction point to 3-5 candidate templates from a registry.
+3. Pre-renders the template with empty slots (the meme image with blank top/bottom/labels).
+4. Hands the empty template to Matt with the friction context, the verified data anchor, and the voice calibration examples.
+5. Renders the final meme to the right platform aspect ratio and queues it for the 30-day human-review window.
+
+The skill never writes the punchline. It surfaces structure, context, and constraint. Matt writes the words.
+
+**Output platforms and sizes:**
+- Instagram feed: 1080×1080 (square) or 1080×1350 (4:5 portrait, preferred for reach)
+- Instagram Stories: 1080×1920 (9:16)
+- X / Twitter: 1200×675 (16:9) for inline, 1200×1500 for tall single image
+
+**Cadence cap:** 2 image memes per week per account. Memes are seasoning, not the meal. The `social_calendar` skill enforces the mix ratio.
+
+---
+
+## Why this skill exists separately from `meme_content`
+
+| | `meme_content` (video) | `meme_lord` (image) |
+|---|---|---|
+| Output | 15-25s MP4 | PNG/JPG single or carousel |
+| Source | Vlipsy clip | Template image registry |
+| Tool chain | ffmpeg + Remotion | PIL/Pillow + brand fonts |
+| Audio | Required (beat-synced or natural) | None |
+| Compliance gate | Same | Same |
+| Cooldown | 2/week shared cap | 2/week shared cap |
+
+Image memes are cheaper to produce, faster to ship on a breaking trend, and fill the gap when there is no video clip that fits.
+
+---
+
+## The hard rules (read before every invocation)
+
+1. **Rule 9 — No AI humor.** This skill does not generate punchlines. It generates *empty templates with context*. The `voice_grader.md` checklist runs on every Matt-written caption. If it sounds like ChatGPT, kill it.
+2. **Rule 11 — Voice constraints.** No semicolons. No em-dashes. No exclamation points outside genuine surprise. No banned AI words (delve, leverage, navigate, robust, in today's market, etc. — full list in manifesto). Short, declarative sentences.
+3. **Rule 12 — Brand visuals.** Navy `#102742`, Gold `#D4AF37`, White, Charcoal `#1A1A1A`. Amboqia for headlines >32px, AzoSans for body. No other fonts. No other colors as brand chrome.
+4. **Rule 13 — Oregon broker compliance.** Fair Housing screen runs on every meme before render. No protected-class jokes. No steering. No misrepresentation. No forecasting without "this is opinion + verified data" framing.
+5. **Rule 7 — Source-verified data.** Every market figure on a meme cites a source in `out/meme_lord/<slug>/citations.json`. LLM-recall numbers do not ship.
+6. **Rule 8 — 30-day human-review window.** Every output lands in `out/meme_lord/pending_review/` until Matt approves it. Format graduates to auto-publish only after 30 clean days.
+7. **Cooldown — 30 days per template.** No template repeats within 30 days. Registry tracks `last_used`.
+8. **Cooldown — 2 memes per week.** Shared with `meme_content`. Algorithm de-prioritizes meme-heavy accounts.
+
+---
+
+## When to invoke
+
+- Weekly trend scan returns an image-format trend (not a video trend)
+- Breaking RE-relevant news creates a real-time opening (rate move, MLS data release, NAR settlement update, OREA rule change)
+- A specific Bend market data point just shifted enough to merit comment
+- Matt explicitly asks for a meme on a topic
+- The `social_calendar` weekly mix has an open meme slot
+
+**Do NOT invoke for:**
+- More than 2 image memes per week (combined with video memes)
+- Trends older than 72 hours
+- Topics that contradict data already published this week
+- Anything that intersects a Fair Housing protected class
+- Generic lifestyle or political content unrelated to RE
+
+---
+
+## Tool chain
+
+| Step | Tool | Cost | Auth |
+|------|------|------|------|
+| Trend scan | `automation_skills/triggers/trend_trigger` or manual | $0 | — |
+| Account intel | Live web check on @thebrokeagent, @zillowgonewild, @re_memes, @therealestatememes, Derrick Gregory | $0 | — |
+| Friction map | This skill's `friction_topics.md` library | $0 | — |
+| Template registry | `templates/registry.json` | $0 | — |
+| Data anchor | Supabase `ryan-realty-platform` (live) | $0 | Service role key |
+| Image render | Python + Pillow (`scripts/render_meme.py`) | $0 | Local |
+| Voice grader | `voice_grader.md` checklist + manual judgment | $0 | Matt |
+| Compliance gate | `compliance_gate.md` checklist | $0 | Matt or reviewer |
+| Queue | `automation_skills/automation/post_scheduler` pending_review | $0 | — |
+
+---
+
+## Step-by-step workflow
+
+### Step 1 — Weekly trend scan
+
+Run Monday morning. Sources to check (live, not from training data):
+
+- **Know Your Meme** trending page (https://knowyourmeme.com/memes/trending) — top 10
+- **r/MemeEconomy** top of week — early signal on emerging formats
+- **TikTok Creative Center** trending visuals (image overlays, not just sounds)
+- **X / Twitter** real estate filter — search `real estate` + `mortgage` + `rates`, sort by Top of last 7 days
+- **Instagram Explore** — log into the brand account, scroll Explore for hashtag set: `#realestate`, `#bendoregon`, `#realestatehumor`, `#brokerlife`
+- **Bellwether accounts** (last 14 days):
+  - @thebrokeagent (545K) — agent-to-agent humor benchmark
+  - @zillowgonewild (2.2M) — listing absurdity, deadpan format
+  - @re_memes (31K) — template recycling, useful for what NOT to do when stale
+  - @therealestatememes (20K)
+  - Derrick Gregory — character-driven skit benchmark
+
+Output: `out/meme_lord/week_<yyyy-mm-dd>/trend_scan.md` with 1-2 viable image-format trends documented.
+
+A trend is viable only if:
+1. It maps to a real RE friction that is currently true
+2. There are recognizable image-template variants of it in the wild
+3. Matt's voice can say something specific and honest about it
+4. It does not touch a Fair Housing protected class
+
+### Step 2 — Friction mapping
+
+For each viable trend, pick the friction category from `friction_topics.md`. Categories include:
+
+- Rate cycle ("should I wait for rates to drop")
+- Inventory tension (active listings vs days on market vs months of supply)
+- Buyer behavior ("just looking", lowball offers, ghost clients, the "highest and best" panic)
+- Seller delusion (Zestimate vs comps, "we put granite in 2007")
+- Showing logistics (lockbox fails, neighbor showing up, kid spilling juice)
+- Listing photo fails (toilet-mirror selfie, agent reflected in oven door)
+- Inspection drama
+- Closing day chaos (wire fraud panic, lender pulling docs, garage opener missing)
+- Commission conversation (post-NAR settlement)
+- Bend-specific (Cascades view that's actually a distant ridge, transplant pricing pressure, short-term rental zoning, wildfire smoke contingency, Old Bend / new Bend / Tetherow / NWX tribal humor)
+- MLS workflow (the MLS down meme, agent-to-agent inside-baseball)
+- Open house scenarios
+
+Bend-specific topics get priority. Generic RE topics are crowded — the moat is local knowledge.
+
+Document the mapping in the same `trend_scan.md`.
+
+### Step 3 — Template selection
+
+Open `templates/registry.json`. Filter for templates whose `last_used` is more than 30 days ago. Rank by `format_fit_score` for the friction category. Surface the top 3-5 candidate templates.
+
+The registry currently includes:
+
+| Template ID | Format | Best for |
+|---|---|---|
+| `drake_yes_no` | Two-panel reject/accept | Behavior contrast, decision gates |
+| `distracted_boyfriend` | Three-label image | Choosing between options, switching attention |
+| `pov_youre_a` | Single image, top text | Insider scenarios, day-in-the-life |
+| `tell_me_without_telling_me` | Single image, top text | Identity tells, regional callouts |
+| `imessage_screenshot` | Fake text screenshot | Client conversations, agent-to-agent gripes |
+| `spiderman_pointing` | Two-character mirror | Industry self-reflection |
+| `pull_quote_card` | White-on-cream, bold serif | One-line insider zinger, carousel slide 1 |
+| `nobody_me_at_3am` | Two-line text on plain bg | Self-deprecating agent moments |
+| `expectation_vs_reality` | Two-panel image | Listing photo vs reality, marketing vs truth |
+| `this_is_fine_dog` | Cartoon dog in burning room | Closing day chaos, deal going sideways |
+
+Each template has a JSON spec with image path, slot schema, brand-overlay rules, and current `last_used` date.
+
+### Step 4 — Data anchor (when applicable)
+
+If the meme references a market figure (rates, median price, months of supply, DOM, inventory count, sale-to-list, absorption), pull it live from Supabase per CLAUDE.md verification rules:
+
+```sql
+-- Example: months of supply for SFR Bend, last 30 days
+SELECT
+  COUNT(*) FILTER (WHERE Status = 'A') AS active,
+  COUNT(*) FILTER (WHERE Status = 'C' AND CloseDate >= CURRENT_DATE - INTERVAL '30 days') AS sold_30d,
+  ROUND(
+    COUNT(*) FILTER (WHERE Status = 'A')::numeric
+    / NULLIF(COUNT(*) FILTER (WHERE Status = 'C' AND CloseDate >= CURRENT_DATE - INTERVAL '30 days'), 0),
+    2
+  ) AS months_of_supply
+FROM listings
+WHERE PropertyType = 'A' AND City = 'Bend';
+```
+
+Print the raw result. Save to `out/meme_lord/<slug>/citations.json`:
+
+```json
+{
+  "figures": [
+    {
+      "value": "2.1 months",
+      "source": "Supabase ryan-realty-platform.listings",
+      "filter": "PropertyType='A', City='Bend', CloseDate >= 2026-03-26",
+      "rows": 188,
+      "computed": "active / sold_30d = 394 / 188 = 2.1",
+      "pulled_at": "2026-04-26T09:14:00-07:00"
+    }
+  ]
+}
+```
+
+If the meme has no market figure (pure observational humor), the citations file still exists and notes "no figures used".
+
+### Step 5 — Hand off to Matt
+
+Build a `brief.md` for Matt with:
+
+```markdown
+# Meme brief — <yyyy-mm-dd>-<slug>
+
+## Trend
+[one sentence describing the trend]
+
+## Friction
+[the RE friction this maps to, in one sentence]
+
+## Verified data anchor (if any)
+- [figure]: [value] — [trace line from citations.json]
+
+## Voice calibration (real examples to read first)
+- [quote a verbatim line from @thebrokeagent or similar that nails the voice for this friction — attribute the source]
+- [second example, different account]
+
+## Candidate templates (pick one, fill the slots, voice-check it)
+1. drake_yes_no — slots: top_panel_text, bottom_panel_text
+2. pov_youre_a — slots: pov_line
+3. imessage_screenshot — slots: contact_name, message_1, message_2
+
+## Reminders before you write
+- Specific beats relatable. Use a number, a street name, an MLS field, a brokerage name.
+- Self-deprecating about agents > punching down at clients.
+- No semicolons. No em-dashes. Period.
+- No "delve", "navigate", "in today's market".
+- Punchline at the end. Setup at the top.
+- Read it aloud. Does it sound like you, or like a marketing intern's ChatGPT prompt?
+```
+
+Matt fills the slots. Returns the filled brief.
+
+### Step 6 — Render
+
+Run `scripts/render_meme.py` with the filled brief, the chosen template, and the target platform size:
+
+```bash
+python3 scripts/render_meme.py \
+  --template drake_yes_no \
+  --brief out/meme_lord/2026-04-26-rate-wait/brief.md \
+  --platform ig_portrait \
+  --out out/meme_lord/2026-04-26-rate-wait/render.png
+```
+
+Renderer rules:
+- Brand fonts loaded from `assets/fonts/Amboqia-*.otf` and `assets/fonts/AzoSans-*.otf`. Render fails if fonts are missing.
+- Brand color tokens from `templates/brand_tokens.json`. No hex literals in slot text.
+- Logo lockup applied to bottom-right corner at minimum 60px on a 1080-wide canvas (smaller than video-end-card minimum because the meme image is the primary content). Logo color: white-on-navy or navy-on-white only.
+- Output dimensions match `--platform`:
+  - `ig_square` → 1080×1080
+  - `ig_portrait` → 1080×1350
+  - `ig_story` → 1080×1920
+  - `x_inline` → 1200×675
+  - `x_tall` → 1200×1500
+- File written to `out/meme_lord/<slug>/render_<platform>.png`.
+
+### Step 7 — Voice grader
+
+Open `voice_grader.md`. Run the 8-question checklist on the rendered meme. Sample questions:
+
+1. Banned-word grep: any hits? (delve, navigate, leverage, robust, "in today's market", etc.)
+2. Punctuation: any semicolons, em-dashes, or exclamation points (outside genuine surprise)?
+3. Specificity: is there at least one concrete noun (number, place, brokerage, MLS field, listing detail)?
+4. Voice test: read aloud. Does it sound like a 40-something Bend principal broker, or like a chatbot trying to be funny?
+5. Setup-punchline structure: is the punchline at the end, not the start?
+6. Caption explanation: does the caption explain the joke? (it should not)
+7. Engagement bait: does the caption use "tag a friend", "double tap if", "comment below"? (banned)
+8. Insider-only check: would a non-agent get the joke? If only agents get it, you're capping reach.
+
+A single fail = back to Step 5 with the failure documented.
+
+### Step 8 — Compliance gate
+
+Open `compliance_gate.md`. Run the Fair Housing + misrepresentation checklist:
+
+1. Does the meme touch a protected class (familial status, race, religion, national origin, disability, sex, source of income, sexual orientation, gender identity, marital status)? If yes, kill.
+2. Does the meme imply who a property is "right for" based on a protected class? If yes, kill.
+3. Does the meme use steering language ("good schools", "family-friendly", "up-and-coming")? If yes, kill.
+4. Does the meme reference a specific real listing, agent, or seller in a way they could identify themselves? If yes, generalize to a composite or kill.
+5. Does the meme make a forecast without "this is my opinion" framing and a verified data citation? If yes, reframe or kill.
+6. Does the meme quote an MLS price for a non-Ryan-Realty listing without ORMLS attribution? If yes, attribute or kill.
+7. Does the meme make a political statement? If yes, kill (rate-cycle math is fine, partisan framing is not).
+8. Could a reasonable consumer read this as a misrepresentation of property characteristics? If yes, kill.
+
+A single fail = kill the meme. Do not "soften it." Pick a different friction.
+
+### Step 9 — Queue for human review
+
+Move the rendered meme + brief + citations to `out/meme_lord/pending_review/` and surface in `/admin/post-queue` (defined in `automation_skills/automation/post_scheduler/SKILL.md`).
+
+For the first 30 days of this skill running, Matt approves or rejects every meme manually. After 30 clean days, the format graduates to auto-publish status — but the voice grader and compliance gate still run on every render.
+
+### Step 10 — Caption draft
+
+Caption draft lives in `out/meme_lord/<slug>/caption_<platform>.txt`. Per-platform rules:
+
+**Instagram (image meme):**
+- 1-3 short sentences
+- First 7-9 words must hook (preview cutoff)
+- 3-7 hashtags max, mix of one big (#realestate), 2-3 mid (#bendoregon, #pnwrealestate), 1-2 niche (#bendrealtor, #centraloregonhomes)
+- No banned engagement bait
+- Optional soft CTA: "DM 'BEND' for the weekly market note" — never "Call me!"
+
+**X (image meme):**
+- Often best with zero caption — let the image work
+- If captioning, one line, no hashtags
+- A self-quote-tweet with a follow-up beat is a high-performing pattern
+- Thread variant: image meme as tweet 1 + 3-tweet "the data behind this" thread, paired with the corresponding data viz
+
+Caption goes through the same voice grader + compliance gate as the image.
+
+### Step 11 — Post-publish observation
+
+After publish, log the meme in `out/meme_lord/posted_log.csv`:
+
+```csv
+date,slug,template,friction,platform,impressions_24h,saves_24h,shares_24h,comment_quality_note
+```
+
+The `performance_loop` automation skill ingests this weekly to score template performance and update `templates/registry.json` `format_fit_score` per friction category.
+
+---
+
+## Files in this skill
+
+- `SKILL.md` — this file
+- `friction_topics.md` — the friction taxonomy library
+- `voice_grader.md` — the 8-question voice checklist
+- `compliance_gate.md` — the Fair Housing + misrepresentation checklist
+- `templates/registry.json` — template registry with cooldowns and slot schemas
+- `templates/brand_tokens.json` — color and font tokens
+- `scripts/render_meme.py` — Pillow renderer
+- `samples/` — five sample memes proving the workflow ships
+
+---
+
+## Sources used to build this skill
+
+- `video_production_skills/ANTI_SLOP_MANIFESTO.md` (the ship gate)
+- `video_production_skills/meme_content/SKILL.md` (sister skill, video format)
+- Live web check on @thebrokeagent (545K), @zillowgonewild (2.2M), @therealestatememes (20K), @re_memes (31K), Derrick Gregory (April 2026)
+- CLAUDE.md (data verification rules, design system, voice rules)
+
+Last reviewed: 2026-04-26.
