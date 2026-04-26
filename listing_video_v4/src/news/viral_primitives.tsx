@@ -1,260 +1,378 @@
-// Viral news-clip primitives. TikTok / Reel register: animated gradient
-// backgrounds, kinetic word-by-word captions, big stat reveals, news ticker,
-// chart bars, source pills.
+// Viral news-clip primitives — built fully in code (no stock photo deps).
 //
-// Brand rules (per ANTI_SLOP_MANIFESTO §12 + VIDEO_PRODUCTION_SKILL §5):
-//   - Navy #102742, Gold #D4AF37, White, Charcoal only
-//   - Amboqia for headlines, AzoSans for body
-//   - Source attribution on every cited stat
-//   - 90px safe-zone margin every edge (1080×1920 → 900×1740 inner)
-//   - No real estate photos required: backgrounds are CSS gradients + SVG so
-//     these clips render with zero external image dependencies
+// Design intent: TikTok / Reel grammar. Backgrounds are animated mesh
+// gradients, blueprint grids, or skyline silhouettes generated as SVG.
+// Typography is kinetic (word-by-word, slam-in, scale punch). Numbers
+// are giant and animate in. Source attribution is always present per
+// CLAUDE.md data-accuracy rule.
+//
+// Brand rules from VIDEO_PRODUCTION_SKILL.md §5 + ANTI_SLOP_MANIFESTO.md
+// Rule 12: Navy #102742, Gold #D4AF37 (named GOLD_BRAND below — the body
+// GOLD token in brand.ts is softened to #C8A864 for the listing reels;
+// for the news clips we want the punchier #D4AF37 per Matt's spec),
+// Cream #F2EBDD, Charcoal #1A1A1A. Amboqia for headlines, AzoSans body.
 
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from 'remotion';
-import { clamp, easeOutCubic, easeOutQuart } from '../easing';
+import {
+  AbsoluteFill,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from 'remotion';
+import { CREAM, FONT_BODY, FONT_SERIF, NAVY } from '../brand';
+import { clamp, easeOutCubic, easeOutQuart, easeInOutCubic } from '../easing';
 
-// Brand tokens (per Matt's spec — D4AF37 gold, not the softened C8A864).
-export const NAVY = '#102742';
-export const NAVY_DEEP = '#0a1a2e';
-export const NAVY_DARKEST = '#050d18';
-export const GOLD = '#D4AF37';
-export const GOLD_DEEP = '#A8852B';
-export const GOLD_BRIGHT = '#E8C552';
-export const WHITE = '#FFFFFF';
-export const CHARCOAL = '#1A1A1A';
-export const RED_ALERT = '#E63946';
-export const GREEN_GAIN = '#5BB47A';
+// Punchy news-brand gold (per user spec). The listing reels use a softened
+// gold; the news clips want the bolder D4AF37 to read on small screens.
+export const GOLD_BRAND = '#D4AF37';
+export const NAVY_BRAND = '#102742';
+export const RED_DROP = '#E55454';
+export const GREEN_RISE = '#4FB873';
+export const BLUE_LINE = '#5BA9D6';
 
-export const FONT_HEAD = 'Amboqia';
-export const FONT_BODY = 'AzoSans';
-
-// ─── AnimatedGradientBg ────────────────────────────────────────────────────
-// Slow rotating navy → gold radial gradient. Replaces the old dark-only
-// backdrop. Adds an amber tilt for the hot/heating clips and a cool-blue tilt
-// for the cooling/correction clip.
-type GradientBgProps = {
-  variant?: 'hot' | 'cool' | 'mixed';
+// ─── GradientMeshBg ───────────────────────────────────────────────────────
+// Animated multi-stop radial gradient mesh. Blobs drift slowly. Used as
+// the always-on backdrop replacement for plain black.
+type MeshProps = {
+  palette?: 'navy' | 'sunset' | 'forest' | 'crimson' | 'ember';
+  intensity?: number; // 0–1
 };
 
-export const AnimatedGradientBg: React.FC<GradientBgProps> = ({ variant = 'hot' }) => {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const t = frame / Math.max(1, durationInFrames);
-  // Slowly drift the spotlight across the canvas.
-  const x = 50 + Math.sin(t * Math.PI * 2) * 14;
-  const y = 38 + Math.cos(t * Math.PI * 2) * 10;
+const PALETTES: Record<string, { base: string; blobs: string[] }> = {
+  navy: {
+    base: '#06101F',
+    blobs: ['rgba(16,39,66,0.95)', 'rgba(91,169,214,0.35)', 'rgba(212,175,55,0.18)'],
+  },
+  sunset: {
+    base: '#1a0e08',
+    blobs: ['rgba(212,80,40,0.55)', 'rgba(212,175,55,0.45)', 'rgba(91,40,80,0.55)'],
+  },
+  forest: {
+    base: '#0a1410',
+    blobs: ['rgba(40,90,60,0.65)', 'rgba(212,175,55,0.18)', 'rgba(20,60,80,0.55)'],
+  },
+  crimson: {
+    base: '#180808',
+    blobs: ['rgba(180,40,40,0.55)', 'rgba(212,175,55,0.20)', 'rgba(40,8,8,0.85)'],
+  },
+  ember: {
+    base: '#0e0703',
+    blobs: ['rgba(212,90,30,0.50)', 'rgba(255,180,60,0.30)', 'rgba(40,12,4,0.80)'],
+  },
+};
 
-  const palette = {
-    hot: {
-      core: 'rgba(212, 175, 55, 0.32)',
-      mid: 'rgba(168, 133, 43, 0.18)',
-      base1: NAVY,
-      base2: '#0c1e36',
-      tint: 'rgba(232, 197, 82, 0.10)',
-    },
-    cool: {
-      core: 'rgba(60, 110, 200, 0.28)',
-      mid: 'rgba(20, 60, 120, 0.16)',
-      base1: NAVY_DEEP,
-      base2: NAVY_DARKEST,
-      tint: 'rgba(120, 160, 220, 0.08)',
-    },
-    mixed: {
-      core: 'rgba(212, 175, 55, 0.22)',
-      mid: 'rgba(60, 110, 200, 0.18)',
-      base1: NAVY,
-      base2: NAVY_DEEP,
-      tint: 'rgba(212, 175, 55, 0.06)',
-    },
-  }[variant];
+export const GradientMeshBg: React.FC<MeshProps> = ({
+  palette = 'navy',
+  intensity = 1,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const p = PALETTES[palette] ?? PALETTES.navy;
+
+  const b1x = 30 + Math.sin(t * 0.18) * 15;
+  const b1y = 30 + Math.cos(t * 0.21) * 12;
+  const b2x = 70 + Math.cos(t * 0.14) * 18;
+  const b2y = 65 + Math.sin(t * 0.11) * 14;
+  const b3x = 50 + Math.sin(t * 0.09 + 1.5) * 22;
+  const b3y = 80 + Math.cos(t * 0.13 + 0.6) * 10;
 
   return (
     <>
+      <AbsoluteFill style={{ background: p.base }} />
       <AbsoluteFill
         style={{
-          background: `linear-gradient(160deg, ${palette.base1} 0%, ${palette.base2} 100%)`,
+          background: `radial-gradient(ellipse 60% 55% at ${b1x}% ${b1y}%, ${p.blobs[0]} 0%, transparent 70%)`,
+          opacity: intensity,
         }}
       />
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle at ${x}% ${y}%, ${palette.core} 0%, ${palette.mid} 30%, transparent 60%)`,
-        }}
-      />
-      <AbsoluteFill
-        style={{
-          background: `radial-gradient(ellipse at 50% 110%, ${palette.tint} 0%, transparent 55%)`,
+          background: `radial-gradient(ellipse 50% 45% at ${b2x}% ${b2y}%, ${p.blobs[1]} 0%, transparent 65%)`,
+          opacity: intensity,
           mixBlendMode: 'screen',
         }}
       />
-      {/* Subtle grid overlay — gives a "data" feel */}
       <AbsoluteFill
         style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
-          backgroundSize: '80px 80px',
-          opacity: 0.55,
+          background: `radial-gradient(ellipse 65% 50% at ${b3x}% ${b3y}%, ${p.blobs[2]} 0%, transparent 70%)`,
+          opacity: intensity * 0.85,
+          mixBlendMode: 'screen',
         }}
       />
-      {/* Top + bottom vignettes for caption legibility */}
+      {/* film-grain overlay for texture */}
       <AbsoluteFill
         style={{
           background:
-            'linear-gradient(180deg, rgba(0,0,0,0.40) 0%, transparent 14%, transparent 78%, rgba(0,0,0,0.50) 100%)',
+            'radial-gradient(circle at 25% 30%, rgba(255,255,255,0.025) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.018) 0%, transparent 45%)',
+          mixBlendMode: 'overlay',
+          opacity: 0.55,
+        }}
+      />
+      {/* subtle vignette */}
+      <AbsoluteFill
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%)',
         }}
       />
     </>
   );
 };
 
-// ─── ParticleField ─────────────────────────────────────────────────────────
-// Slow-drifting deterministic dots. Adds atmospheric motion behind big stats.
-export const ParticleField: React.FC<{ count?: number; color?: string }> = ({
-  count = 48,
-  color = 'rgba(212, 175, 55, 0.45)',
+// ─── BlueprintGrid ────────────────────────────────────────────────────────
+// Architectural blueprint grid — used for the tariffs / construction beat.
+// Pattern is generated as repeating linear gradients so it ships at any
+// resolution without raster assets.
+type BlueprintProps = {
+  color?: string;
+  drift?: boolean;
+};
+export const BlueprintGrid: React.FC<BlueprintProps> = ({
+  color = 'rgba(212,175,55,0.18)',
+  drift = true,
 }) => {
   const frame = useCurrentFrame();
-  const dots = React.useMemo(() => {
-    const arr: { x: number; y: number; size: number; phase: number; speed: number }[] = [];
-    for (let i = 0; i < count; i++) {
-      // Deterministic pseudo-random based on i
-      const seed = (Math.sin(i * 12.9898) * 43758.5453) % 1;
-      const seed2 = (Math.sin(i * 78.233) * 43758.5453) % 1;
-      const seed3 = (Math.sin(i * 39.346) * 43758.5453) % 1;
-      arr.push({
-        x: ((seed + 1) % 1) * 100,
-        y: ((seed2 + 1) % 1) * 100,
-        size: 2 + ((seed3 + 1) % 1) * 5,
-        phase: ((seed * seed2 + 1) % 1) * Math.PI * 2,
-        speed: 0.3 + ((seed3 + 1) % 1) * 0.7,
-      });
-    }
-    return arr;
-  }, [count]);
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const dx = drift ? Math.sin(t * 0.15) * 14 : 0;
+  const dy = drift ? Math.cos(t * 0.12) * 10 : 0;
   return (
-    <AbsoluteFill style={{ pointerEvents: 'none' }}>
-      {dots.map((d, i) => {
-        const driftY = Math.sin(frame * 0.012 * d.speed + d.phase) * 30;
-        const opacity = 0.4 + 0.6 * Math.sin(frame * 0.04 * d.speed + d.phase);
-        return (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: `${d.x}%`,
-              top: `calc(${d.y}% + ${driftY}px)`,
-              width: d.size,
-              height: d.size,
-              borderRadius: '50%',
-              background: color,
-              filter: 'blur(0.5px)',
-              boxShadow: `0 0 ${d.size * 2}px ${color}`,
-              opacity,
-            }}
-          />
-        );
-      })}
-    </AbsoluteFill>
+    <AbsoluteFill
+      style={{
+        backgroundImage: `
+          linear-gradient(${color} 1px, transparent 1px),
+          linear-gradient(90deg, ${color} 1px, transparent 1px),
+          linear-gradient(rgba(212,175,55,0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212,175,55,0.06) 1px, transparent 1px)
+        `,
+        backgroundSize: '120px 120px, 120px 120px, 24px 24px, 24px 24px',
+        backgroundPosition: `${dx}px ${dy}px, ${dx}px ${dy}px, ${dx}px ${dy}px, ${dx}px ${dy}px`,
+        opacity: 0.55,
+      }}
+    />
   );
 };
 
-// ─── BreakingPill ──────────────────────────────────────────────────────────
-// Pulsing red "BREAKING" / "ALERT" pill, fixed top of frame. Hook accelerator.
-type BreakingPillProps = {
-  startFrame?: number;
-  text?: string;
-  color?: string;
+// ─── SkylineSilhouette ────────────────────────────────────────────────────
+// Pure-SVG city skyline. Used for Sun Belt vibe (Phoenix/Tampa/Cape Coral
+// none have specific identifying features; this is generic skyline mood
+// imagery, not a representation of a specific place — so no Rule 2 issue).
+type SkylineProps = {
+  fill?: string;
+  bottom?: number;
+  height?: number;
+  drift?: boolean;
 };
-
-export const BreakingPill: React.FC<BreakingPillProps> = ({
-  startFrame = 0,
-  text = 'BREAKING',
-  color = RED_ALERT,
+export const SkylineSilhouette: React.FC<SkylineProps> = ({
+  fill = 'rgba(8,16,28,0.85)',
+  bottom = 0,
+  height = 360,
+  drift = true,
 }) => {
   const frame = useCurrentFrame();
-  const localF = frame - startFrame;
-  const enter = clamp(localF / 8, 0, 1);
-  const pulse = 0.85 + 0.15 * Math.sin(frame * 0.25);
-  if (localF < 0) return null;
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const dx = drift ? Math.sin(t * 0.06) * 18 : 0;
   return (
     <div
       style={{
         position: 'absolute',
-        top: 130,
-        left: '50%',
-        transform: `translateX(-50%) scale(${enter})`,
-        background: color,
-        color: WHITE,
-        fontFamily: FONT_BODY,
-        fontWeight: 900,
-        fontSize: 30,
-        letterSpacing: 6,
-        padding: '12px 28px',
-        borderRadius: 999,
-        opacity: enter * pulse,
-        boxShadow: `0 0 28px ${color}aa, 0 6px 18px rgba(0,0,0,0.45)`,
-        textTransform: 'uppercase',
+        left: 0,
+        right: 0,
+        bottom,
+        height,
+        transform: `translateX(${dx}px)`,
       }}
     >
-      <span
-        style={{
-          display: 'inline-block',
-          width: 12,
-          height: 12,
-          borderRadius: '50%',
-          background: WHITE,
-          marginRight: 12,
-          verticalAlign: 'middle',
-          opacity: pulse,
-        }}
-      />
+      <svg
+        viewBox="0 0 1080 360"
+        width="100%"
+        height="100%"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="
+            M0 360
+            L0 240 L60 240 L60 200 L120 200 L120 270 L160 270 L160 220 L210 220 L210 160 L260 160 L260 240
+            L320 240 L320 180 L370 180 L370 220 L420 220 L420 130 L470 130 L470 200 L520 200 L520 250
+            L580 250 L580 170 L640 170 L640 220 L700 220 L700 140 L750 140 L750 230 L810 230 L810 190
+            L870 190 L870 250 L920 250 L920 160 L980 160 L980 230 L1040 230 L1040 200 L1080 200
+            L1080 360 Z
+          "
+          fill={fill}
+        />
+      </svg>
+    </div>
+  );
+};
+
+// ─── HouseRowSilhouette ───────────────────────────────────────────────────
+// A row of suburban houses (silhouette only). Used for Golden Handcuffs to
+// suggest "neighborhood inventory" without claiming a specific property.
+type HouseRowProps = {
+  fill?: string;
+  bottom?: number;
+  height?: number;
+};
+export const HouseRowSilhouette: React.FC<HouseRowProps> = ({
+  fill = 'rgba(8,16,28,0.78)',
+  bottom = 0,
+  height = 280,
+}) => {
+  // 6 houses, alternating shapes
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom,
+        height,
+      }}
+    >
+      <svg
+        viewBox="0 0 1080 280"
+        width="100%"
+        height="100%"
+        preserveAspectRatio="none"
+      >
+        <g fill={fill}>
+          {/* H1 */}
+          <polygon points="40,280 40,180 120,120 200,180 200,280" />
+          <rect x="60" y="200" width="30" height="40" fill={NAVY_BRAND} />
+          <rect x="140" y="195" width="40" height="35" fill={NAVY_BRAND} />
+          {/* H2 (taller) */}
+          <polygon points="220,280 220,160 320,90 420,160 420,280" />
+          <rect x="260" y="190" width="35" height="50" fill={NAVY_BRAND} />
+          <rect x="335" y="180" width="40" height="40" fill={NAVY_BRAND} />
+          {/* H3 */}
+          <polygon points="440,280 440,170 520,110 600,170 600,280" />
+          <rect x="465" y="190" width="30" height="40" fill={NAVY_BRAND} />
+          <rect x="540" y="185" width="35" height="35" fill={NAVY_BRAND} />
+          {/* H4 (taller) */}
+          <polygon points="620,280 620,150 720,80 820,150 820,280" />
+          <rect x="650" y="180" width="30" height="50" fill={NAVY_BRAND} />
+          <rect x="745" y="170" width="40" height="40" fill={NAVY_BRAND} />
+          {/* H5 */}
+          <polygon points="840,280 840,180 920,120 1000,180 1000,280" />
+          <rect x="860" y="200" width="30" height="40" fill={NAVY_BRAND} />
+          <rect x="945" y="195" width="35" height="35" fill={NAVY_BRAND} />
+          {/* H6 partial */}
+          <polygon points="1020,280 1020,170 1080,120 1080,280" />
+        </g>
+      </svg>
+    </div>
+  );
+};
+
+// ─── KineticHook ──────────────────────────────────────────────────────────
+// Slam-in mega text. Spring scale + slight rotate for that physics feel
+// every viral hook has. Optional shake on impact.
+type KineticHookProps = {
+  text: string;
+  startFrame: number;
+  fontSize?: number;
+  color?: string;
+  fontFamily?: string;
+  fontWeight?: number;
+  letterSpacing?: string | number;
+  top?: string;
+  shake?: boolean;
+  maxWidth?: number;
+  textTransform?: React.CSSProperties['textTransform'];
+};
+export const KineticHook: React.FC<KineticHookProps> = ({
+  text,
+  startFrame,
+  fontSize = 110,
+  color = CREAM,
+  fontFamily = FONT_SERIF,
+  fontWeight = 700,
+  letterSpacing = '-0.02em',
+  top = '50%',
+  shake = true,
+  maxWidth = 940,
+  textTransform = 'none',
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const localF = frame - startFrame;
+  const sp = spring({
+    frame: localF,
+    fps,
+    config: { damping: 9, mass: 0.6, stiffness: 110 },
+  });
+  const scale = 0.5 + sp * 0.5;
+  const opacity = clamp(localF / 4, 0, 1);
+  // Deterministic shake (no Math.random — Remotion needs stable frames).
+  const shakeAmp = shake ? Math.max(0, 1 - localF / 12) * 7 : 0;
+  const shakeX = shakeAmp * Math.sin(localF * 1.7);
+  const shakeY = shakeAmp * Math.cos(localF * 2.1);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top,
+        transform: `translate(calc(-50% + ${shakeX}px), calc(-50% + ${shakeY}px)) scale(${scale.toFixed(3)})`,
+        opacity,
+        maxWidth,
+        textAlign: 'center',
+        fontFamily,
+        fontWeight,
+        fontSize,
+        color,
+        letterSpacing,
+        lineHeight: 1.05,
+        textTransform,
+        whiteSpace: 'nowrap',
+        textShadow:
+          '0 6px 32px rgba(0,0,0,0.85), 0 2px 10px rgba(0,0,0,0.85), 0 0 1px rgba(0,0,0,1)',
+      }}
+    >
       {text}
     </div>
   );
 };
 
-// ─── KineticCaption ────────────────────────────────────────────────────────
-// Word-by-word punch-in caption (TikTok/Reel style). Each word springs into
-// place on a stagger. The current word is gold + scaled. Past words white.
-type KineticCaptionProps = {
+// ─── WordReveal ───────────────────────────────────────────────────────────
+// TikTok-style word-by-word caption. Each word pops in with a quick scale
+// + opacity. Optional highlight color for one word in the phrase.
+type WordRevealProps = {
+  text: string; // separate words with single spaces; use '|' to mark highlighted word
   startFrame: number;
-  words: string[];
-  cadenceFrames?: number; // frames between word reveals
-  position?: 'top' | 'upper-third' | 'center' | 'lower-third' | 'bottom';
+  perWordFrames?: number;
   fontSize?: number;
-  highlightWord?: number; // index of the word that stays gold throughout
+  color?: string;
+  highlightColor?: string;
   fontFamily?: string;
   fontWeight?: number;
-  letterSpacing?: number | string;
+  top?: string;
+  letterSpacing?: string | number;
   maxWidth?: number;
+  textTransform?: React.CSSProperties['textTransform'];
   align?: 'center' | 'left';
 };
-
-export const KineticCaption: React.FC<KineticCaptionProps> = ({
+export const WordReveal: React.FC<WordRevealProps> = ({
+  text,
   startFrame,
-  words,
-  cadenceFrames = 7,
-  position = 'lower-third',
-  fontSize = 64,
-  highlightWord,
+  perWordFrames = 6,
+  fontSize = 60,
+  color = CREAM,
+  highlightColor = GOLD_BRAND,
   fontFamily = FONT_BODY,
-  fontWeight = 900,
-  letterSpacing = 1.6,
-  maxWidth = 940,
+  fontWeight = 800,
+  top = '50%',
+  letterSpacing = 1.2,
+  maxWidth = 920,
+  textTransform = 'uppercase',
   align = 'center',
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const top =
-    position === 'top'
-      ? '12%'
-      : position === 'upper-third'
-      ? '30%'
-      : position === 'center'
-      ? '50%'
-      : position === 'lower-third'
-      ? '66%'
-      : '82%';
+  const words = text.split(' ');
   return (
     <div
       style={{
@@ -264,42 +382,40 @@ export const KineticCaption: React.FC<KineticCaptionProps> = ({
         transform: 'translate(-50%, -50%)',
         maxWidth,
         textAlign: align,
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: align === 'center' ? 'center' : 'flex-start',
-        gap: 14,
+        fontFamily,
+        fontWeight,
+        fontSize,
+        letterSpacing,
+        lineHeight: 1.18,
+        textTransform,
+        textShadow:
+          '0 4px 18px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.9)',
       }}
     >
       {words.map((w, i) => {
-        const wordStart = startFrame + i * cadenceFrames;
-        const localF = frame - wordStart;
-        if (localF < 0) return null;
-        const s = spring({ frame: localF, fps, config: { damping: 12, stiffness: 180, mass: 0.6 } });
-        const fade = clamp(localF / 6, 0, 1);
-        const isCurrent =
-          frame >= wordStart && frame < wordStart + cadenceFrames + 3;
-        const isHighlight = highlightWord === i;
-        const color = isHighlight || isCurrent ? GOLD : WHITE;
-        const scale = 0.6 + 0.4 * s + (isCurrent ? 0.06 : 0);
+        const isHighlight = w.startsWith('|');
+        const word = isHighlight ? w.slice(1) : w;
+        const wStart = startFrame + i * perWordFrames;
+        const localF = frame - wStart;
+        const sp = spring({
+          frame: localF,
+          fps,
+          config: { damping: 10, mass: 0.4, stiffness: 130 },
+        });
+        const scale = 0.7 + sp * 0.3;
+        const opacity = clamp(localF / 3, 0, 1);
         return (
           <span
             key={i}
             style={{
               display: 'inline-block',
-              fontFamily,
-              fontWeight,
-              fontSize,
-              color,
-              letterSpacing,
-              lineHeight: 1.08,
+              margin: '0 0.18em',
               transform: `scale(${scale.toFixed(3)})`,
-              opacity: fade,
-              textShadow: '0 4px 22px rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.85)',
-              transformOrigin: 'center',
-              textTransform: 'uppercase',
+              opacity,
+              color: isHighlight ? highlightColor : color,
             }}
           >
-            {w}
+            {word}
           </span>
         );
       })}
@@ -307,56 +423,60 @@ export const KineticCaption: React.FC<KineticCaptionProps> = ({
   );
 };
 
-// ─── BigStat ───────────────────────────────────────────────────────────────
-// Hero stat reveal: counter scales up from 0.6 → 1.0, glows, holds.
-type BigStatProps = {
+// ─── GiantNumber ──────────────────────────────────────────────────────────
+// Hero stat — count-up with land-punch (over-scale + settle).
+type GiantNumberProps = {
+  from?: number;
+  to: number;
   startFrame: number;
   durationFrames?: number;
-  from: number;
-  to: number;
   format: (v: number) => string;
-  fontSize?: number;
   color?: string;
-  glowColor?: string;
-  position?: { top?: string | number; left?: string | number };
+  fontSize?: number;
+  top?: string;
+  fontFamily?: string;
 };
-
-export const BigStat: React.FC<BigStatProps> = ({
-  startFrame,
-  durationFrames = 36,
-  from,
+export const GiantNumber: React.FC<GiantNumberProps> = ({
+  from = 0,
   to,
+  startFrame,
+  durationFrames,
   format,
+  color = GOLD_BRAND,
   fontSize = 320,
-  color = GOLD,
-  glowColor = 'rgba(212, 175, 55, 0.55)',
-  position = { top: '50%', left: '50%' },
+  top = '50%',
+  fontFamily = FONT_SERIF,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const dur = durationFrames ?? Math.round(fps * 1.6);
   const localF = frame - startFrame;
-  const t = clamp(localF / durationFrames, 0, 1);
-  const eased = easeOutQuart(t);
+  const t = clamp(localF / dur, 0, 1);
+  const eased = easeOutCubic(t);
   const value = from + (to - from) * eased;
-  const scale = localF < 0 ? 0.6 : 0.6 + 0.4 * spring({ frame: localF, fps, config: { damping: 14, stiffness: 130 } });
-  const fade = clamp(localF / 8, 0, 1);
-  const pulse = 1 + 0.012 * Math.sin(frame * 0.15);
+  // Land-punch: scale up to 1.06 at land then settle to 1.0
+  const landF = localF - dur;
+  const punch =
+    landF >= 0 && landF < 14
+      ? 1 + 0.06 * Math.sin((landF / 14) * Math.PI)
+      : 1;
+  const opacity = clamp(localF / 4, 0, 1);
   return (
     <div
       style={{
         position: 'absolute',
-        top: position.top,
-        left: position.left,
-        transform: `translate(-50%, -50%) scale(${(scale * pulse).toFixed(3)})`,
-        opacity: fade,
-        fontFamily: FONT_HEAD,
+        left: '50%',
+        top,
+        transform: `translate(-50%, -50%) scale(${punch.toFixed(4)})`,
+        opacity,
+        textAlign: 'center',
+        fontFamily,
         fontWeight: 700,
         fontSize,
         color,
-        lineHeight: 1,
-        letterSpacing: '-0.04em',
-        textShadow: `0 0 60px ${glowColor}, 0 0 30px ${glowColor}, 0 8px 32px rgba(0,0,0,0.85)`,
-        whiteSpace: 'nowrap',
+        letterSpacing: '-0.045em',
+        lineHeight: 0.95,
+        textShadow: `0 8px 36px rgba(0,0,0,0.9), 0 0 60px ${color}33`,
       }}
     >
       {format(value)}
@@ -364,347 +484,205 @@ export const BigStat: React.FC<BigStatProps> = ({
   );
 };
 
-// ─── StatCard ──────────────────────────────────────────────────────────────
-// Comparison "card" with city + percent. Slides in, percent counts up.
-type StatCardProps = {
-  startFrame: number;
-  city: string;
-  pct: number;
-  yPct: number; // vertical position as percent of canvas
-  growthFrames?: number;
-  delayCard?: number;
+// ─── TickerTape ───────────────────────────────────────────────────────────
+// Horizontal scrolling text band. Stat-ticker vibe. Used at top or bottom
+// to keep visual energy under static beats.
+type TickerProps = {
+  items: { label: string; value?: string; tone?: 'down' | 'up' | 'neutral' }[];
+  y: number; // px from top
+  pxPerSec?: number;
+  fontSize?: number;
+  height?: number;
 };
-
-export const StatCard: React.FC<StatCardProps> = ({
-  startFrame,
-  city,
-  pct,
-  yPct,
-  growthFrames = 20,
-  delayCard = 0,
+export const TickerTape: React.FC<TickerProps> = ({
+  items,
+  y,
+  pxPerSec = 120,
+  fontSize = 26,
+  height = 64,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const cardLocalF = frame - (startFrame + delayCard);
-  const valueLocalF = frame - (startFrame + delayCard + 6);
-  if (cardLocalF < 0) return null;
-
-  const cardEnter = spring({ frame: cardLocalF, fps, config: { damping: 14, stiffness: 110 } });
-  const fade = clamp(cardLocalF / 10, 0, 1);
-
-  const t = clamp(valueLocalF / growthFrames, 0, 1);
-  const animatedPct = pct * easeOutCubic(t);
-  const isNeg = pct < 0;
-  const accent = isNeg ? RED_ALERT : GREEN_GAIN;
-  const arrow = isNeg ? '▼' : '▲';
-
-  // Bar width relative to a 700px max axis, scaled by abs(pct)/12 (12% = full)
-  const barWidth = Math.min(680, (Math.abs(animatedPct) / 12) * 680);
-
+  const offset = (frame / fps) * pxPerSec;
+  // Build double-loop content
+  const loop = [...items, ...items, ...items];
   return (
     <div
       style={{
         position: 'absolute',
-        top: `${yPct}%`,
-        left: '50%',
-        transform: `translate(-50%, -50%) translateX(${(1 - cardEnter) * -120}px)`,
-        opacity: fade,
-        width: 920,
-        background: 'rgba(255,255,255,0.06)',
+        left: 0,
+        right: 0,
+        top: y,
+        height,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        background: 'rgba(6,16,31,0.70)',
+        borderTop: `1px solid ${GOLD_BRAND}55`,
+        borderBottom: `1px solid ${GOLD_BRAND}55`,
         backdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        borderRadius: 18,
-        padding: '22px 28px',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.40)',
       }}
     >
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 12,
-        }}
-      >
-        <div
-          style={{
-            fontFamily: FONT_BODY,
-            fontWeight: 800,
-            fontSize: 36,
-            color: WHITE,
-            letterSpacing: 2,
-            textTransform: 'uppercase',
-          }}
-        >
-          {city}
-        </div>
-        <div
-          style={{
-            fontFamily: FONT_HEAD,
-            fontWeight: 700,
-            fontSize: 56,
-            color: accent,
-            letterSpacing: '-0.02em',
-            textShadow: `0 0 22px ${accent}55`,
-          }}
-        >
-          {arrow} {Math.abs(animatedPct).toFixed(1)}%
-        </div>
-      </div>
-      <div
-        style={{
-          height: 14,
-          width: '100%',
-          background: 'rgba(255,255,255,0.06)',
-          borderRadius: 7,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            height: '100%',
-            width: barWidth,
-            background: `linear-gradient(90deg, ${accent} 0%, ${accent}cc 100%)`,
-            borderRadius: 7,
-            boxShadow: `0 0 16px ${accent}99`,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
-// ─── SourcePill ────────────────────────────────────────────────────────────
-// Required attribution. Fixed bottom safe zone.
-type SourcePillProps = {
-  text: string;
-  startFrame?: number;
-};
-
-export const SourcePill: React.FC<SourcePillProps> = ({ text, startFrame = 0 }) => {
-  const frame = useCurrentFrame();
-  const localF = frame - startFrame;
-  const alpha = clamp(localF / 14, 0, 1);
-  if (localF < 0) return null;
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: 110,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(6px)',
-        border: '1px solid rgba(212, 175, 55, 0.40)',
-        borderRadius: 999,
-        padding: '10px 22px',
-        opacity: alpha * 0.95,
-        fontFamily: FONT_BODY,
-        fontWeight: 600,
-        fontSize: 22,
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.92)',
-        maxWidth: 920,
-        textAlign: 'center',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-      }}
-    >
-      <span style={{ color: GOLD, marginRight: 8 }}>SOURCE</span>
-      {text}
-    </div>
-  );
-};
-
-// ─── Headline ──────────────────────────────────────────────────────────────
-// Animated headline that wipes in left-to-right with a gold accent bar.
-type HeadlineProps = {
-  text: string;
-  startFrame: number;
-  position?: 'top' | 'upper-third' | 'center' | 'lower-third';
-  fontSize?: number;
-  color?: string;
-  align?: 'center' | 'left';
-  maxWidth?: number;
-};
-
-export const Headline: React.FC<HeadlineProps> = ({
-  text,
-  startFrame,
-  position = 'upper-third',
-  fontSize = 56,
-  color = WHITE,
-  align = 'center',
-  maxWidth = 940,
-}) => {
-  const frame = useCurrentFrame();
-  const localF = frame - startFrame;
-  const enter = clamp(localF / 14, 0, 1);
-  const eased = easeOutCubic(enter);
-  const tx = (1 - eased) * -40;
-  const top =
-    position === 'top'
-      ? '14%'
-      : position === 'upper-third'
-      ? '28%'
-      : position === 'center'
-      ? '50%'
-      : '66%';
-  if (localF < 0) return null;
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: '50%',
-        top,
-        transform: `translate(-50%, -50%) translateX(${tx}px)`,
-        opacity: enter,
-        maxWidth,
-        textAlign: align,
-        fontFamily: FONT_HEAD,
-        fontWeight: 700,
-        fontSize,
-        color,
-        letterSpacing: '-0.01em',
-        lineHeight: 1.15,
-        textShadow: '0 6px 28px rgba(0,0,0,0.85)',
-      }}
-    >
-      <div
-        style={{
-          width: 88,
-          height: 6,
-          background: GOLD,
-          margin: align === 'center' ? '0 auto 24px' : '0 0 24px',
-          borderRadius: 3,
-          boxShadow: `0 0 16px ${GOLD}`,
-          transform: `scaleX(${eased})`,
-          transformOrigin: align === 'center' ? 'center' : 'left',
-        }}
-      />
-      {text}
-    </div>
-  );
-};
-
-// ─── NewsTicker ────────────────────────────────────────────────────────────
-// Bottom news-ticker bar that scrolls right-to-left.
-type NewsTickerProps = {
-  text: string;
-  speedPxPerFrame?: number;
-};
-
-export const NewsTicker: React.FC<NewsTickerProps> = ({ text, speedPxPerFrame = 5 }) => {
-  const frame = useCurrentFrame();
-  const offset = (frame * speedPxPerFrame) % 2400;
-  const repeated = `${text}    •    ${text}    •    ${text}    •    `;
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        bottom: 60,
-        left: 0,
-        right: 0,
-        height: 44,
-        background: 'rgba(0,0,0,0.7)',
-        borderTop: `2px solid ${GOLD}`,
-        borderBottom: `2px solid ${GOLD}`,
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <div
-        style={{
-          whiteSpace: 'nowrap',
+          gap: 64,
           transform: `translateX(${-offset}px)`,
-          fontFamily: FONT_BODY,
-          fontWeight: 700,
-          fontSize: 22,
-          color: WHITE,
-          letterSpacing: 3,
-          textTransform: 'uppercase',
+          whiteSpace: 'nowrap',
+          paddingLeft: 64,
         }}
       >
-        {repeated}
+        {loop.map((it, i) => {
+          const tone =
+            it.tone === 'down' ? RED_DROP : it.tone === 'up' ? GREEN_RISE : CREAM;
+          const arrow =
+            it.tone === 'down' ? '▼' : it.tone === 'up' ? '▲' : '•';
+          return (
+            <div
+              key={i}
+              style={{
+                display: 'inline-flex',
+                gap: 14,
+                alignItems: 'center',
+                fontFamily: FONT_BODY,
+                fontWeight: 800,
+                fontSize,
+                color: CREAM,
+                letterSpacing: 2.8,
+                textTransform: 'uppercase',
+              }}
+            >
+              <span style={{ color: tone }}>{arrow}</span>
+              <span>{it.label}</span>
+              {it.value !== undefined && (
+                <span style={{ color: tone, fontFamily: FONT_SERIF, fontWeight: 700, letterSpacing: 0 }}>
+                  {it.value}
+                </span>
+              )}
+              <span style={{ color: GOLD_BRAND, opacity: 0.55, marginLeft: 8 }}>///</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-// ─── BulletList ────────────────────────────────────────────────────────────
-// Staggered bullet items with gold marker, springing in.
-type BulletListProps = {
-  items: string[];
+// ─── BarRace ──────────────────────────────────────────────────────────────
+// Vertical stack of horizontal bars with animated fill + counting label.
+// Each bar enters with a stagger.
+type BarItem = {
+  label: string;
+  pct: number; // value, can be negative
+  tone?: 'up' | 'down';
+};
+type BarRaceProps = {
+  items: BarItem[];
   startFrame: number;
   staggerFrames?: number;
-  fontSize?: number;
-  position?: { top?: string | number };
+  growthFrames?: number;
+  topPx?: number; // top of bar stack
+  scale?: number; // px per percent unit
+  rowHeight?: number;
+  labelWidth?: number;
 };
-
-export const BulletList: React.FC<BulletListProps> = ({
+export const BarRace: React.FC<BarRaceProps> = ({
   items,
   startFrame,
-  staggerFrames = 10,
-  fontSize = 50,
-  position = { top: '50%' },
+  staggerFrames = 8,
+  growthFrames = 26,
+  topPx = 800,
+  scale = 30,
+  rowHeight = 130,
+  labelWidth = 320,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
   return (
     <div
       style={{
         position: 'absolute',
-        top: position.top,
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'left',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
+        left: 90,
+        right: 90,
+        top: topPx,
       }}
     >
-      {items.map((item, i) => {
-        const itemStart = startFrame + i * staggerFrames;
-        const localF = frame - itemStart;
-        if (localF < 0) return null;
-        const s = spring({ frame: localF, fps, config: { damping: 14, stiffness: 130 } });
-        const fade = clamp(localF / 10, 0, 1);
+      {items.map((it, i) => {
+        const sf = startFrame + i * staggerFrames;
+        const localF = frame - sf;
+        const t = clamp(localF / growthFrames, 0, 1);
+        const eased = easeOutCubic(t);
+        const animated = it.pct * eased;
+        const width = Math.abs(animated) * scale;
+        const tone = it.tone ?? (it.pct < 0 ? 'down' : 'up');
+        const barColor = tone === 'down' ? RED_DROP : GREEN_RISE;
+        const valueColor = tone === 'down' ? '#FF7B7B' : '#7DD9A0';
+        const labelAlpha = clamp(localF / 8, 0, 1);
         return (
           <div
             key={i}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 22,
-              opacity: fade,
-              transform: `translateX(${(1 - s) * -40}px)`,
+              gap: 24,
+              height: rowHeight,
+              opacity: labelAlpha,
             }}
           >
             <div
               style={{
-                width: 18,
-                height: 18,
-                background: GOLD,
-                borderRadius: 3,
-                boxShadow: `0 0 16px ${GOLD}aa`,
-                transform: `rotate(45deg) scale(${s})`,
-                flexShrink: 0,
-              }}
-            />
-            <div
-              style={{
+                width: labelWidth,
                 fontFamily: FONT_BODY,
-                fontWeight: 700,
-                fontSize,
-                color: WHITE,
-                letterSpacing: 1,
-                textShadow: '0 4px 22px rgba(0,0,0,0.85)',
+                fontWeight: 800,
+                fontSize: 36,
+                color: CREAM,
+                letterSpacing: 2,
+                textTransform: 'uppercase',
+                textAlign: 'right',
+                paddingRight: 8,
+                textShadow: '0 2px 8px rgba(0,0,0,0.85)',
               }}
             >
-              {item}
+              {it.label}
+            </div>
+            <div
+              style={{
+                flex: 1,
+                height: 38,
+                background: 'rgba(255,255,255,0.06)',
+                borderRadius: 8,
+                position: 'relative',
+                overflow: 'visible',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: `${width}px`,
+                  background: `linear-gradient(90deg, ${barColor}cc, ${barColor})`,
+                  borderRadius: 8,
+                  boxShadow: `0 0 22px ${barColor}77, inset 0 1px 0 rgba(255,255,255,0.18)`,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  left: width + 18,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontFamily: FONT_SERIF,
+                  fontWeight: 700,
+                  fontSize: 50,
+                  color: valueColor,
+                  textShadow: '0 2px 10px rgba(0,0,0,0.85)',
+                }}
+              >
+                {it.pct > 0 ? '+' : ''}
+                {animated.toFixed(1)}%
+              </div>
             </div>
           </div>
         );
@@ -713,32 +691,349 @@ export const BulletList: React.FC<BulletListProps> = ({
   );
 };
 
-// ─── BrandEndCard ──────────────────────────────────────────────────────────
-// 3s closing card. Logo lockup is text-only here (no logo image dependency).
-// Per VIDEO_PRODUCTION_SKILL §5: Bend / Central Oregon tagline allowed.
-type BrandEndCardProps = {
+// ─── PulseDot ─────────────────────────────────────────────────────────────
+// Map-marker style pulsing dot used to "place" cities. Can be used over a
+// blank canvas as pure stylization (no false geographic claim).
+type PulseDotProps = {
+  x: string;
+  y: string;
+  color?: string;
+  size?: number;
   startFrame: number;
 };
-
-export const BrandEndCard: React.FC<BrandEndCardProps> = ({ startFrame }) => {
+export const PulseDot: React.FC<PulseDotProps> = ({
+  x,
+  y,
+  color = RED_DROP,
+  size = 22,
+  startFrame,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const localF = frame - startFrame;
-  const navyAlpha = clamp(localF / 10, 0, 1);
-  const wordmarkSpring = spring({ frame: localF - 4, fps, config: { damping: 14, stiffness: 110 } });
-  const wordmarkAlpha = clamp((localF - 4) / 14, 0, 1);
-  const tagAlpha = clamp((localF - 18) / 12, 0, 1);
-  const ruleScale = clamp((localF - 12) / 20, 0, 1);
+  if (localF < 0) return null;
+  const t = (localF % (fps * 1.5)) / (fps * 1.5);
+  const ringScale = 1 + t * 3.2;
+  const ringOpacity = 1 - t;
+  const enter = clamp(localF / 8, 0, 1);
   return (
-    <AbsoluteFill
+    <div
       style={{
-        background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DARKEST} 100%)`,
-        opacity: navyAlpha,
+        position: 'absolute',
+        left: x,
+        top: y,
+        transform: `translate(-50%, -50%) scale(${enter.toFixed(3)})`,
+        width: size,
+        height: size,
       }}
     >
-      <AbsoluteFill
+      <div
         style={{
-          background: `radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.22) 0%, transparent 55%)`,
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          background: color,
+          boxShadow: `0 0 18px ${color}aa`,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          border: `2px solid ${color}`,
+          transform: `scale(${ringScale.toFixed(3)})`,
+          opacity: ringOpacity,
+        }}
+      />
+    </div>
+  );
+};
+
+// ─── DrawnLineChart ───────────────────────────────────────────────────────
+// SVG line chart with stroke-draw animation. Used for trend storytelling
+// (e.g. "rate lock-in melting"). Points are plotted in clip-space coords.
+type LineChartProps = {
+  points: { x: number; y: number }[]; // 0–100 each
+  startFrame: number;
+  drawFrames?: number;
+  width?: number;
+  height?: number;
+  top?: number;
+  left?: number;
+  color?: string;
+  fillBelow?: boolean;
+  axisColor?: string;
+  axisLabels?: { x: number; text: string }[];
+};
+export const DrawnLineChart: React.FC<LineChartProps> = ({
+  points,
+  startFrame,
+  drawFrames = 60,
+  width = 880,
+  height = 360,
+  top = 0,
+  left = 0,
+  color = GOLD_BRAND,
+  fillBelow = true,
+  axisColor = 'rgba(242,235,221,0.35)',
+  axisLabels,
+}) => {
+  const frame = useCurrentFrame();
+  const localF = frame - startFrame;
+  const t = clamp(localF / drawFrames, 0, 1);
+  const eased = easeInOutCubic(t);
+  const padX = 40;
+  const padY = 20;
+  const innerW = width - padX * 2;
+  const innerH = height - padY * 2;
+  const toCoord = (p: { x: number; y: number }) => ({
+    cx: padX + (p.x / 100) * innerW,
+    cy: padY + (1 - p.y / 100) * innerH,
+  });
+  const coords = points.map(toCoord);
+  const d =
+    'M' +
+    coords.map((c) => `${c.cx.toFixed(1)},${c.cy.toFixed(1)}`).join(' L ');
+  // Approx path length via segments
+  let totalLen = 0;
+  for (let i = 1; i < coords.length; i++) {
+    const dx = coords[i].cx - coords[i - 1].cx;
+    const dy = coords[i].cy - coords[i - 1].cy;
+    totalLen += Math.sqrt(dx * dx + dy * dy);
+  }
+  const dashOffset = totalLen * (1 - eased);
+  const fillD = fillBelow
+    ? `${d} L ${coords[coords.length - 1].cx.toFixed(1)},${(padY + innerH).toFixed(1)} L ${coords[0].cx.toFixed(1)},${(padY + innerH).toFixed(1)} Z`
+    : '';
+  const fillAlpha = clamp((localF - drawFrames * 0.6) / 18, 0, 0.35);
+  // Visible point at the head of the draw
+  const headIdx = Math.min(coords.length - 1, Math.floor(eased * (coords.length - 1)));
+  const head = coords[headIdx];
+  return (
+    <div style={{ position: 'absolute', left, top, width, height }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}>
+        {/* axis baseline */}
+        <line
+          x1={padX}
+          y1={padY + innerH}
+          x2={padX + innerW}
+          y2={padY + innerH}
+          stroke={axisColor}
+          strokeWidth="2"
+        />
+        {fillBelow && (
+          <path d={fillD} fill={color} opacity={fillAlpha} style={{ filter: 'blur(0.5px)' }} />
+        )}
+        <path
+          d={d}
+          stroke={color}
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray={totalLen}
+          strokeDashoffset={dashOffset}
+          style={{ filter: `drop-shadow(0 0 8px ${color}88)` }}
+        />
+        {/* head dot */}
+        {eased > 0.05 && (
+          <>
+            <circle cx={head.cx} cy={head.cy} r="14" fill={color} opacity="0.35" />
+            <circle cx={head.cx} cy={head.cy} r="7" fill={CREAM} />
+          </>
+        )}
+        {/* axis labels */}
+        {axisLabels?.map((al, i) => {
+          const cx = padX + (al.x / 100) * innerW;
+          return (
+            <text
+              key={i}
+              x={cx}
+              y={padY + innerH + 28}
+              fontSize="22"
+              fontFamily="AzoSans"
+              fontWeight="700"
+              fill="rgba(242,235,221,0.65)"
+              textAnchor="middle"
+              letterSpacing="2"
+            >
+              {al.text}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+// ─── BreakingBadge ────────────────────────────────────────────────────────
+// "BREAKING" / "ALERT" pill at the very top of frame. Pulsing.
+type BadgeProps = {
+  label?: string;
+  startFrame?: number;
+};
+export const BreakingBadge: React.FC<BadgeProps> = ({
+  label = 'MARKET ALERT',
+  startFrame = 0,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const localF = frame - startFrame;
+  const enter = clamp(localF / 10, 0, 1);
+  const pulse = 0.85 + 0.15 * Math.sin((localF / fps) * 6);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 80,
+        left: '50%',
+        transform: `translate(-50%, 0) scale(${enter.toFixed(3)})`,
+        opacity: enter,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        background: GOLD_BRAND,
+        color: NAVY_BRAND,
+        padding: '12px 26px',
+        borderRadius: 999,
+        fontFamily: FONT_BODY,
+        fontWeight: 900,
+        fontSize: 26,
+        letterSpacing: 4,
+        textTransform: 'uppercase',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.65)',
+      }}
+    >
+      <span
+        style={{
+          width: 14,
+          height: 14,
+          borderRadius: '50%',
+          background: '#C03030',
+          opacity: pulse,
+          boxShadow: `0 0 12px #C03030`,
+        }}
+      />
+      {label}
+    </div>
+  );
+};
+
+// ─── SourcePill ───────────────────────────────────────────────────────────
+// Refreshed source line — now a brand-styled pill instead of a tiny line.
+type SourcePillProps = {
+  text: string;
+  startFrame?: number;
+};
+export const SourcePill: React.FC<SourcePillProps> = ({ text, startFrame = 0 }) => {
+  const frame = useCurrentFrame();
+  const localF = frame - startFrame;
+  const alpha = clamp(localF / 10, 0, 1);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        bottom: 220,
+        transform: `translate(-50%, 0)`,
+        opacity: alpha * 0.95,
+        background: 'rgba(6,16,31,0.80)',
+        border: `1px solid ${GOLD_BRAND}66`,
+        backdropFilter: 'blur(8px)',
+        padding: '10px 22px',
+        borderRadius: 999,
+        fontFamily: FONT_BODY,
+        fontWeight: 700,
+        fontSize: 22,
+        color: 'rgba(242,235,221,0.92)',
+        letterSpacing: 2.6,
+        textTransform: 'uppercase',
+      }}
+    >
+      <span style={{ color: GOLD_BRAND, marginRight: 10 }}>SOURCE</span>
+      {text}
+    </div>
+  );
+};
+
+// ─── BrandWatermark ───────────────────────────────────────────────────────
+// Persistent corner watermark — small Ryan Realty wordmark. Optional.
+export const BrandWatermark: React.FC<{ startFrame?: number }> = ({
+  startFrame = 0,
+}) => {
+  const frame = useCurrentFrame();
+  const localF = frame - startFrame;
+  const alpha = clamp(localF / 14, 0, 1) * 0.85;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 60,
+        bottom: 100,
+        opacity: alpha,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <div
+        style={{
+          width: 14,
+          height: 14,
+          background: GOLD_BRAND,
+          transform: 'rotate(45deg)',
+          boxShadow: `0 0 10px ${GOLD_BRAND}77`,
+        }}
+      />
+      <div
+        style={{
+          fontFamily: FONT_BODY,
+          fontWeight: 900,
+          fontSize: 22,
+          color: CREAM,
+          letterSpacing: 4,
+          textTransform: 'uppercase',
+        }}
+      >
+        Ryan Realty
+      </div>
+    </div>
+  );
+};
+
+// ─── EndCard ──────────────────────────────────────────────────────────────
+// 3-second navy end card with logo wordmark + tagline. Replaces the
+// existing BrandOutroCard for the news clips (denser, more "news show"
+// brand stamp instead of luxury slow fade).
+type EndCardProps = {
+  startFrame: number;
+  tagline?: string;
+};
+export const NewsEndCard: React.FC<EndCardProps> = ({
+  startFrame,
+  tagline = 'Bend / Central Oregon · Market Intel',
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const localF = frame - startFrame;
+  const navyAlpha = clamp(localF / 8, 0, 1);
+  const sp = spring({
+    frame: localF - 4,
+    fps,
+    config: { damping: 11, mass: 0.5, stiffness: 120 },
+  });
+  const wordScale = 0.85 + sp * 0.15;
+  const tagAlpha = clamp((localF - 18) / 14, 0, 1);
+  const dividerWidth = clamp((localF - 14) / 18, 0, 1) * 380;
+  return (
+    <AbsoluteFill style={{ background: NAVY, opacity: navyAlpha }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(212,175,55,0.18) 0%, transparent 70%)',
         }}
       />
       <div
@@ -749,31 +1044,47 @@ export const BrandEndCard: React.FC<BrandEndCardProps> = ({ startFrame }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 24,
         }}
       >
         <div
           style={{
-            fontFamily: FONT_HEAD,
-            fontWeight: 700,
-            fontSize: 110,
-            color: WHITE,
-            letterSpacing: '-0.01em',
-            opacity: wordmarkAlpha,
-            transform: `scale(${0.85 + 0.15 * wordmarkSpring})`,
-            textShadow: `0 0 40px rgba(212, 175, 55, 0.35)`,
+            transform: `scale(${wordScale.toFixed(3)})`,
+            opacity: clamp(localF / 10, 0, 1),
+            display: 'flex',
+            alignItems: 'center',
+            gap: 22,
+            marginBottom: 36,
           }}
         >
-          Ryan Realty
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              background: GOLD_BRAND,
+              transform: 'rotate(45deg)',
+              boxShadow: `0 0 22px ${GOLD_BRAND}aa`,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: FONT_SERIF,
+              fontWeight: 700,
+              fontSize: 96,
+              color: CREAM,
+              letterSpacing: '-0.01em',
+              textShadow: '0 4px 20px rgba(0,0,0,0.85)',
+            }}
+          >
+            Ryan Realty
+          </div>
         </div>
         <div
           style={{
-            width: 220,
-            height: 4,
-            background: GOLD,
-            borderRadius: 2,
-            transform: `scaleX(${ruleScale})`,
-            boxShadow: `0 0 20px ${GOLD}`,
+            width: dividerWidth,
+            height: 2,
+            background: GOLD_BRAND,
+            opacity: 0.85,
+            marginBottom: 28,
           }}
         />
         <div
@@ -781,15 +1092,219 @@ export const BrandEndCard: React.FC<BrandEndCardProps> = ({ startFrame }) => {
             fontFamily: FONT_BODY,
             fontWeight: 700,
             fontSize: 28,
-            color: GOLD,
-            letterSpacing: 6,
+            color: GOLD_BRAND,
+            letterSpacing: 5,
             textTransform: 'uppercase',
             opacity: tagAlpha,
           }}
         >
-          Bend · Central Oregon
+          {tagline}
         </div>
       </div>
     </AbsoluteFill>
   );
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+export const formatPct = (v: number) => `${Math.round(v)}%`;
+export const formatDollars = (v: number) =>
+  `$${Math.round(v).toLocaleString('en-US')}`;
+export const formatCommas = (v: number) =>
+  `${Math.round(v).toLocaleString('en-US')}`;
+
+// ─── PercentRing ──────────────────────────────────────────────────────────
+// Big circular percent ring. Fills like a stopwatch dial. Pairs with the
+// hero number to keep the eye on the percent.
+type RingProps = {
+  pct: number;
+  startFrame: number;
+  durationFrames?: number;
+  size?: number;
+  stroke?: number;
+  color?: string;
+  trackColor?: string;
+  centerX?: string;
+  centerY?: string;
+};
+export const PercentRing: React.FC<RingProps> = ({
+  pct,
+  startFrame,
+  durationFrames,
+  size = 600,
+  stroke = 22,
+  color = GOLD_BRAND,
+  trackColor = 'rgba(255,255,255,0.10)',
+  centerX = '50%',
+  centerY = '50%',
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const dur = durationFrames ?? Math.round(fps * 1.4);
+  const localF = frame - startFrame;
+  const t = clamp(localF / dur, 0, 1);
+  const eased = easeOutCubic(t);
+  const r = (size - stroke) / 2;
+  const C = 2 * Math.PI * r;
+  const filled = (pct / 100) * C * eased;
+  const dashArray = `${filled} ${C}`;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: centerX,
+        top: centerY,
+        transform: 'translate(-50%, -50%)',
+        width: size,
+        height: size,
+      }}
+    >
+      <svg width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={trackColor}
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeDasharray={dashArray}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{ filter: `drop-shadow(0 0 14px ${color}aa)` }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+// ─── SlamLine ─────────────────────────────────────────────────────────────
+// Single phrase with a horizontal swipe-in reveal mask + bold underline.
+type SlamLineProps = {
+  text: string;
+  startFrame: number;
+  fontSize?: number;
+  color?: string;
+  underline?: string;
+  top?: string;
+  fontFamily?: string;
+  letterSpacing?: string | number;
+  fontWeight?: number;
+  textTransform?: React.CSSProperties['textTransform'];
+};
+export const SlamLine: React.FC<SlamLineProps> = ({
+  text,
+  startFrame,
+  fontSize = 78,
+  color = CREAM,
+  underline = GOLD_BRAND,
+  top = '50%',
+  fontFamily = FONT_SERIF,
+  letterSpacing = '-0.01em',
+  fontWeight = 700,
+  textTransform = 'none',
+}) => {
+  const frame = useCurrentFrame();
+  const localF = frame - startFrame;
+  const reveal = clamp(localF / 12, 0, 1);
+  const easedReveal = easeOutQuart(reveal);
+  const underlineW = clamp((localF - 8) / 18, 0, 1) * 100;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top,
+        transform: 'translate(-50%, -50%)',
+        textAlign: 'center',
+      }}
+    >
+      <div
+        style={{
+          overflow: 'hidden',
+          clipPath: `inset(0 ${(1 - easedReveal) * 100}% 0 0)`,
+          fontFamily,
+          fontWeight,
+          fontSize,
+          color,
+          letterSpacing,
+          lineHeight: 1.12,
+          textTransform,
+          textShadow: '0 4px 22px rgba(0,0,0,0.9)',
+          paddingBottom: 14,
+        }}
+      >
+        {text}
+      </div>
+      <div
+        style={{
+          height: 6,
+          width: `${underlineW}%`,
+          background: underline,
+          margin: '0 auto',
+          boxShadow: `0 0 14px ${underline}aa`,
+        }}
+      />
+    </div>
+  );
+};
+
+// ─── BigQuote ─────────────────────────────────────────────────────────────
+// Pull-quote treatment for editorial close lines.
+type BigQuoteProps = {
+  text: string;
+  startFrame: number;
+  fontSize?: number;
+  maxWidth?: number;
+};
+export const BigQuote: React.FC<BigQuoteProps> = ({
+  text,
+  startFrame,
+  fontSize = 60,
+  maxWidth = 920,
+}) => {
+  const frame = useCurrentFrame();
+  const localF = frame - startFrame;
+  const alpha = clamp(localF / 14, 0, 1);
+  const rise = (1 - clamp(localF / 18, 0, 1)) * 30;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top: '50%',
+        transform: `translate(-50%, calc(-50% + ${rise}px))`,
+        opacity: alpha,
+        maxWidth,
+        textAlign: 'center',
+        fontFamily: FONT_SERIF,
+        fontWeight: 400,
+        fontSize,
+        color: CREAM,
+        letterSpacing: '-0.005em',
+        lineHeight: 1.28,
+        textShadow: '0 4px 22px rgba(0,0,0,0.9)',
+      }}
+    >
+      <div
+        style={{
+          width: 80,
+          height: 4,
+          background: GOLD_BRAND,
+          margin: '0 auto 28px',
+          boxShadow: `0 0 12px ${GOLD_BRAND}aa`,
+        }}
+      />
+      {text}
+    </div>
+  );
+};
+
+// Re-export the spring/interpolate util so clip files have a single import.
+export { interpolate };

@@ -1,249 +1,355 @@
-// ClipTariffs — VIRAL REBUILD
-// 28s, 1080×1920 portrait. TikTok / Reel register: animated hot gradient bg,
-// kinetic captions, big stat reveals, materials bullet list, source pills.
+// ClipTariffs — viral rebuild, 30s news clip, 1080×1920 portrait.
 //
 // Verification trace per figure:
-//   - "$10,900 per home" → NAHB / Wells Fargo Housing Market Index, April 2025
+//   - "$10,900 per home" → NAHB / Wells Fargo Housing Market Index, APRIL 2025
 //     survey. https://www.nahb.org/blog/2025/05/tariff-uncertainty-impact-on-home-building
 //     "On average, suppliers increased their prices by 6.3% ... builders
-//     estimate a typical cost effect from recent tariff actions at $10,900 per
-//     home."
+//     estimate a typical cost effect from recent tariff actions at $10,900
+//     per home."
+//   - "Builder costs up 6.3% on average" → same source, same release.
 //   - "450,000 fewer homes through 2030" → Center for American Progress
 //     analysis. https://www.americanprogress.org/article/trump-administration-tariffs-could-result-in-450000-fewer-new-homes-through-2030/
-//   - "6.3%" supplier price increase → same NAHB source.
 //
-// CUT (per CLAUDE.md data accuracy rule):
-//   - "Central Oregon new construction is already limited" — Supabase shows
-//     Bend's new construction share at 17.32% of active inventory.
+// Visual rebuild: blueprint grid + ember mesh backdrop, kinetic mega
+// hook, percent ring on the 6.3%, giant counter slam-in on $10,900,
+// material list with pop-in items, persistent ticker, brand pill source
+// attribution. No stock photos, no AI imagery.
 
 import React from 'react';
-import { AbsoluteFill, Sequence } from 'remotion';
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig, spring } from 'remotion';
+import { CREAM, FONT_BODY, FONT_SERIF } from '../brand';
+import { clamp } from '../easing';
 import {
-  AnimatedGradientBg,
-  ParticleField,
-  BreakingPill,
-  KineticCaption,
-  BigStat,
-  Headline,
+  GradientMeshBg,
+  BlueprintGrid,
+  KineticHook,
+  WordReveal,
+  GiantNumber,
+  PercentRing,
+  TickerTape,
+  BreakingBadge,
   SourcePill,
-  BulletList,
-  NewsTicker,
-  BrandEndCard,
-  RED_ALERT,
-  FONT_BODY,
-  FONT_HEAD,
+  BrandWatermark,
+  NewsEndCard,
+  SlamLine,
+  BigQuote,
+  GOLD_BRAND,
+  RED_DROP,
+  formatDollars,
+  formatCommas,
 } from './viral_primitives';
 
 const FPS = 30;
 export const CLIP_TARIFFS_TOTAL_SEC = 28.0;
 
-const SRC_NAHB = 'NAHB / Wells Fargo HMI · April 2025';
-const SRC_CAP = 'Center for American Progress · 2026';
+const TARIFF_TICKER = [
+  { label: 'Per new home', value: '+$10,900', tone: 'down' as const },
+  { label: 'Supplier prices', value: '+6.3%', tone: 'down' as const },
+  { label: 'Homes lost by 2030', value: '450,000', tone: 'down' as const },
+  { label: 'Lumber, steel, drywall', value: 'Up', tone: 'down' as const },
+  { label: 'Existing inventory', value: 'Stronger', tone: 'up' as const },
+];
 
-// Beat 1 — Hook: BREAKING + huge $10,900 counter.
-const BeatHook: React.FC = () => (
-  <AbsoluteFill>
-    <AnimatedGradientBg variant="hot" />
-    <ParticleField count={50} color="rgba(212, 175, 55, 0.55)" />
-    <BreakingPill startFrame={0} text="TARIFF IMPACT" color={RED_ALERT} />
-    <Headline
-      text="The cost of your next home"
-      startFrame={6}
-      position="upper-third"
-      fontSize={50}
-    />
-    <BigStat
-      startFrame={14}
-      durationFrames={36}
-      from={0}
-      to={10900}
-      format={(v) => `$${Math.round(v).toLocaleString('en-US')}`}
-      fontSize={220}
-      position={{ top: '52%', left: '50%' }}
-    />
-    <KineticCaption
-      startFrame={56}
-      words={['MORE', 'PER', 'NEW', 'HOME']}
-      cadenceFrames={6}
-      position="lower-third"
-      fontSize={56}
-      fontFamily={FONT_BODY}
-      highlightWord={0}
-    />
-    <SourcePill text={SRC_NAHB} startFrame={70} />
-  </AbsoluteFill>
-);
+// ─── Stamped material chip ───────────────────────────────────────────────
+type ChipProps = {
+  label: string;
+  startFrame: number;
+  delayIndex: number;
+  top: number;
+};
+const MaterialChip: React.FC<ChipProps> = ({
+  label,
+  startFrame,
+  delayIndex,
+  top,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const localF = frame - (startFrame + delayIndex * 6);
+  const sp = spring({
+    frame: localF,
+    fps,
+    config: { damping: 9, mass: 0.5, stiffness: 130 },
+  });
+  const scale = 0.85 + sp * 0.15;
+  const opacity = clamp(localF / 4, 0, 1);
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top,
+        transform: `translate(-50%, 0) scale(${scale.toFixed(3)})`,
+        opacity,
+        background: 'rgba(212,175,55,0.92)',
+        color: '#1a0a04',
+        padding: '18px 22px',
+        borderRadius: 14,
+        fontFamily: FONT_BODY,
+        fontWeight: 900,
+        fontSize: 32,
+        letterSpacing: 3,
+        textTransform: 'uppercase',
+        boxShadow: '0 8px 26px rgba(0,0,0,0.7)',
+        border: '2px solid rgba(255,255,255,0.18)',
+        whiteSpace: 'nowrap',
+        textAlign: 'center',
+        width: 760,
+      }}
+    >
+      {label}
+    </div>
+  );
+};
 
-// Beat 2 — Where it comes from: bullet list of materials + 6.3% framer.
-const BeatMaterials: React.FC = () => (
-  <AbsoluteFill>
-    <AnimatedGradientBg variant="hot" />
-    <ParticleField count={28} color="rgba(212, 175, 55, 0.40)" />
-    <Headline
-      text="Where the cost comes from"
-      startFrame={4}
-      position="top"
-      fontSize={48}
-    />
-    <BulletList
-      startFrame={20}
-      staggerFrames={11}
-      fontSize={50}
-      items={[
-        'Canadian softwood lumber',
-        'Steel and aluminum',
-        'Cabinets, drywall, doors',
-      ]}
-      position={{ top: '50%' }}
-    />
-    <KineticCaption
-      startFrame={70}
-      words={['BUILDER', 'COSTS', 'UP', '6.3%']}
-      cadenceFrames={7}
-      position="lower-third"
-      fontSize={48}
-      fontFamily={FONT_BODY}
-      highlightWord={3}
-    />
-    <SourcePill text={SRC_NAHB} startFrame={86} />
-  </AbsoluteFill>
-);
+// ─── Beat 1: Hook ────────────────────────────────────────────────────────
+const BeatHook: React.FC = () => {
+  const { fps } = useVideoConfig();
+  return (
+    <AbsoluteFill>
+      <GradientMeshBg palette="ember" />
+      <BlueprintGrid color="rgba(212,175,55,0.18)" />
+      <BreakingBadge label="TARIFFS · BUILDER COSTS" startFrame={0} />
+      <KineticHook
+        text="Your next home"
+        startFrame={2}
+        fontSize={92}
+        top="36%"
+        color={CREAM}
+        fontFamily={FONT_SERIF}
+        fontWeight={400}
+      />
+      <KineticHook
+        text="just got pricier."
+        startFrame={Math.round(fps * 0.45)}
+        fontSize={120}
+        top="50%"
+        color={GOLD_BRAND}
+        fontFamily={FONT_SERIF}
+        fontWeight={700}
+        maxWidth={1000}
+      />
+      <WordReveal
+        text="WHY TARIFFS |HIT YOUR MORTGAGE"
+        startFrame={Math.round(fps * 1.0)}
+        perWordFrames={5}
+        fontSize={38}
+        top="68%"
+        color={CREAM}
+        highlightColor={GOLD_BRAND}
+        letterSpacing={3}
+      />
+      <BrandWatermark startFrame={20} />
+    </AbsoluteFill>
+  );
+};
 
-// Beat 3 — Forward-looking: 450,000 fewer homes through 2030.
-const BeatProjection: React.FC = () => (
-  <AbsoluteFill>
-    <AnimatedGradientBg variant="hot" />
-    <ParticleField count={50} color="rgba(232, 197, 82, 0.55)" />
-    <Headline
-      text="Through 2030"
-      startFrame={4}
-      position="upper-third"
-      fontSize={56}
-    />
-    <BigStat
-      startFrame={14}
-      durationFrames={42}
-      from={0}
-      to={450000}
-      format={(v) => Math.round(v).toLocaleString('en-US')}
-      fontSize={210}
-      position={{ top: '52%', left: '50%' }}
-    />
-    <KineticCaption
-      startFrame={62}
-      words={['FEWER', 'NEW', 'HOMES', 'BUILT']}
-      cadenceFrames={6}
-      position="lower-third"
-      fontSize={52}
-      fontFamily={FONT_BODY}
-      highlightWord={0}
-    />
-    <SourcePill text={SRC_CAP} startFrame={76} />
-  </AbsoluteFill>
-);
+// ─── Beat 2: Hero $10,900 counter with percent ring ──────────────────────
+const BeatCost: React.FC = () => {
+  const { fps } = useVideoConfig();
+  return (
+    <AbsoluteFill>
+      <GradientMeshBg palette="ember" intensity={0.95} />
+      <BlueprintGrid color="rgba(212,175,55,0.10)" />
+      <SlamLine
+        text="ADDED COST PER NEW HOME"
+        startFrame={2}
+        fontSize={42}
+        top="14%"
+        underline={GOLD_BRAND}
+        color={CREAM}
+        fontFamily={FONT_BODY}
+        fontWeight={900}
+        letterSpacing={3.4}
+        textTransform="uppercase"
+      />
+      <GiantNumber
+        from={0}
+        to={10900}
+        startFrame={Math.round(fps * 0.2)}
+        durationFrames={Math.round(fps * 1.7)}
+        format={formatDollars}
+        fontSize={240}
+        color={GOLD_BRAND}
+        top="46%"
+      />
+      <WordReveal
+        text="FROM TARIFFS ON |BUILDING MATERIALS"
+        startFrame={Math.round(fps * 1.8)}
+        perWordFrames={5}
+        fontSize={36}
+        top="68%"
+        color={CREAM}
+        highlightColor={GOLD_BRAND}
+        letterSpacing={2.4}
+      />
+      <SourcePill
+        text="NAHB / Wells Fargo HMI · April 2025"
+        startFrame={Math.round(fps * 2.0)}
+      />
+      <TickerTape items={TARIFF_TICKER} y={1700} />
+    </AbsoluteFill>
+  );
+};
 
-// Beat 4 — What this means.
-const BeatExisting: React.FC = () => (
-  <AbsoluteFill>
-    <AnimatedGradientBg variant="hot" />
-    <ParticleField count={32} color="rgba(212, 175, 55, 0.50)" />
-    <KineticCaption
-      startFrame={4}
-      words={['LESS', 'NEW', 'SUPPLY.']}
-      cadenceFrames={8}
-      position="upper-third"
-      fontSize={68}
-      fontFamily={FONT_HEAD}
-      fontWeight={700}
-      letterSpacing="-0.005em"
-    />
-    <KineticCaption
-      startFrame={36}
-      words={['SAME', 'DEMAND.']}
-      cadenceFrames={8}
-      position="center"
-      fontSize={84}
-      fontFamily={FONT_HEAD}
-      fontWeight={700}
-      letterSpacing="-0.005em"
-    />
-    <KineticCaption
-      startFrame={68}
-      words={['EXISTING', 'HOMES', 'BECOME', 'THE', 'PLAY.']}
-      cadenceFrames={6}
-      position="lower-third"
-      fontSize={50}
-      fontFamily={FONT_BODY}
-      highlightWord={0}
-    />
-  </AbsoluteFill>
-);
+// ─── Beat 3: Where the cost comes from — material chips ──────────────────
+const BeatMaterials: React.FC = () => {
+  const { fps } = useVideoConfig();
+  return (
+    <AbsoluteFill>
+      <GradientMeshBg palette="ember" intensity={0.85} />
+      <BlueprintGrid color="rgba(212,175,55,0.16)" />
+      <SlamLine
+        text="WHERE THE $10,900 COMES FROM"
+        startFrame={2}
+        fontSize={36}
+        top="11%"
+        underline={GOLD_BRAND}
+        color={CREAM}
+        fontFamily={FONT_BODY}
+        fontWeight={900}
+        letterSpacing={3.4}
+        textTransform="uppercase"
+      />
+      <MaterialChip label="Canadian softwood lumber" startFrame={Math.round(fps * 0.2)} delayIndex={0} top={340} />
+      <MaterialChip label="Steel & aluminum" startFrame={Math.round(fps * 0.2)} delayIndex={1} top={440} />
+      <MaterialChip label="Cabinets · drywall · doors" startFrame={Math.round(fps * 0.2)} delayIndex={2} top={540} />
+      <PercentRing
+        pct={6.3}
+        startFrame={Math.round(fps * 1.0)}
+        durationFrames={Math.round(fps * 1.4)}
+        size={520}
+        stroke={22}
+        color={RED_DROP}
+        centerY="68%"
+      />
+      <GiantNumber
+        from={0}
+        to={6.3}
+        startFrame={Math.round(fps * 1.0)}
+        durationFrames={Math.round(fps * 1.4)}
+        format={(v) => `+${v.toFixed(1)}%`}
+        fontSize={140}
+        color={CREAM}
+        top="68%"
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '83%',
+          transform: 'translateX(-50%)',
+          fontFamily: FONT_BODY,
+          fontWeight: 800,
+          fontSize: 28,
+          color: CREAM,
+          letterSpacing: 3,
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          textShadow: '0 2px 12px rgba(0,0,0,0.95)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Avg supplier price increase
+      </div>
+      <SourcePill
+        text="NAHB / Wells Fargo HMI · April 2025"
+        startFrame={Math.round(fps * 2.0)}
+      />
+    </AbsoluteFill>
+  );
+};
 
-// Beat 5 — Closer + ticker.
-const BeatClose: React.FC = () => (
-  <AbsoluteFill>
-    <AnimatedGradientBg variant="hot" />
-    <ParticleField count={42} color="rgba(212, 175, 55, 0.55)" />
-    <KineticCaption
-      startFrame={6}
-      words={['WHEN', 'NEW', 'BUILDS', 'GET', 'HARDER']}
-      cadenceFrames={6}
-      position="upper-third"
-      fontSize={54}
-      fontFamily={FONT_BODY}
-    />
-    <KineticCaption
-      startFrame={48}
-      words={['THE', 'HOME', 'YOU', 'OWN']}
-      cadenceFrames={7}
-      position="center"
-      fontSize={70}
-      fontFamily={FONT_HEAD}
-      fontWeight={700}
-      letterSpacing="-0.005em"
-    />
-    <KineticCaption
-      startFrame={82}
-      words={['GETS', 'STRONGER.']}
-      cadenceFrames={10}
-      position="lower-third"
-      fontSize={92}
-      fontFamily={FONT_HEAD}
-      fontWeight={700}
-      letterSpacing="-0.01em"
-      highlightWord={1}
-    />
-    <NewsTicker text="$10,900 PER NEW HOME · BUILDERS UP 6.3% · 450,000 FEWER HOMES BY 2030 · EXISTING SUPPLY GAINS" />
-  </AbsoluteFill>
-);
+// ─── Beat 4: 450,000 fewer homes by 2030 ─────────────────────────────────
+const BeatProjection: React.FC = () => {
+  const { fps } = useVideoConfig();
+  return (
+    <AbsoluteFill>
+      <GradientMeshBg palette="crimson" intensity={0.95} />
+      <SlamLine
+        text="THROUGH 2030"
+        startFrame={2}
+        fontSize={48}
+        top="13%"
+        underline={GOLD_BRAND}
+        color={GOLD_BRAND}
+        fontFamily={FONT_BODY}
+        fontWeight={900}
+        letterSpacing={8}
+        textTransform="uppercase"
+      />
+      <GiantNumber
+        from={0}
+        to={450000}
+        startFrame={Math.round(fps * 0.2)}
+        durationFrames={Math.round(fps * 1.9)}
+        format={formatCommas}
+        fontSize={220}
+        color={CREAM}
+        top="46%"
+      />
+      <WordReveal
+        text="FEWER NEW HOMES |WILL BE BUILT"
+        startFrame={Math.round(fps * 2.0)}
+        perWordFrames={5}
+        fontSize={42}
+        top="66%"
+        color={CREAM}
+        highlightColor={GOLD_BRAND}
+        letterSpacing={3}
+      />
+      <SourcePill
+        text="Center for American Progress · 2026"
+        startFrame={Math.round(fps * 2.2)}
+      />
+      <TickerTape items={TARIFF_TICKER} y={1700} />
+    </AbsoluteFill>
+  );
+};
+
+// ─── Beat 5: Editorial close ─────────────────────────────────────────────
+const BeatClose: React.FC = () => {
+  return (
+    <AbsoluteFill>
+      <GradientMeshBg palette="navy" intensity={0.85} />
+      <BigQuote
+        text="When new construction gets harder, the home you already own gets stronger."
+        startFrame={4}
+        fontSize={56}
+        maxWidth={920}
+      />
+      <BrandWatermark startFrame={10} />
+    </AbsoluteFill>
+  );
+};
 
 export const ClipTariffs: React.FC = () => {
-  // Beat layout (frames at 30fps, 28s total):
-  //   0–150    (0–5s)     Hook ($10,900)
-  //   150–300  (5–10s)    Materials + 6.3%
-  //   300–450  (10–15s)   Projection (450,000)
-  //   450–600  (15–20s)   What it means
-  //   600–750  (20–25s)   Closer + ticker
-  //   750–840  (25–28s)   Brand end card
+  // Beat layout:
+  //   0–80     (0–2.7s)   Hook
+  //   65–230   (2.2–7.7s) $10,900 hero
+  //   220–460  (7.3–15.3s) Materials + 6.3% ring
+  //   450–620  (15–20.7s) 450,000 projection
+  //   610–780  (20.3–26s) Editorial close
+  //   780–900  (26–30s)   End card
   return (
-    <AbsoluteFill style={{ background: '#050d18' }}>
-      <Sequence from={0} durationInFrames={156}>
+    <AbsoluteFill style={{ background: '#0e0703' }}>
+      <Sequence from={0} durationInFrames={80}>
         <BeatHook />
       </Sequence>
-      <Sequence from={150} durationInFrames={156}>
+      <Sequence from={65} durationInFrames={170}>
+        <BeatCost />
+      </Sequence>
+      <Sequence from={220} durationInFrames={245}>
         <BeatMaterials />
       </Sequence>
-      <Sequence from={300} durationInFrames={156}>
+      <Sequence from={450} durationInFrames={175}>
         <BeatProjection />
       </Sequence>
-      <Sequence from={450} durationInFrames={156}>
-        <BeatExisting />
-      </Sequence>
-      <Sequence from={600} durationInFrames={156}>
+      <Sequence from={610} durationInFrames={175}>
         <BeatClose />
       </Sequence>
-      <Sequence from={750} durationInFrames={90}>
-        <BrandEndCard startFrame={0} />
+      <Sequence from={780} durationInFrames={120}>
+        <NewsEndCard startFrame={0} />
       </Sequence>
     </AbsoluteFill>
   );
