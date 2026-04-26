@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.75.0 (2026-04-26)
+
+### Features
+- feat(content-engine): add Oregon broker compliance + fix skill-routing scan list
+
+---
+
+
 ## v1.74.0 (2026-04-26)
 
 ### Features
