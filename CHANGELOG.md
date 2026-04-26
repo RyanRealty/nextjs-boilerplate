@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.80.0 (2026-04-26)
+
+### Features
+- feat(social): meme_lord skill — image memes for IG and X
+
+---
+
+
 ## v1.79.0 (2026-04-26)
 
 ### Features
