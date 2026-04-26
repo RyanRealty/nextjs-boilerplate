@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.84.0 (2026-04-26)
+
+### Features
+- feat(listing-video): Tumalo v4 — music-driven rebuild w/ real Three.js 3D text
+
+---
+
+
 ## v1.83.0 (2026-04-26)
 
 ### Features
