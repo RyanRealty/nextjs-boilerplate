@@ -203,25 +203,46 @@ const BEATS: BeatDef[] = [
     crossfadeOut: 0 },
 ];
 
+// CINEMATIC v4: smooth pre-roll crossfade. Each beat's Sequence runs for
+// (PREROLL + durationSec) seconds, starting PREROLL seconds before the beat's
+// declared startSec. During the pre-roll window, the beat's animation is
+// PAUSED at its t=0 state and the alpha fades in 0→1. The OUTGOING beat is at
+// full alpha throughout (no exit fade), so the incoming beat covers it pixel-
+// by-pixel through CSS compositing. After pre-roll, the beat plays normally
+// at full alpha and ends at its Sequence boundary (no tail). This gives a
+// real cinematic crossfade without the CHARCOAL bg-bleed bug or the ghost-
+// overlap bug from prior iterations.
+const PREROLL_SEC = 0.6;
+
 // ─── Beat wrapper — picks DepthParallaxBeat or PhotoBeat per-beat ─────────
-const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
+const BeatWrapper: React.FC<{ beat: BeatDef; preroll: number }> = ({
+  beat,
+  preroll,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const local = frame / fps;
-  // HARD CUTS by default. The Sequences in <Tumalo> run for exact durations
-  // with no leading overlap, so each beat owns its window completely. A
-  // non-zero crossfadeIn here would create a CHARCOAL flash at the start
-  // of every beat (parent AbsoluteFill bg shows through during the alpha
-  // ramp). A non-zero crossfadeOut would create the same flash at the end.
-  // Override per-beat only when transitioning into/out of WhipPan (where
-  // the WhipPan handles the entry/exit motion separately).
-  const crossfadeIn = beat.crossfadeIn ?? 0;
-  const crossfadeOut = beat.crossfadeOut ?? 0;
-  if (beat.flat) {
-    return (
-      <PhotoBeat
+  const sequenceLocal = frame / fps;
+  // Animation time inside the beat starts AFTER the pre-roll window.
+  // During pre-roll (sequenceLocal < preroll), the beat sits at t=0 of its
+  // own animation while alpha fades in.
+  const beatLocal = Math.max(0, sequenceLocal - preroll);
+  // Entry fade ramps 0→1 linearly over the pre-roll window. Linear (not
+  // eased) so that incoming + outgoing alpha sums match cleanly.
+  const entryAlpha = preroll > 0 ? clamp(sequenceLocal / preroll, 0, 1) : 1;
+  // Override-only path: when a beat explicitly sets crossfadeIn, honor it
+  // instead of the global pre-roll. (Used by Beat 1 and Beat 9 which start
+  // hard at frame 0 / WhipPan boundary.)
+  const explicitIn = beat.crossfadeIn;
+  const effectiveIn = explicitIn ?? 0;       // 0 = use the pre-roll path above
+  const effectiveOut = beat.crossfadeOut ?? 0;
+  const Comp = beat.flat ? PhotoBeat : (DepthParallaxBeat as typeof PhotoBeat);
+  return (
+    <div style={{ opacity: entryAlpha, position: 'absolute', inset: 0 }}>
+      <Comp
         photo={beat.photo}
-        local={local}
+        // @ts-expect-error PhotoBeat ignores depthDir
+        depthDir={beat.depthDir}
+        local={beatLocal}
         fps={fps}
         durationSec={beat.durationSec}
         move={beat.move}
@@ -229,26 +250,10 @@ const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
         objectPosition={beat.objectPosition}
         titlePosition="none"
         scrim="none"
-        crossfadeIn={crossfadeIn}
-        crossfadeOut={crossfadeOut}
+        crossfadeIn={effectiveIn}
+        crossfadeOut={effectiveOut}
       />
-    );
-  }
-  return (
-    <DepthParallaxBeat
-      photo={beat.photo}
-      depthDir={beat.depthDir}
-      local={local}
-      fps={fps}
-      durationSec={beat.durationSec}
-      move={beat.move}
-      vignetteLetterbox={beat.vignetteLetterbox}
-      objectPosition={beat.objectPosition}
-      titlePosition="none"
-      scrim="none"
-      crossfadeIn={crossfadeIn}
-      crossfadeOut={crossfadeOut}
-    />
+    </div>
   );
 };
 
@@ -452,37 +457,52 @@ const SpecsFlash: React.FC = () => {
 };
 
 // ─── 3D "YOUR MORNING" overlay — sits in mid-ground depth plane of Beat 4
-// (8.4–10.4s, great-room push-in with Cascade-view windows). Scale tracks
-// the same easeOutCubic push_in curve the mid layer uses (intensity 1.0,
-// scaleMult 1.0) so the text reads as locked to that depth slice — between
-// the window mullions (fg, 1.6×) and the Three Sisters (bg, 0.4×).
+// CINEMATIC v4: animated rotateX (-12° → -22° as the camera pushes in, so the
+// text "settles" into the room depth), 8-layer extruded shadow stack giving
+// real perceived depth (not just a flat off-white drop-shadowed decal), wider
+// perspective. The text now READS as a 3D plane suspended in the room.
 const MorningOverlay: React.FC<{ beatDurationSec: number }> = ({
   beatDurationSec,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const tOverlay = frame / fps;            // 0 .. 2.0s within the Sequence
-  const overlayDuration = 2.0;
+  const tOverlay = frame / fps;
 
-  // Mid-layer push_in scale: 1.0 + 0.16 * intensity * easeOutCubic(t_in_beat) * scaleMult
-  // Must match DepthParallaxBeat's push_in offset (currently 0.16) so the
-  // text tracks the underlying mid layer of Beat 4 exactly. If you change
-  // push_in offset upstream, change this constant too.
-  // Beat 4 starts at the same instant as this Sequence (8.4s), so t_in_beat == tOverlay.
+  // Mid-layer push_in scale — must match DepthParallaxBeat push_in 0.16 ×
+  // mid scaleMult 1.0. v4.1 multiplier still 1.0 for mid (only bg/fg
+  // changed), so this formula is unchanged.
   const tInBeat = clamp(tOverlay / beatDurationSec, 0, 1);
-  const midScale = 1.0 + 0.16 * easeOutCubic(tInBeat); // intensity=1, scaleMult=1
+  const midScale = 1.0 + 0.16 * easeOutCubic(tInBeat);
 
-  // Entrance: 0.5s fade + slight upward emergence (12px → 0px on Y).
+  // Animated rotateX: -12° at entry → -22° at peak as the camera pushes in.
+  // The deepening tilt sells the 3D-plane-in-real-space read.
+  const rotX = -12 - 10 * easeOutCubic(tInBeat);
+  // Animated translateZ: 30px → 80px push toward camera (matches the dolly).
+  const tz = 30 + 50 * easeOutCubic(tInBeat);
+
+  // Entrance: 0.5s fade + 18px upward emergence.
   const entryT = clamp(tOverlay / 0.5, 0, 1);
   const entryAlpha = easeOutCubic(entryT);
-  const entryY = (1 - easeOutQuart(entryT)) * 12;
+  const entryY = (1 - easeOutQuart(entryT)) * 18;
 
   // Exit: fade out 1.5–2.0s.
   const exitT = clamp((tOverlay - 1.5) / 0.5, 0, 1);
   const opacity = entryAlpha * (1 - exitT);
 
+  // 8-layer extruded shadow stack — each layer offset 1px down/right in a
+  // dark color, simulating a real extruded 3D edge. The viewer perceives
+  // this as a thick, solid 3D pane rather than flat 2D type with a glow.
+  const extrusionLayers = Array.from({ length: 8 }, (_, k) => {
+    const offset = k + 1;
+    return `${offset}px ${offset}px 0 rgba(20, 12, 6, 0.95)`;
+  }).join(', ');
+  // Ambient halo on top of the extrusion to lift the front face off the
+  // background and add atmospheric glow.
+  const haloShadow =
+    '0 0 1px rgba(0,0,0,0.6), 0 18px 38px rgba(0,0,0,0.55), 0 6px 12px rgba(0,0,0,0.6)';
+
   return (
-    <AbsoluteFill style={{ pointerEvents: 'none', perspective: '800px' }}>
+    <AbsoluteFill style={{ pointerEvents: 'none', perspective: '1200px' }}>
       <div
         style={{
           position: 'absolute',
@@ -490,33 +510,23 @@ const MorningOverlay: React.FC<{ beatDurationSec: number }> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          // Mid-layer parallax wrapper — same scale as Beat 4 mid.png
           transform: `scale(${midScale.toFixed(4)})`,
           transformOrigin: '50% 50%',
         }}
       >
         <div
           style={{
-            // 3D pop: subtle backward-tilt + push toward camera. The
-            // perspective: 800px on the AbsoluteFill parent gives this
-            // enough foreshortening to read as a floating pane sitting in
-            // the mid-ground depth plane between the window frame
-            // (foreground) and the Three Sisters (background).
-            transform: `translateY(${entryY.toFixed(2)}px) rotateX(-5deg) translateZ(50px)`,
+            transform: `translateY(${entryY.toFixed(2)}px) rotateX(${rotX.toFixed(2)}deg) translateZ(${tz.toFixed(2)}px)`,
             transformStyle: 'preserve-3d',
             opacity,
-            width: '64%',           // ~691px on 1080-wide canvas (with parallax 1.06×, fits)
+            width: '70%',
             textAlign: 'center',
-            fontFamily: FONT_SERIF, // Amboqia
-            fontSize: 144,          // sized so "MORNING" fits 64% width even at peak parallax scale
-            lineHeight: 0.96,
-            color: OFF_WHITE,       // matte cream-white — reads against snow peaks
+            fontFamily: FONT_SERIF,
+            fontSize: 156,
+            lineHeight: 0.94,
+            color: OFF_WHITE,
             letterSpacing: '-0.005em',
-            // Two-shadow stack: a soft halo lifts the matte text off bright
-            // window glass; a tight inner shadow grounds the 3D edge so the
-            // text doesn't float as a flat decal.
-            textShadow:
-              '0 6px 22px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.65), 0 0 1px rgba(0,0,0,0.4)',
+            textShadow: `${extrusionLayers}, ${haloShadow}`,
           }}
         >
           YOUR
@@ -623,48 +633,31 @@ export const Tumalo: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: CHARCOAL }}>
-      {/* Photo beats. HARD CUTS — each beat's Sequence runs for exactly its
-          declared duration with no leading overlap. With BeatWrapper's
-          crossfadeIn=0 and crossfadeOut=0 defaults, this gives clean
-          frame-perfect cuts at every boundary. The earlier 0.5s pre-roll
-          overlap pattern produced ghost-overlap when consecutive photos
-          were visually divergent (e.g. Beat 3 dusk-mountain pan ⇒ Beat 4
-          bright great-room interior, the great-room layered translucently
-          over the mountains for 0.5s). The kinetic-viral aesthetic Matt
-          wants is hard-cuts on the beat — LightLeak (25%) and WhipPan
-          (50%) are the only two transitions in the whole video. */}
+      {/* Photo beats — CINEMATIC v4 smooth pre-roll crossfade.
+          Each beat (except Beat 1 which starts at t=0 with no preroll, and
+          Beat 9 which is handed off from the WhipPan at exactly 20.4s)
+          starts its Sequence PREROLL_SEC before its declared startSec. The
+          BeatWrapper holds the beat at t=0 during pre-roll while alpha
+          fades 0→1. The OUTGOING beat's Sequence ends at its declared end
+          (no tail, no exit fade), so the incoming beat covers the outgoing
+          pixel-by-pixel as it ramps to full opacity. This produces a real
+          cinematic dissolve without the bg-bleed or ghost-overlap bugs from
+          v3 iterations. */}
       {BEATS.map((beat, i) => {
-        if (i === 7) {
-          // Beat 8 — render up to whipStart, then WhipPan-out takes over.
-          return (
-            <Sequence
-              key={i}
-              from={Math.round(beat.startSec * FPS)}
-              durationInFrames={whipStart - Math.round(beat.startSec * FPS)}
-            >
-              <BeatWrapper beat={beat} />
-            </Sequence>
-          );
-        }
-        if (i === 8) {
-          // Beat 9 — render starting at whipBoundarySec (20.4s).
-          return (
-            <Sequence
-              key={i}
-              from={Math.round(beat.startSec * FPS)}
-              durationInFrames={Math.round(beat.durationSec * FPS)}
-            >
-              <BeatWrapper beat={beat} />
-            </Sequence>
-          );
-        }
+        const useHardEntry = i === 0 || i === 8; // Beat 1 + Beat 9 (post-WhipPan)
+        const preroll = useHardEntry ? 0 : PREROLL_SEC;
+        const seqFrom = Math.round(Math.max(0, beat.startSec - preroll) * FPS);
+        const seqEnd = i === 7
+          ? whipStart
+          : Math.round((beat.startSec + beat.durationSec) * FPS);
+        const seqDuration = seqEnd - seqFrom;
         return (
           <Sequence
             key={i}
-            from={Math.round(beat.startSec * FPS)}
-            durationInFrames={Math.round(beat.durationSec * FPS)}
+            from={seqFrom}
+            durationInFrames={seqDuration}
           >
-            <BeatWrapper beat={beat} />
+            <BeatWrapper beat={beat} preroll={preroll} />
           </Sequence>
         );
       })}
@@ -675,12 +668,12 @@ export const Tumalo: React.FC = () => {
           content lands on top as the slide completes. */}
       <Sequence from={whipStart} durationInFrames={whipFrames}>
         <WhipPanTransition mode="out" direction="rl" durationSec={whipDuration}>
-          <BeatWrapper beat={beat8} />
+          <BeatWrapper beat={beat8} preroll={0} />
         </WhipPanTransition>
       </Sequence>
       <Sequence from={whipStart} durationInFrames={whipFrames}>
         <WhipPanTransition mode="in" direction="rl" durationSec={whipDuration}>
-          <BeatWrapper beat={beat9} />
+          <BeatWrapper beat={beat9} preroll={0} />
         </WhipPanTransition>
       </Sequence>
 

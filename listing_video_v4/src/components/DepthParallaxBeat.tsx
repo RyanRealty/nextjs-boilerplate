@@ -35,9 +35,16 @@ import { CameraMoveOpts, cameraTransform } from '../cameraMoves';
 import { clamp, easeOutCubic, easeOutQuart } from '../easing';
 
 // ─── Parallax layer multipliers ──────────────────────────────────────────────
-
-const LAYER_PAN_MULT = { bg: 0.4, mid: 1.0, fg: 1.6 } as const;
-const LAYER_SCALE_OFFSET_MULT = { bg: 0.95, mid: 1.0, fg: 1.08 } as const;
+// CINEMATIC v4.1: balanced for visible 3D differential WITHOUT the parallax-
+// tear gaps that the v4 (0.0/1.0/2.4) aggressive fan-out produced. Wide gaps
+// formed at depth-mask boundaries where the fg layer scaled outward away from
+// the bg/mid alpha edges, exposing the AbsoluteFill bg color as black arcs
+// across the frame. This range (0.5/1.0/1.5) keeps a 10% bg-fg differential
+// while staying within the layer alpha-mask overlap zones. A base "fill"
+// layer is also rendered underneath the depth stack as a safety net for any
+// residual gaps (see <Img src={base}> below the depth Img stack).
+const LAYER_PAN_MULT = { bg: 0.5, mid: 1.0, fg: 1.5 } as const;
+const LAYER_SCALE_OFFSET_MULT = { bg: 0.5, mid: 1.0, fg: 1.5 } as const;
 
 type LayerKey = 'bg' | 'mid' | 'fg';
 
@@ -390,6 +397,21 @@ export const DepthParallaxBeat: React.FC<Props> = ({
               opacity: photoAlpha * 0.85,
             }}
           />
+          {/* Base FILL layer — original photo at scale 1.0, fills any
+              parallax-tear gaps left by the depth layer displacement. */}
+          <Img
+            src={staticFile(`images/${photo}`)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: objectPosition ?? '50% 50%',
+              filter: LUXURY_GRADE_FILTER,
+              opacity: photoAlpha,
+            }}
+          />
           {/* Depth layer stack, full-bleed cover-mode */}
           <Img
             src={bgSrc}
@@ -474,9 +496,26 @@ export const DepthParallaxBeat: React.FC<Props> = ({
       );
     }
 
-    // Cover mode: full-bleed RGBA layers stacked with absolute positioning
+    // Cover mode: full-bleed RGBA layers stacked with absolute positioning.
+    // v4.1: BASE FILL layer at scale 1.0 underneath the depth stack acts as
+    // a safety net — fills any gaps left by depth-layer parallax displacement
+    // at depth-mask boundaries. Without this, aggressive multipliers expose
+    // the AbsoluteFill bg color as black arcs at depth edges.
     return (
       <>
+        <Img
+          src={staticFile(`images/${photo}`)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: objectPosition ?? '50% 50%',
+            filter: LUXURY_GRADE_FILTER,
+            opacity: photoAlpha,
+          }}
+        />
         <Img
           src={bgSrc}
           style={{

@@ -31,9 +31,13 @@ export const TEXT_SHADOW = '0 4px 24px rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.
 export const SUB_SHADOW = '0 2px 10px rgba(0,0,0,0.85)';
 
 // Unified luxury color grade — applied to ALL property photos via CSS filter chain.
-// Maps to: subtle warm tint + magazine contrast + gentle desaturation in shadows.
+// CINEMATIC v4: stronger contrast + slight desat + warm hue shift simulating
+// a teal-shadow/orange-highlight split tone. The previous v3 grade
+// (sepia 0.05, contrast 1.06, saturate 1.08) was nearly neutral and read as
+// "raw photos with a faint warmth" — not the magazine-cinematic look the
+// luxury Blonde Waterfall reference calls for.
 export const LUXURY_GRADE_FILTER =
-  'sepia(0.05) saturate(1.08) brightness(0.96) contrast(1.06) hue-rotate(-3deg)';
+  'sepia(0.10) saturate(0.92) brightness(0.94) contrast(1.20) hue-rotate(-5deg)';
 
 // Historic B&W treatment — sepia warm tone instead of pure grey.
 export const HISTORIC_GRADE_FILTER =
