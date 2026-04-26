@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.78.3 (2026-04-26)
+
+### Bug Fixes
+- fix(listing-video): Tumalo v3 — cinematic v4.1 deep rebuild
+
+---
+
+
 ## v1.78.2 (2026-04-26)
 
 ### Bug Fixes
