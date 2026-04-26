@@ -77,6 +77,11 @@ type BeatDef = {
    *  in WhipPanTransition which controls the entry animation). */
   crossfadeIn?: number;
   crossfadeOut?: number;
+  /** Skip depth parallax for this beat — render with flat <PhotoBeat> instead.
+   *  Used when MiDaS produces unusable cuts (high-contrast silhouettes,
+   *  recognizable wildlife, photos where the dark area is read as "near"
+   *  and the depth-cut foreground slides off-frame at high pan intensity). */
+  flat?: boolean;
 };
 
 // All paths are relative to public/images/ (which symlinks v5_library → ../v5_library)
@@ -122,10 +127,16 @@ const BEATS: BeatDef[] = [
     startSec: 10.8, durationSec: 2.4,
     move: { move: 'orbit_fake', focal: 'center', intensity: 0.8 } },
   // Beat 6: gimbal_walk lr — kitchen wide, walk through.
+  // FLAT: MiDaS reads the dark fridge/oven concave area as foreground, and
+  // gimbal_walk at intensity 0.9 with the 1.6× fg multiplier slides that
+  // cut off-frame, exposing a CHARCOAL hole as a vertical tar smear. Plain
+  // PhotoBeat with reduced intensity reads cleanly. Verified: tumalo_v3
+  // 13.5s frame (the smear) → re-render shows clean kitchen.
   { photo: lib('30-int_DSC8983.jpg'),
     depthDir: depth('30-int_DSC8983'),
     startSec: 13.2, durationSec: 2.4,
-    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'lr' } },
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.5, direction: 'lr' },
+    flat: true },
   // Beat 7: pull_out — primary suite opens up.
   { photo: lib('31-int_DSC8994.jpg'),
     depthDir: depth('31-int_DSC8994'),
@@ -160,11 +171,17 @@ const BEATS: BeatDef[] = [
     startSec: 25.8, durationSec: 2.4,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 } },
   // Beat 12: pull_out — bald eagle silhouette (portrait orientation, mild).
+  // FLAT: high-contrast silhouette against bright sky → MiDaS produces a
+  // sharp depth boundary; the 4-px feathered alpha cut + 1.6× fg vs 0.4× bg
+  // displacement creates a visible ghost halo around the eagle. Per
+  // depth_parallax/SKILL.md "When NOT to use" — recognizable wildlife
+  // subjects need plain PhotoBeat.
   { photo: lib('lifestyle_eagle.jpg'),
     depthDir: depth('lifestyle_eagle'),
     startSec: 28.2, durationSec: 2.4,
     move: { move: 'pull_out', focal: 'center', intensity: 0.4 },
-    objectPosition: '50% 35%' },
+    objectPosition: '50% 35%',
+    flat: true },
 
   // === CLOSING AERIALS (30.6 - 40.2s) ====================================
   // Beat 13: push_in — aerial 3/4 angle.
@@ -183,22 +200,53 @@ const BEATS: BeatDef[] = [
     startSec: 35.4, durationSec: 2.4,
     move: { move: 'gimbal_walk', focal: 'center', intensity: 0.8, direction: 'rl' } },
   // Beat 16: slow_pan_rl — dusk wide w/ Sisters silhouette into reveal.
+  // FLAT: dusk sky has soft gradients that MiDaS struggles to layer cleanly;
+  // produced a dark crescent artifact on the left at slow_pan_rl with the
+  // bg layer's translation exposing a hole. Plain PhotoBeat reads cleanly.
   { photo: lib('9-DJI_aerial_3.jpg'),
     depthDir: depth('9-DJI_aerial_3'),
     startSec: 37.8, durationSec: 2.4,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 0.9 },
+    flat: true,
     crossfadeOut: 0 },
 ];
 
-// ─── Beat wrapper using DepthParallaxBeat ────────────────────────────────
+// ─── Beat wrapper — picks DepthParallaxBeat or PhotoBeat per-beat ─────────
 const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const local = frame / fps;
+  // HARD CUTS by default. The Sequences in <Tumalo> run for exact durations
+  // with no leading overlap, so each beat owns its window completely. A
+  // non-zero crossfadeIn here would create a CHARCOAL flash at the start
+  // of every beat (parent AbsoluteFill bg shows through during the alpha
+  // ramp). A non-zero crossfadeOut would create the same flash at the end.
+  // Override per-beat only when transitioning into/out of WhipPan (where
+  // the WhipPan handles the entry/exit motion separately).
+  const crossfadeIn = beat.crossfadeIn ?? 0;
+  const crossfadeOut = beat.crossfadeOut ?? 0;
+  if (beat.flat) {
+    return (
+      <PhotoBeat
+        photo={beat.photo}
+        local={local}
+        fps={fps}
+        durationSec={beat.durationSec}
+        move={beat.move}
+        vignetteLetterbox={beat.vignetteLetterbox}
+        objectPosition={beat.objectPosition}
+        titlePosition="none"
+        scrim="none"
+        crossfadeIn={crossfadeIn}
+        crossfadeOut={crossfadeOut}
+      />
+    );
+  }
   return (
     <DepthParallaxBeat
       photo={beat.photo}
       depthDir={beat.depthDir}
-      local={frame / fps}
+      local={local}
       fps={fps}
       durationSec={beat.durationSec}
       move={beat.move}
@@ -206,8 +254,8 @@ const BeatWrapper: React.FC<{ beat: BeatDef }> = ({ beat }) => {
       objectPosition={beat.objectPosition}
       titlePosition="none"
       scrim="none"
-      crossfadeIn={beat.crossfadeIn ?? 0.5}
-      crossfadeOut={beat.crossfadeOut ?? 0.5}
+      crossfadeIn={crossfadeIn}
+      crossfadeOut={crossfadeOut}
     />
   );
 };
@@ -424,10 +472,13 @@ const MorningOverlay: React.FC<{ beatDurationSec: number }> = ({
   const tOverlay = frame / fps;            // 0 .. 2.0s within the Sequence
   const overlayDuration = 2.0;
 
-  // Mid-layer push_in scale: 1.0 + 0.08 * intensity * easeOutCubic(t_in_beat) * scaleMult
+  // Mid-layer push_in scale: 1.0 + 0.16 * intensity * easeOutCubic(t_in_beat) * scaleMult
+  // Must match DepthParallaxBeat's push_in offset (currently 0.16) so the
+  // text tracks the underlying mid layer of Beat 4 exactly. If you change
+  // push_in offset upstream, change this constant too.
   // Beat 4 starts at the same instant as this Sequence (8.4s), so t_in_beat == tOverlay.
   const tInBeat = clamp(tOverlay / beatDurationSec, 0, 1);
-  const midScale = 1.0 + 0.08 * easeOutCubic(tInBeat); // intensity=1, scaleMult=1
+  const midScale = 1.0 + 0.16 * easeOutCubic(tInBeat); // intensity=1, scaleMult=1
 
   // Entrance: 0.5s fade + slight upward emergence (12px → 0px on Y).
   const entryT = clamp(tOverlay / 0.5, 0, 1);
@@ -580,44 +631,46 @@ export const Tumalo: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: CHARCOAL }}>
-      {/* Photo beats. Each beat's Sequence overlaps adjacent ones by 0.5s
-          per the v5.6 fix-pattern. Beat 8 and Beat 9 use 0 overlap because
-          the WhipPan handles their transition. */}
+      {/* Photo beats. HARD CUTS — each beat's Sequence runs for exactly its
+          declared duration with no leading overlap. With BeatWrapper's
+          crossfadeIn=0 and crossfadeOut=0 defaults, this gives clean
+          frame-perfect cuts at every boundary. The earlier 0.5s pre-roll
+          overlap pattern produced ghost-overlap when consecutive photos
+          were visually divergent (e.g. Beat 3 dusk-mountain pan ⇒ Beat 4
+          bright great-room interior, the great-room layered translucently
+          over the mountains for 0.5s). The kinetic-viral aesthetic Matt
+          wants is hard-cuts on the beat — LightLeak (25%) and WhipPan
+          (50%) are the only two transitions in the whole video. */}
       {BEATS.map((beat, i) => {
         if (i === 7) {
-          // Beat 8 — render normally up to whipStart, then WhipPan-out
-          // takes over for the final 0.3s. End the normal Sequence at
-          // whipStart so it doesn't double-render under the slide.
+          // Beat 8 — render up to whipStart, then WhipPan-out takes over.
           return (
             <Sequence
               key={i}
-              from={Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
-              durationInFrames={whipStart - Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
+              from={Math.round(beat.startSec * FPS)}
+              durationInFrames={whipStart - Math.round(beat.startSec * FPS)}
             >
               <BeatWrapper beat={beat} />
             </Sequence>
           );
         }
         if (i === 8) {
-          // Beat 9 — render normally starting at whipBoundarySec (20.4s)
-          // through end of beat. WhipPan-in runs 20.1–20.4s in a separate
-          // Sequence below; the normal layer takes over at the boundary.
+          // Beat 9 — render starting at whipBoundarySec (20.4s).
           return (
             <Sequence
               key={i}
               from={Math.round(beat.startSec * FPS)}
-              durationInFrames={Math.round((beat.durationSec + 0.5) * FPS)}
+              durationInFrames={Math.round(beat.durationSec * FPS)}
             >
               <BeatWrapper beat={beat} />
             </Sequence>
           );
         }
-        // All other beats: 0.5s leading overlap with previous beat.
         return (
           <Sequence
             key={i}
-            from={Math.round(Math.max(0, beat.startSec - 0.5) * FPS)}
-            durationInFrames={Math.round((beat.durationSec + 0.5) * FPS)}
+            from={Math.round(beat.startSec * FPS)}
+            durationInFrames={Math.round(beat.durationSec * FPS)}
           >
             <BeatWrapper beat={beat} />
           </Sequence>
@@ -672,6 +725,6 @@ export const Tumalo: React.FC = () => {
   );
 };
 
-// PhotoBeat is imported but unused in v3 — re-exported from PhotoBeat module
-// already, so the import line is here only for type-safe parity with v2.
-void PhotoBeat;
+// PhotoBeat is now actively used for `flat: true` beats (eagle, kitchen wide
+// gimbal_walk, dusk wide closing) where MiDaS depth cuts produced visible
+// artifacts. See BeatWrapper above.

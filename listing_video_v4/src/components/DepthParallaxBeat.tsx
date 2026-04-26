@@ -99,18 +99,23 @@ function layerCameraTransform(
     }
 
     case 'push_in': {
-      // Base: scale 1.0 → 1.0 + 0.08 * intensity
-      // Per-layer: scale offset is (base - 1) * scaleMult
+      // Base: scale 1.0 → 1.0 + 0.16 * intensity (was 0.08 — too gentle for the
+      // depth multipliers downstream, which scaled the fg layer only 8.6% over
+      // 2.4s and read as "no camera move" on playback). 0.16 gives the fg
+      // layer a 17% scale swing at intensity 1.0 — visible 3D dolly through
+      // space without distortion.
       const eased = easeOutCubicLocal(t);
-      const baseScaleOffset = 0.08 * intensity * eased;
+      const baseScaleOffset = 0.16 * intensity * eased;
       const scale = 1.0 + baseScaleOffset * scaleMult;
       return { transform: `scale(${scale.toFixed(4)})`, transformOrigin: origin };
     }
 
     case 'pull_out': {
+      // Base: scale 1.18 → 1.06 (was 1.12 → 1.0). Bumped from 0.12 to 0.18
+      // for matching push_in visibility. fg layer pulls back 19% over the beat.
       const eased = easeOutQuartLocal(t);
-      const baseScaleOffset = -0.12 * intensity * eased; // negative = shrink
-      const scale = 1.12 + baseScaleOffset * scaleMult;
+      const baseScaleOffset = -0.18 * intensity * eased; // negative = shrink
+      const scale = 1.18 + baseScaleOffset * scaleMult;
       const dx = -8 * intensity * eased * panMult;
       return {
         transform: `translate(${dx.toFixed(2)}px, 0px) scale(${scale.toFixed(4)})`,
@@ -363,8 +368,12 @@ export const DepthParallaxBeat: React.FC<Props> = ({
 
   const renderLayers = () => {
     if (vignetteLetterbox) {
-      // Blurred backdrop: original full photo covers the dead space
-      // Sharp layers: centered in a flex container, height auto
+      // Blurred backdrop fills the dead space at high blur. Sharp depth
+      // layers fill the canvas at object-fit: cover so the composition
+      // reads as a full-frame image with a softened halo at the edges,
+      // NOT as a small image floating in a giant blur — that was the v3
+      // bug where landscape sources (1535×1024) on a portrait canvas
+      // (1080×1920) rendered the sharp layers as a 720-px middle band.
       return (
         <>
           {/* Blurred backdrop — original photo, not depth layers */}
@@ -376,61 +385,36 @@ export const DepthParallaxBeat: React.FC<Props> = ({
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              filter: `${LUXURY_GRADE_FILTER} blur(28px) brightness(0.95) saturate(1.05)`,
-              transform: 'scale(1.30)',
-              opacity: photoAlpha,
+              filter: `${LUXURY_GRADE_FILTER} blur(36px) brightness(0.92) saturate(1.08)`,
+              transform: 'scale(1.20)',
+              opacity: photoAlpha * 0.85,
             }}
           />
-          {/* Depth layer stack, letterboxed */}
-          <div
+          {/* Depth layer stack, full-bleed cover-mode */}
+          <Img
+            src={bgSrc}
             style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
+              ...layerBaseStyle,
+              transform: bgCam.transform,
+              transformOrigin: bgCam.transformOrigin,
             }}
-          >
-            <Img
-              src={bgSrc}
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                transform: bgCam.transform,
-                transformOrigin: bgCam.transformOrigin,
-                filter: LUXURY_GRADE_FILTER,
-                opacity: photoAlpha,
-              }}
-            />
-            <Img
-              src={midSrc}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                transform: midCam.transform,
-                transformOrigin: midCam.transformOrigin,
-                filter: LUXURY_GRADE_FILTER,
-                opacity: photoAlpha,
-              }}
-            />
-            <Img
-              src={fgSrc}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                transform: fgCam.transform,
-                transformOrigin: fgCam.transformOrigin,
-                filter: LUXURY_GRADE_FILTER,
-                opacity: photoAlpha,
-              }}
-            />
-          </div>
+          />
+          <Img
+            src={midSrc}
+            style={{
+              ...layerBaseStyle,
+              transform: midCam.transform,
+              transformOrigin: midCam.transformOrigin,
+            }}
+          />
+          <Img
+            src={fgSrc}
+            style={{
+              ...layerBaseStyle,
+              transform: fgCam.transform,
+              transformOrigin: fgCam.transformOrigin,
+            }}
+          />
         </>
       );
     }
