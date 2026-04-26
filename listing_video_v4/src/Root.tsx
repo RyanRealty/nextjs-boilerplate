@@ -5,6 +5,9 @@ import { Listing, LISTING_TOTAL_SEC } from './Listing';
 // LISTING_TOTAL_SEC = 122 (v5.1)
 import { Tumalo, TUMALO_TOTAL_SEC } from './Tumalo';
 import { BoundaryDrawTest } from './BoundaryDrawTest';
+import { ClipGoldenHandcuffs, CLIP_GH_TOTAL_SEC } from './news/ClipGoldenHandcuffs';
+import { ClipSunBeltCorrection, CLIP_SBC_TOTAL_SEC } from './news/ClipSunBeltCorrection';
+import { ClipTariffs, CLIP_TARIFFS_TOTAL_SEC } from './news/ClipTariffs';
 
 const FPS = 30;
 const W_PORT = 1080;
@@ -32,6 +35,30 @@ export const RemotionRoot: React.FC = () => (
       id="BoundaryDrawTest"
       component={BoundaryDrawTest}
       durationInFrames={7 * FPS}
+      fps={FPS}
+      width={W_PORT}
+      height={H_PORT}
+    />
+    <Composition
+      id="NewsGoldenHandcuffs"
+      component={ClipGoldenHandcuffs as any}
+      durationInFrames={Math.round(CLIP_GH_TOTAL_SEC * FPS)}
+      fps={FPS}
+      width={W_PORT}
+      height={H_PORT}
+    />
+    <Composition
+      id="NewsSunBeltCorrection"
+      component={ClipSunBeltCorrection as any}
+      durationInFrames={Math.round(CLIP_SBC_TOTAL_SEC * FPS)}
+      fps={FPS}
+      width={W_PORT}
+      height={H_PORT}
+    />
+    <Composition
+      id="NewsTariffs"
+      component={ClipTariffs as any}
+      durationInFrames={Math.round(CLIP_TARIFFS_TOTAL_SEC * FPS)}
       fps={FPS}
       width={W_PORT}
       height={H_PORT}
