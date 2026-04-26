@@ -1,19 +1,26 @@
-// Tumalo.tsx — 19496 Tumalo Reservoir Rd VIRAL CUT (43s, 14 beats + reveal)
+// Tumalo.tsx — 19496 Tumalo Reservoir Rd VIRAL CUT v2 (45s, 16 beats + reveal)
 // 1080x1920 portrait, 30fps. List price $1,350,000, Active.
 //
+// v2 changes (vs v1):
+//   - Added MLS photos #30 (kitchen wide), #45 (deck w/ view, hot tub),
+//     #56 (aerial 3/4 angle). 13 MLS picks total.
+//   - Removed lifestyle deer photo. 3 lifestyle photos remain
+//     (water feature, wildflowers, eagle).
+//   - 16 beats (was 14). #45 takes over the 50% pattern interrupt slot
+//     — daytime deck w/ mountain view after closed-room interiors.
+//   - Eagle moves to 27-29.5s as the back-half wildlife moment.
+//
 // Photo plan (per VIDEO_PRODUCTION_SKILL.md):
-//   Hook (0-3s)        : #1 hero ext at dusk + address overlay (vignetteLetterbox)
-//   Intrigue (3-8.5s)  : #16 Three Sisters thru window, #14 Sisters from deck
-//   Tour (8.5-21s)     : #26 great room, #28 kitchen, #31 primary, #22 covered deck
-//   Pattern interrupt  : #58 lifestyle wildlife — water feature, DEER (50%), wildflowers, eagle
-//   Reveal (38-43s)    : kinetic stat — $1,350,000 + 19496 Tumalo Reservoir Rd
+//   Hook (0-3s)         : #1 hero ext at dusk + address overlay
+//   Intrigue (3-8.2s)   : #16 Three Sisters thru window, #14 Sisters from deck
+//   Tour (8.2-20.1s)    : #26 great room, #28 kitchen, #30 kitchen wide,
+//                         #31 primary, #22 covered deck
+//   50% interrupt (#9)  : #45 open deck w/ view + hot tub + mountains
+//   Lifestyle (23-29.6s): water feature → wildflowers → eagle
+//   Aerials (29.6-40s)  : #56 3/4 → #58 top-down → #2 daytime → #9 dusk wide
+//   Reveal (40-45s)     : kinetic stat — $1,350,000 + 19496 Tumalo Reservoir Rd
 //
-// Beat #9 (deer 21-24s) lands the 50% pattern interrupt — two mule deer
-// bucks standing in the yard is the scroll-stopper. Beat #11 (eagle 26.5s)
-// is the second wildlife interrupt. Together they sell the property's
-// natural setting in a way no MLS still can.
-//
-// All 14 photos are unique (no reuse rule). Seven distinct camera moves
+// All 16 photos are unique (no reuse rule). Seven distinct camera moves
 // across the BEATS array. No logo / no agent name / no phone in frame.
 
 import React from 'react';
@@ -29,7 +36,7 @@ import { CameraMoveOpts } from './cameraMoves';
 import { clamp, easeOutCubic } from './easing';
 
 const FPS = 30;
-export const TUMALO_TOTAL_SEC = 43.0;
+export const TUMALO_TOTAL_SEC = 45.0;
 
 type BeatDef = {
   photo: string;
@@ -59,75 +66,79 @@ const BEATS: BeatDef[] = [
     titlePosition: 'center',
     crossfadeIn: 0 },
 
-  // === INTRIGUE (3-8.5s) — the view that defines the property ============
+  // === INTRIGUE (3-8.2s) — the view that defines the property ============
   // #16 = Three Sisters framed by interior window. THE hero shot.
   // vignetteLetterbox keeps all three peaks visible (cover-mode would crop
-  // out the two left peaks). Mild push_in for forward motion without
-  // re-cropping the frame.
+  // out the two left peaks).
   { photo: 'v5_library/tumalo/16-twilight_DSC9560.jpg',
-    startSec: 3, durationSec: 3,
+    startSec: 3, durationSec: 2.7,
     move: { move: 'push_in', focal: 'center', intensity: 0.5 },
     vignetteLetterbox: true },
-  // #14 = Three Sisters at sunrise from deck. Wide-aspect photo (1.78),
-  // slow horizontal pan reveals the full peak silhouette.
+  // #14 = Three Sisters at sunrise from deck. Wide-aspect (1.78), slow
+  // horizontal pan reveals the full peak silhouette.
   { photo: 'v5_library/tumalo/14-twilight_untitled.jpg',
-    startSec: 6, durationSec: 2.5,
+    startSec: 5.7, durationSec: 2.5,
     move: { move: 'slow_pan_lr', focal: 'center', intensity: 1.0 } },
 
-  // === TOUR (8.5-21s) — great room → kitchen → primary → covered deck ====
-  // 25% mark = 10.75s lands inside Beat 4 (great room). New visual register
-  // — interior reveal after exterior + view shots.
+  // === TOUR (8.2-20.1s) — great room → kitchen x2 → primary → covered deck
+  // 25% mark of 45s = 11.25s lands inside Beat 5 (#28 kitchen). Fresh
+  // visual register after the great room.
   { photo: 'v5_library/tumalo/26-int_DSC8932.jpg',
-    startSec: 8.5, durationSec: 2.5,
+    startSec: 8.2, durationSec: 2.5,
     move: { move: 'gimbal_walk', focal: 'center', intensity: 1.0, direction: 'lr' } },
   { photo: 'v5_library/tumalo/28-int_DSC8968.jpg',
-    startSec: 11, durationSec: 2.5,
+    startSec: 10.7, durationSec: 2.3,
     move: { move: 'push_in', focal: 'center', intensity: 1.0 } },
+  // #30 — second kitchen angle (island + appliances + window).
+  { photo: 'v5_library/tumalo/30-int_DSC8983.jpg',
+    startSec: 13.0, durationSec: 2.3,
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'rl' } },
   { photo: 'v5_library/tumalo/31-int_DSC8994.jpg',
-    startSec: 13.5, durationSec: 2.5,
+    startSec: 15.3, durationSec: 2.5,
     move: { move: 'gimbal_walk', focal: 'center', intensity: 0.9, direction: 'rl' } },
   { photo: 'v5_library/tumalo/22-int_DSC8333.jpg',
-    startSec: 16, durationSec: 2.5,
+    startSec: 17.8, durationSec: 2.3,
     move: { move: 'slow_pan_lr', focal: 'center', intensity: 0.9 } },
 
-  // === LIFESTYLE / 50% PATTERN INTERRUPT (18.5-29.5s) ====================
-  // Grounds + wildlife sequence. 50% mark = 21.5s lands inside Beat 9
-  // (the deer). Two mule-deer bucks standing in the yard. This is the
-  // scroll-stopper — pure register shift from architecture to the wild
-  // setting that the home sits inside.
+  // === 50% PATTERN INTERRUPT (20.1-23.1s) — open deck + hot tub + view ===
+  // 50% mark of 45s = 22.5s falls inside this beat. Sharp register shift
+  // from indoor architecture to wide-open daytime deck with the mountains
+  // peeking through. Slow R-to-L pan walks the eye across the deck and
+  // out to the view.
+  { photo: 'v5_library/tumalo/45-int_DSC9031.jpg',
+    startSec: 20.1, durationSec: 3.0,
+    move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 } },
+
+  // === LIFESTYLE (23.1-29.6s) — grounds + wildlife =======================
   { photo: 'v5_library/tumalo/lifestyle_water_feature.jpg',
-    startSec: 18.5, durationSec: 2.5,
+    startSec: 23.1, durationSec: 2.0,
     move: { move: 'slow_pan_bt', focal: 'center', intensity: 0.8 },
     objectPosition: '60% 50%' },
-  // Deer: low push_in so both bucks stay in frame. objectPosition biases
-  // the cover-crop slightly downward to center on the antlers/faces, not
-  // the empty top of the photo.
-  { photo: 'v5_library/tumalo/lifestyle_deer.jpg',
-    startSec: 21, durationSec: 3,
-    move: { move: 'push_in', focal: 'center', intensity: 0.4 },
-    objectPosition: '50% 65%' },
   { photo: 'v5_library/tumalo/lifestyle_wildflowers.jpg',
-    startSec: 24, durationSec: 2.5,
+    startSec: 25.1, durationSec: 2.0,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 1.0 } },
-  // Eagle is portrait-orientation (1500x2000). vignetteLetterbox lets the
-  // sky extend into the side dead-space without bars.
+  // Eagle: portrait-orientation photo. Mild push_in, biased crop.
   { photo: 'v5_library/tumalo/lifestyle_eagle.jpg',
-    startSec: 26.5, durationSec: 3,
+    startSec: 27.1, durationSec: 2.5,
     move: { move: 'push_in', focal: 'center', intensity: 0.6 },
     objectPosition: '50% 35%' },
 
-  // === CLOSING AERIALS (29.5-38s) ========================================
-  // Top-down geometry → daytime full reveal → broad mountain landscape.
+  // === CLOSING AERIALS (29.6-40s) ========================================
+  // 3/4 angle → top-down geometry → daytime full reveal → broad mountain
+  // landscape into reveal.
+  { photo: 'v5_library/tumalo/56-DJI_aerial_5.jpg',
+    startSec: 29.6, durationSec: 2.4,
+    move: { move: 'pull_out', focal: 'center', intensity: 0.5 } },
   { photo: 'v5_library/tumalo/58-DJI_aerial_4.jpg',
-    startSec: 29.5, durationSec: 2.5,
+    startSec: 32.0, durationSec: 2.4,
     move: { move: 'push_in', focal: 'center', intensity: 0.6 } },
   { photo: 'v5_library/tumalo/2-DJI_aerial_2.jpg',
-    startSec: 32, durationSec: 2.5,
-    move: { move: 'pull_out', focal: 'center', intensity: 0.6 } },
+    startSec: 34.4, durationSec: 2.6,
+    move: { move: 'gimbal_walk', focal: 'center', intensity: 0.8, direction: 'lr' } },
   // Final beat: dusk drone wide with the Three Sisters silhouette beyond
-  // the property. Slow R-to-L pan, slightly longer dwell into the reveal.
+  // the property. Slow R-to-L pan into the reveal.
   { photo: 'v5_library/tumalo/9-DJI_aerial_3.jpg',
-    startSec: 34.5, durationSec: 3.5,
+    startSec: 37.0, durationSec: 3.0,
     move: { move: 'slow_pan_rl', focal: 'center', intensity: 0.9 },
     crossfadeOut: 0 },
 ];
@@ -243,7 +254,7 @@ export const Tumalo: React.FC = () => {
         </Sequence>
       ))}
 
-      <Sequence from={Math.round(38 * FPS)} durationInFrames={Math.round(5 * FPS)}>
+      <Sequence from={Math.round(40 * FPS)} durationInFrames={Math.round(5 * FPS)}>
         <RevealInner />
       </Sequence>
     </AbsoluteFill>
