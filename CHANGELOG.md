@@ -4,6 +4,7 @@
 
 ### Features
 - feat(memes): meme_lord rebuild — real templates, classic Impact text, canonical logo
+- feat(listing-video): Tumalo v4 — music-driven rebuild. ElevenMusic 117 BPM cinematic ambient (`tumalo_v4_music.mp3`) drives the cuts (librosa-detected beats frozen in `MUSIC_BEATS`). Real Three.js TextGeometry+ExtrudeGeometry "YOUR MORNING IN TUMALO" with three-point lighting and camera flythrough composited as `<MorningTextScene>` over Beat 3 (replaces five prior CSS-3D attempts). 11 photo beats snapped to detected beat times, average 3.18s each. DepthParallaxBeat fg/bg differential bumped to 1.75/0.45 for visible 2.5D parallax. Crossfades with light leak overlays at 25% and 50% pattern interrupts. Reveal block lands on navy with the white stacked Ryan Realty logo. Viral scorecard 91/100 (format minimum 85, ship). Render: `listing_video_v4/out/tumalo_v4.mp4` (40.04s, 38.6 MB, 1080×1920 30fps).
 
 ---
 

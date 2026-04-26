@@ -4,6 +4,7 @@ import './fonts';
 import { Listing, LISTING_TOTAL_SEC } from './Listing';
 // LISTING_TOTAL_SEC = 122 (v5.1)
 import { Tumalo, TUMALO_TOTAL_SEC } from './Tumalo';
+import { MorningTextScene, MORNING_TEXT_TOTAL_SEC } from './MorningTextScene';
 import { BoundaryDrawTest } from './BoundaryDrawTest';
 import { ClipGoldenHandcuffs, CLIP_GH_TOTAL_SEC } from './news/ClipGoldenHandcuffs';
 import { ClipSunBeltCorrection, CLIP_SBC_TOTAL_SEC } from './news/ClipSunBeltCorrection';
@@ -27,6 +28,14 @@ export const RemotionRoot: React.FC = () => (
       id="TumaloPortrait"
       component={Tumalo as any}
       durationInFrames={Math.round(TUMALO_TOTAL_SEC * FPS)}
+      fps={FPS}
+      width={W_PORT}
+      height={H_PORT}
+    />
+    <Composition
+      id="MorningText3D"
+      component={MorningTextScene as any}
+      durationInFrames={Math.round(MORNING_TEXT_TOTAL_SEC * FPS)}
       fps={FPS}
       width={W_PORT}
       height={H_PORT}

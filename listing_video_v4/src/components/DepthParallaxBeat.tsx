@@ -35,16 +35,17 @@ import { CameraMoveOpts, cameraTransform } from '../cameraMoves';
 import { clamp, easeOutCubic, easeOutQuart } from '../easing';
 
 // ─── Parallax layer multipliers ──────────────────────────────────────────────
-// CINEMATIC v4.1: balanced for visible 3D differential WITHOUT the parallax-
-// tear gaps that the v4 (0.0/1.0/2.4) aggressive fan-out produced. Wide gaps
-// formed at depth-mask boundaries where the fg layer scaled outward away from
-// the bg/mid alpha edges, exposing the AbsoluteFill bg color as black arcs
-// across the frame. This range (0.5/1.0/1.5) keeps a 10% bg-fg differential
-// while staying within the layer alpha-mask overlap zones. A base "fill"
-// layer is also rendered underneath the depth stack as a safety net for any
-// residual gaps (see <Img src={base}> below the depth Img stack).
-const LAYER_PAN_MULT = { bg: 0.5, mid: 1.0, fg: 1.5 } as const;
-const LAYER_SCALE_OFFSET_MULT = { bg: 0.5, mid: 1.0, fg: 1.5 } as const;
+// CINEMATIC v4.2 (Tumalo v4 rebuild): stronger Blonde-Waterfall-style depth
+// differential than v3 (0.5/1.5) but tuned back from the first v4 attempt
+// (0.30/2.10) which produced visible parallax-tear gaps on photos with
+// strong sky/foliage depth contrast (e.g. the open-deck beat). 0.45/1.75
+// is the floor that reads as clear 2.5D parallax on a phone screen without
+// exposing the depth-mask boundary to the AbsoluteFill bg.
+//   bg  pan 0.45, scale 0.45  → recedes into distance
+//   mid pan 1.00, scale 1.00  → matches base camera move
+//   fg  pan 1.75, scale 1.75  → pushes past camera with visible differential
+const LAYER_PAN_MULT = { bg: 0.45, mid: 1.0, fg: 1.75 } as const;
+const LAYER_SCALE_OFFSET_MULT = { bg: 0.45, mid: 1.0, fg: 1.75 } as const;
 
 type LayerKey = 'bg' | 'mid' | 'fg';
 
