@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.77.0 (2026-04-26)
+
+### Features
+- feat(listing-video): Tumalo v3 — Blonde Waterfall depth-parallax build
+
+---
+
+
 ## v1.76.0 (2026-04-26)
 
 ### Features
