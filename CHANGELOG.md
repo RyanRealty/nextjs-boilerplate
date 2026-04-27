@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.89.0 (2026-04-27)
+
+### Features
+- feat(news): re-render 3 news clips at 45s w/ breath padding + 3.5s hook
+
+---
+
+
 ## v1.88.0 (2026-04-27)
 
 ### Features
