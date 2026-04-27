@@ -15,6 +15,16 @@ This file replaces ad-hoc decisions across the v5 series of Schoolhouse listing 
 
 ## 1. Hard constraints (ship blockers — not suggestions)
 
+### ElevenLabs Voice — MANDATORY
+
+- **Voice: Ellen — Voice ID: `BIvP0GN1cAtSRTxNHnWS`**
+- Env var: `ELEVENLABS_VOICE_ID_ELLEN` in `.env.local`
+- API key: `ELEVENLABS_API_KEY` in `.env.local`
+- **ALWAYS use Ellen for ALL voiceover.** No other voice. No substituting. No asking.
+- Use `previous_text` chaining for prosody continuity across sentences.
+- Use IPA phoneme tags for tricky pronunciations (e.g., Deschutes → `<phoneme alphabet="ipa" ph="dəˈʃuːts">Deschutes</phoneme>`).
+- Matt approved this voice. It is locked in permanently.
+
 ### Length
 - **Target: 30-45 seconds.**
 - **Never exceed 60 seconds.** A 75s "cinematic" cut goes nowhere. Cap holds across all platforms.

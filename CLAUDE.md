@@ -147,6 +147,16 @@ Everything else (debugging, architecture, testing-strategy, documentation, incid
 
 **Read `video_production_skills/VIDEO_PRODUCTION_SKILL.md` before writing any video code or Remotion composition. This is non-negotiable.**
 
+### ElevenLabs Voice — MANDATORY
+
+- **Voice: Ellen — Voice ID: `BIvP0GN1cAtSRTxNHnWS`**
+- Env var: `ELEVENLABS_VOICE_ID_ELLEN` in `.env.local`
+- API key: `ELEVENLABS_API_KEY` in `.env.local`
+- **ALWAYS use Ellen for ALL voiceover.** No other voice. No substituting. No asking.
+- Use `previous_text` chaining for prosody continuity across sentences.
+- Use IPA phoneme tags for tricky pronunciations (e.g., Deschutes → `<phoneme alphabet="ipa" ph="dəˈʃuːts">Deschutes</phoneme>`).
+- Matt approved this voice. It is locked in permanently.
+
 **Pair-required (load all three before any build):**
 
 1. **`video_production_skills/ANTI_SLOP_MANIFESTO.md`** — banned-content gate. Twelve rules, every one a ship-blocker. Banned generic real estate language, banned AI-passed-as-real photos, ElevenLabs-only VO with pronunciation overrides, banned openings, AI disclosure requirements, beat-synced music or none, source-verified data only, 30-day human review on every new format, no AI humor, no engagement bait, voice rules (no semicolons, no em-dashes, no AI filler), and brand visual standards. Every skill in `video_production_skills/`, `social_media_skills/`, and `automation_skills/` references it.
