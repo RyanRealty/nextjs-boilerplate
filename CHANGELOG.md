@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.91.2 (2026-04-27)
+
+### Maintenance
+- docs: lock video review gate — no MP4 pushes without Matt approval
+
+---
+
+
 ## v1.91.1 (2026-04-27)
 
 ### Maintenance
