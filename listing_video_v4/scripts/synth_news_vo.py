@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """News clip VO — 3 viral news-style clips, ElevenLabs, prosody-chained.
 
-Voice: news anchor (BIvP0GN1cAtSRTxNHnWS) — declarative, paced, neutral.
-Settings: stability 0.55, similarity_boost 0.85, style 0.15, speaker_boost True.
+Voice: Ellen — Ryan Realty Anchor (BIvP0GN1cAtSRTxNHnWS).
+Model: eleven_turbo_v2_5 (canonical Ellen model — matches market-report config).
+Settings: stability 0.50, similarity_boost 0.75, style 0.35, speaker_boost True.
 
-Pronunciation overrides via SSML phonemes for proper nouns when needed.
-Each sentence chains previous_text from same clip for prosody continuity.
+These match the market-report scorecard config that Matt approved. The
+prior eleven_multilingual_v2 + stability 0.55 / sim 0.85 / style 0.15
+combo produced an audibly different Ellen even with the same voice ID —
+that mismatch is what made Matt say "voice still wrong" on the v45
+news renders. Locked here.
+
+Each sentence chains previous_text from the same clip for prosody continuity.
 """
 import json, urllib.request, sys
 from pathlib import Path
@@ -31,7 +37,7 @@ env = load_env(Path("/Users/matthewryan/RyanRealty/.env.local"))
 KEY = env["ELEVENLABS_API_KEY"]
 
 
-def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multilingual_v2") -> bool:
+def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_turbo_v2_5") -> bool:
     out_path = OUT / f"{slug}.mp3"
     if out_path.exists() and out_path.stat().st_size > 1024:
         print(f"[skip] {slug} exists", file=sys.stderr)
@@ -40,11 +46,10 @@ def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multil
         "text": text,
         "model_id": model,
         "voice_settings": {
-            "stability": 0.55,
-            "similarity_boost": 0.85,
-            "style": 0.15,
+            "stability": 0.50,
+            "similarity_boost": 0.75,
+            "style": 0.35,
             "use_speaker_boost": True,
-            "speed": 0.95,
         },
     }
     if prev_text:
@@ -72,27 +77,39 @@ def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multil
 
 
 # Clip layouts with VO scripts. Each block matches the BEAT timing in the .tsx file.
+#
+# Density rule (per Matt 2026-04-27): scripts are dense with verified facts,
+# not thin talking points stretched to fill 45 seconds. Every figure traces
+# to a primary source already cited in the corresponding .tsx file header.
+# These are NATIONAL stories — Bend is not shoehorned in.
+#
+# Tariffs source: NAHB / Wells Fargo Housing Market Index, April 2025
+# survey + Center for American Progress 2026 analysis (URLs in ClipTariffs.tsx).
+# Golden Handcuffs source: Coldwell Banker 2026 Home Shopping Season Report
+# (PRNewswire 2026-04-23, n=727 affiliated agents fielded Mar 23–Apr 6 2026).
+# Sun Belt source: Fortune / AEI Housing Center, Feb 2025 → Feb 2026 window
+# (Fortune 2026-04-11; URL in ClipSunBeltCorrection.tsx).
 CLIPS = {
     "tariffs": [
-        ("news_tariffs_s01", "Your next home just got more expensive."),
-        ("news_tariffs_s02", "Tariffs added an average of ten thousand nine hundred dollars to the cost of every new home."),
-        ("news_tariffs_s03", "Lumber. Steel. Cabinets. Drywall. Supplier prices jumped six point three percent across the board."),
-        ("news_tariffs_s04", "And by twenty thirty, four hundred fifty thousand new homes will never get built at all."),
-        ("news_tariffs_s05", "When new construction gets harder, the home you already own gets stronger."),
+        ("news_tariffs_s01", "Your next new home just got more expensive. The cost added: ten thousand nine hundred dollars on average."),
+        ("news_tariffs_s02", "That's the per home tariff impact estimated by the National Association of Home Builders."),
+        ("news_tariffs_s03", "Suppliers raised prices six point three percent. Lumber, steel, aluminum, cabinets, drywall. Every line item up."),
+        ("news_tariffs_s04", "The Center for American Progress projects four hundred fifty thousand fewer new homes built by twenty thirty."),
+        ("news_tariffs_s05", "Less new supply means higher prices on what does get built. Existing homes hold their leverage."),
     ],
     "gh": [
-        ("news_gh_s01", "The lock-in effect just broke."),
-        ("news_gh_s02", "One in three sellers with mortgage rates below five percent are listing anyway."),
-        ("news_gh_s03", "Eighty percent of agents say buyers are not waiting on rates."),
-        ("news_gh_s04", "Forty-three percent are reporting a busier spring than last year."),
-        ("news_gh_s05", "If you've been waiting on rates to sell, the market is no longer waiting on you."),
+        ("news_gh_s01", "The lock in effect just cracked."),
+        ("news_gh_s02", "One in three sellers giving up a sub five percent mortgage rate. Listing anyway. From a national survey of seven hundred twenty seven Coldwell Banker agents this spring."),
+        ("news_gh_s03", "Eighty percent of those agents say buyers stopped waiting for rates."),
+        ("news_gh_s04", "Forty three percent report a busier spring than twenty twenty five."),
+        ("news_gh_s05", "Two years of frozen inventory is thawing. The market that punished waiting is rewarding action now."),
     ],
     "sbc": [
         ("news_sbc_s01", "The Sun Belt boom is unwinding."),
-        ("news_sbc_s02", "Cities that overshot in twenty twenty-one are giving it back."),
-        ("news_sbc_s03", "Phoenix, Tampa, Austin. All down. Bend held positive."),
-        ("news_sbc_s04", "It's not geography. It's the cycle."),
-        ("news_sbc_s05", "Bend's median is still climbing. Different market. Different rules."),
+        ("news_sbc_s02", "Cape Coral, Florida. Down nine point six percent year over year. The biggest annual drop in the country, per the AEI Housing Center."),
+        ("news_sbc_s03", "Phoenix, Tampa, Austin. Every Sun Belt market that overshot in twenty twenty one is giving back gains."),
+        ("news_sbc_s04", "Compare Kansas City. Up eight point six percent. Steady mid American markets are climbing while pandemic boom towns correct."),
+        ("news_sbc_s05", "It's not geography. It's cycle position. The hottest markets are cooling the fastest."),
     ],
 }
 

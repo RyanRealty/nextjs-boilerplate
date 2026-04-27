@@ -41,7 +41,7 @@ env = load_env(Path("/Users/matthewryan/RyanRealty/.env.local"))
 KEY = env["ELEVENLABS_API_KEY"]
 
 
-def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multilingual_v2") -> bool:
+def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_turbo_v2_5") -> bool:
     out_path = OUT / f"{slug}.mp3"
     if out_path.exists() and out_path.stat().st_size > 1024:
         print(f"[skip] {slug} exists", file=sys.stderr)
@@ -50,11 +50,10 @@ def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multil
         "text": text,
         "model_id": model,
         "voice_settings": {
-            "stability": 0.55,
-            "similarity_boost": 0.85,
-            "style": 0.15,
+            "stability": 0.50,
+            "similarity_boost": 0.75,
+            "style": 0.35,
             "use_speaker_boost": True,
-            "speed": 0.95,
         },
     }
     if prev_text:

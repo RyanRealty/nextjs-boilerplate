@@ -1027,6 +1027,7 @@ export const NewsEndCard: React.FC<EndCardProps> = ({
   });
   const wordScale = 0.85 + sp * 0.15;
   const tagAlpha = clamp((localF - 18) / 14, 0, 1);
+  const contactAlpha = clamp((localF - 30) / 14, 0, 1);
   const dividerWidth = clamp((localF - 14) / 18, 0, 1) * 380;
   return (
     <AbsoluteFill style={{ background: NAVY, opacity: navyAlpha }}>
@@ -1071,21 +1072,48 @@ export const NewsEndCard: React.FC<EndCardProps> = ({
             height: 2,
             background: GOLD_BRAND,
             opacity: 0.85,
-            marginBottom: 28,
+            marginBottom: 22,
           }}
         />
         <div
           style={{
             fontFamily: FONT_BODY,
             fontWeight: 700,
-            fontSize: 28,
+            fontSize: 26,
             color: GOLD_BRAND,
             letterSpacing: 5,
             textTransform: 'uppercase',
             opacity: tagAlpha,
+            marginBottom: 30,
           }}
         >
           {tagline}
+        </div>
+        {/* Phone + URL per VIDEO_PRODUCTION_SKILL §5 End cards spec */}
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontWeight: 600,
+            fontSize: 32,
+            color: CREAM,
+            letterSpacing: 2.4,
+            opacity: contactAlpha,
+            marginBottom: 8,
+          }}
+        >
+          541.213.6706
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_BODY,
+            fontWeight: 500,
+            fontSize: 26,
+            color: CREAM,
+            opacity: contactAlpha * 0.85,
+            letterSpacing: 1.4,
+          }}
+        >
+          ryan-realty.com
         </div>
       </div>
     </AbsoluteFill>

@@ -260,57 +260,56 @@ const BeatClose: React.FC = () => {
 
 export const ClipGoldenHandcuffs: React.FC = () => {
   // Beat layout (frames at 30fps):
-  // 45s timeline @ 30fps = 1350 frames. Pacing Rule: hook beat ≥3s, every
-  // readable-text beat ≥2.5s. Breath padding between VO sentences so it
-  // sounds like a person, not a TTS rush.
+  // 45s = 1350 frames @ 30fps. Dense VO (Ellen turbo_v2_5):
+  //   s01 1.75s, s02 10.29s, s03 4.73s, s04 4.41s, s05 6.03s = 27.2s VO total
   //
-  //   0–105     (0–3.5s)    Hook            VO s01 @ 9 (1.62s, ends 58)
-  //   90–360    (3.0–12.0s) 35% hero ring   VO s02 @ 99 (4.96s, ends 247)
-  //   345–660   (11.5–22.0s) 80% buyers     VO s03 @ 369 (3.37s, ends 470)
-  //   645–960   (21.5–32.0s) 43% busier     VO s04 @ 669 (3.84s, ends 784)
-  //   945–1215  (31.5–40.5s) Close          VO s05 @ 969 (4.55s, ends 1106)
-  //   1200–1350 (40–45s)    End card with white stacked logo
+  //   0–200     (0–6.7s)   Hook                  VO s01 @ 9 (ends 62)
+  //   180–550   (6.0–18.3s) 35% / Coldwell n=727 VO s02 @ 85 (ends 394)
+  //   535–740   (17.8–24.7s) 80% buyers shopping VO s03 @ 555 (ends 697)
+  //   725–920   (24.2–30.7s) 43% busier spring   VO s04 @ 740 (ends 873)
+  //   905–1215  (30.2–40.5s) Close — 2yr thaw    VO s05 @ 920 (ends 1101)
+  //   1200–1350 (40–45s)    End card w/ white stacked logo + phone + URL
   return (
     <AbsoluteFill style={{ background: '#06101F' }}>
-      <Sequence from={0} durationInFrames={105}>
+      <Sequence from={0} durationInFrames={200}>
         <BeatHook />
       </Sequence>
-      <Sequence from={90} durationInFrames={270}>
+      <Sequence from={180} durationInFrames={370}>
         <BeatThirtyFive />
       </Sequence>
-      <Sequence from={345} durationInFrames={315}>
+      <Sequence from={535} durationInFrames={205}>
         <BeatBuyers />
       </Sequence>
-      <Sequence from={645} durationInFrames={315}>
+      <Sequence from={725} durationInFrames={195}>
         <BeatBusier />
       </Sequence>
-      <Sequence from={945} durationInFrames={270}>
+      <Sequence from={905} durationInFrames={310}>
         <BeatClose />
       </Sequence>
       <Sequence from={1200} durationInFrames={150}>
         <NewsEndCard startFrame={0} />
       </Sequence>
 
-      {/* ─── VO + Captions (Ellen voice, prosody-chained, breath padding) ─── */}
-      <Sequence from={9} durationInFrames={75}>
+      {/* ─── VO + Captions (Ellen turbo_v2_5, prosody-chained) ─── */}
+      <Sequence from={9} durationInFrames={70}>
         <Audio src={staticFile('audio/news_gh_s01.mp3')} />
-        <CaptionTrack text="The lock-in effect just broke." startFrame={0} durationFrames={75} />
+        <CaptionTrack text="The lock-in effect just cracked." startFrame={0} durationFrames={70} />
       </Sequence>
-      <Sequence from={99} durationInFrames={155}>
+      <Sequence from={85} durationInFrames={325}>
         <Audio src={staticFile('audio/news_gh_s02.mp3')} />
-        <CaptionTrack text="1 in 3 sellers with sub-5% rates are listing anyway." startFrame={0} durationFrames={155} fontSize={34} />
+        <CaptionTrack text="1 in 3 sub-5% sellers listing anyway. n=727 Coldwell Banker agents." startFrame={0} durationFrames={325} fontSize={30} />
       </Sequence>
-      <Sequence from={369} durationInFrames={110}>
+      <Sequence from={555} durationInFrames={170}>
         <Audio src={staticFile('audio/news_gh_s03.mp3')} />
-        <CaptionTrack text="80% of agents say buyers aren't waiting on rates." startFrame={0} durationFrames={110} fontSize={34} />
+        <CaptionTrack text="80% of agents: buyers stopped waiting on rates." startFrame={0} durationFrames={170} fontSize={32} />
       </Sequence>
-      <Sequence from={669} durationInFrames={120}>
+      <Sequence from={740} durationInFrames={170}>
         <Audio src={staticFile('audio/news_gh_s04.mp3')} />
-        <CaptionTrack text="43% report a busier spring than 2025." startFrame={0} durationFrames={120} />
+        <CaptionTrack text="43% report a busier spring than 2025." startFrame={0} durationFrames={170} />
       </Sequence>
-      <Sequence from={969} durationInFrames={145}>
+      <Sequence from={920} durationInFrames={210}>
         <Audio src={staticFile('audio/news_gh_s05.mp3')} />
-        <CaptionTrack text="The market isn't waiting on you anymore." startFrame={0} durationFrames={145} />
+        <CaptionTrack text="Two years of frozen inventory thawing." startFrame={0} durationFrames={210} />
       </Sequence>
     </AbsoluteFill>
   );

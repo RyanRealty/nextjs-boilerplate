@@ -2,8 +2,13 @@
 """News clip VO — RE/MAX + Real Brokerage merger, ElevenLabs, prosody-chained.
 
 Voice: Ellen (BIvP0GN1cAtSRTxNHnWS) — news anchor, declarative, paced.
-Settings: stability 0.55, similarity_boost 0.85, style 0.15, speaker_boost True.
+Model: eleven_turbo_v2_5 (canonical Ellen — matches market-report config).
+Settings: stability 0.50, similarity_boost 0.75, style 0.35, speaker_boost True.
 Each sentence chains previous_text from same clip for prosody continuity.
+
+(Updated 2026-04-27: model + settings aligned with market-report scorecards
+that Matt approved. Prior eleven_multilingual_v2 + 0.55/0.85/0.15 produced
+audibly different Ellen and was rejected.)
 
 Source for every figure (cited in companion citations.json):
   - $880M deal value: Inman 2026-04-27, BusinessWire press release 2026-04-26
@@ -40,7 +45,7 @@ env = load_env(Path("/Users/matthewryan/RyanRealty/.env.local"))
 KEY = env["ELEVENLABS_API_KEY"]
 
 
-def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multilingual_v2") -> bool:
+def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_turbo_v2_5") -> bool:
     out_path = OUT / f"{slug}.mp3"
     if out_path.exists() and out_path.stat().st_size > 1024:
         print(f"[skip] {slug} exists", file=sys.stderr)
@@ -49,11 +54,10 @@ def synth(slug: str, text: str, prev_text: str = "", model: str = "eleven_multil
         "text": text,
         "model_id": model,
         "voice_settings": {
-            "stability": 0.55,
-            "similarity_boost": 0.85,
-            "style": 0.15,
+            "stability": 0.50,
+            "similarity_boost": 0.75,
+            "style": 0.35,
             "use_speaker_boost": True,
-            "speed": 0.95,
         },
     }
     if prev_text:

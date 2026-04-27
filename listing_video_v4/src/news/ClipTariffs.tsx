@@ -332,58 +332,56 @@ export const ClipTariffs: React.FC = () => {
   //   450–620  (15–20.7s) 450,000 projection
   //   610–780  (20.3–26s) Editorial close
   //   780–900  (26–30s)   End card
-  // 45s timeline @ 30fps = 1350 frames. Per VIDEO_PRODUCTION_SKILL §1
-  // Pacing Rule: hook beat ≥3s, every readable-text beat ≥2.5s. Inter-VO
-  // gaps deliberate (~0.5–3s) so it sounds like a person, not a TTS rush.
+  // 45s = 1350 frames @ 30fps. Dense VO (Ellen turbo_v2_5):
+  //   s01 6.11s, s02 5.56s, s03 7.78s, s04 6.69s, s05 6.58s = 32.7s VO total
   //
-  // Beat layout (frames @ 30fps):
-  //   0–105     (0–3.5s)   Hook            VO s01 @ 9 (2.46s, ends 83)
-  //   90–315   (3.0–10.5s)  $10,900 hero    VO s02 @ 99 (5.85s, ends 274)
-  //   300–585  (10.0–19.5s) Materials       VO s03 @ 309 (6.35s, ends 500)
-  //   570–855  (19.0–28.5s) 450k projection VO s04 @ 579 (5.88s, ends 755)
-  //   840–1215 (28.0–40.5s) Close           VO s05 @ 849 (4.96s, ends 998)
-  //   1200–1350 (40.0–45.0s) End card with white stacked logo
+  //   0–225     (0–7.5s)   Hook + cost reveal   VO s01 @ 9 (ends 192)
+  //   210–410   (7.0–13.7) NAHB attribution     VO s02 @ 220 (ends 387)
+  //   395–660   (13.2–22)  Materials + 6.3%     VO s03 @ 410 (ends 643)
+  //   645–890   (21.5–29.7) 450k projection     VO s04 @ 660 (ends 861)
+  //   875–1215  (29.2–40.5) Close               VO s05 @ 890 (ends 1088)
+  //   1200–1350 (40–45s)   End card w/ white stacked logo + phone + URL
   return (
     <AbsoluteFill style={{ background: '#0e0703' }}>
-      <Sequence from={0} durationInFrames={105}>
+      <Sequence from={0} durationInFrames={225}>
         <BeatHook />
       </Sequence>
-      <Sequence from={90} durationInFrames={225}>
+      <Sequence from={210} durationInFrames={200}>
         <BeatCost />
       </Sequence>
-      <Sequence from={300} durationInFrames={285}>
+      <Sequence from={395} durationInFrames={265}>
         <BeatMaterials />
       </Sequence>
-      <Sequence from={570} durationInFrames={285}>
+      <Sequence from={645} durationInFrames={245}>
         <BeatProjection />
       </Sequence>
-      <Sequence from={840} durationInFrames={375}>
+      <Sequence from={875} durationInFrames={340}>
         <BeatClose />
       </Sequence>
       <Sequence from={1200} durationInFrames={150}>
         <NewsEndCard startFrame={0} />
       </Sequence>
 
-      {/* ─── VO + Captions (Ellen voice, prosody-chained, breath padding) ─── */}
-      <Sequence from={9} durationInFrames={75}>
+      {/* ─── VO + Captions (Ellen turbo_v2_5, prosody-chained) ─── */}
+      <Sequence from={9} durationInFrames={195}>
         <Audio src={staticFile('audio/news_tariffs_s01.mp3')} />
-        <CaptionTrack text="Your next home just got more expensive." startFrame={0} durationFrames={75} />
+        <CaptionTrack text="$10,900 added to every new home." startFrame={0} durationFrames={195} />
       </Sequence>
-      <Sequence from={99} durationInFrames={180}>
+      <Sequence from={220} durationInFrames={175}>
         <Audio src={staticFile('audio/news_tariffs_s02.mp3')} />
-        <CaptionTrack text="Tariffs added $10,900 to every new home." startFrame={0} durationFrames={180} />
+        <CaptionTrack text="Per NAHB tariff impact estimate." startFrame={0} durationFrames={175} />
       </Sequence>
-      <Sequence from={309} durationInFrames={195}>
+      <Sequence from={410} durationInFrames={235}>
         <Audio src={staticFile('audio/news_tariffs_s03.mp3')} />
-        <CaptionTrack text="Lumber. Steel. Cabinets. Drywall. +6.3%." startFrame={0} durationFrames={195} />
+        <CaptionTrack text="Suppliers up 6.3%. Lumber, steel, cabinets, drywall." startFrame={0} durationFrames={235} fontSize={32} />
       </Sequence>
-      <Sequence from={579} durationInFrames={180}>
+      <Sequence from={660} durationInFrames={210}>
         <Audio src={staticFile('audio/news_tariffs_s04.mp3')} />
-        <CaptionTrack text="By 2030, 450,000 fewer homes will be built." startFrame={0} durationFrames={180} />
+        <CaptionTrack text="450,000 fewer new homes by 2030 (CAP)." startFrame={0} durationFrames={210} />
       </Sequence>
-      <Sequence from={849} durationInFrames={155}>
+      <Sequence from={890} durationInFrames={210}>
         <Audio src={staticFile('audio/news_tariffs_s05.mp3')} />
-        <CaptionTrack text="When new construction gets harder, your home gets stronger." startFrame={0} durationFrames={155} fontSize={32} />
+        <CaptionTrack text="Less new supply. Existing homes hold their leverage." startFrame={0} durationFrames={210} fontSize={32} />
       </Sequence>
     </AbsoluteFill>
   );
