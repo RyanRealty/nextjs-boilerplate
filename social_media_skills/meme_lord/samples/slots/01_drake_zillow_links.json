@@ -1,12 +1,14 @@
 {
   "template": "drake",
   "friction": "buyer_behavior",
+  "humor_pattern": "painful_specificity",
   "slots": {
-    "top": "Buyers who send a clean offer in their budget",
-    "bottom": "Buyers who send 47 Zillow links at 2am asking 'thoughts?'"
+    "top": "A buyer who sends one clean offer in budget by Friday at 5",
+    "bottom": "A buyer who sends 47 Zillow links at 2am and three of them are in Tennessee"
   },
   "caption_draft": {
-    "ig": "If you know.",
-    "x": ""
-  }
+    "ig": "I have read the same Zillow listing fourteen times. The buyer has not opened the pre-approval letter once.",
+    "x": "Three of the links were in Tennessee."
+  },
+  "calibration_notes": "Specific time (Friday at 5, 2am), specific count (47, three), specific place (Tennessee — the TikTok house tour pipeline). Drake's approve panel is the worse option, which subverts the format and reflects what actually happens. Caption adds the fourteen-times beat plus the unread pre-approval, doubling down on the agent's suffering."
 }

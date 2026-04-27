@@ -1,0 +1,14 @@
+{
+  "template": "woman_yelling_cat",
+  "friction": "commission_conversation",
+  "humor_pattern": "self_deprecation",
+  "slots": {
+    "woman": "PEOPLE THINK I GOT RICH SELLING HOUSES",
+    "cat": "I am eating a gas station burrito in my car between showings"
+  },
+  "caption_draft": {
+    "ig": "Commission check: $12,400. After split, taxes, photos, staging, MLS fees, signage, and the $47 of open-house snacks nobody touched: I made less than the Uber driver who brought the buyer to the showing.",
+    "x": ""
+  },
+  "calibration_notes": "Woman side = the public perception (all caps because that's the screaming accusation). Cat side = the deadpan reality. The gas station burrito is a devastatingly specific image every working agent has lived. Caption is the commission waterfall — math that any agent recognizes as their own paycheck. The Uber driver punchline is the unexpected gut punch."
+}

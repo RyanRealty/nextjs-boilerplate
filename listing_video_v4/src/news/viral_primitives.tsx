@@ -15,8 +15,10 @@
 import React from 'react';
 import {
   AbsoluteFill,
+  Img,
   interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
@@ -1050,33 +1052,18 @@ export const NewsEndCard: React.FC<EndCardProps> = ({
           style={{
             transform: `scale(${wordScale.toFixed(3)})`,
             opacity: clamp(localF / 10, 0, 1),
-            display: 'flex',
-            alignItems: 'center',
-            gap: 22,
             marginBottom: 36,
           }}
         >
-          <div
+          <Img
+            src={staticFile('brand/stacked_logo_white.png')}
             style={{
-              width: 36,
-              height: 36,
-              background: GOLD_BRAND,
-              transform: 'rotate(45deg)',
-              boxShadow: `0 0 22px ${GOLD_BRAND}aa`,
+              width: 540,
+              height: 'auto',
+              display: 'block',
+              filter: 'drop-shadow(0 6px 24px rgba(0,0,0,0.7))',
             }}
           />
-          <div
-            style={{
-              fontFamily: FONT_SERIF,
-              fontWeight: 700,
-              fontSize: 96,
-              color: CREAM,
-              letterSpacing: '-0.01em',
-              textShadow: '0 4px 20px rgba(0,0,0,0.85)',
-            }}
-          >
-            Ryan Realty
-          </div>
         </div>
         <div
           style={{

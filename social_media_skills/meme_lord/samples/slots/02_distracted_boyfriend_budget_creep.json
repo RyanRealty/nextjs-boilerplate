@@ -1,13 +1,15 @@
 {
   "template": "distracted_boyfriend",
   "friction": "buyer_behavior",
+  "humor_pattern": "painful_specificity",
   "slots": {
-    "girlfriend": "The 3-bed in their budget",
-    "boyfriend": "Buyer pre-approved at $400K",
-    "other_woman": "The $650K house with a wine cellar"
+    "girlfriend": "3 bed in budget, in district, move-in ready",
+    "boyfriend": "Pre-approved at $625K",
+    "other_woman": "$889K listing with a wine fridge and a barn"
   },
   "caption_draft": {
-    "ig": "Every. Single. Time.",
-    "x": ""
-  }
+    "ig": "Their lender has not approved them for the wine fridge.",
+    "x": "Pre-approved for $625K. Touring at $889K."
+  },
+  "calibration_notes": "Concrete dollar amounts ($625K vs $889K = $264K spread). Specific objects (wine fridge, barn) every Bend buyer recognizes as 'the thing that pulled me past my budget.' Caption pivots to the lender, who is the unbothered third party every agent has to call after the showing."
 }

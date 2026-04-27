@@ -1,12 +1,14 @@
 {
   "template": "this_is_fine",
-  "friction": "closing_chaos",
+  "friction": "closing_day_chaos",
+  "humor_pattern": "painful_specificity",
   "slots": {
-    "top": "Lender at 4:55pm on closing day: 'we just need one more thing'",
-    "bottom": "This is fine"
+    "top": "Closing at noon. It is 11:47am.",
+    "bottom": "Lender: 'Just need one more bank statement and a letter explaining a $43 Venmo from 2022.'"
   },
   "caption_draft": {
-    "ig": "If you know, you know.",
-    "x": ""
-  }
+    "ig": "The Venmo was for tacos.",
+    "x": "The Venmo was for tacos."
+  },
+  "calibration_notes": "Time specificity (noon, 11:47am — 13 minutes to closing). Real lender behavior (the surprise document request at the last possible minute). The $43 Venmo from 2022 is the kind of absurdly small + old line item that actually triggers underwriter follow-ups. Caption deadpans the absurdity instead of explaining it."
 }

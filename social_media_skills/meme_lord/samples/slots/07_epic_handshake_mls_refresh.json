@@ -1,0 +1,15 @@
+{
+  "template": "epic_handshake",
+  "friction": "agent_life",
+  "humor_pattern": "insider_baseball",
+  "slots": {
+    "top": "Refreshing the MLS at 11:47pm",
+    "left": "First-year agents",
+    "right": "20-year veterans"
+  },
+  "caption_draft": {
+    "ig": "Nothing has come on between 11:31pm and 11:47pm. We will check again at 12:03am.",
+    "x": "Nobody is listing anything new at 11:47pm and we all keep checking."
+  },
+  "calibration_notes": "Universal agent compulsion — the late-night MLS refresh nobody admits to. The two-arms structure shows the behavior crosses the experience gap (rookies AND veterans both do it). 11:47pm is specific enough to feel real. Caption adds the absurdist time-stamp loop: nothing changes between checks, but we still check. Pure self-deprecation about agent compulsion, no client punching."
+}

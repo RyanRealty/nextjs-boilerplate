@@ -7,6 +7,8 @@ description: "Image-format viral real estate memes for Instagram and X. Surfaces
 
 **Read `video_production_skills/ANTI_SLOP_MANIFESTO.md` before invoking this skill. The manifesto is the ship gate. This skill enforces Rule 9 (no AI humor), Rule 11 (Matt's voice), Rule 12 (brand visuals), and Rule 13 (Oregon broker compliance, Fair Housing) at every step.**
 
+**MANDATORY — Read `humor_calibration.md` and `humor_patterns.md` before generating any meme concept.** These two files are the humor quality gate. The calibration doc teaches what's funny vs. corny (based on deep study of @thebrokeagent and viral RE meme accounts). The patterns doc has 35+ proven concept structures categorized by humor type. If a generated concept doesn't match the quality bar in those docs, it doesn't ship. Previous output was "corny as hell" — these files exist to fix that.
+
 **Pair-skill:** `video_production_skills/meme_content/SKILL.md` (15-25s video memes via Vlipsy clips). This skill is image-only. If the trend wants a video format, route to `meme_content` instead.
 
 ---
@@ -225,13 +227,15 @@ Build a `brief.md` for Matt with:
 2. expanding_brain — slots: panel_1, panel_2, panel_3, panel_4 (escalating)
 3. woman_yelling_cat — slots: woman, cat
 
-## Reminders before you write
-- Specific beats relatable. Use a number, a street name, an MLS field, a brokerage name.
-- Self-deprecating about agents > punching down at clients.
-- No semicolons. No em-dashes. Period.
-- No "delve", "navigate", "in today's market".
+## Reminders before you write (from humor_calibration.md)
+- **Painful specificity.** Use a real number, a real time, a real dollar amount, a real verbatim phrase. "47 Zillow links at 2am" not "too many Zillow links."
+- **The joke must hurt a little.** If it doesn't touch a nerve, it won't get shared.
+- **Punch yourself, not clients.** Self-deprecating about agents > making fun of buyers/sellers.
+- **Text must be funny without the template.** If the text isn't funny as plain text, the concept is too weak.
+- No semicolons. No em-dashes. No banned AI words.
 - Punchline at the end. Setup at the top.
-- Read it aloud. Does it sound like you, or like a marketing intern's ChatGPT prompt?
+- **"Would an agent screenshot this and send it to their group chat with no caption?"** If no, it's not funny enough.
+- Read `humor_patterns.md` for the pattern that fits this friction.
 ```
 
 Matt fills the slots. Returns the filled brief.
@@ -344,7 +348,9 @@ The `performance_loop` automation skill ingests this weekly to score template pe
 ## Files in this skill
 
 - `SKILL.md` — this file
-- `friction_topics.md` — the friction taxonomy library
+- `humor_calibration.md` — **READ FIRST.** The corny-vs-funny rulebook. 7 rules, translation guide, voice examples from @thebrokeagent and viral accounts. The "Would They Screenshot This?" test.
+- `humor_patterns.md` — 35+ proven meme concepts categorized by humor pattern (painful specificity, escalation, self-deprecation, verbatim client quotes, dark market commentary, format subversion, insider baseball, the pivot). Use as a reference when generating new concepts.
+- `friction_topics.md` — the friction taxonomy library (updated with Specific Pain Scenarios per category)
 - `voice_grader.md` — the 8-question voice checklist
 - `compliance_gate.md` — the Fair Housing + misrepresentation checklist
 - `templates/registry.json` — template registry with cooldowns, slot schemas, and format-fit scores per friction
@@ -362,5 +368,6 @@ The `performance_loop` automation skill ingests this weekly to score template pe
 - `video_production_skills/meme_content/SKILL.md` (sister skill, video format)
 - Live web check on @thebrokeagent (545K), @zillowgonewild (2.2M), @therealestatememes (20K), @re_memes (31K), Derrick Gregory (April 2026)
 - CLAUDE.md (data verification rules, design system, voice rules)
+- Deep research pass (April 2026): The Close "68 Hilarious RE Memes", HousingWire "75 RE Memes", AgentWealthHustle "105 Funny RE Memes", Propphy "100 RE Memes Agents Share 2026", NowBam "Top 10 Broke Agent Posts", NowBam "How to Create Hyper-Local Memes", Lighter Side of Real Estate "26 Snarkiest Memes", BAM "Summer RE Memes", Eric Simon interviews (Real Estate Rockstars, Placester, Massive Agent Podcast). 129+ specific meme concepts extracted and analyzed.
 
 Last reviewed: 2026-04-26.

@@ -1,0 +1,16 @@
+{
+  "template": "grus_plan",
+  "friction": "rate_cycle",
+  "humor_pattern": "escalation",
+  "slots": {
+    "panel_1": "Wait for rates to drop before buying",
+    "panel_2": "Rates drop 0.25%",
+    "panel_3": "Every buyer in the state comes off the bench and the house you wanted has 9 offers by Sunday",
+    "panel_4": "Every buyer in the state comes off the bench and the house you wanted has 9 offers by Sunday"
+  },
+  "caption_draft": {
+    "ig": "Three of the offers are cash. Two are from people who sold in Austin. None of them are you.",
+    "x": ""
+  },
+  "calibration_notes": "Specific rate move (0.25%), specific count (9 offers), specific deadline (Sunday). Gru format strength — panel 3 and 4 repeat is the realization that hits twice. Caption layers in the 2025-2026 phenomenon every agent recognizes: cash from Sun Belt sellers stacking the deck. 'None of them are you' is the kill shot. No moralizing, no 'so don't wait.'"
+}

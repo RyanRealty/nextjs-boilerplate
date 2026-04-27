@@ -1,0 +1,15 @@
+{
+  "template": "two_buttons",
+  "friction": "seller_delusion",
+  "humor_pattern": "format_subversion",
+  "slots": {
+    "button_left": "Tell the seller their house is overpriced by $150K",
+    "button_right": "Take the listing at their price and let the market teach them for 97 days",
+    "caption": "Listing agent at the consult"
+  },
+  "caption_draft": {
+    "ig": "Day 1: 'We can always come down.' Day 97: 'Why hasn't it sold yet.'",
+    "x": ""
+  },
+  "calibration_notes": "Both options genuinely terrible — that's what makes Two Buttons work. Concrete dollars ($150K overpriced) and concrete days (97 — long enough to feel like exile, short enough to be real). Caption is the seller's own words returning to haunt them, two beats apart. The agent is sweating because there is no good answer."
+}

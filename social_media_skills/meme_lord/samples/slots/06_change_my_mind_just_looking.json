@@ -1,0 +1,13 @@
+{
+  "template": "change_my_mind",
+  "friction": "agent_life",
+  "humor_pattern": "painful_specificity",
+  "slots": {
+    "sign": "Half my CRM is leads who said 'we are not in any rush' three years ago"
+  },
+  "caption_draft": {
+    "ig": "They are still not in any rush. The house they liked sold in 2023.",
+    "x": "Three years. Same house. Sold to someone else."
+  },
+  "calibration_notes": "The 'we are not in any rush' line is verbatim agent universal — every agent has this in their CRM as a 'just looking' tag from years ago. Three-year specificity makes it concrete. The sign is funny without the template (passes the plain-text test). Caption adds the sale that already happened, hammering the cost of the wait. No engagement bait, no 'change my mind?' filler — the take stands."
+}

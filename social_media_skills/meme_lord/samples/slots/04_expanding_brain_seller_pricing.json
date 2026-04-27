@@ -1,0 +1,16 @@
+{
+  "template": "expanding_brain",
+  "friction": "seller_delusion",
+  "humor_pattern": "escalation",
+  "slots": {
+    "panel_1": "Pricing the house at the comp",
+    "panel_2": "Pricing $25K above because we put new pulls on the cabinets",
+    "panel_3": "Pricing $80K above because Zestimate showed it that high once in 2022",
+    "panel_4": "Pricing $1.2M and refusing weekend showings because we are not desperate"
+  },
+  "caption_draft": {
+    "ig": "Spent four hours on the CMA. They looked at it for nine seconds and said 'but our neighbor sold theirs for more.'",
+    "x": ""
+  },
+  "calibration_notes": "Escalation goes from reasonable (panel 1) to clinically delusional (panel 4). Each step is a real thing every agent has heard verbatim. 'New pulls' is the kind of laughably small justification sellers cite. The $1.2M panel + 'we are not desperate' is the kill shot. Caption hits the agent's CMA-vs-9-seconds wound — pure self-deprecation."
+}

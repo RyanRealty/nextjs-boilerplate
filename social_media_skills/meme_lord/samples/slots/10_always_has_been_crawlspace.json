@@ -1,0 +1,14 @@
+{
+  "template": "always_has_been",
+  "friction": "inspection_drama",
+  "humor_pattern": "dark_market_commentary",
+  "slots": {
+    "front": "Wait, the crawlspace always had two inches of standing water?",
+    "back": "Always has been"
+  },
+  "caption_draft": {
+    "ig": "Seller, on the disclosure: 'We have never had any water issues.' The sump pump, running on a 2017 extension cord: *visibly working overtime*",
+    "x": "The sump pump was the disclosure."
+  },
+  "calibration_notes": "Inspection astronaut format — the rookie's epiphany meeting the cold reality. Specific water depth (two inches) makes it real, not theoretical. Caption pivots to the seller's own disclosure language vs the actual evidence (the running sump pump on a 7-year-old extension cord). The disclosure language is the kind of phrase every agent has read verbatim. Dark, lived-in, agent-shareable."
+}
