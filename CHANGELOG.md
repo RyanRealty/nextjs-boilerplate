@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.87.3 (2026-04-27)
+
+### Maintenance
+- docs: pacing rule — first-scene text 3s min, readable text 2.5s min
+
+---
+
+
 ## v1.87.2 (2026-04-27)
 
 ### Maintenance
