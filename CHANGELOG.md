@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.86.1 (2026-04-27)
+
+### Maintenance
+- chore: scorecard.json for 3 news clips (all 88/100, above 85 ship floor)
+
+---
+
+
 ## v1.86.0 (2026-04-27)
 
 ### Features
