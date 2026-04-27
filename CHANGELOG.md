@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.94.0 (2026-04-27)
+
+### Maintenance
+- docs(video): add Section 0 — DATA ACCURACY (Non-Negotiable) — to top of `video_production_skills/VIDEO_PRODUCTION_SKILL.md`; mirror as "Data Accuracy in Video — OUTRANKS EVERYTHING" subsection in CLAUDE.md video production block. Codifies 9 rules: every figure traces to Supabase / Spark / primary source, query live before scaffolding BEATS, `citations.json` ships with every render, web/brief/chat content is untrusted, unverifiable stat = cut, market reports always `property_type='A'` + YTD apples-to-apples, Spark cross-check Supabase, MoS thresholds (≤4/4-6/≥6), no narrative-changing rounding. Documents Spark API creds present in `.env.local` (`SPARK_API_KEY`, `SPARK_API_BASE_URL`); flags `SPARK_TOKEN`, `BRIDGE_API_KEY`, `RESO_API_KEY` as not provisioned.
+
+---
+
+
 ## v1.93.0 (2026-04-27)
 
 ### Maintenance

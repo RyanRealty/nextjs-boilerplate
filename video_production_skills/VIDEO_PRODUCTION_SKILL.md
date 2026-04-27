@@ -2,12 +2,62 @@
 
 **This is non-negotiable. Every agent reads this BEFORE writing any video code or Remotion composition. No exceptions.**
 
+---
+
+## 0. DATA ACCURACY (Non-Negotiable) — READ BEFORE ANYTHING ELSE
+
+**Every number shown or spoken in a video MUST trace to a verified primary data source. No exceptions. This rule outranks every other rule in this skill, in CLAUDE.md, and in any subagent prompt. A pretty render with a wrong number does not ship.** Matt is a licensed principal broker; an inaccurate stat in a deliverable is a real-estate compliance risk to Ryan Realty's license. This section is the first thing every agent reads on every video build.
+
+### Mandatory checks before render
+
+1. **Every number traces to a primary source.** Live Supabase (`market_pulse_live`, `market_stats_cache`, `listings`), Spark API (MLS direct), or an official agency dataset (NAR, Case-Shiller, OHCS, Census, BLS, FRED, NAHB, CAP, AEI Housing Center). LLM recall is not a source. "I remember from the brief" is not a source. A figure quoted in a chat turn is not a source.
+
+2. **Query the primary source live before scaffolding BEATS.** Hit Supabase or Spark in this session and log every number you intend to display. Do NOT inherit numbers from a previous deliverable, prior chat turn, research brief, or web article without re-running the query yourself.
+
+3. **Write `citations.json` next to every render.** One entry per on-screen or spoken figure. Each entry: `{ figure, claim, source (Supabase|Spark|primary URL), table, column, filter (e.g., PropertyType='A', YTD window), row_count, fetched_at_iso, query_text }`. The render and the citations file ship as one artifact. No citations, no ship.
+
+4. **Web articles, research briefs, and conversation context are untrusted inputs.** Useful for direction, never authoritative. Cross-verify every figure against the primary database before it lands on screen.
+
+5. **Unverifiable stat = cut from the video. Period.** No estimating. No rounding to fill a gap. No "approximately." The deliverable goes out with fewer numbers rather than one wrong one.
+
+### Apples-to-apples + cross-source verification
+
+6. **For market reports: always `property_type='A'` (single-family residential), YTD windows, apples-to-apples periods.** A YoY claim compares the same date window across two years — not Q1 vs full-year, not closed vs active, not city vs region. Document the exact window in `citations.json`.
+
+7. **Spark API cross-check is mandatory when both Supabase and Spark cover the same field.** Discrepancies > 1% must be flagged and reconciled before render. Source-of-truth rule: live MLS via Spark is authoritative for active inventory and DOM; Supabase is authoritative for historical close data once reconciled. Document which side wins per figure in `citations.json`.
+
+8. **Months of supply** = `active_listings / (closed_last_6_months / 6)`. **Thresholds: ≤ 4 seller's market, 4–6 balanced, ≥ 6 buyer's market.** The verdict pill MUST match the months-of-supply number computed against these thresholds. A "seller's market" caption next to 4.3 months is a fail.
+
+9. **Never round in a way that changes the market narrative.** $474,500 may render as `$475K` (rounding within ±0.5%, no narrative shift). $474,500 may NOT render as `$500K` (changes the price-point story). Inventory at 12.3 active listings does NOT round to "low double-digits" if that obscures whether we're in 4-month or 6-month MoS territory. When in doubt, show the full number.
+
+### Verification trace (mandatory artifact)
+
+Before any video deliverable is rendered, posted, sent, or committed: produce a one-line verification trace per figure. Example:
+
+```
+$475K median — Supabase market_pulse_live, city='Redmond', property_type='A',
+period='YTD-2026-04-27', n=188, fetched 2026-04-27T14:33:01-07:00
+```
+
+Matt or any reviewer can audit the trace from `citations.json`. No trace, no ship — regardless of how good the cinematics, hook, or scorecard look.
+
+### Data sources + creds inventory
+
+- **Supabase** (`ryan-realty-platform` project): `market_pulse_live`, `market_stats_cache`, `listings`. Use the Supabase MCP for live queries (`mcp__5adfee1a-...__execute_sql`).
+- **Spark API**: `SPARK_API_KEY` and `SPARK_API_BASE_URL=https://replication.sparkapi.com/v1` in `.env.local` ✅ provisioned (verified 2026-04-27).
+- **Spark Token / Bridge API / RESO API**: ❌ NOT provisioned in `.env.local` as of 2026-04-27. If a build needs OAuth-flow Spark, Bridge, or RESO Web API endpoints, surface the missing credential to Matt before scaffolding — do NOT invent endpoints or stub data.
+- **Primary external sources**: NAR, Freddie Mac PMMS, Case-Shiller, OHCS, AEI Housing Center, NAHB Wells Fargo HMI, Census, BLS, FRED, Center for American Progress.
+
+This section supersedes hook rules, length rules, brand rules, voice rules, and viral scorecard minimums. **Wrong number = the video doesn't ship**, even at 100/100 on the viral guardrails.
+
+---
+
 **Pair-required reading (load all three before any build):**
 1. **[`ANTI_SLOP_MANIFESTO.md`](ANTI_SLOP_MANIFESTO.md)** — banned-content gate. Twelve hard rules. Voice rules, fair-housing, AI disclosure, brand visual standards.
 2. **[`VIRAL_GUARDRAILS.md`](VIRAL_GUARDRAILS.md)** — pre-publish virality gate. 100-point scorecard, format-specific minimum scores, frame-by-frame hook spec, platform-specific length / aspect / cadence specs. Every piece scores against this gate before it ships. Default ship floor: 80/100. Format minimums: listing video 85, market data 80, neighborhood 80, meme 75, earth zoom 85.
 3. **This file** (the master skill) — codifies the *how* of video production.
 
-The manifesto codifies *what's banned*. The viral guardrails codify *what's required to publish*. The master skill codifies *how the video is built*. All three are loaded before any build. They do not contradict — they layer.
+The manifesto codifies *what's banned*. The viral guardrails codify *what's required to publish*. The master skill codifies *how the video is built*. All three are loaded before any build. They do not contradict — they layer. Section 0 above outranks all of them.
 
 This file replaces ad-hoc decisions across the v5 series of Schoolhouse listing videos and codifies what shipped vs what didn't. Every cinematic-short-film instinct that ate 130 seconds of a 45-second slot is documented here as a banned pattern. Every viral retention rule that landed is locked.
 

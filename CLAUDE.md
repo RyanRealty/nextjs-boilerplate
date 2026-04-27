@@ -293,6 +293,22 @@ Everything else (debugging, architecture, testing-strategy, documentation, incid
 
 **Read `video_production_skills/VIDEO_PRODUCTION_SKILL.md` before writing any video code or Remotion composition. This is non-negotiable.**
 
+### Data Accuracy in Video — OUTRANKS EVERYTHING
+
+**Every number shown or spoken in a video MUST trace to a verified primary source. Read `video_production_skills/VIDEO_PRODUCTION_SKILL.md` Section 0 in full before writing any video code. A pretty render with a wrong number does not ship — even at 100/100 on the viral scorecard.**
+
+- All figures trace to Supabase (`market_pulse_live`, `market_stats_cache`, `listings`), Spark API (`SPARK_API_BASE_URL` + `SPARK_API_KEY` in `.env.local`), or a named primary source (NAR, Case-Shiller, NAHB, AEI, etc.).
+- Query the primary source live BEFORE scaffolding the BEATS array — never inherit numbers from a brief, prior chat turn, web article, or previous render.
+- `citations.json` ships alongside every render. One entry per figure: source, table, column, filter, row count, `fetched_at_iso`, query text. No citations, no ship.
+- Research briefs, web articles, and conversation context are untrusted. Cross-verify against the primary database.
+- Unverifiable stat = cut. No estimating. No rounding to fill a gap. No "approximately."
+- **Market reports**: always `property_type='A'` (SFR), YTD windows, apples-to-apples periods. YoY = same window across two years, not Q1 vs full-year.
+- **Spark cross-check**: when Supabase and Spark cover the same field, flag and resolve discrepancies > 1% before render. Spark wins for active inventory + DOM; Supabase wins for reconciled historical close data.
+- **Months of supply** = `active_listings / (closed_last_6_months / 6)`. Thresholds: ≤ 4 seller's, 4–6 balanced, ≥ 6 buyer's. Verdict pill must match the number.
+- **Never round in a way that changes the narrative.** $474,500 → `$475K` is fine; $474,500 → `$500K` is not.
+
+`.env.local` cred status (verified 2026-04-27): `SPARK_API_KEY` ✅, `SPARK_API_BASE_URL` ✅ (`https://replication.sparkapi.com/v1`). `SPARK_TOKEN`, `BRIDGE_API_KEY`, `RESO_API_KEY` ❌ not provisioned — surface to Matt before any build that needs them.
+
 ### ElevenLabs Voice — MANDATORY
 
 - **Voice: Victoria — Voice ID: `qSeXEcewz7tA0Q0qk9fH`**
