@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.87.0 (2026-04-27)
+
+### Features
+- feat(news): re-render 3 news clips with VO + captions + white-logo end card
+
+---
+
+
 ## v1.86.2 (2026-04-27)
 
 ### Maintenance
