@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.90.0 (2026-04-27)
+
+### Features
+- feat(news): RE/MAX + Real Brokerage merger 45s viral clip
+
+---
+
+
 ## v1.89.0 (2026-04-27)
 
 ### Features
