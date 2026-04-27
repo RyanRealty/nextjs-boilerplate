@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.85.0 (2026-04-27)
+
+### Features
+- feat(memes): meme_lord v3 — 10 fresh slots calibrated to working-agent voice
+
+---
+
+
 ## v1.84.0 (2026-04-26)
 
 ### Features
