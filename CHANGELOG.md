@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.86.2 (2026-04-27)
+
+### Maintenance
+- chore: news render + ffmpeg audio post-mix scripts
+
+---
+
+
 ## v1.86.1 (2026-04-27)
 
 ### Maintenance
