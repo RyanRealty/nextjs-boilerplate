@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.91.3 (2026-04-27)
+
+### Maintenance
+- docs(claude): draft-first commit-last + video build hard rules
+
+---
+
+
 ## v1.91.2 (2026-04-27)
 
 ### Maintenance
