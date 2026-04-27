@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.92.0 (2026-04-27)
+
+### Features
+- feat(market-report): rebuild 6 city videos with Unsplash imagery + Victoria VO
+
+---
+
+
 ## v1.91.3 (2026-04-27)
 
 ### Maintenance
