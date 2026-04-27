@@ -30,6 +30,152 @@ Before any market-data deliverable is sent, rendered, posted, or committed: prod
 
 ---
 
+# Draft-First, Commit-Last — ABSOLUTE (READ SECOND)
+
+**Nothing gets committed, pushed, posted, sent, rendered to a tracked location, or written to a place a publishing automation can pick up — until Matt has personally seen the draft and explicitly approved it.** No exceptions. This rule outranks every autonomy convenience instruction in this file, including "always push directly to main," "push to origin immediately after every commit," and "never ask Matt to run anything manually."
+
+The autonomy rules below describe HOW work happens once it's approved. They do NOT grant authority to commit unreviewed work.
+
+## What this means in practice
+
+1. **Build to a draft location, not to main.** Render videos to `out/` (gitignored). Write copy to a scratch file. Scaffold Remotion comps and run them locally — but do NOT `git add` the final deliverable until Matt has eyes on it.
+2. **Show the draft.** Send the rendered MP4 path, paste the copy, open the artifact in a preview tool, attach stills from the render, or otherwise put the work in front of Matt in a way he can actually evaluate.
+3. **Wait for explicit approval.** "Looks good," "ship it," "push it," "commit and push," "approved," "go" — words Matt actually says. Silence is not approval. A successful build is not approval. A scorecard hitting its threshold is not approval. A subagent's "ready" report is not approval.
+4. **Then commit + push.** Once approved, follow the existing workflow (single-checkout `main`, push to `origin` immediately, no feature branches).
+
+## What's forbidden
+
+- Auto-committing rendered MP4s to `public/v5_library/` (or any tracked location) without showing Matt first.
+- Auto-pushing copy, captions, blog posts, emails, social drafts, CMAs, listing descriptions to anywhere a downstream automation could pick them up before Matt sees them.
+- Treating a passing scorecard / quality gate / build as approval. Those are necessary, not sufficient.
+- Treating "the user said 'do X'" several turns ago as approval for the specific deliverable produced now. Re-confirm each turn before commit.
+- Pushing first and asking forgiveness. Reverting a published commit costs more than waiting one turn.
+
+## What is still auto-allowed (no approval needed)
+
+- Local file edits, npm installs, dependency updates needed to get a draft to the review point.
+- Running tests, builds, and renders to scratch (`out/`, `tmp/`, gitignored paths).
+- Pulling latest from `main` to stay in sync.
+- Reading any file in the repo.
+- Drafting `scorecard.json` / `citations.json` / verification traces alongside the draft.
+- Asking Matt clarifying questions before building the draft.
+
+The rule governs COMMIT and PUSH. It does not govern the work that produces the draft.
+
+## How to ask for approval (the standard format)
+
+When a draft is ready, surface it like this:
+
+> **Draft ready:** `<path or preview URL>`
+> **Scorecard:** `<X/100>` (format minimum `<Y>`)
+> **Verification trace:** `<one-line summary>`
+> **Ready to commit + push to `main` on your sign-off.**
+
+Then stop. Do not commit. Do not push. Wait.
+
+## When in doubt
+
+If a deliverable could plausibly be the kind of thing Matt would want to review, treat it as draft-first. The cost of one extra confirmation turn is far cheaper than the cost of an unwanted commit landing on `main` and propagating to the production build, the website, the social pipeline, or the email queue.
+
+---
+
+# Video Build Hard Rules (READ THIRD — for any video task)
+
+**These are the ship-blocker rules every video build must follow.** Inlining them here so agents do NOT have to re-read 2,000+ lines of `video_production_skills/*.md` for routine builds. Read those skill files only when doing something novel (new format, new sub-skill, edge case).
+
+## Format
+- 1080×1920 portrait, 30 fps, h264 + aac, faststart, file < 100 MB.
+- **Length: 30–45s for viral cuts. Never over 60s.** News clips, listings, market data → 30–45s. Long-form market reports may go to 60s.
+- Captions burned in. ~80% of short-form viewers are muted; captions carry the video.
+
+## Hook (first 2 seconds)
+- Motion engaged by frame 12 (0.4s). Never static at frame 0.
+- On-screen text by frame 30 (1.0s). Centered, 64–80 px headline.
+- First spoken word is content (no "hey," "today," "welcome," "let's talk about").
+- Hook contains specific element: number, place name, contradicting claim, or visual surprise.
+- **Banned openings:** logo, brokerage name, title card on black, "REPRESENTED BY," slow boundary draw, agent intro, generic drone-with-no-overlay.
+
+## Beats
+- Standard 2–3s per beat. Luxury drone 3–4s MAX. **No beat over 4s.**
+- Minimum 12 beats in a 45s video.
+- Three motion types minimum (push_in, push_counter, slow_pan, multi_point_pan, gimbal_walk, cinemagraph, parallax).
+
+## Pattern interrupts (anchored to real content beats, not gimmicks)
+- 25% mark: new visual register or text shock.
+- 50% mark: hard register shift (exterior → interior, drone → closeup, etc.).
+- Final 15%: kinetic stat reveal. **No brokerage attribution, no logo, no contact info in the reveal frame.**
+
+## Text overlays
+- Safe zone 900×1400 inside 1080×1920 (90 px margin every edge).
+- Body ≥ 48 px, headlines 64–80 px.
+- Min 2s display per block. Max 5–7 words per block.
+- Numbers carry units always: "$3,025,000" not "3,025,000," "4 bedrooms" not "4 BR."
+- White text + shadow OR dark pill under text. Never white-on-white, never gold-on-gold.
+
+## VO (ElevenLabs only)
+- **Voice: Ellen, ID `BIvP0GN1cAtSRTxNHnWS`** (locked per `docs: lock Ellen ElevenLabs voice` commit). No other voice.
+- Settings: stability 0.45–0.55, similarity 0.75–0.85, style 0.15–0.45, speaker_boost on, speed 0.95.
+- **`previous_text` chained** across all lines for prosody continuity.
+- Numbers spelled out for ingestion: "475,000" → "four hundred seventy five thousand."
+- IPA phoneme tag for tricky place names on `eleven_v3` model: Deschutes (`dəˈʃuːts` — "duh-shoots"), Tumalo (`TOO-muh-low`), Tetherow, Awbrey, Terrebonne.
+- Sentences short. Two clauses max. No commas where Matt wouldn't pause.
+
+## Brand (zero in frame for viral cuts)
+- **No logo, no "Ryan Realty" text, no phone, no agent name, no URL anywhere in the video frame.**
+- Brand colors: Navy `#102742`, Gold `#D4AF37` (news clips) / `#C8A864` (listing reels), Cream `#F2EBDD`, Charcoal `#1A1A1A`. No off-brand hex.
+- Fonts: Amboqia (headlines), AzoSans (body, captions). No Helvetica, no system fallback.
+- **End card uses `listing_video_v4/public/brand/stacked_logo_white.png`** — never text-only Ryan Realty.
+- News-clip caption pill spec: bottom zone y 1480–1720, AzoSans 56 px, 70% navy pill (`rgba(16,39,66,0.70)`), 24 px corner radius, 2 px gold top border. Must NOT overlay graphics.
+
+## Banned words (any caption, VO, on-screen text, blog, email, listing copy)
+- stunning, nestled, boasts, charming, pristine, gorgeous, breathtaking, must-see, dream home
+- meticulously maintained, entertainer's dream, tucked away, hidden gem
+- truly, spacious, cozy, luxurious, updated throughout
+- "approximately," "roughly," "about" as a substitute for the real number
+- Em-dashes, semicolons, AI filler ("delve," "leverage," "tapestry," "navigate," "robust," "seamless," "comprehensive," "elevate," "unlock")
+
+## Render hygiene
+- `cd listing_video_v4 && npx remotion render src/index.ts <CompId> out/<name>.mp4 --codec h264 --concurrency 1 --crf 22 --image-format=jpeg --jpeg-quality=92`
+- **Concurrency=1 is required** (Chrome OOMs higher).
+- Audio-codec patch is in place (native `aac` encoder, not `libfdk_aac`); ffmpeg/ffprobe symlinks point at static-ffmpeg. If audio-mix hangs, fall back to video-only render + ffmpeg post-mix via `scripts/mix_news_audio.sh`.
+- Pre-render asset audit: verify `public/v5_library/`, `public/brand/stacked_logo_white.png`, `public/fonts/*`, all referenced VO mp3s exist.
+
+## Quality gate (run BEFORE asking for approval)
+```
+[ ] ffprobe Duration in [30s, 60s]
+[ ] ffmpeg blackdetect strict (pix_th=0.05) returns ZERO sequences
+[ ] Frame at 0s has motion + content (not black, not logo)
+[ ] Frame at 25% has visual register change
+[ ] Frame at 50% has pattern interrupt
+[ ] Final 15% is kinetic reveal
+[ ] No frozen frames at beat boundaries
+[ ] No black bars at transitions (parent div transparent + Sequence overlap)
+[ ] Banned-words grep clean across captions, VO script, source pills
+[ ] All on-screen numbers carry units and trace to citations.json
+[ ] No logo / "Ryan Realty" / phone / agent name in any frame except end card
+[ ] File size < 100 MB
+```
+
+## Viral scorecard (run AFTER quality gate, BEFORE asking for approval)
+- Score 1–10 in each of 10 categories per `video_production_skills/VIRAL_GUARDRAILS.md` §3 (hook, retention, text, audio, format, engagement, cover, cta, voice/brand, antislop).
+- **Format minimums:** listing video 85, market data 80, neighborhood 80, meme 75, earth zoom 85, news clip 80. Default ship floor 80.
+- Write `out/<deliverable>/scorecard.json` next to the render. Write `out/<deliverable>/citations.json` with every figure traced to a primary source.
+- Auto-zero hits (banned word, unverified number, AI without disclosure, fair-housing hit) = ship-blocker regardless of headline score.
+
+## Draft-first applies (see "Draft-First, Commit-Last" above)
+- Render to `out/` (gitignored). Run quality gate + scorecard. Show Matt the path + scorecard summary. Wait for explicit approval. Then move to `public/v5_library/` and commit.
+
+## When to read the long skill files
+Read the full `video_production_skills/VIDEO_PRODUCTION_SKILL.md` + `VIRAL_GUARDRAILS.md` + `ANTI_SLOP_MANIFESTO.md` ONLY when:
+- First time doing a brand-new format (no prior render in `out/` or `public/v5_library/` matches).
+- An edge case isn't covered by the rules above.
+- Auditing or debugging a scoring decision.
+- Onboarding a new sub-skill (`depth_parallax/`, `gaussian_splat/`, `audio_sync/`, etc.).
+
+For routine rebuilds — listing videos, news clips, market data drops, area guides — these inline rules are enough. Do NOT re-ingest 2,000 lines per build.
+
+---
+
 # Design System Rules — MANDATORY
 
 ## shadcn/ui is the ONLY styling authority
