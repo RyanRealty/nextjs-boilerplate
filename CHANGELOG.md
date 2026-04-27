@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.87.2 (2026-04-27)
+
+### Maintenance
+- docs: lock Ellen ElevenLabs voice (BIvP0GN1cAtSRTxNHnWS) as mandatory
+
+---
+
+
 ## v1.87.1 (2026-04-27)
 
 ### Maintenance
