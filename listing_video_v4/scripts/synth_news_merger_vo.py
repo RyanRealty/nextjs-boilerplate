@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """News clip VO — RE/MAX + Real Brokerage merger, ElevenLabs prosody-chained.
 
-Voice: Ellen (BIvP0GN1cAtSRTxNHnWS) — same news anchor used for the prior 3
-news clips (golden_handcuffs, sun_belt_correction, tariffs). Settings match
-synth_news_vo.py (stability 0.55, similarity_boost 0.85, style 0.15).
+Voice: Victoria — Ryan Realty Anchor (qSeXEcewz7tA0Q0qk9fH).
+Model: eleven_turbo_v2_5. Settings: stability 0.50, similarity_boost 0.75,
+style 0.35, speaker_boost True.
+Voice locked 2026-04-27 (replaces prior Ellen BIvP0GN1cAtSRTxNHnWS).
 
 Each sentence chains previous_text from the prior line for prosody
 continuity per ANTI_SLOP_MANIFESTO.md Rule 3 + VIDEO_PRODUCTION_SKILL.md
@@ -24,7 +25,7 @@ ROOT = Path("/Users/matthewryan/RyanRealty/listing_video_v4")
 OUT = ROOT / "public" / "audio"
 OUT.mkdir(parents=True, exist_ok=True)
 
-VOICE = "BIvP0GN1cAtSRTxNHnWS"  # Ellen — news anchor
+VOICE = "qSeXEcewz7tA0Q0qk9fH"  # Victoria — Ryan Realty Anchor (locked 2026-04-27)
 
 
 def load_env(path):

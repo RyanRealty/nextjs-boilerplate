@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """News clip VO — RE/MAX + Real Brokerage merger, ElevenLabs, prosody-chained.
 
-Voice: Ellen (BIvP0GN1cAtSRTxNHnWS) — news anchor, declarative, paced.
-Model: eleven_turbo_v2_5 (canonical Ellen — matches market-report config).
-Settings: stability 0.50, similarity_boost 0.75, style 0.35, speaker_boost True.
-Each sentence chains previous_text from same clip for prosody continuity.
+Voice: Victoria — Ryan Realty Anchor (qSeXEcewz7tA0Q0qk9fH).
+Model: eleven_turbo_v2_5. Settings: stability 0.50, similarity_boost 0.75,
+style 0.35, speaker_boost True.
 
-(Updated 2026-04-27: model + settings aligned with market-report scorecards
-that Matt approved. Prior eleven_multilingual_v2 + 0.55/0.85/0.15 produced
-audibly different Ellen and was rejected.)
+Voice locked 2026-04-27 (replaces prior Ellen BIvP0GN1cAtSRTxNHnWS).
+Each sentence chains previous_text from same clip for prosody continuity.
 
 Source for every figure (cited in companion citations.json):
   - $880M deal value: Inman 2026-04-27, BusinessWire press release 2026-04-26
@@ -28,7 +26,7 @@ ROOT = Path("/Users/matthewryan/RyanRealty/listing_video_v4")
 OUT = ROOT / "public" / "audio"
 OUT.mkdir(parents=True, exist_ok=True)
 
-VOICE = "BIvP0GN1cAtSRTxNHnWS"  # Ellen — news anchor
+VOICE = "qSeXEcewz7tA0Q0qk9fH"  # Victoria — Ryan Realty Anchor (locked 2026-04-27)
 
 
 def load_env(path):

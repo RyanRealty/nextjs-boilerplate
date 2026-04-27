@@ -17,13 +17,15 @@ This file replaces ad-hoc decisions across the v5 series of Schoolhouse listing 
 
 ### ElevenLabs Voice — MANDATORY
 
-- **Voice: Ellen — Voice ID: `BIvP0GN1cAtSRTxNHnWS`**
-- Env var: `ELEVENLABS_VOICE_ID_ELLEN` in `.env.local`
+- **Voice: Victoria — Voice ID: `qSeXEcewz7tA0Q0qk9fH`**
+- Voice profile: middle-aged American, conversational, warm, trustworthy, relatable. Designed for explainer videos, viral social, and modern brand VO. Saved on account as "Victoria — Ryan Realty Anchor."
+- Env vars in `.env.local`: `ELEVENLABS_VOICE_ID=qSeXEcewz7tA0Q0qk9fH`, `ELEVENLABS_VOICE_ID_VICTORIA=qSeXEcewz7tA0Q0qk9fH`
 - API key: `ELEVENLABS_API_KEY` in `.env.local`
-- **ALWAYS use Ellen for ALL voiceover.** No other voice. No substituting. No asking.
-- Use `previous_text` chaining for prosody continuity across sentences.
+- **ALWAYS use Victoria for ALL voiceover.** No other voice. No substituting. No asking.
+- **Canonical model + settings**: `eleven_turbo_v2_5`, stability `0.50`, similarity_boost `0.75`, style `0.35`, `use_speaker_boost: true`. These match the market-report scorecards Matt approved. Different model or different settings = different-sounding voice = a rejected render.
+- Use `previous_text` chaining for prosody continuity across sentences within a clip.
 - Use IPA phoneme tags for tricky pronunciations (e.g., Deschutes → `<phoneme alphabet="ipa" ph="dəˈʃuːts">Deschutes</phoneme>`).
-- Matt approved this voice. It is locked in permanently.
+- Matt approved this voice 2026-04-27 (replaces prior Ellen `BIvP0GN1cAtSRTxNHnWS`). It is locked in permanently.
 
 ### Pacing Rule — First Scenes
 

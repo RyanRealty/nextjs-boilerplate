@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """News clip VO — 3 viral news-style clips, ElevenLabs, prosody-chained.
 
-Voice: Ellen — Ryan Realty Anchor (BIvP0GN1cAtSRTxNHnWS).
-Model: eleven_turbo_v2_5 (canonical Ellen model — matches market-report config).
-Settings: stability 0.50, similarity_boost 0.75, style 0.35, speaker_boost True.
+Voice: Victoria — Ryan Realty Anchor (qSeXEcewz7tA0Q0qk9fH).
+Model: eleven_turbo_v2_5. Settings: stability 0.50, similarity_boost 0.75,
+style 0.35, speaker_boost True.
 
-These match the market-report scorecard config that Matt approved. The
-prior eleven_multilingual_v2 + stability 0.55 / sim 0.85 / style 0.15
-combo produced an audibly different Ellen even with the same voice ID —
-that mismatch is what made Matt say "voice still wrong" on the v45
-news renders. Locked here.
+Locked 2026-04-27 (replaces prior Ellen BIvP0GN1cAtSRTxNHnWS). Voice profile:
+middle-aged American, conversational, warm, trustworthy, relatable. Designed
+for explainer videos, viral social, and modern brand VO.
 
 Each sentence chains previous_text from the same clip for prosody continuity.
 """
@@ -20,7 +18,7 @@ ROOT = Path("/Users/matthewryan/RyanRealty/listing_video_v4")
 OUT = ROOT / "public" / "audio"
 OUT.mkdir(parents=True, exist_ok=True)
 
-VOICE = "BIvP0GN1cAtSRTxNHnWS"  # Ellen — news anchor
+VOICE = "qSeXEcewz7tA0Q0qk9fH"  # Victoria — Ryan Realty Anchor (locked 2026-04-27)
 
 
 def load_env(path):
