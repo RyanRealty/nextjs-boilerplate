@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.92.5 (2026-04-29)
+
+### Maintenance
+- docs(video): codify final two-layer overlay spec for listing videos
+
+---
+
+
 ## v1.92.4 (2026-04-28)
 
 ### Maintenance
