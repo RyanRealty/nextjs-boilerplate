@@ -40,6 +40,14 @@ type TilesSceneProps = {
   fov?: number;
   near?: number;
   far?: number;
+  /**
+   * Override tile-loading release thresholds. Defaults match the Cascade
+   * Peaks orbit shots (95 loads / 10s quiet / 225s cap). Stills and tighter
+   * framings can use much lower values.
+   */
+  minLoads?: number;
+  quietMs?: number;
+  maxWaitMs?: number;
 };
 
 export const TilesScene: React.FC<TilesSceneProps> = ({
@@ -47,6 +55,9 @@ export const TilesScene: React.FC<TilesSceneProps> = ({
   children,
   width = WIDTH,
   height = HEIGHT,
+  minLoads,
+  quietMs,
+  maxWaitMs,
 }) => {
   if (!GOOGLE_MAPS_KEY) {
     throw new Error(
@@ -58,17 +69,18 @@ export const TilesScene: React.FC<TilesSceneProps> = ({
   const releasedRef = useRef(false);
   const lastLoadRef = useRef<number>(Date.now());
   const loadCountRef = useRef(0);
-  // Allow up to ~230s for the first batch to stream in.
-  const MAX_WAIT_MS = 225_000;
+  // Allow up to ~230s for the first batch to stream in (default).
+  const MAX_WAIT_MS = maxWaitMs ?? 225_000;
   // Require at least this many tile/model loads before considering release.
   // Google Photorealistic 3D Tiles stream many tiles per LOD; a handful isn't
-  // enough for the camera's current view. Bumped from 12 → 20 → 40 because
+  // enough for the camera's current view. Bumped from 12 → 20 → 40 → 95 because
   // some peak configs (Washington's plug-dome spire, North Sister's jagged
   // summit) need more LOD detail in the foreground — early release produced
-  // tile-tear artifacts and missing summit geometry.
-  const MIN_LOADS = 95;
+  // tile-tear artifacts and missing summit geometry. Stills with tight framing
+  // can pass a much lower override (~25).
+  const MIN_LOADS = minLoads ?? 95;
   // Quiet period with no new loads that signals "stable for now".
-  const QUIET_MS = 10_000;
+  const QUIET_MS = quietMs ?? 10_000;
 
   useEffect(() => {
     handleRef.current = delayRender('cascade-peaks-tiles-loading', {

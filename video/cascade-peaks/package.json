@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "^8.17.10",
+    "@remotion/bundler": "^4.0.290",
     "@remotion/cli": "4.0.290",
     "@remotion/fonts": "4.0.290",
     "@remotion/renderer": "4.0.290",
