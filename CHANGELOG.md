@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.101.1 (2026-05-01)
+
+### Other
+- Add research-validated engagement guardrails (12 techniques)
+
+---
+
+
 ## v1.101.0 (2026-05-01)
 
 ### Features
