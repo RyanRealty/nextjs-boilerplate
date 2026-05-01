@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.100.0 (2026-05-01)
+
+### Features
+- feat(voice): ElevenLabs Victoria TTS + forced-alignment helper
+
+---
+
+
 ## v1.99.0 (2026-05-01)
 
 ### Features
