@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.95.0 (2026-05-01)
+
+### Features
+- feat(market-report): VideoProps interface for YouTube long-form pipeline
+
+---
+
+
 ## v1.94.1 (2026-05-01)
 
 ### Maintenance
