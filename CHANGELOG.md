@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.98.0 (2026-05-01)
+
+### Features
+- feat(youtube-market-report): scene builders, citations, generateProps orchestrator
+
+---
+
+
 ## v1.97.0 (2026-05-01)
 
 ### Features
