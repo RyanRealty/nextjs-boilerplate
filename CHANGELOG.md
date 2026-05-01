@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.94.1 (2026-05-01)
+
+### Maintenance
+- docs(skills): add build-guardrails for youtube-market-reports pipeline
+
+---
+
+
 ## v1.94.0 (2026-05-01)
 
 ### Features
