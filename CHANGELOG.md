@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.96.0 (2026-05-01)
+
+### Features
+- feat(youtube-market-report): pure aggregation helpers
+
+---
+
+
 ## v1.95.0 (2026-05-01)
 
 ### Features
