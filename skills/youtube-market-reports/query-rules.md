@@ -26,7 +26,7 @@ CloseDate stored as midnight UTC. In Pacific time, that is 4pm the previous day.
 ### C3: market_pulse_live MoS is WRONG — Never Use (CRITICAL — SHIP-BLOCKER)
 **The stored `market_pulse_live.months_of_supply` mixes ALL `PropertyType='A'` sub-types (SFR, condo, manufactured, land artifacts) and uses an undocumented 90d/3 formula instead of an SFR-only 6-month rate.**
 
-Measured Bend gap on 2026-04-30: stored MoS = `5.80` (would print "balanced market" on camera) vs SFR-only manual computation = `4.20` (seller's market). **That 38% gap can flip a market verdict on camera** — a publishing-quality compliance failure.
+Measured Bend gap on 2026-04-30: stored MoS = `5.80` vs SFR-only manual computation = `4.20`. The stored value crosses the 4.0 / 6.0 thresholds in the wrong place — at 5.80 the verdict pill would print "Balanced Market" while at 4.20 it still reads "Balanced Market" but only barely (the boundary is 4.0). **The 38% delta is large enough to flip a market verdict on the next render or against the next month's data** — a publishing-quality compliance failure.
 
 Other measured deltas: La Pine stored 13.47 vs computed 14.90 (delta -1.43). Terrebonne stored 10.52 vs computed 13.96 (delta -3.44). The delta is not a bias you can correct for — it depends on how many non-SFR records the city's stored aggregate happened to include.
 
@@ -398,12 +398,12 @@ FROM active a, closed c, params p;
 1. Print `active_count`, `closed_count`, `lookback_days`, and the divisor (`monthly_close_rate`) before reading the MoS value.
 2. Cross-check `active_count` against Spark API. Spark wins for active inventory; if delta > 1%, abort and reconcile.
 3. Confirm the verdict pill (`Seller's / Balanced / Buyer's`) matches the computed `months_of_supply` against the ≤ 4 / 4–6 / ≥ 6 thresholds. A "Seller's Market" pill next to 5.5 MoS is a hard ship-blocker.
-4. Write the citation: `{ "metric": "Months of Supply", "value": 4.20, "active": 412, "closed_180d": 706, "formula": "active / (closed_180d / 180 * 30)", "source": "Supabase listings (SFR-only manual)", "spark_active": 410, "spark_delta_pct": 0.49, "fetched_at_iso": "..." }`. Citation MUST NOT mention `market_pulse_live` as a source.
+4. Write the citation: `{ "metric": "Months of Supply", "value": 4.20, "active": 412, "closed_180d": 588, "formula": "active / (closed_180d / 180 * 30)", "source": "Supabase listings (SFR-only manual)", "spark_active": 410, "spark_delta_pct": 0.49, "fetched_at_iso": "..." }`. Citation MUST NOT mention `market_pulse_live` as a source. (412 / (588/180*30) = 412 / 98 = 4.20.)
 
 **Reference deltas (Bend, 2026-04-30) — for sanity-checking your computation:**
 - Stored `market_pulse_live.months_of_supply`: 5.80 (mixes all `PropertyType='A'` sub-types) — **do not use**.
 - SFR-only manual via this template: 4.20 — **use this**.
-- 38% gap — flips verdict from "balanced" to "seller's market" on camera. This is exactly the failure mode the rule prevents.
+- 38% delta. Both values land in the Balanced band (4.0 < MoS < 6.0) at this snapshot, but a 38% gap is large enough to cross the 4.0 / 6.0 thresholds against the next month's data — the failure mode this rule prevents is a verdict flip on the next render, not necessarily this one.
 
 ## Gotchas Table
 

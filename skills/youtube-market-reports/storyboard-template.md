@@ -183,7 +183,7 @@ GROUP BY 1 ORDER BY 1;
 
 **Scene 4B: Months of supply — use `query-rules.md` Template 11 verbatim. Do NOT inline a custom MoS query here.**
 
-Template 11 enforces UF1 + UF3 (SFR filter on both CTEs, ClosePrice ≥ 10000 on the closed CTE) and the canonical `active / (closed_N_days / N * 30)` formula. **Never read `market_pulse_live.months_of_supply` into this scene** — measured Bend gap on 2026-04-30 was stored 5.80 vs SFR-only 4.20 (38%, would flip the gauge needle from "balanced" yellow to "seller's" red zone on camera). Per `query-rules.md` C3 this is a hard ship-blocker.
+Template 11 enforces UF1 + UF3 (SFR filter on both CTEs, ClosePrice ≥ 10000 on the closed CTE) and the canonical `active / (closed_N_days / N * 30)` formula. **Never read `market_pulse_live.months_of_supply` into this scene** — measured Bend gap on 2026-04-30 was stored 5.80 vs SFR-only 4.20 (38%); both values land in the Balanced band at this snapshot, but a delta that large is enough to push the gauge needle across the 4.0 or 6.0 verdict boundary on the next render. Per `query-rules.md` C3 this is a hard ship-blocker.
 
 **Gauge color-band rule:** the gauge's color zone under the needle MUST match the verdict pill text and both must derive from the manually-computed MoS value. ≤ 4 = seller's (red zones), 4–6 = balanced (yellow), ≥ 6 = buyer's (green). If the manual number is 4.2 and the gauge needle lands in the yellow zone, the pill says "Balanced Market" — never override with stored verdicts.
 
