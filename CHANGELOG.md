@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.109.0 (2026-05-03)
+
+### Features
+- feat(video-evergreen): VO fallback chain (Grok TTS / OpenAI / skip) + auto-fit pacing
+
+---
+
+
 ## v1.108.0 (2026-05-03)
 
 ### Features
