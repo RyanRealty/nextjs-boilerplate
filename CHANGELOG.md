@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.106.0 (2026-05-03)
+
+### Features
+- feat(video-evergreen): scaffolding fixes + scripts + first render
+
+---
+
+
 ## v1.105.0 (2026-05-03)
 
 ### Features
