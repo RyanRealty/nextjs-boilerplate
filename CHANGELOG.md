@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.107.1 (2026-05-03)
+
+### Maintenance
+- docs(video-evergreen): add README with run sequence + env + layout
+
+---
+
+
 ## v1.107.0 (2026-05-03)
 
 ### Features
