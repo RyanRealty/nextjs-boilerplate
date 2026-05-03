@@ -2,7 +2,9 @@
   "name": "evergreen-education-video",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": ">=20.10.0" },
+  "engines": {
+    "node": ">=20.10.0"
+  },
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts EvergreenExplainer out/4-pillars/4-pillars.mp4"
@@ -11,6 +13,7 @@
     "@remotion/cli": "4.0.290",
     "@remotion/fonts": "4.0.290",
     "@remotion/renderer": "4.0.290",
+    "@supabase/supabase-js": "^2.105.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "remotion": "4.0.290"
