@@ -1,0 +1,8 @@
+node_modules/
+out/
+public/4-pillars/voiceover.mp3
+public/4-pillars/music.mp3
+public/4-pillars/illustrations/
+public/4-pillars/equity-by-year.json
+public/library/
+.DS_Store
