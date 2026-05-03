@@ -749,8 +749,10 @@ export async function getListingsWithAdvanced(options: {
     ...options,
     sort: baseSort,
   }
-  const listings = await getListings(baseOptions)
-  const totalCount = await getActiveListingsCount(baseOptions)
+  const [listings, totalCount] = await Promise.all([
+    getListings(baseOptions),
+    getActiveListingsCount(baseOptions),
+  ])
   return { listings, totalCount }
 }
 
@@ -1758,8 +1760,10 @@ export async function getNearbyCommunities(
   subdivisionName: string
 ): Promise<NearbyCommunity[]> {
   if (isNaSubdivision(subdivisionName)) return []
-  const centroid = await getCommunityCentroid(city, subdivisionName)
-  const all = await getSubdivisionsInCity(city)
+  const [centroid, all] = await Promise.all([
+    getCommunityCentroid(city, subdivisionName),
+    getSubdivisionsInCity(city),
+  ])
   const others = all.filter((s) => s.subdivisionName.trim() !== subdivisionName.trim())
   if (others.length === 0 || !centroid) return others.slice(0, 3).map((s) => ({ ...s, distanceKm: 0 }))
 

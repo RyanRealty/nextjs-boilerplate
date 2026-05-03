@@ -304,24 +304,25 @@ async function getCommunitiesInCityUncached(cityName: string): Promise<Community
       bySubdivision.set(sub, prices)
     }
   }
-  const { data: pendingRows } = await supabase()
-    .from('listings')
-    .select('SubdivisionName')
-    .ilike('City', cityName)
-    .or(PENDING_OR)
-    .limit(4000)
+  const [pendingRowsRes, resortKeys] = await Promise.all([
+    supabase()
+      .from('listings')
+      .select('SubdivisionName')
+      .ilike('City', cityName)
+      .or(PENDING_OR)
+      .limit(4000),
+    import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()),
+  ])
+  const pendingRows = pendingRowsRes.data ?? []
   for (const row of pendingRows ?? []) {
     const sub = String((row as { SubdivisionName?: string | null }).SubdivisionName ?? '').trim()
     if (!sub) continue
     pendingBySubdivision.set(sub, (pendingBySubdivision.get(sub) ?? 0) + 1)
   }
-  const resortSet = new Set(
-    (await import('@/app/actions/subdivision-flags').then((m) => m.getResortEntityKeys()))
-  )
+  const resortSet = new Set(resortKeys)
   const entityKey = (c: string, s: string) => `${slugify(c)}:${slugify(s)}`
   const subdivisionNames = Array.from(new Set([...countBySubdivision.keys(), ...pendingBySubdivision.keys()]))
-  const entityKeys = subdivisionNames.map((name) => entityKey(cityName, name))
-  const bannerMap = await getBannersBatch('subdivision', entityKeys)
+  const bannerMap = await getBannersBatch('subdivision', subdivisionNames.map((name) => entityKey(cityName, name)))
   const result: CommunityForIndex[] = []
   for (const subdivisionName of subdivisionNames) {
     const h = hotBySubdivision.get(subdivisionName)
