@@ -199,6 +199,20 @@ async function main() {
     const hits = bannedWordHits(captionText)
     if (hits.length) bannedHits.push({ segment: 'captionWords', hits })
   }
+  // Scan post-scripts too — they ride on the same brand voice
+  const { readdir } = await import('node:fs/promises')
+  const postScriptsDir = resolve(OUT_DIR, 'post-scripts')
+  if (await exists(postScriptsDir)) {
+    for (const f of await readdir(postScriptsDir)) {
+      if (!f.endsWith('.md')) continue
+      const txt = await readFile(resolve(postScriptsDir, f), 'utf8')
+      const hits = bannedWordHits(txt)
+      if (hits.length) {
+        bannedHits.push({ segment: `post-scripts/${f}`, hits })
+        console.log(`  ✗ post-scripts/${f}: ${hits.join(', ')}`)
+      }
+    }
+  }
   checks.bannedHits = bannedHits
   if (bannedHits.length === 0) {
     console.log('  ✓ no banned words')
