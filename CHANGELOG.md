@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.103.0 (2026-05-03)
+
+### Features
+- feat(video-evergreen): scaffold pipeline + 4 pillars data
+
+---
+
+
 ## v1.102.0 (2026-05-01)
 
 ### Features
