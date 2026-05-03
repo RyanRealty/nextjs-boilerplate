@@ -67,6 +67,7 @@
     "video:evergreen:synth-vo": "node video/evergreen-education/scripts/synth-vo.mjs",
     "video:evergreen:render": "node video/evergreen-education/scripts/render.mjs",
     "video:evergreen:qc": "node video/evergreen-education/scripts/qc.mjs",
+    "video:evergreen:email": "node video/evergreen-education/scripts/send-delivery-email.mjs",
     "video:evergreen:studio": "npm run studio --prefix video/evergreen-education",
     "video:listing-tour:setup": "node scripts/bootstrap-listing-tour-video.mjs",
     "video:listing-tour:prepare": "npx tsx video/listing-tour/scripts/prepare-tour.ts",
