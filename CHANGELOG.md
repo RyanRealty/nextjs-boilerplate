@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.104.0 (2026-05-03)
+
+### Features
+- feat(video-evergreen): add generate-illustrations.mjs (Grok Imagine)
+
+---
+
+
 ## v1.103.0 (2026-05-03)
 
 ### Features
