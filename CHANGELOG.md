@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.105.0 (2026-05-03)
+
+### Features
+- feat(video-evergreen): Grok Video scout script + decision log
+
+---
+
+
 ## v1.104.0 (2026-05-03)
 
 ### Features
