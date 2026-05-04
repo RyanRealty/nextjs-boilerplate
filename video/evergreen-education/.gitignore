@@ -22,8 +22,10 @@ out/4-pillars/segments/
 out/4-pillars/grok-video-scouts/
 out/4-pillars/music-candidates/
 out/4-pillars/frames/
+out/4-pillars/photos/candidates/
 out/4-pillars/alignment.json
 out/4-pillars/captionWords.json
+out/4-pillars/captionSentences.json
 # Everything else under out/4-pillars/ (text deliverables) is COMMITTED so Matt has them on main:
 #   citations.json, scorecard.json, grok-video-decisions.md, qc-report.json,
 #   music-license.txt, pronunciation-notes.md, post-scripts/*.md

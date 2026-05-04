@@ -3,6 +3,9 @@ import { CREAM, FONT_HEAD, GOLD, NAVY_DEEP } from '../brand'
 
 type Props = {
   illustrationPath: string
+  /** Optional real photo. When present, renders full-bleed with overlay scrim
+   *  (no cream panel). */
+  photoPath?: string | null
   videoOverlayPath?: string | null
   tagline: string
   durationInFrames: number
@@ -18,6 +21,7 @@ type Props = {
  */
 export const OutroBeat: React.FC<Props> = ({
   illustrationPath,
+  photoPath,
   videoOverlayPath,
   tagline,
   durationInFrames,
@@ -33,53 +37,89 @@ export const OutroBeat: React.FC<Props> = ({
 
   return (
     <AbsoluteFill style={{ backgroundColor: NAVY_DEEP }}>
-      {/* Hero illustration — cream backing panel for visual consistency */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 130,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
+      {/* Hero visual — full-bleed photo OR illustration in cream panel */}
+      {photoPath && !videoOverlayPath ? (
+        <>
+          <Img
+            src={staticFile(photoPath)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 240,
+              background: `linear-gradient(to bottom, ${NAVY_DEEP}d0, ${NAVY_DEEP}00)`,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 880,
+              background: `linear-gradient(to top, ${NAVY_DEEP}f5 30%, ${NAVY_DEEP}00)`,
+            }}
+          />
+        </>
+      ) : (
         <div
           style={{
-            width: 760,
-            height: 760,
-            background: CREAM,
-            borderRadius: 32,
+            position: 'absolute',
+            top: 130,
+            left: 0,
+            right: 0,
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 20px 80px rgba(0,0,0,0.5)',
-            border: `2px solid ${GOLD}`,
-            overflow: 'hidden',
           }}
         >
-          {videoOverlayPath ? (
-            <OffthreadVideo
-              src={staticFile(videoOverlayPath)}
-              style={{
-                width: 720,
-                height: 720,
-                objectFit: 'contain',
-              }}
-              muted
-            />
-          ) : (
-            <Img
-              src={staticFile(illustrationPath)}
-              style={{
-                width: 720,
-                height: 720,
-                objectFit: 'contain',
-              }}
-            />
-          )}
+          <div
+            style={{
+              width: 760,
+              height: 760,
+              background: CREAM,
+              borderRadius: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 20px 80px rgba(0,0,0,0.5)',
+              border: `2px solid ${GOLD}`,
+              overflow: 'hidden',
+            }}
+          >
+            {videoOverlayPath ? (
+              <OffthreadVideo
+                src={staticFile(videoOverlayPath)}
+                style={{
+                  width: 720,
+                  height: 720,
+                  objectFit: 'contain',
+                }}
+                muted
+              />
+            ) : (
+              <Img
+                src={staticFile(illustrationPath)}
+                style={{
+                  width: 720,
+                  height: 720,
+                  objectFit: 'contain',
+                }}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tagline */}
       <div

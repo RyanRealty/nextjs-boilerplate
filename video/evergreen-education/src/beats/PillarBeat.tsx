@@ -12,6 +12,9 @@ type Props = {
   pillarNumber: 1 | 2 | 3 | 4
   headline: string
   illustrationPath: string
+  /** Optional real photo. When present, renders in the illustration zone
+   *  with overlay scrim instead of the cream panel. */
+  photoPath?: string | null
   videoOverlayPath?: string | null
   durationInFrames?: number
   params: PillarParams
@@ -43,6 +46,7 @@ export const PillarBeat: React.FC<Props> = ({
   pillarNumber,
   headline,
   illustrationPath,
+  photoPath,
   videoOverlayPath,
   params,
 }) => {
@@ -94,7 +98,11 @@ export const PillarBeat: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Illustration zone — cream backing panel keeps the editorial vector vibe consistent */}
+      {/* Illustration zone — three rendering modes:
+            1. video overlay (Grok i2v cinemagraph) — opt-in, preserves cream panel
+            2. real photo — full-bleed in zone with subtle gold border + dark scrim corners
+            3. stylized illustration — cream backing panel
+       */}
       <div
         style={{
           position: 'absolute',
@@ -105,41 +113,72 @@ export const PillarBeat: React.FC<Props> = ({
           justifyContent: 'center',
         }}
       >
-        <div
-          style={{
-            width: 620,
-            height: 620,
-            background: '#faf8f4',
-            borderRadius: 28,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 16px 60px rgba(0,0,0,0.45)',
-            border: `2px solid ${GOLD}`,
-            overflow: 'hidden',
-          }}
-        >
-          {videoOverlayPath ? (
-            <OffthreadVideo
-              src={staticFile(videoOverlayPath)}
-              style={{
-                width: 580,
-                height: 580,
-                objectFit: 'contain',
-              }}
-              muted
-            />
-          ) : (
+        {photoPath && !videoOverlayPath ? (
+          <div
+            style={{
+              width: 880,
+              height: 620,
+              borderRadius: 24,
+              overflow: 'hidden',
+              boxShadow: '0 16px 60px rgba(0,0,0,0.55)',
+              border: `2px solid ${GOLD}`,
+              position: 'relative',
+            }}
+          >
             <Img
-              src={staticFile(illustrationPath)}
+              src={staticFile(photoPath)}
               style={{
-                width: 580,
-                height: 580,
-                objectFit: 'contain',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
               }}
             />
-          )}
-        </div>
+            {/* Subtle vignette around edges so headline above + data viz below feel anchored */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.35) 100%)',
+              }}
+            />
+          </div>
+        ) : (
+          <div
+            style={{
+              width: 620,
+              height: 620,
+              background: '#faf8f4',
+              borderRadius: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 16px 60px rgba(0,0,0,0.45)',
+              border: `2px solid ${GOLD}`,
+              overflow: 'hidden',
+            }}
+          >
+            {videoOverlayPath ? (
+              <OffthreadVideo
+                src={staticFile(videoOverlayPath)}
+                style={{
+                  width: 580,
+                  height: 580,
+                  objectFit: 'contain',
+                }}
+                muted
+              />
+            ) : (
+              <Img
+                src={staticFile(illustrationPath)}
+                style={{
+                  width: 580,
+                  height: 580,
+                  objectFit: 'contain',
+                }}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Data-viz zone */}

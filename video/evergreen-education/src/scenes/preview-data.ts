@@ -25,6 +25,14 @@ export const defaultPreviewProps: EvergreenInput = {
     taxBenefits: '4-pillars/illustrations/beat-4-tax-benefits.png',
     outro: '4-pillars/illustrations/beat-6-outro.png',
   },
+  photos: {
+    intro: null,
+    cashFlow: null,
+    appreciation: null,
+    loanPaydown: null,
+    taxBenefits: null,
+    outro: null,
+  },
   videoOverlays: {
     cashFlow: null,
     outro: null,

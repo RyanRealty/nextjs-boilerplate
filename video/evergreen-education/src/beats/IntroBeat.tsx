@@ -3,6 +3,9 @@ import { CREAM, FONT_HEAD, GOLD, NAVY_DEEP, WHITE } from '../brand'
 
 type Props = {
   illustrationPath: string
+  /** Optional real photo. When present, renders full-bleed with overlay scrim
+   *  (no cream panel). */
+  photoPath?: string | null
   title: string
   durationInFrames: number
 }
@@ -15,7 +18,7 @@ type Props = {
  *   y 1040 – 1380  title (Amboqia, navy on cream pill)
  *   y 1480 – 1720  caption safe zone (empty for intro)
  */
-export const IntroBeat: React.FC<Props> = ({ illustrationPath, durationInFrames }) => {
+export const IntroBeat: React.FC<Props> = ({ illustrationPath, photoPath, durationInFrames }) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
 
@@ -53,43 +56,83 @@ export const IntroBeat: React.FC<Props> = ({ illustrationPath, durationInFrames 
         AN EVERGREEN PRIMER
       </div>
 
-      {/* Illustration — cream backing panel for visual consistency */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 220,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: 800,
-            height: 800,
-            background: CREAM,
-            borderRadius: 32,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 20px 80px rgba(0,0,0,0.5)',
-            border: `2px solid ${GOLD}`,
-            overflow: 'hidden',
-            transform: `scale(${pushScale})`,
-            transformOrigin: 'center',
-          }}
-        >
+      {/* Hero visual — full-bleed photo OR illustration in cream panel */}
+      {photoPath ? (
+        <>
+          {/* Full-bleed photo */}
           <Img
-            src={staticFile(illustrationPath)}
+            src={staticFile(photoPath)}
             style={{
-              width: 760,
-              height: 760,
-              objectFit: 'contain',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: `scale(${pushScale})`,
+              transformOrigin: 'center',
             }}
           />
+          {/* Top + bottom gradient scrims for header / title legibility */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 400,
+              background: `linear-gradient(to bottom, ${NAVY_DEEP}f0, ${NAVY_DEEP}00)`,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 720,
+              background: `linear-gradient(to top, ${NAVY_DEEP}f0 35%, ${NAVY_DEEP}00)`,
+            }}
+          />
+        </>
+      ) : (
+        <div
+          style={{
+            position: 'absolute',
+            top: 220,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: 800,
+              height: 800,
+              background: CREAM,
+              borderRadius: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 20px 80px rgba(0,0,0,0.5)',
+              border: `2px solid ${GOLD}`,
+              overflow: 'hidden',
+              transform: `scale(${pushScale})`,
+              transformOrigin: 'center',
+            }}
+          >
+            <Img
+              src={staticFile(illustrationPath)}
+              style={{
+                width: 760,
+                height: 760,
+                objectFit: 'contain',
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Title */}
       <div

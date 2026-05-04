@@ -55,6 +55,20 @@ async function main() {
     ? '4-pillars/beat-6-outro.mp4'
     : null
 
+  // Real photos — present if fetch-photos.mjs has run for that slot
+  const photoIfExists = async (slug) => {
+    const p = resolve(PUB_DIR, 'photos', `${slug}.jpg`)
+    return (await exists(p)) ? `4-pillars/photos/${slug}.jpg` : null
+  }
+  const photos = {
+    intro: await photoIfExists('intro-hero'),
+    cashFlow: await photoIfExists('cash-flow'),
+    appreciation: await photoIfExists('appreciation'),
+    loanPaydown: await photoIfExists('loan-paydown'),
+    taxBenefits: await photoIfExists('tax-benefits'),
+    outro: await photoIfExists('outro-hero'),
+  }
+
   // VO present?
   const voPath = (await exists(resolve(PUB_DIR, 'voiceover.mp3'))) ? '4-pillars/voiceover.mp3' : ''
   const musicPath = (await exists(resolve(PUB_DIR, 'music.mp3'))) ? '4-pillars/music.mp3' : undefined
@@ -96,6 +110,7 @@ async function main() {
       taxBenefits: '4-pillars/illustrations/beat-4-tax-benefits.png',
       outro: '4-pillars/illustrations/beat-6-outro.png',
     },
+    photos,
     videoOverlays: {
       cashFlow: cashFlowVideoPath,
       outro: outroVideoPath,

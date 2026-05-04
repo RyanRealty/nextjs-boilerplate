@@ -28,6 +28,16 @@ export type EvergreenInput = {
     taxBenefits: string
     outro: string
   }
+  /** OPTIONAL real photos per beat. When present, overrides the illustration
+   *  for that beat and renders full-bleed instead of in the cream panel. */
+  photos?: {
+    intro?: string | null
+    cashFlow?: string | null
+    appreciation?: string | null
+    loanPaydown?: string | null
+    taxBenefits?: string | null
+    outro?: string | null
+  }
   /** Optional Grok Video clips for beats 1 + 6 (cash flow + outro) */
   videoOverlays?: {
     cashFlow?: string | null
@@ -87,6 +97,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
       <Sequence from={cursor} durationInFrames={introF}>
         <IntroBeat
           illustrationPath={input.illustrations.intro}
+          photoPath={input.photos?.intro ?? null}
           title="The 4 Pillars of Real Estate Wealth"
           durationInFrames={introF}
         />
@@ -100,6 +111,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
           pillarNumber={1}
           headline="Cash Flow"
           illustrationPath={input.illustrations.cashFlow}
+          photoPath={input.photos?.cashFlow ?? null}
           videoOverlayPath={input.videoOverlays?.cashFlow ?? null}
           params={input.pillarParams.cashFlow}
         />
@@ -113,6 +125,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
           pillarNumber={2}
           headline="Appreciation"
           illustrationPath={input.illustrations.appreciation}
+          photoPath={input.photos?.appreciation ?? null}
           params={input.pillarParams.appreciation}
         />
       </Sequence>
@@ -125,6 +138,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
           pillarNumber={3}
           headline="Loan Paydown"
           illustrationPath={input.illustrations.loanPaydown}
+          photoPath={input.photos?.loanPaydown ?? null}
           params={input.pillarParams.loanPaydown}
         />
       </Sequence>
@@ -137,6 +151,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
           pillarNumber={4}
           headline="Tax Benefits"
           illustrationPath={input.illustrations.taxBenefits}
+          photoPath={input.photos?.taxBenefits ?? null}
           params={input.pillarParams.taxBenefits}
         />
       </Sequence>
@@ -152,6 +167,7 @@ export const EvergreenExplainer: React.FC<EvergreenInput> = (input) => {
       <Sequence from={cursor} durationInFrames={outroF}>
         <OutroBeat
           illustrationPath={input.illustrations.outro}
+          photoPath={input.photos?.outro ?? null}
           videoOverlayPath={input.videoOverlays?.outro ?? null}
           tagline="Stacked, they're the wealth most people can't see."
           durationInFrames={outroF}
