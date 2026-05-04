@@ -1,7 +1,8 @@
 import { Composition, staticFile } from 'remotion'
 import { EvergreenExplainer, EvergreenInput, computeDurationFrames } from './EvergreenExplainer'
+import { EvergreenMasterclass, MasterclassInput, computeMasterclassDuration } from './EvergreenMasterclass'
 import { FPS, PORTRAIT_HEIGHT, PORTRAIT_WIDTH } from './brand'
-import { defaultPreviewProps } from './scenes/preview-data'
+import { defaultPreviewProps, defaultMasterclassProps } from './scenes/preview-data'
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -16,6 +17,18 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={defaultPreviewProps}
         calculateMetadata={({ props }: { props: EvergreenInput }) => ({
           durationInFrames: computeDurationFrames(props),
+        })}
+      />
+      <Composition
+        id="EvergreenMasterclass"
+        component={EvergreenMasterclass}
+        durationInFrames={computeMasterclassDuration(defaultMasterclassProps)}
+        fps={FPS}
+        width={PORTRAIT_WIDTH}
+        height={PORTRAIT_HEIGHT}
+        defaultProps={defaultMasterclassProps}
+        calculateMetadata={({ props }: { props: MasterclassInput }) => ({
+          durationInFrames: computeMasterclassDuration(props),
         })}
       />
     </>

@@ -1,4 +1,5 @@
 import { EvergreenInput } from '../EvergreenExplainer'
+import { MasterclassInput } from '../EvergreenMasterclass'
 
 /**
  * Default props for Remotion Studio + standalone rendering before the data pipeline runs.
@@ -56,4 +57,46 @@ export const defaultPreviewProps: EvergreenInput = {
     { year: 10, cashFlow: 24000, appreciation: 171958, loanPaydown: 53204, taxSavings: 34908, total: 284070 },
     { year: 20, cashFlow: 48000, appreciation: 403056, loanPaydown: 160125, taxSavings: 69816, total: 680997 },
   ],
+}
+
+/**
+ * Default props for the new EvergreenMasterclass composition (v2).
+ * Real props are written at render time by scripts/render-masterclass.mjs.
+ */
+export const defaultMasterclassProps: MasterclassInput = {
+  chapterDurations: [12, 10, 14, 14, 13, 14, 14, 12], // sums to 103s
+  voPath: 'masterclass/voiceover.mp3',
+  musicPath: '4-pillars/music.mp3', // re-use long-stroll
+  captionWords: [],
+  captionSentences: [],
+  inputs: {
+    purchasePrice: 500000,
+    downPayment: 125000,
+    loanAmount: 375000,
+    interestRate: 0.07,
+    termYears: 30,
+    monthlyRent: 3000,
+    monthlyCashFlow: 200,
+    appreciationRate: 0.03,
+    depreciationYearly: 14545,
+    depreciationYears: 27.5,
+    taxBracket: 0.24,
+  },
+  // Placeholder — overwritten by render-masterclass.mjs from compute-equity-table series
+  equitySeries: Array.from({ length: 21 }, (_, n) => ({
+    year: n,
+    cashFlow: 200 * 12 * n,
+    appreciation: Math.round(500000 * (Math.pow(1.03, n) - 1)),
+    loanPaydown: Math.round(n === 0 ? 0 : (n / 30) * 375000), // rough placeholder
+    taxSavings: Math.round(14545 * 0.24 * n),
+    total: 0,
+  })).map((r) => ({ ...r, total: r.cashFlow + r.appreciation + r.loanPaydown + r.taxSavings })),
+  photos: {
+    intro: null,
+    cashFlow: null,
+    appreciation: null,
+    loanPaydown: null,
+    taxBenefits: null,
+    outro: null,
+  },
 }

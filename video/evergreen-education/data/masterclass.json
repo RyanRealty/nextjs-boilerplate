@@ -1,0 +1,82 @@
+{
+  "topic": "real-estate-investing-101-sfr",
+  "title": "Real Estate Investing 101 — SFR Rentals",
+  "format": "evergreen-masterclass",
+  "audience": "investor-curious owner-occupants",
+  "scope": "single-family residential rentals only — no commercial / REIT / house-hacking detour",
+  "lockedAt": "2026-05-04",
+  "lengthTarget": { "minSec": 90, "maxSec": 115, "targetSec": 105 },
+  "inputs": {
+    "purchasePrice": 500000,
+    "downPaymentPct": 0.25,
+    "downPayment": 125000,
+    "loanAmount": 375000,
+    "interestRate": 0.07,
+    "termYears": 30,
+    "monthlyRent": 3000,
+    "monthlyPiti": 2800,
+    "monthlyOpexReserves": 200,
+    "monthlyCashFlow": 200,
+    "appreciationRate": 0.03,
+    "buildingBasis": 400000,
+    "depreciationYears": 27.5,
+    "depreciationYearly": 14545,
+    "taxBracket": 0.24,
+    "taxSavingsYearly": 3491,
+    "year1LoanPaydown": 4091
+  },
+  "chapterDurations": [12, 10, 14, 14, 13, 14, 14, 12],
+  "script": {
+    "segments": [
+      {
+        "id": "why-sfr",
+        "chapter": 1,
+        "headline": "Why an SFR rental",
+        "text": "Stocks compound returns one way. A rental property compounds wealth four ways at once. We're going to focus on single-family rentals because they're the most teachable starting point and the entry that makes sense for most beginners."
+      },
+      {
+        "id": "the-hypothetical",
+        "chapter": 2,
+        "headline": "The hypothetical",
+        "text": "Throughout this video: a five hundred thousand dollar single-family rental. Twenty-five percent down. Three hundred seventy-five thousand dollar mortgage at seven percent. Three thousand dollar monthly rent. Same numbers every example."
+      },
+      {
+        "id": "cash-flow",
+        "chapter": 3,
+        "headline": "Pillar 1: Cash flow",
+        "text": "Rent comes in. Mortgage, taxes, insurance, and reserves go out. What's left is cash flow. On our example, about two hundred dollars a month after a vacancy. Modest. But income you didn't trade your hours for."
+      },
+      {
+        "id": "appreciation",
+        "chapter": 4,
+        "headline": "Pillar 2: Appreciation",
+        "text": "U S single-family homes have appreciated around three percent a year long-term. On a five hundred thousand dollar property, that's fifteen thousand in year one. Year twenty: roughly four hundred thousand in gain. Compounding does the work."
+      },
+      {
+        "id": "loan-paydown",
+        "chapter": 5,
+        "headline": "Pillar 3: Loan paydown",
+        "text": "Year one of a thirty-year mortgage is mostly interest. By year thirty, it's mostly principal. Either way, your tenant is the one writing the check. After thirty years, the loan is gone, the property is yours."
+      },
+      {
+        "id": "tax-benefits",
+        "chapter": 6,
+        "headline": "Pillar 4: Tax benefits",
+        "text": "The I R S lets you depreciate the building over twenty-seven and a half years. On our example, that's about fourteen thousand five hundred a year you write off. At a twenty-four percent bracket, thirty-five hundred a year you keep. Plus mortgage interest. Plus a ten thirty-one exchange."
+      },
+      {
+        "id": "stacked-summary",
+        "chapter": 7,
+        "headline": "Stacked over time",
+        "text": "Add the four pillars together. Year three: seventy-six thousand. Year five: one hundred thirty-one thousand. Year ten: two hundred eighty-four thousand. Year twenty: six hundred eighty-one thousand. Four engines, one balance sheet."
+      },
+      {
+        "id": "caveats-outro",
+        "chapter": 8,
+        "headline": "The honest part",
+        "text": "These numbers are illustrative. Not a forecast. Your market and your tax bracket will give different results. Vacancies happen. Markets cycle. The framework is durable. The specific numbers vary. D M for the spreadsheet that runs your numbers."
+      }
+    ]
+  },
+  "scriptOriginalNotes": "v2 sharper script — chapter 2 (kinds of investing) collapsed into chapter 1; chapter 9 caveats merged into chapter 8 outro; total 188 words at ~2.0 wps = ~94s before atempo, fits 100-115s target after pad / atempo. v1 4-pillars 60s build preserved at data/4-pillars.json."
+}

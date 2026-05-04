@@ -86,6 +86,24 @@ async function main() {
     JSON.stringify({ bars }, null, 2)
   )
 
+  // Full per-year per-pillar series for years 0-20 (drives chapter 7 layered growth chart)
+  const series = []
+  for (let n = 0; n <= 20; n++) {
+    series.push({
+      year: n,
+      cashFlow: inputs.monthlyCashFlow * 12 * n,
+      appreciation: Math.round(inputs.purchasePrice * (Math.pow(1 + inputs.appreciationRate, n) - 1)),
+      loanPaydown: n === 0 ? 0 : Math.round(cumulativePrincipalThroughYear(inputs.loanAmount, inputs.interestRate, inputs.termYears, n)),
+      taxSavings: Math.round(inputs.depreciationYearly * inputs.taxBracket * n),
+    })
+    series[series.length - 1].total = series[series.length - 1].cashFlow + series[series.length - 1].appreciation + series[series.length - 1].loanPaydown + series[series.length - 1].taxSavings
+  }
+  await writeFile(
+    resolve(PUB, '4-pillars', 'equity-series.json'),
+    JSON.stringify({ series }, null, 2)
+  )
+  console.log(`✓ wrote per-year series (0-20yr) for chapter 7 growth curves`)
+
   console.log('\nEquity table:')
   console.log('Year | Cash Flow | Appreciation | Loan Paydown | Tax Savings |    Total')
   for (const b of bars) {
