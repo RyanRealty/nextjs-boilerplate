@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-04-22",
+  "lastUpdated": "2026-05-03",
   "source": "PRODUCT_SPEC_V2.md",
   "phases": [
     {
@@ -967,7 +967,7 @@
       "priority": "high",
       "category": "performance",
       "source": "docs/plans/data-architecture-plan.md",
-      "status": "open",
+      "status": "complete",
       "owner": "engagement",
       "files": [
         "app/actions/listings.ts",
