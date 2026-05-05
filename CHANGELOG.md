@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.115.4 (2026-05-05)
+
+### Maintenance
+- chore: redeploy to pick up GOOGLE_BUSINESS_PROFILE_REDIRECT_URI env var
+
+---
+
+
 ## v1.115.3 (2026-05-05)
 
 ### Bug Fixes
