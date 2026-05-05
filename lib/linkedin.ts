@@ -4,7 +4,7 @@ const LINKEDIN_OAUTH_AUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization
 const LINKEDIN_OAUTH_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
 const LINKEDIN_ASSET_REGISTER_URL = 'https://api.linkedin.com/v2/assets?action=registerUpload'
 const LINKEDIN_UGC_POSTS_URL = 'https://api.linkedin.com/v2/ugcPosts'
-const LINKEDIN_OAUTH_SCOPES = 'openid profile email w_member_social'
+const LINKEDIN_OAUTH_SCOPES = 'w_member_social'
 
 interface RegisterUploadResponse {
   value?: {
