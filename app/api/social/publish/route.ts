@@ -15,21 +15,28 @@ import {
   getLinkedInPersonId,
   publishLinkedInVideoFromUrl,
 } from '@/lib/linkedin'
-import { publishViaBuffer } from '@/lib/buffer'
 import {
   getOrRefreshGoogleBusinessProfileAccessToken,
   publishGoogleBusinessLocalPost,
 } from '@/lib/google-business-profile'
+import { getXAccessToken, uploadVideoToX, postXTweet } from '@/lib/x'
+import {
+  getPinterestAccessToken,
+  getDefaultPinterestBoardId,
+  createPinterestVideoPin,
+} from '@/lib/pinterest'
+import { getThreadsAccessToken, publishThreadsVideo } from '@/lib/threads'
 
-type NativePlatform =
+type Platform =
   | 'instagram'
   | 'facebook'
   | 'tiktok'
   | 'youtube'
   | 'linkedin'
   | 'google_business_profile'
-type BufferPlatform = 'x' | 'pinterest' | 'threads'
-type Platform = NativePlatform | BufferPlatform
+  | 'x'
+  | 'pinterest'
+  | 'threads'
 type MediaType = 'image' | 'video' | 'reel'
 
 interface PublishRequest {
@@ -43,7 +50,6 @@ interface PublishRequest {
   captionPerPlatform?: Partial<Record<Platform, string>>
   hashtagsPerPlatform?: Partial<Record<Platform, string[]>>
   coverUrl?: string
-  scheduledAt?: string
   gate?: {
     scorecardPath?: string
     citationsPath?: string
@@ -65,6 +71,10 @@ interface PublishRequest {
     google_business_profile?: {
       summary?: string
       callToActionUrl?: string
+    }
+    pinterest?: {
+      title?: string
+      boardId?: string
     }
   }
 }
@@ -341,40 +351,87 @@ async function publishToLinkedIn(
   }
 }
 
-async function publishToBuffer(
-  platform: BufferPlatform,
+async function publishToX(
+  mediaType: MediaType,
+  mediaUrl: string,
+  caption: string
+): Promise<PlatformResult> {
+  try {
+    const accessToken = await getXAccessToken()
+    let mediaId: string | undefined
+
+    if (mediaType !== 'image') {
+      mediaId = await uploadVideoToX(accessToken, mediaUrl)
+    }
+
+    const tweetId = await postXTweet(accessToken, caption.slice(0, 280), mediaId)
+    return {
+      success: true,
+      status: 'published',
+      externalPostId: tweetId,
+      url: `https://x.com/i/web/status/${tweetId}`,
+    }
+  } catch (error) {
+    console.error('X publish error:', error)
+    return {
+      success: false,
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'X publish failed',
+    }
+  }
+}
+
+async function publishToPinterest(
   mediaType: MediaType,
   mediaUrl: string,
   caption: string,
-  scheduledAt?: string
+  title?: string,
+  boardId?: string
 ): Promise<PlatformResult> {
   if (mediaType === 'image') {
-    return {
-      success: false,
-      status: 'failed',
-      error: 'Buffer lane currently supports video publish only',
-    }
+    return { success: false, status: 'failed', error: 'Pinterest video pin requires video media' }
   }
 
   try {
-    const updateId = await publishViaBuffer({
-      platform,
-      text: caption,
+    const accessToken = await getPinterestAccessToken()
+    const resolvedBoardId = boardId || (await getDefaultPinterestBoardId(accessToken))
+    const pinId = await createPinterestVideoPin(
+      accessToken,
       mediaUrl,
-      scheduledAt,
-    })
-    return {
-      success: true,
-      status: scheduledAt ? 'submitted' : 'published',
-      externalPostId: updateId,
-      url: null,
-    }
+      title ?? caption.slice(0, 100),
+      caption,
+      resolvedBoardId
+    )
+    return { success: true, status: 'published', externalPostId: pinId, url: null }
   } catch (error) {
-    console.error(`Buffer publish error (${platform}):`, error)
+    console.error('Pinterest publish error:', error)
     return {
       success: false,
       status: 'failed',
-      error: error instanceof Error ? error.message : `Buffer publish failed (${platform})`,
+      error: error instanceof Error ? error.message : 'Pinterest publish failed',
+    }
+  }
+}
+
+async function publishToThreads(
+  mediaType: MediaType,
+  mediaUrl: string,
+  caption: string
+): Promise<PlatformResult> {
+  if (mediaType === 'image') {
+    return { success: false, status: 'failed', error: 'Threads video post requires video media' }
+  }
+
+  try {
+    const { accessToken, userId } = await getThreadsAccessToken()
+    const postId = await publishThreadsVideo(accessToken, userId, mediaUrl, caption)
+    return { success: true, status: 'published', externalPostId: postId, url: null }
+  } catch (error) {
+    console.error('Threads publish error:', error)
+    return {
+      success: false,
+      status: 'failed',
+      error: error instanceof Error ? error.message : 'Threads publish failed',
     }
   }
 }
@@ -516,15 +573,19 @@ export async function POST(request: NextRequest) {
             )
             break
           case 'x':
+            result = await publishToX(mediaType, mediaUrl, caption)
+            break
           case 'pinterest':
-          case 'threads':
-            result = await publishToBuffer(
-              platform,
+            result = await publishToPinterest(
               mediaType,
               mediaUrl,
               caption,
-              body.scheduledAt
+              body.metadata?.pinterest?.title,
+              body.metadata?.pinterest?.boardId
             )
+            break
+          case 'threads':
+            result = await publishToThreads(mediaType, mediaUrl, caption)
             break
           default:
             result = {
