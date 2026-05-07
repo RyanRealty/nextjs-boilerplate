@@ -54,10 +54,21 @@ export const ImageLayer: React.FC<ImageLayerProps> = ({
         />
       </AbsoluteFill>
 
-      {/* Navy scrim — stronger at bottom where text lives, light at top */}
+      {/* Navy scrim — LIGHT (Matt directive 2026-05-07).
+       *
+       * The previous scrim was 0.25 → 0.50 → 0.80 → 0.92 which blacked out
+       * the bottom 65% of every photo. We rely on the caption pill (its own
+       * 78% navy bg + 2px gold border, defined in KineticCaptions) for
+       * caption legibility — the photo itself doesn't need to be muted.
+       *
+       * New ramp: light wash top→middle so HERO numbers stay legible at
+       * scale 200, soft fade at the very bottom so the caption pill still
+       * has a clean edge to sit on. Top stays nearly clear so social-tile
+       * previews show the actual photo, not a navy wall. */}
       <AbsoluteFill
         style={{
-          background: 'linear-gradient(to bottom, rgba(16,39,66,0.25) 0%, rgba(16,39,66,0.50) 35%, rgba(16,39,66,0.80) 65%, rgba(16,39,66,0.92) 100%)',
+          background:
+            'linear-gradient(to bottom, rgba(16,39,66,0.08) 0%, rgba(16,39,66,0.18) 35%, rgba(16,39,66,0.32) 65%, rgba(16,39,66,0.55) 100%)',
           pointerEvents: 'none',
         }}
       />

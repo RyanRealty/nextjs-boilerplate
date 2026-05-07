@@ -1,21 +1,31 @@
 #!/usr/bin/env node
-// Build Remotion props.json and VO script per city from verified data snapshots.
-// Output: out/<slug>/props.json (no captionWords yet) + out/<slug>/script.json (VO segments)
-// + out/<slug>/citations.json
+// Build Remotion props.json + ONE continuous VO script per city.
 //
-// VO structure (55-58s target, ~750-820 chars):
-//   seg-00-intro      (3.5-4.5s): city name + one anchoring framing sentence
-//   seg-01-price-lbl  (2.5s):     "MEDIAN SALE PRICE" label beat
-//   seg-02-price-val  (3.5s):     value + YoY
-//   seg-03-supply-lbl (2.5s):     "MONTHS OF SUPPLY" label beat
-//   seg-04-supply-val (3.5s):     value + market verdict
-//   seg-05-dom-lbl    (2.5s):     "DAYS ON MARKET" label beat
-//   seg-06-dom-val    (3.5s):     value + YoY framing
-//   seg-07-stl-lbl    (2.5s):     "SALE TO LIST" label beat
-//   seg-08-stl-val    (3.5s):     value + color sentence
-//   seg-09-active     (5-7s):     active inventory count + closing observation
-//   seg-10-outro      (5-7s):     CTA
-// Total: 12 sub-beats = 12 × 3-4s + intro 4s + outro 6s = ~56s
+// REWRITTEN 2026-05-07 (Matt directive). Three changes vs. the prior version:
+//
+//   1. NO label-only intro beats. The old layout said "DAYS ON MARKET" on its
+//      own scene, then "DAYS ON MARKET 46 DAYS" on the next scene. Redundant.
+//      We now emit one beat per stat. Title card → Price → MoS → DOM → STL →
+//      Active → Outro. 7 beats total (was 11).
+//
+//   2. Rich chart layouts per beat:
+//        Price beat   → line_chart with the 4-year multi-year series
+//        MoS beat     → gauge (semicircular, color zones, verdict pill)
+//        DOM beat     → compare (current vs last year, large value + delta)
+//        STL beat     → bar (saturated gauge style, 0-100% scale)
+//        Active beat  → compare (active count, pending + new30d in context)
+//
+//   3. ONE continuous flowing VO script. Old version emitted 11 separate
+//      "segments" that synth-vo synthed individually and ffmpeg concat'd —
+//      that's why the audio sounded like a list of headers being read aloud.
+//      We now emit a single `fullText` paragraph and let synth-vo make ONE
+//      ElevenLabs call. Beat boundaries derive from word timings against
+//      named trigger phrases.
+//
+// Output:
+//   out/<slug>/props.json       — Remotion composition props (no captionWords yet)
+//   out/<slug>/script.json      — { fullText, beatTriggers, city }
+//   out/<slug>/citations.json   — every on-screen number traced to source
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
@@ -26,7 +36,7 @@ const ROOT = resolve(__dirname, '..')
 const DATA = resolve(ROOT, 'data')
 const OUT = resolve(ROOT, 'out')
 
-const CITIES = [
+const ALL_CITIES = [
   { slug: 'bend', dataFile: 'bend.json' },
   { slug: 'redmond', dataFile: 'redmond.json' },
   { slug: 'sisters', dataFile: 'sisters.json' },
@@ -34,8 +44,11 @@ const CITIES = [
   { slug: 'prineville', dataFile: 'prineville.json' },
   { slug: 'sunriver', dataFile: 'sunriver.json' },
 ]
+// Optional CITY env filter — useful for iterating on a single city without
+// touching the other five.
+const CITY_FILTER = process.env.CITY ? process.env.CITY.split(',').map(s => s.trim()) : null
+const CITIES = CITY_FILTER ? ALL_CITIES.filter(c => CITY_FILTER.includes(c.slug)) : ALL_CITIES
 
-// Pronunciation overrides for ElevenLabs — phonetic respellings the model handles well.
 const PRONOUNCE = {
   'Deschutes': 'duh-shoots',
   'La Pine': 'La Pine',
@@ -44,112 +57,14 @@ const PRONOUNCE = {
   'Prineville': 'Prineville',
   'Redmond': 'Redmond',
   'Bend': 'Bend',
-  'Tumalo': 'TOO-muh-low',
+  'Tumalo': 'TUM-uh-low',
 }
-
-const slugToCity = (slug) => slug === 'la-pine' ? 'La Pine' : slug.charAt(0).toUpperCase() + slug.slice(1)
 
 const fmtMoneyShort = (n) => {
   if (n == null) return '—'
   if (n >= 1_000_000) return '$' + (n / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M'
-  if (n >= 1_000) {
-    const k = Math.round(n / 1000)
-    return '$' + k + 'K'
-  }
+  if (n >= 1_000) return '$' + Math.round(n / 1000) + 'K'
   return '$' + Math.round(n).toLocaleString()
-}
-
-// Convert dollar amount to spoken words — round to nearest thousand for VO clarity
-const moneyToWords = (n) => {
-  const k = Math.round(n / 1000)
-  if (k >= 1000) {
-    // e.g. 1.2M
-    const m = (n / 1_000_000).toFixed(1).replace(/\.0$/, '')
-    return `${m} million dollars`
-  }
-  // Spell hundreds digit explicitly when non-zero: 699K → "six ninety-nine thousand"
-  // Simple approach: speak the thousands number directly
-  if (k >= 100) {
-    const hundreds = Math.floor(k / 100)
-    const remainder = k % 100
-    const hundredWords = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
-    const tensWords = ['', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']
-    const onesWords = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-      'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen']
-    let spoken = hundredWords[hundreds]
-    if (remainder >= 20) {
-      const tens = Math.floor(remainder / 10)
-      const ones = remainder % 10
-      spoken += ' ' + tensWords[tens]
-      if (ones > 0) spoken += '-' + onesWords[ones]
-    } else if (remainder > 0) {
-      spoken += ' ' + onesWords[remainder]
-    }
-    return spoken.trim() + ' thousand dollars'
-  }
-  return `${k} thousand dollars`
-}
-
-// Spell out a percentage precisely — used for VO so Victoria speaks numbers correctly
-const pctToWords = (p) => {
-  const abs = Math.abs(p * 100)
-  const rounded = Math.round(abs * 10) / 10
-  const whole = Math.floor(rounded)
-  const tenth = Math.round((rounded - whole) * 10)
-  if (tenth === 0) return `${whole} percent`
-  return `${whole} point ${tenth} percent`
-}
-
-// Spell a decimal number for VO (e.g. 5.8 → "five point eight")
-const decimalToWords = (n) => {
-  const rounded = Math.round(n * 10) / 10
-  const whole = Math.floor(rounded)
-  const tenth = Math.round((rounded - whole) * 10)
-  const ones = ['zero','one','two','three','four','five','six','seven','eight','nine',
-    'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen',
-    'twenty']
-  if (tenth === 0) return ones[whole] || `${whole}`
-  return `${ones[whole] || whole} point ${ones[tenth]}`
-}
-
-// Spell an integer for VO
-const intToWords = (n) => {
-  const digits = ['zero','one','two','three','four','five','six','seven','eight','nine',
-    'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen',
-    'twenty','twenty-one','twenty-two','twenty-three','twenty-four','twenty-five','twenty-six','twenty-seven',
-    'twenty-eight','twenty-nine','thirty','thirty-one','thirty-two','thirty-three','thirty-four',
-    'thirty-five','thirty-six','thirty-seven','thirty-eight','thirty-nine','forty','forty-one','forty-two',
-    'forty-three','forty-four','forty-five','forty-six','forty-seven','forty-eight','forty-nine','fifty',
-    'fifty-one','fifty-two','fifty-three','fifty-four','fifty-five','fifty-six','fifty-seven','fifty-eight',
-    'fifty-nine','sixty','sixty-one','sixty-two','sixty-three','sixty-four','sixty-five','sixty-six',
-    'sixty-seven','sixty-eight','sixty-nine','seventy','seventy-one','seventy-two','seventy-three',
-    'seventy-four','seventy-five','seventy-six','seventy-seven','seventy-eight','seventy-nine','eighty',
-    'eighty-one','eighty-two','eighty-three','eighty-four','eighty-five','eighty-six','eighty-seven',
-    'eighty-eight','eighty-nine','ninety','ninety-one','ninety-two','ninety-three','ninety-four',
-    'ninety-five','ninety-six','ninety-seven','ninety-eight','ninety-nine','one hundred']
-  if (n >= 0 && n < digits.length) return digits[n]
-  if (n >= 100 && n < 1000) {
-    const h = Math.floor(n / 100)
-    const rem = n % 100
-    const hw = digits[h] + ' hundred'
-    if (rem === 0) return hw
-    if (rem < digits.length) return hw + ' ' + digits[rem]
-    // rem >= 100 won't happen since we're in [100,999]
-    const tens2 = Math.floor(rem / 10)
-    const ones2 = rem % 10
-    const tensWords = ['', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety']
-    let part = tensWords[tens2]
-    if (ones2 > 0) part += '-' + digits[ones2]
-    return hw + ' ' + part
-  }
-  if (n >= 1000 && n < 10000) {
-    const thousands = Math.floor(n / 1000)
-    const rem = n % 1000
-    const tWord = digits[thousands] + ' thousand'
-    if (rem === 0) return tWord
-    return tWord + ' ' + intToWords(rem)
-  }
-  return `${n}`
 }
 
 const monthName = (iso) => {
@@ -157,241 +72,237 @@ const monthName = (iso) => {
   return m[new Date(iso + 'T12:00:00').getMonth()]
 }
 
-// Estimate VO duration from character count (ElevenLabs avg ~0.068s/char of speech)
-const estimateDur = (text) => text.replace(/[^a-zA-Z0-9\s]/g, '').length * 0.068
-
 const planForCity = (data) => {
   const city = data.city
   const cityVo = PRONOUNCE[city] || city
   const pulse = data.pulse
-  const ytd = data.ytd_2026
-  const der = data.derived
 
-  // ---- Core stats ----
-  const medianSale = ytd.medianSalePrice
-  const yoy = der.yoy_median_sale_price
-  const yoyPct = (yoy * 100)
+  // Prefer the month-only history window (April 2026) over the YTD aggregate
+  // for headline stats. The data file's `_history.windows[0]` is the current
+  // month; falls back to ytd_2026 if history isn't loaded yet.
+  const cur = data._history?.windows?.[0]
+  const yr1 = data._history?.windows?.[1]
+  const yr2 = data._history?.windows?.[2]
+  const baseline = data._history?.windows?.[3]
+
+  const medianSale = cur ? cur.median_sale_price : data.ytd_2026.medianSalePrice
+  const closedCount = cur ? cur.closed_count : data.ytd_2026.count
+  const dom = cur ? cur.median_dom : Math.round(data.ytd_2026.medianDOM)
+  const slRatio = cur ? cur.median_sale_to_list_ratio : data.ytd_2026.medianSaleToOriginalListRatio
+  const slPct = slRatio * 100
+  const slPctDisplay = slPct.toFixed(1).replace(/\.0$/, '')
+  const slBarPct = Math.max(0.05, Math.min(1, (slPct - 80) / 20))
+
+  const yr1Sale = yr1 ? yr1.median_sale_price : data.ytd_2025.medianSalePrice
+  const yoy = (medianSale - yr1Sale) / yr1Sale
+  const yoyPct = yoy * 100
   const yoyDir = yoy > 0.005 ? 'up' : yoy < -0.005 ? 'down' : 'flat'
-  const yoyText = yoyDir === 'flat'
-    ? 'flat vs 2025'
-    : `${yoyDir === 'up' ? '+' : ''}${yoyPct.toFixed(1)}% vs 2025`
+  const yoyText = yoyDir === 'flat' ? 'flat vs last year' : `${yoyDir === 'up' ? '+' : ''}${yoyPct.toFixed(1)}% vs last year`
 
-  const yoyVoText = yoyDir === 'up'
-    ? `up ${pctToWords(Math.abs(yoy))} from last year`
-    : yoyDir === 'down'
-    ? `down ${pctToWords(Math.abs(yoy))} from last year`
-    : `flat versus last year`
+  const yr1Dom = yr1 ? yr1.median_dom : Math.round(data.ytd_2025.medianDOM)
+  const domDelta = dom - yr1Dom
 
   const active = pulse.active_count
+  const pending = pulse.pending_count
+  const new30d = pulse.new_count_30d
   const mos = pulse.months_of_supply
-  const klass = der.market_classification
-  const klassPill = klass === 'seller' ? "SELLER'S MARKET"
+
+  // MoS classification — verdict pill on gauge.
+  const klass = mos < 4 ? 'sellers' : mos < 6 ? 'balanced' : 'buyers'
+  const klassPill = klass === 'sellers' ? "SELLER'S MARKET"
     : klass === 'balanced' ? 'BALANCED MARKET'
     : "BUYER'S MARKET"
-  const klassVo = klass === 'seller' ? "a seller's market"
-    : klass === 'balanced' ? 'a balanced market'
-    : "a buyer's market"
-  const klassImplication = klass === 'seller'
-    ? 'Inventory is tight and pricing has held.'
+  const klassImplication = klass === 'sellers'
+    ? 'Inventory is tight, pricing has held.'
     : klass === 'balanced'
-    ? 'Buyers have options but the market is not soft.'
-    : 'Buyers are in control. Sellers need to price to move.'
+    ? 'Buyers have options without forcing the market.'
+    : 'Buyers hold the cards. Price to move.'
 
-  const dom = Math.round(ytd.medianDOM)
-  const slPct = ytd.medianSaleToOriginalListRatio * 100
-  const slPctDisplay = slPct.toFixed(1).replace(/\.0$/, '')
-  const slPctVoText = pctToWords(Math.abs(ytd.medianSaleToOriginalListRatio))
-  const slColor = slPct >= 99
-    ? 'Pricing has held. Sellers are getting full ask.'
-    : slPct >= 97
-    ? 'Negotiation is limited. Pricing has been firm.'
-    : slPct >= 95
-    ? 'There is room to negotiate, but not much.'
-    : 'Buyers are finding room to negotiate on price.'
-
-  const slBarPct = Math.max(0.05, Math.min(1, (slPct - 80) / 20))
-  const ppsf = ytd.medianPPSF
-
-  // YoY DOM framing
-  const domYoY = der.yoy_median_dom
-  const domYoYAbs = Math.abs(domYoY * 100)
-  let domYoYVo = ''
-  if (Math.abs(domYoYAbs) < 3) {
-    domYoYVo = 'Pace is about the same as last year.'
-  } else if (domYoY < 0) {
-    const days2025 = Math.round(data.ytd_2025.medianDOM)
-    const diff = days2025 - dom
-    domYoYVo = diff === 1
-      ? 'One day faster than last year.'
-      : `${intToWords(diff)} days faster than last year.`
-  } else {
-    const days2025 = Math.round(data.ytd_2025.medianDOM)
-    const diff = dom - days2025
-    domYoYVo = diff === 1
-      ? 'One day slower than last year.'
-      : `${intToWords(diff)} days slower than last year.`
-  }
-
-  // Intro framing sentence — anchored in data, short declarative
-  let introFraming = ''
-  if (klass === 'seller') {
-    introFraming = `With ${decimalToWords(mos)} months of supply, inventory is tight.`
-  } else if (klass === 'balanced') {
-    introFraming = `At ${decimalToWords(mos)} months of supply, this market is balanced.`
-  } else {
-    introFraming = `At ${decimalToWords(mos)} months of supply, buyers hold the cards.`
-  }
-
-  // Active inventory closing observation
-  let activeObs = ''
-  const pendingToActive = pulse.pending_to_active_ratio
-  if (pendingToActive >= 0.4) {
-    activeObs = 'Pending contracts are strong relative to active supply.'
-  } else if (pendingToActive >= 0.25) {
-    activeObs = 'Pending volume is moderate against current inventory.'
-  } else {
-    activeObs = 'A lot of supply, not enough buyers pulling the trigger.'
-  }
-
-  // ---- Sub-beat structure (12 beats + intro + outro = 14 sequences) ----
-  // Beats 1-10: 5 stats × 2 sub-beats each (label card 2.5s, value card 3.5s)
-  // Beat 11: active inventory (single beat, 5s)
-  // Outro: 6s
-  // Intro: 4s
-  // Total target: 4 + (5×(2.5+3.5)) + 5 + 6 = 4 + 30 + 5 + 6 = 45s ... need more
-  // Revised: use 3.5s labels + 4.5s values: 4 + (5×8) + 6 + 6 = 56s ✓
-
-  // Intro framing: month-only (NOT year-to-date) per Matt directive 2026-05-07.
-  // Data window is the previous full calendar month (e.g. April 1-30 for a May release).
-  // Title says "May 2026" (release month); VO says the data month (April 2026).
   const introMonth = monthName(data.period.ytd_end)
   const introYear = data.period.ytd_end.slice(0, 4)
-  const segments = [
-    {
-      id: 'intro',
-      text: `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. ${introFraming}`,
-    },
-    {
-      id: 'price-lbl',
-      text: `Median sale price.`,
-    },
-    // price-val: VO line for the median price beat — appended with multi-year context if available.
-    // Per Matt's "always include 2025/2024/2019 baselines" directive 2026-05-07.
-    {
-      id: 'price-val',
-      // One punchy sentence: value + direction. + multi-year context appended if available.
-      text: data._multiYear?.vo
-        ? `${moneyToWords(medianSale)} in ${introMonth.toLowerCase()}, ${yoyVoText}.${data._multiYear.vo}`
-        : `${moneyToWords(medianSale)} in ${introMonth.toLowerCase()}, ${yoyVoText}.`,
-    },
-    {
-      id: 'supply-lbl',
-      text: `Months of supply.`,
-    },
-    {
-      id: 'supply-val',
-      // State the number + market classification in one beat.
-      text: `${decimalToWords(mos)} months. ${klassVo}.`,
-    },
-    {
-      id: 'dom-lbl',
-      text: `Median days on market.`,
-    },
-    {
-      id: 'dom-val',
-      // Number + one YoY sentence.
-      text: `${intToWords(dom)} days to contract. ${domYoYVo}`,
-    },
-    {
-      id: 'stl-lbl',
-      text: `Sale to list ratio.`,
-    },
-    {
-      id: 'stl-val',
-      // One clear data sentence. Color sentence shows on screen.
-      text: `Sellers getting ${slPctVoText} of ask. ${slColor}`,
-    },
-    {
-      id: 'active',
-      // Active count + observation. Use numeric string — ElevenLabs handles naturally.
-      text: `${active} homes active. ${activeObs}`,
-    },
-    {
-      id: 'outro',
-      text: `Full report at ryan-realty.com. Subscribe for monthly updates.`,
-    },
-  ]
 
-  // Estimate total VO duration
-  const totalChars = segments.reduce((s, seg) => s + seg.text.length, 0)
-  const estDur = segments.reduce((s, seg) => s + estimateDur(seg.text), 0)
-  console.log(`  ${city}: ${segments.length} segments, ~${totalChars} chars, est VO ${estDur.toFixed(1)}s`)
-  if (estDur < 40 || estDur > 62) {
-    console.warn(`  WARNING: ${city} estimated VO ${estDur.toFixed(1)}s is outside 40-62s window. Review script.`)
+  // ─────────────────────────────────────────────────────────────────────────
+  //  ONE CONTINUOUS VO SCRIPT
+  // ─────────────────────────────────────────────────────────────────────────
+  // Written as a single flowing paragraph. ElevenLabs synths it in ONE call,
+  // returns continuous word timing, and we derive beat boundaries from the
+  // alignment by finding trigger phrases. No segment-level concatenation,
+  // no per-segment attack/release, no choppy joins.
+  //
+  // Per-figure verbalization (numbers spoken, not symbol-read) so Victoria
+  // pronounces them naturally:
+
+  const moneyToSpoken = (n) => {
+    // 699000 → "six hundred ninety-nine thousand"
+    // 1200000 → "one point two million"
+    if (n >= 1_000_000) {
+      const m = (n / 1_000_000).toFixed(1).replace(/\.0$/, '')
+      return `${m} million`
+    }
+    const k = Math.round(n / 1000)
+    if (k < 100) return `${k} thousand`
+    const ones = ['','one','two','three','four','five','six','seven','eight','nine']
+    const teens = ['ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen']
+    const tens = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety']
+    const hundreds = Math.floor(k / 100)
+    const rest = k % 100
+    let result = `${ones[hundreds]} hundred`
+    if (rest === 0) return `${result} thousand`
+    if (rest < 10) return `${result} ${ones[rest]} thousand`
+    if (rest < 20) return `${result} ${teens[rest - 10]} thousand`
+    const t = Math.floor(rest / 10)
+    const o = rest % 10
+    return `${result} ${tens[t]}${o ? '-' + ones[o] : ''} thousand`
+  }
+  const decimalSpoken = (n) => {
+    const ones = ['zero','one','two','three','four','five','six','seven','eight','nine','ten']
+    const rounded = Math.round(n * 10) / 10
+    const whole = Math.floor(rounded)
+    const tenth = Math.round((rounded - whole) * 10)
+    if (tenth === 0) return ones[whole] || `${whole}`
+    return `${ones[whole] || whole} point ${ones[tenth]}`
+  }
+  const pctSpoken = (p) => {
+    const abs = Math.abs(p * 100)
+    const r = Math.round(abs * 10) / 10
+    const whole = Math.floor(r)
+    const tenth = Math.round((r - whole) * 10)
+    if (tenth === 0) return `${whole} percent`
+    return `${whole} point ${tenth} percent`
+  }
+  const intSpoken = (n) => {
+    if (n < 100) return `${n}`
+    return `${n}`
   }
 
-  // ---- Stats array for Remotion composition ----
-  // Structure: intro (1) + 12 sub-beats (stat 1-5 × 2 + active × 1) + outro (1) = 14 total
-  // StatBeat index maps to these sub-beat pairs.
-  // We pass a flat stats array where the composition renders them sequentially.
-  // Sub-beat 1 for each stat = label card (minimal text, big label)
-  // Sub-beat 2 for each stat = value + YoY pill + context
+  // Multi-year context for the price beat
+  const yr1Money = yr1 ? moneyToSpoken(yr1.median_sale_price) : null
+  const yr2Money = yr2 ? moneyToSpoken(yr2.median_sale_price) : null
+  const baselineMoney = baseline ? moneyToSpoken(baseline.median_sale_price) : null
+  const baselineYear = baseline ? baseline.period_start.slice(0, 4) : null
+  const baselineLabel = baseline ? baseline.period_label : null
+  const appreciation = baseline
+    ? Math.round(((medianSale - baseline.median_sale_price) / baseline.median_sale_price) * 100)
+    : null
+  const yearsSpan = baseline ? parseInt(introYear) - parseInt(baselineYear) : null
+
+  const yoyVo = yoyDir === 'up' ? `up ${pctSpoken(yoy)} from last year`
+    : yoyDir === 'down' ? `down ${pctSpoken(yoy)} from last year`
+    : 'flat versus last year'
+
+  const domDeltaVo = domDelta === 0
+    ? 'right in line with last year'
+    : domDelta > 0
+    ? (domDelta === 1 ? 'one day slower than last year' : `${domDelta} days slower than last year`)
+    : (Math.abs(domDelta) === 1 ? 'one day faster than last year' : `${Math.abs(domDelta)} days faster than last year`)
+
+  const stlPctVo = pctSpoken(slRatio)
+  const stlColor = slPct >= 99
+    ? 'Sellers are getting full ask'
+    : slPct >= 97
+    ? 'Pricing has held firm'
+    : slPct >= 95
+    ? 'There is room to negotiate'
+    : 'Buyers are finding room on price'
+
+  // The single continuous read. Sentences are short, two-clause max, with
+  // commas where Victoria would naturally pause. No semicolons (banned), no
+  // em-dashes (banned). No "approximately."
+  const introLine = klass === 'sellers'
+    ? `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. With ${decimalSpoken(mos)} months of supply, inventory is tight.`
+    : klass === 'balanced'
+    ? `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. At ${decimalSpoken(mos)} months of supply, this market is balanced.`
+    : `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. At ${decimalSpoken(mos)} months of supply, buyers hold the cards.`
+
+  const priceLine = baseline
+    ? `Median sale price was ${moneyToSpoken(medianSale)}, ${yoyVo}. Compare to ${yr1Money} last ${introMonth.toLowerCase()}, ${yr2Money} the year before, and ${baselineMoney} back in ${baselineYear}. ${appreciation} percent appreciation over ${yearsSpan} years.`
+    : `Median sale price was ${moneyToSpoken(medianSale)}, ${yoyVo}.`
+
+  const mosLine = klass === 'sellers'
+    ? `Months of supply sits at ${decimalSpoken(mos)}, firmly in seller territory. ${klassImplication}`
+    : klass === 'balanced'
+    ? `Months of supply sits at ${decimalSpoken(mos)}, comfortable territory for both sides. ${klassImplication}`
+    : `Months of supply sits at ${decimalSpoken(mos)}, deep in buyer territory. ${klassImplication}`
+
+  const domLine = `Median time to contract is ${intSpoken(dom)} days, ${domDeltaVo}.`
+
+  const stlLine = `Sellers are getting ${stlPctVo} of asking price. ${stlColor}.`
+
+  const activeLine = `${active.toLocaleString()} active listings on the market right now, ${pending} pending, ${new30d} new in the last thirty days.`
+
+  const outroLine = `Full report at ryan-realty.com.`
+
+  // Stitch into ONE paragraph.
+  const fullText = [introLine, priceLine, mosLine, domLine, stlLine, activeLine, outroLine].join(' ')
+
+  // Trigger phrases — synth-vo finds the first occurrence of each in the
+  // alignment word stream and treats it as the start of that beat. The
+  // first beat starts at word 0 by definition.
+  const beatTriggers = [
+    { id: 'intro',  triggerPhrase: null },
+    { id: 'price',  triggerPhrase: 'Median sale price' },
+    { id: 'mos',    triggerPhrase: 'Months of supply' },
+    { id: 'dom',    triggerPhrase: 'Median time' },
+    { id: 'stl',    triggerPhrase: 'Sellers are getting' },
+    { id: 'active', triggerPhrase: 'active listings' },
+    { id: 'outro',  triggerPhrase: 'Full report' },
+  ]
+
+  // ─────────────────────────────────────────────────────────────────────────
+  //  STATS — one beat per metric, rich layout per beat
+  // ─────────────────────────────────────────────────────────────────────────
+  // Multi-year series for the line_chart layout. Sorted oldest → newest so
+  // the line draws left to right.
+  const series = baseline ? [
+    { month: baseline.period_label.split(' ').pop(), value: baseline.median_sale_price },
+    { month: yr2.period_label.split(' ').pop(), value: yr2.median_sale_price },
+    { month: yr1.period_label.split(' ').pop(), value: yr1.median_sale_price },
+    { month: cur.period_label.split(' ').pop(), value: cur.median_sale_price },
+  ] : null
+
   const stats = [
-    // Stat 1 — Median Sale Price (2 sub-beats)
-    {
-      label: 'Median Sale Price',
-      value: '',
-      layout: 'label-only',
-      bgVariant: 'navy',
-    },
+    // Stat 1 — Median Sale Price → line_chart with 4-year history
     {
       label: 'Median Sale Price',
       value: fmtMoneyShort(medianSale),
-      layout: 'hero',
+      layout: series ? 'line_chart' : 'hero',
       bgVariant: 'navy',
       changeText: yoyText,
       changeDir: yoyDir,
-      context: data._multiYear?.context || `${monthName(data.period.ytd_end)} ${ytd.count} closed homes`,
-      multiYearBars: data._multiYear?.bars,
+      context: `${closedCount} closed homes in ${introMonth} ${introYear}`,
+      series,
+      currentLabel: `${introMonth.toUpperCase()} ${introYear}`,
     },
-    // Stat 2 — Months of Supply (2 sub-beats)
-    {
-      label: 'Months of Supply',
-      value: '',
-      layout: 'label-only',
-      bgVariant: 'navy-rich',
-    },
+    // Stat 2 — Months of Supply → gauge
     {
       label: 'Months of Supply',
       value: mos.toFixed(1).replace(/\.0$/, ''),
       unit: 'mo',
-      layout: 'callout',
+      layout: 'gauge',
       bgVariant: 'navy-rich',
-      pillText: klassPill,
+      gaugeValue: mos,
+      gaugeMin: 0,
+      gaugeMax: 10,
+      verdict: klass,
+      verdictText: klassPill,
       context: klassImplication,
     },
-    // Stat 3 — Days on Market (2 sub-beats)
-    {
-      label: 'Days on Market',
-      value: '',
-      layout: 'label-only',
-      bgVariant: 'gold-tint',
-    },
+    // Stat 3 — Days on Market → compare (current vs last year)
     {
       label: 'Days on Market',
       value: String(dom),
       unit: 'days',
-      layout: 'hero',
+      layout: 'compare',
       bgVariant: 'gold-tint',
-      context: domYoYVo,
+      changeText: domDelta === 0 ? 'flat YoY' : `${domDelta > 0 ? '+' : ''}${domDelta} days vs last year`,
+      changeDir: domDelta > 0 ? 'up' : domDelta < 0 ? 'down' : 'flat',
+      context: domDelta === 0
+        ? 'In line with last year.'
+        : domDelta > 0
+        ? `Slower than last year's ${yr1Dom} days.`
+        : `Faster than last year's ${yr1Dom} days.`,
     },
-    // Stat 4 — Sale-to-List (2 sub-beats)
-    {
-      label: 'Sale-to-List Ratio',
-      value: '',
-      layout: 'label-only',
-      bgVariant: 'cream',
-    },
+    // Stat 4 — Sale-to-List Ratio → bar (gauge-style 0-100%)
     {
       label: 'Sale-to-List Ratio',
       value: slPctDisplay,
@@ -399,125 +310,68 @@ const planForCity = (data) => {
       layout: 'bar',
       bgVariant: 'cream',
       barPct: slBarPct,
-      context: slColor,
+      context: stlColor + '.',
     },
-    // Stat 5 — Active Inventory (1 beat — wider context)
+    // Stat 5 — Active Inventory → compare with pending breakdown
     {
       label: 'Active Listings',
       value: active.toLocaleString(),
       layout: 'compare',
       bgVariant: 'navy',
-      context: `${pulse.pending_count} pending · ${pulse.new_count_30d} new last 30 days`,
+      context: `${pending} pending  ·  ${new30d} new in last 30 days`,
     },
   ]
 
-  // Citations — every on-screen number traces to source
+  // Citations — every on-screen figure traces to source.
   const citations = {
-    deliverable: `${city} Market Report YTD 2026`,
+    deliverable: `${city} Market Report — ${introMonth} ${introYear}`,
     rendered_at: new Date().toISOString(),
     verified_at: data.verified_at,
     source_primary: data.sources.live,
-    source_secondary: data.sources.ytd_closed,
+    source_secondary: data._history ? 'listings table direct query (multi-year history bypass)' : data.sources.ytd_closed,
     sfr_filter: data.sfr_filter,
     period: data.period,
     figures: [
-      {
-        stat: 'Median Sale Price (YTD 2026)',
-        on_screen: fmtMoneyShort(medianSale),
-        exact: medianSale,
-        query: `listings WHERE City ilike '${city}' AND StandardStatus ilike '%Closed%' AND CloseDate IN [${data.period.ytd_start}, ${data.period.ytd_end}] AND PropertyType='A', median(ClosePrice). n=${ytd.count} SFR.`,
-      },
-      {
-        stat: 'YoY Median Sale Price',
-        on_screen: yoyText,
-        direction: yoyDir,
-        exact: yoy,
-        query: `(medianSale2026=${medianSale} - medianSale2025=${data.ytd_2025.medianSalePrice}) / medianSale2025. n2025=${data.ytd_2025.count}`,
-      },
-      {
-        stat: 'Active Listings',
-        on_screen: active.toLocaleString(),
-        exact: active,
-        query: `market_pulse_live property_type='A' geo_slug='${city.toLowerCase()}', updated_at=${pulse.pulse_updated_at}`,
-      },
-      {
-        stat: 'Pending Listings',
-        on_screen: `${pulse.pending_count}`,
-        exact: pulse.pending_count,
-        query: `market_pulse_live pending_count`,
-      },
-      {
-        stat: 'New 30d',
-        on_screen: `${pulse.new_count_30d}`,
-        exact: pulse.new_count_30d,
-        query: `market_pulse_live new_count_30d`,
-      },
-      {
-        stat: 'Months of Supply',
-        on_screen: mos.toFixed(1),
-        exact: mos,
-        query: `market_pulse_live months_of_supply (active / 90d sold run-rate)`,
-      },
-      {
-        stat: 'Market Classification',
-        on_screen: klassPill,
-        exact: klass,
-        query: `MoS ${mos.toFixed(2)} => seller (<4) | balanced (4-6) | buyer (>=6)`,
-      },
-      {
-        stat: 'Median Days on Market',
-        on_screen: `${dom} days`,
-        exact: ytd.medianDOM,
-        query: `listings YTD 2026 closed SFR, median(DaysOnMarket). n=${ytd.count}`,
-      },
-      {
-        stat: 'Sale-to-List Ratio',
-        on_screen: `${slPctDisplay}%`,
-        exact: ytd.medianSaleToOriginalListRatio,
-        query: `listings YTD 2026 closed SFR, median(ClosePrice/OriginalListPrice). n=${ytd.saleToListSampleSize}, clamped 0.5-1.5`,
-      },
-      {
-        stat: 'Median $ / SqFt',
-        on_screen: `$${ppsf}`,
-        exact: ppsf,
-        query: `listings YTD 2026 closed SFR, median(ClosePrice/TotalLivingAreaSqFt). n=${ytd.count}`,
-      },
+      { stat: `Median Sale Price (${introMonth} ${introYear})`, on_screen: fmtMoneyShort(medianSale), exact: medianSale,
+        query: cur ? `bend-history.json windows[0] median_sale_price n=${cur.closed_count}` : `listings YTD ${introYear} closed SFR median(ClosePrice)` },
+      { stat: 'YoY Median Sale Price', on_screen: yoyText, direction: yoyDir, exact: yoy,
+        query: `(${medianSale} - ${yr1Sale}) / ${yr1Sale}` },
+      { stat: 'Active Listings', on_screen: active.toLocaleString(), exact: active,
+        query: `market_pulse_live property_type='A' geo_slug='${city.toLowerCase()}', updated_at=${pulse.pulse_updated_at}` },
+      { stat: 'Pending Listings', on_screen: `${pending}`, exact: pending, query: `market_pulse_live pending_count` },
+      { stat: 'New 30d', on_screen: `${new30d}`, exact: new30d, query: `market_pulse_live new_count_30d` },
+      { stat: 'Months of Supply', on_screen: mos.toFixed(1), exact: mos, query: `market_pulse_live months_of_supply` },
+      { stat: 'Market Classification', on_screen: klassPill, exact: klass,
+        query: `MoS ${mos.toFixed(2)} → seller (<4) | balanced (4-6) | buyer (>=6)` },
+      { stat: 'Median Days on Market', on_screen: `${dom} days`, exact: dom,
+        query: cur ? `bend-history.json windows[0] median_dom` : `listings YTD ${introYear} closed SFR median(DOM)` },
+      { stat: 'Sale-to-List Ratio', on_screen: `${slPctDisplay}%`, exact: slRatio,
+        query: cur ? `bend-history.json windows[0] median_sale_to_list_ratio` : `listings YTD ${introYear} median(ClosePrice/OriginalListPrice)` },
     ],
   }
 
-  // Composition props (captionWords + beatDurations filled by synth-vo.mjs)
-  // beatDurations: 1 intro + 9 stat sub-beats (4+1 active) + 1 outro = 11 entries
-  // Defaults (synth-vo will override with VO-length-driven values):
-  //   intro: 4s, label beats: 3.5s, value beats: 4.5s, active: 5.5s, outro: 6s
-  const defaultBeatDurations = [
-    4.0,    // intro
-    3.5, 4.5, // stat 1 label + value
-    3.5, 4.5, // stat 2 label + value
-    3.5, 4.5, // stat 3 label + value
-    3.5, 4.5, // stat 4 label + value
-    5.5,    // active inventory (single beat)
-    6.0,    // outro
-  ]
-  const totalDefault = defaultBeatDurations.reduce((s, x) => s + x, 0)
-  console.log(`  ${city}: default beat total ${totalDefault.toFixed(1)}s (target 55-58s)`)
+  // Beat duration defaults — overridden by synth-vo once word timings are known.
+  // 7 beats: intro, price, mos, dom, stl, active, outro
+  const defaultBeatDurations = [4.5, 9.0, 7.0, 6.0, 6.0, 7.0, 5.0] // sums to 44.5s
 
   const props = {
     city,
     citySlug: city.toLowerCase().replace(/\s+/g, '-'),
-    period: '2026',
-    subhead: `Market Report — May ${data.period.ytd_end.slice(0, 4)}`,
+    period: introYear,
+    // Subhead uses the RELEASE month (current calendar month) — typically
+    // one month after the data window. Data window says "April 2026"; the
+    // release goes out in May, so the title card reads "Market Report — May 2026".
+    subhead: `Market Report — ${monthName(new Date().toISOString().slice(0, 10))} ${introYear}`,
     voPath: 'voiceover.mp3',
     captionWords: [],
     beatDurations: defaultBeatDurations,
     stats,
+    imageCount: 7,
   }
 
-  return { props, segments, citations }
+  return { props, fullText, beatTriggers, citations }
 }
 
-// Multi-year context (Matt's "always include 2025/2024/2019 baselines" directive 2026-05-07).
-// Loads <slug>-history.json (from pull-historical-windows.mjs) and merges into raw._history.
-// Bypasses broken market_stats_cache (compute_and_cache_period_stats RPC has wrong values).
 async function loadHistory(slug) {
   try {
     const historyPath = resolve(DATA, `${slug}-history.json`)
@@ -527,47 +381,18 @@ async function loadHistory(slug) {
   }
 }
 
-function buildMultiYearContext(history) {
-  if (!history?.windows || history.windows.length < 4) return { vo: '', context: '', bars: null }
-  const w = history.windows
-  const cur = w[0], yr1 = w[1], yr2 = w[2], baseline = w[3]
-  const moneyShort = (n) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : `${Math.round(n / 1000)}K`
-  const baselineYear = baseline.period_start.slice(0, 4)
-  const curYear = cur.period_start.slice(0, 4)
-  const yearsSpan = parseInt(curYear) - parseInt(baselineYear)
-  const appreciation = ((cur.median_sale_price - baseline.median_sale_price) / baseline.median_sale_price) * 100
-  const context =
-    `vs $${moneyShort(yr1.median_sale_price)} (${yr1.period_label}) · ` +
-    `$${moneyShort(yr2.median_sale_price)} (${yr2.period_label}) · ` +
-    `$${moneyShort(baseline.median_sale_price)} (${baseline.period_label}) +${Math.round(appreciation)}% / ${yearsSpan}y`
-  const vo =
-    ` Compare to ${moneyShort(yr1.median_sale_price)} in ${yr1.period_label.toLowerCase()}, ` +
-    `${moneyShort(yr2.median_sale_price)} in ${yr2.period_label.toLowerCase()}, ` +
-    `and ${moneyShort(baseline.median_sale_price)} in ${baseline.period_label.toLowerCase()}.`
-  const bars = [
-    { year: baselineYear, value: baseline.median_sale_price, label: `$${moneyShort(baseline.median_sale_price)}` },
-    { year: yr2.period_start.slice(0, 4), value: yr2.median_sale_price, label: `$${moneyShort(yr2.median_sale_price)}` },
-    { year: yr1.period_start.slice(0, 4), value: yr1.median_sale_price, label: `$${moneyShort(yr1.median_sale_price)}` },
-    { year: curYear, value: cur.median_sale_price, label: `$${moneyShort(cur.median_sale_price)}`, current: true },
-  ]
-  return { vo, context, bars }
-}
-
 await mkdir(OUT, { recursive: true })
 for (const { slug, dataFile } of CITIES) {
   const dataPath = resolve(DATA, dataFile)
   const raw = JSON.parse(await readFile(dataPath, 'utf8'))
-
-  // Inject multi-year history if available (Matt directive — permanent rule).
   raw._history = await loadHistory(slug)
-  raw._multiYear = buildMultiYearContext(raw._history)
 
-  const { props, segments, citations } = planForCity(raw)
+  const { props, fullText, beatTriggers, citations } = planForCity(raw)
   const cityOut = resolve(OUT, slug)
   await mkdir(cityOut, { recursive: true })
   await writeFile(resolve(cityOut, 'props.json'), JSON.stringify(props, null, 2))
-  await writeFile(resolve(cityOut, 'script.json'), JSON.stringify({ city: raw.city, segments }, null, 2))
+  await writeFile(resolve(cityOut, 'script.json'), JSON.stringify({ city: raw.city, fullText, beatTriggers }, null, 2))
   await writeFile(resolve(cityOut, 'citations.json'), JSON.stringify(citations, null, 2))
-  console.log(`  Built ${slug}: ${segments.length} VO segments, ${props.stats.length} stat sub-beats`)
+  console.log(`  Built ${slug}: ${fullText.length} chars, ${beatTriggers.length} beats, ${props.stats.length} stat slots`)
 }
-console.log('\nAll 6 cities planned. Next: scripts/synth-vo.mjs')
+console.log('\nAll cities planned. Next: scripts/synth-vo.mjs (single continuous synth + alignment)')

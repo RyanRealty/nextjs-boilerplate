@@ -1,10 +1,22 @@
 #!/usr/bin/env node
-// Synth ElevenLabs VO per city with `previous_text` chaining for prosody continuity.
-// Pulls character-level timestamps, concatenates segments, builds word-level captionWords.
-// Writes:
-//   public/<slug>/voiceover.mp3     — final concatenated audio (Remotion staticFile)
-//   out/<slug>/alignment.json       — full alignment trace
-//   out/<slug>/props.json           — updated with captionWords and voPath
+// Synth ONE continuous ElevenLabs voiceover per city, then derive beat
+// boundaries from the alignment by finding trigger phrases in the word stream.
+//
+// REWRITTEN 2026-05-07 (Matt directive — VO must flow continuously, not be
+// stitched together from per-segment chunks). Old version made 11 separate
+// /with-timestamps calls and ffmpeg-concat'd the mp3s — that's where the
+// choppiness came from.
+//
+// New flow:
+//   1. Read out/<slug>/script.json → { fullText, beatTriggers }.
+//   2. POST fullText to ElevenLabs /with-timestamps in ONE call.
+//      Returns { audio_base64, alignment } where alignment is character-level.
+//   3. alignmentToWords() collapses chars → words with start/end seconds.
+//      Whole stream is continuous — Victoria's natural pacing, no joins.
+//   4. For each beat trigger, find the first word that starts the trigger
+//      phrase. The diff between consecutive trigger word starts = beat duration.
+//   5. Write voiceover.mp3 (single file), update props.json with captionWords
+//      and beatDurations.
 //
 // Run: node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/synth-vo.mjs
 
@@ -14,6 +26,7 @@ import { readFile, writeFile, mkdir, rm } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promises as dnsP } from 'node:dns'
+import { Buffer } from 'node:buffer'
 
 const exec = promisify(execFile)
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -22,9 +35,8 @@ const OUT = resolve(ROOT, 'out')
 const PUB = resolve(ROOT, 'public')
 
 const KEY = process.env.ELEVENLABS_API_KEY
-const VOICE = 'qSeXEcewz7tA0Q0qk9fH' // Victoria — hardcoded per Matt 2026-04-27
-// Runtime guard: confirm hardcoded value is still correct
-if (VOICE !== 'qSeXEcewz7tA0Q0qk9fH') { console.error(`WRONG VOICE — expected qSeXEcewz7tA0Q0qk9fH (Victoria), got ${VOICE}`); process.exit(1) }
+const VOICE = 'qSeXEcewz7tA0Q0qk9fH' // Victoria — locked per Matt 2026-04-27.
+if (VOICE !== 'qSeXEcewz7tA0Q0qk9fH') { console.error(`WRONG VOICE: ${VOICE}`); process.exit(1) }
 if (!KEY) { console.error('Missing ELEVENLABS_API_KEY'); process.exit(1) }
 
 const HOST = 'api.elevenlabs.io'
@@ -33,28 +45,27 @@ console.log(`Resolved ${HOST} → ${HOST_IPS.join(', ')}`)
 let ipIdx = 0
 const nextIP = () => HOST_IPS[ipIdx++ % HOST_IPS.length]
 
-const CITIES = ['bend', 'redmond', 'sisters', 'la-pine', 'prineville', 'sunriver']
+const ALL_CITIES = ['bend', 'redmond', 'sisters', 'la-pine', 'prineville', 'sunriver']
+const CITY_FILTER = process.env.CITY ? process.env.CITY.split(',').map(s => s.trim()) : null
+const CITIES = CITY_FILTER ? ALL_CITIES.filter(c => CITY_FILTER.includes(c)) : ALL_CITIES
 
-// CONVERSATIONAL VOICE TUNING (Matt directive 2026-05-07 — saved to CLAUDE.md):
-//   stability        0.40 (was 0.50) — lower = more expression / less monotone
-//   similarity_boost 0.80 (was 0.75) — slightly stronger Victoria identity
-//   style            0.50 (was 0.35) — higher = more dynamic delivery
-//   use_speaker_boost true (unchanged)
-async function elSynth(text, previousText) {
+// Conversational Victoria settings (Matt directive 2026-05-07).
+// stability 0.40 → more expression. similarity 0.80 → stronger voice ID.
+// style 0.50 → dynamic delivery. speaker_boost on.
+async function elSynth(fullText) {
   const body = {
-    text,
+    text: fullText,
     model_id: 'eleven_turbo_v2_5',
     voice_settings: { stability: 0.40, similarity_boost: 0.80, style: 0.50, use_speaker_boost: true },
-    ...(previousText ? { previous_text: previousText } : {}),
   }
   const url = `https://${HOST}/v1/text-to-speech/${VOICE}/with-timestamps`
-  const tmpFile = `/tmp/el_payload_${Date.now()}_${Math.random().toString(36).slice(2)}.json`
+  const tmpFile = `/tmp/el_${Date.now()}_${Math.random().toString(36).slice(2)}.json`
   await writeFile(tmpFile, JSON.stringify(body))
   for (let attempt = 1; attempt <= 4; attempt++) {
     const ip = nextIP()
     try {
       const { stdout } = await exec('curl', [
-        '-sS', '-m', '120', '--connect-timeout', '15',
+        '-sS', '-m', '180', '--connect-timeout', '15',
         '--resolve', `${HOST}:443:${ip}`,
         '-H', `xi-api-key: ${KEY}`,
         '-H', 'Content-Type: application/json',
@@ -75,9 +86,9 @@ async function elSynth(text, previousText) {
   }
 }
 
-// alignment shape:
-// { characters: ["H","e","l","l","o"], character_start_times_seconds: [0.0, ...], character_end_times_seconds: [...] }
-function alignmentToWords(alignment, offsetSec) {
+// Collapse char-level alignment → word-level. Strips trailing punctuation
+// from word.text so caption rendering is clean.
+function alignmentToWords(alignment) {
   const chars = alignment.characters
   const starts = alignment.character_start_times_seconds
   const ends = alignment.character_end_times_seconds
@@ -87,7 +98,11 @@ function alignmentToWords(alignment, offsetSec) {
   let bufEnd = null
   const flush = () => {
     if (buf.trim()) {
-      words.push({ text: buf.trim(), startSec: bufStart + offsetSec, endSec: bufEnd + offsetSec })
+      words.push({
+        text: buf.trim(),
+        startSec: bufStart,
+        endSec: bufEnd,
+      })
     }
     buf = ''; bufStart = null; bufEnd = null
   }
@@ -105,26 +120,29 @@ function alignmentToWords(alignment, offsetSec) {
   return words
 }
 
-// Decode mp3 base64 to a buffer, write to file
-import { Buffer } from 'node:buffer'
-import { createWriteStream } from 'node:fs'
-async function writeBase64Mp3(b64, outPath) {
-  await writeFile(outPath, Buffer.from(b64, 'base64'))
+// Find the first word index where a trigger phrase begins (case-insensitive,
+// punctuation-tolerant). Used to derive beat boundaries from the continuous
+// word stream.
+function findTriggerWordIdx(words, triggerPhrase, startIdx = 0) {
+  if (!triggerPhrase) return startIdx
+  const triggerWords = triggerPhrase.toLowerCase().split(/\s+/)
+  const norm = (s) => s.toLowerCase().replace(/[.,;:!?"']/g, '')
+  for (let i = startIdx; i <= words.length - triggerWords.length; i++) {
+    let match = true
+    for (let j = 0; j < triggerWords.length; j++) {
+      if (norm(words[i + j].text) !== norm(triggerWords[j])) {
+        match = false
+        break
+      }
+    }
+    if (match) return i
+  }
+  return -1
 }
 
-// Get exact mp3 duration (sec) via ffprobe
 async function mp3Duration(path) {
-  const { stdout } = await exec('ffprobe', ['-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1', path])
+  const { stdout } = await exec('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', path])
   return parseFloat(stdout.trim())
-}
-
-// Concatenate mp3 segments via ffmpeg concat demuxer (re-encode to ensure clean joins)
-async function concatMp3(segments, outPath) {
-  const listFile = `${outPath}.list`
-  const list = segments.map(s => `file '${s.replaceAll("'", "'\\''")}'`).join('\n')
-  await writeFile(listFile, list)
-  await exec('ffmpeg', ['-y','-f','concat','-safe','0','-i',listFile,'-c:a','libmp3lame','-q:a','2','-ar','44100','-ac','2',outPath])
-  await rm(listFile, { force: true })
 }
 
 await mkdir(PUB, { recursive: true })
@@ -134,107 +152,73 @@ for (const slug of CITIES) {
   const cityOut = resolve(OUT, slug)
   const cityPub = resolve(PUB, slug)
   await mkdir(cityPub, { recursive: true })
+
   const script = JSON.parse(await readFile(resolve(cityOut, 'script.json'), 'utf8'))
   const propsPath = resolve(cityOut, 'props.json')
   const props = JSON.parse(await readFile(propsPath, 'utf8'))
 
-  const segPaths = []
-  const allWords = []
-  const segmentMeta = []
-  let cumOffset = 0
-  let prevText = ''
-
-  for (let i = 0; i < script.segments.length; i++) {
-    const s = script.segments[i]
-    process.stdout.write(`  segment ${i+1}/${script.segments.length} ${s.id}: synth... `)
-    const r = await elSynth(s.text, prevText || undefined)
-    const segPath = resolve(cityPub, `seg-${String(i).padStart(2,'0')}-${s.id}.mp3`)
-    await writeBase64Mp3(r.audio_base64, segPath)
-    segPaths.push(segPath)
-    const dur = await mp3Duration(segPath)
-    const segWords = alignmentToWords(r.alignment, cumOffset)
-    allWords.push(...segWords)
-    segmentMeta.push({ id: s.id, text: s.text, startSec: cumOffset, endSec: cumOffset + dur, duration: dur, wordCount: segWords.length })
-    console.log(`${dur.toFixed(2)}s, ${segWords.length} words`)
-    cumOffset += dur
-    prevText = s.text
-  }
-
-  // Concatenate
+  process.stdout.write(`  Synthing ${script.fullText.length} chars in ONE continuous call... `)
+  const r = await elSynth(script.fullText)
   const finalMp3 = resolve(cityPub, 'voiceover.mp3')
-  await concatMp3(segPaths, finalMp3)
+  await writeFile(finalMp3, Buffer.from(r.audio_base64, 'base64'))
   const finalDur = await mp3Duration(finalMp3)
-  console.log(`  Concatenated voiceover.mp3: ${finalDur.toFixed(2)}s`)
+  const words = alignmentToWords(r.alignment)
+  console.log(`${finalDur.toFixed(2)}s, ${words.length} words`)
 
-  // Update props.json with captionWords + voPath + per-beat durations.
-  //
-  // NEW beat structure (11 beats total — must match props.stats.length + 2):
-  //   beat[0]     = intro              → segment 'intro'
-  //   beat[1]     = price label        → segment 'price-lbl'
-  //   beat[2]     = price value        → segment 'price-val'
-  //   beat[3]     = supply label       → segment 'supply-lbl'
-  //   beat[4]     = supply value       → segment 'supply-val'
-  //   beat[5]     = dom label          → segment 'dom-lbl'
-  //   beat[6]     = dom value          → segment 'dom-val'
-  //   beat[7]     = stl label          → segment 'stl-lbl'
-  //   beat[8]     = stl value          → segment 'stl-val'
-  //   beat[9]     = active inventory   → segment 'active'
-  //   beat[10]    = outro              → segment 'outro'
-  //
-  // Beat durations driven by actual VO segment lengths, then padded to target 56s total.
-  //
-  // NOTE: The VO is a single continuous audio track — it does NOT reset per beat.
-  // Beat durations only control visual pacing. The VO will finish playing before
-  // the video ends; the last few beats play silently over music.
-  //
-  // Algorithm:
-  //   1. Set minimum beat durations (pacing floors from CLAUDE.md)
-  //   2. If total < 53s, distribute slack proportionally to value beats and outro
-  //   3. Final total must be in [54, 59]s
-  const PAD = 0.4
-  const TARGET_SEC = 56.0
-  const SEG_MIN_INTRO = 4.5
-  const SEG_MIN_LBL = 3.0    // label beats: readable in 3s
-  const SEG_MIN_VAL = 4.5    // value beats: number reads in 4.5s
-  const SEG_MIN_ACTIVE = 5.5
-  const SEG_MIN_OUTRO = 6.0
-
-  const segOrder = ['intro','price-lbl','price-val','supply-lbl','supply-val',
-    'dom-lbl','dom-val','stl-lbl','stl-val','active','outro']
-
-  // Step 1: apply minimums
-  const beatDurations = segmentMeta.map((m, i) => {
-    const raw = m.duration + PAD
-    const id = segOrder[i] || m.id
-    if (id === 'intro') return Math.max(SEG_MIN_INTRO, raw)
-    if (id === 'outro') return Math.max(SEG_MIN_OUTRO, raw)
-    if (id === 'active') return Math.max(SEG_MIN_ACTIVE, raw)
-    if (id.endsWith('-lbl')) return Math.max(SEG_MIN_LBL, raw)
-    return Math.max(SEG_MIN_VAL, raw)
-  })
-
-  // Step 2: pad to target if needed
-  const currentTotal = beatDurations.reduce((s, x) => s + x, 0)
-  const deficit = TARGET_SEC - currentTotal
-  if (deficit > 0.5) {
-    // Add slack to value beats (indices 2,4,6,8) and outro (10) — proportional
-    const expandable = [2, 4, 6, 8, 10] // price-val, supply-val, dom-val, stl-val, outro
-    const share = deficit / expandable.length
-    for (const idx of expandable) {
-      if (idx < beatDurations.length) beatDurations[idx] += share
+  // ─────────────────────────────────────────────────────────────────────────
+  //  Beat boundaries from trigger phrases
+  // ─────────────────────────────────────────────────────────────────────────
+  // For each beat trigger, find its starting word in the continuous stream.
+  // Beat duration = startSec(next trigger) - startSec(this trigger), with the
+  // last beat running to the end of audio.
+  const beatStartSecs = []
+  let searchFrom = 0
+  for (const beat of script.beatTriggers) {
+    if (beat.triggerPhrase === null) {
+      beatStartSecs.push(0)
+      continue
     }
-    console.log(`  Padded ${deficit.toFixed(2)}s deficit across ${expandable.length} expandable beats`)
+    const idx = findTriggerWordIdx(words, beat.triggerPhrase, searchFrom)
+    if (idx === -1) {
+      console.warn(`  WARNING: trigger "${beat.triggerPhrase}" not found in alignment for ${slug}`)
+      beatStartSecs.push(beatStartSecs[beatStartSecs.length - 1] + 5.0) // fallback
+    } else {
+      beatStartSecs.push(words[idx].startSec)
+      searchFrom = idx + 1
+    }
   }
+
+  // Compute per-beat durations. Add a small tail after the last word so the
+  // outro doesn't cut on the final consonant.
+  const VO_TAIL_PAD = 0.6
+  const totalDuration = finalDur + VO_TAIL_PAD
+  const beatDurations = []
+  for (let i = 0; i < beatStartSecs.length; i++) {
+    const start = beatStartSecs[i]
+    const end = i + 1 < beatStartSecs.length ? beatStartSecs[i + 1] : totalDuration
+    beatDurations.push(Math.max(2.0, end - start))
+  }
+
+  // Sanity check: render must not exceed 60s ceiling per CLAUDE.md.
+  const total = beatDurations.reduce((s, x) => s + x, 0)
+  console.log(`  Beat durations:`, beatDurations.map(d => d.toFixed(1)).join(', '), `→ ${total.toFixed(1)}s`)
+  if (total > 62) console.warn(`  WARNING: ${slug} total ${total.toFixed(1)}s exceeds 62s ceiling`)
+  if (total < 30) console.warn(`  WARNING: ${slug} total ${total.toFixed(1)}s under 30s minimum`)
+
   props.voPath = `${slug}/voiceover.mp3`
-  props.captionWords = allWords
+  props.captionWords = words
   props.beatDurations = beatDurations
   await writeFile(propsPath, JSON.stringify(props, null, 2))
-  await writeFile(resolve(cityOut, 'alignment.json'), JSON.stringify({ city: script.city, total_duration_sec: finalDur, segments: segmentMeta, words: allWords, beatDurations }, null, 2))
-  const total = beatDurations.reduce((s,x)=>s+x,0)
-  if (total < 50 || total > 62) {
-    console.warn(`  WARNING: ${slug} total beat duration ${total.toFixed(2)}s is outside 50-62s window`)
-  }
-  console.log(`  ${allWords.length} captionWords. VO: ${finalDur.toFixed(2)}s. Total beat duration: ${total.toFixed(2)}s (target 55-58s)`)
+  await writeFile(resolve(cityOut, 'alignment.json'), JSON.stringify({
+    city: script.city,
+    total_duration_sec: finalDur,
+    fullText: script.fullText,
+    words,
+    beatStartSecs,
+    beatDurations,
+    beatTriggers: script.beatTriggers,
+  }, null, 2))
+  console.log(`  ${words.length} captionWords, VO ${finalDur.toFixed(2)}s, total beats ${total.toFixed(2)}s`)
 }
 
-console.log('\nAll cities synthed. Next: render via npm run render -- --city=<slug>')
+console.log('\nAll cities synthed. Next: npm run render -- --city=<slug>')

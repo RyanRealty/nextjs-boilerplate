@@ -35,7 +35,12 @@ export const loadFonts = (): Promise<void> => {
     // The .otf / .ttf are gitignored (commercial license); keep local copies
     // in sync with public/fonts/ at the repo root.
     await Promise.all([
-      tryLoad('Amboqia', 'Amboqia_Boriango.otf', 'opentype'),
+      // FIX 2026-05-07 (Matt directive): the actual file in public/ is
+      // `Amboqia.otf`, not `Amboqia_Boriango.otf`. The old filename caused a
+      // silent FontFace load failure and fell back to Playfair → Didot →
+      // Georgia, which is why "Bend" and "$699K" looked like a generic serif
+      // instead of the brand display face.
+      tryLoad('Amboqia', 'Amboqia.otf', 'opentype'),
       tryLoad('AzoSans', 'AzoSans-Medium.ttf', 'truetype'),
     ])
     loaded = true
