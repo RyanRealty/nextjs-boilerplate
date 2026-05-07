@@ -1,7 +1,13 @@
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion'
-import { CAPTION_Y_BOTTOM, CAPTION_Y_TOP, FONT_BODY, GOLD } from './brand'
+import { CAPTION_Y_BOTTOM, CAPTION_Y_TOP, GOLD } from './brand'
 
 export type CaptionWord = { text: string; startSec: number; endSec: number }
+
+// Brand-loaded font for captions (vs system fallback). Per Matt directive 2026-05-07.
+const CAPTION_FONT = "'AzoSans', 'Geist', 'Inter', system-ui, sans-serif"
+
+// Suppress captions during the opening title card (clean look for social tile preview).
+const INTRO_NO_CAPTION_END_SEC = 4.0
 
 /**
  * Caption band lives at y 1480-1720 (per CLAUDE.md spec — never overlaps stat content above).
@@ -54,6 +60,7 @@ export const CaptionBand: React.FC<{ words: CaptionWord[] }> = ({ words }) => {
   const t = frame / fps
 
   if (!words || words.length === 0) return null
+  if (t < INTRO_NO_CAPTION_END_SEC) return null
 
   const sentences = groupIntoSentences(words)
 
@@ -181,7 +188,7 @@ const CaptionBox: React.FC<{
               <span
                 key={`${w.startSec}-${i}`}
                 style={{
-                  fontFamily: FONT_BODY,
+                  fontFamily: CAPTION_FONT,
                   fontWeight: isActive ? 800 : 600,
                   fontSize: 40,
                   color: isActive ? GOLD : 'rgba(255,255,255,0.92)',

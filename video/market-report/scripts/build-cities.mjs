@@ -261,19 +261,28 @@ const planForCity = (data) => {
   // Total target: 4 + (5×(2.5+3.5)) + 5 + 6 = 4 + 30 + 5 + 6 = 45s ... need more
   // Revised: use 3.5s labels + 4.5s values: 4 + (5×8) + 6 + 6 = 56s ✓
 
+  // Intro framing: month-only (NOT year-to-date) per Matt directive 2026-05-07.
+  // Data window is the previous full calendar month (e.g. April 1-30 for a May release).
+  // Title says "May 2026" (release month); VO says the data month (April 2026).
+  const introMonth = monthName(data.period.ytd_end)
+  const introYear = data.period.ytd_end.slice(0, 4)
   const segments = [
     {
       id: 'intro',
-      text: `${cityVo} homes, year-to-date 2026. ${introFraming}`,
+      text: `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. ${introFraming}`,
     },
     {
       id: 'price-lbl',
       text: `Median sale price.`,
     },
+    // price-val: VO line for the median price beat — appended with multi-year context if available.
+    // Per Matt's "always include 2025/2024/2019 baselines" directive 2026-05-07.
     {
       id: 'price-val',
-      // One punchy sentence: value + direction. Context shows on screen silently.
-      text: `${moneyToWords(medianSale)} this year, ${yoyVoText}.`,
+      // One punchy sentence: value + direction. + multi-year context appended if available.
+      text: data._multiYear?.vo
+        ? `${moneyToWords(medianSale)} in ${introMonth.toLowerCase()}, ${yoyVoText}.${data._multiYear.vo}`
+        : `${moneyToWords(medianSale)} in ${introMonth.toLowerCase()}, ${yoyVoText}.`,
     },
     {
       id: 'supply-lbl',
@@ -342,7 +351,8 @@ const planForCity = (data) => {
       bgVariant: 'navy',
       changeText: yoyText,
       changeDir: yoyDir,
-      context: `YTD ${ytd.count} closed homes`,
+      context: data._multiYear?.context || `${monthName(data.period.ytd_end)} ${ytd.count} closed homes`,
+      multiYearBars: data._multiYear?.bars,
     },
     // Stat 2 — Months of Supply (2 sub-beats)
     {
@@ -495,7 +505,7 @@ const planForCity = (data) => {
     city,
     citySlug: city.toLowerCase().replace(/\s+/g, '-'),
     period: '2026',
-    subhead: `YTD Market Report ${monthName(data.period.ytd_end)} 2026`,
+    subhead: `Market Report — May ${data.period.ytd_end.slice(0, 4)}`,
     voPath: 'voiceover.mp3',
     captionWords: [],
     beatDurations: defaultBeatDurations,
@@ -505,10 +515,53 @@ const planForCity = (data) => {
   return { props, segments, citations }
 }
 
+// Multi-year context (Matt's "always include 2025/2024/2019 baselines" directive 2026-05-07).
+// Loads <slug>-history.json (from pull-historical-windows.mjs) and merges into raw._history.
+// Bypasses broken market_stats_cache (compute_and_cache_period_stats RPC has wrong values).
+async function loadHistory(slug) {
+  try {
+    const historyPath = resolve(DATA, `${slug}-history.json`)
+    return JSON.parse(await readFile(historyPath, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function buildMultiYearContext(history) {
+  if (!history?.windows || history.windows.length < 4) return { vo: '', context: '', bars: null }
+  const w = history.windows
+  const cur = w[0], yr1 = w[1], yr2 = w[2], baseline = w[3]
+  const moneyShort = (n) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : `${Math.round(n / 1000)}K`
+  const baselineYear = baseline.period_start.slice(0, 4)
+  const curYear = cur.period_start.slice(0, 4)
+  const yearsSpan = parseInt(curYear) - parseInt(baselineYear)
+  const appreciation = ((cur.median_sale_price - baseline.median_sale_price) / baseline.median_sale_price) * 100
+  const context =
+    `vs $${moneyShort(yr1.median_sale_price)} (${yr1.period_label}) · ` +
+    `$${moneyShort(yr2.median_sale_price)} (${yr2.period_label}) · ` +
+    `$${moneyShort(baseline.median_sale_price)} (${baseline.period_label}) +${Math.round(appreciation)}% / ${yearsSpan}y`
+  const vo =
+    ` Compare to ${moneyShort(yr1.median_sale_price)} in ${yr1.period_label.toLowerCase()}, ` +
+    `${moneyShort(yr2.median_sale_price)} in ${yr2.period_label.toLowerCase()}, ` +
+    `and ${moneyShort(baseline.median_sale_price)} in ${baseline.period_label.toLowerCase()}.`
+  const bars = [
+    { year: baselineYear, value: baseline.median_sale_price, label: `$${moneyShort(baseline.median_sale_price)}` },
+    { year: yr2.period_start.slice(0, 4), value: yr2.median_sale_price, label: `$${moneyShort(yr2.median_sale_price)}` },
+    { year: yr1.period_start.slice(0, 4), value: yr1.median_sale_price, label: `$${moneyShort(yr1.median_sale_price)}` },
+    { year: curYear, value: cur.median_sale_price, label: `$${moneyShort(cur.median_sale_price)}`, current: true },
+  ]
+  return { vo, context, bars }
+}
+
 await mkdir(OUT, { recursive: true })
 for (const { slug, dataFile } of CITIES) {
   const dataPath = resolve(DATA, dataFile)
   const raw = JSON.parse(await readFile(dataPath, 'utf8'))
+
+  // Inject multi-year history if available (Matt directive — permanent rule).
+  raw._history = await loadHistory(slug)
+  raw._multiYear = buildMultiYearContext(raw._history)
+
   const { props, segments, citations } = planForCity(raw)
   const cityOut = resolve(OUT, slug)
   await mkdir(cityOut, { recursive: true })
