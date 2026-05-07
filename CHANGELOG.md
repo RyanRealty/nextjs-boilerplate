@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.131.2 (2026-05-07)
+
+### Bug Fixes
+- fix(youtube): remove unused @ts-expect-error blocking Vercel build
+
+---
+
+
 ## v1.131.1 (2026-05-07)
 
 ### Bug Fixes
