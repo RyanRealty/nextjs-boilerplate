@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.127.0 (2026-05-07)
+
+### Features
+- feat(skills): author 4 missing skills + batch-fix 22 NEEDS-FIX descriptions per Anthropic spec
+
+---
+
+
 ## v1.126.2 (2026-05-07)
 
 ### Bug Fixes
