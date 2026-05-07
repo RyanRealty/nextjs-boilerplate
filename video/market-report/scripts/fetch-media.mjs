@@ -147,10 +147,19 @@ async function queryLibrary(type, limit, unusedOnly = true) {
     limit,
     unusedOnly,
   })
-  return results.filter(a => {
-    if (!a.file_path) return false
-    return existsSync(resolve(ROOT, a.file_path))
-  })
+  return results
+    .map(a => {
+      // Supabase rows return storage_object_path; the local cache mirrors
+      // public/asset-library/<storage_object_path>. Compute file_path if missing.
+      if (!a.file_path && a.storage_object_path) {
+        a.file_path = `public/asset-library/${a.storage_object_path}`
+      }
+      return a
+    })
+    .filter(a => {
+      if (!a.file_path) return false
+      return existsSync(resolve(ROOT, a.file_path))
+    })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
