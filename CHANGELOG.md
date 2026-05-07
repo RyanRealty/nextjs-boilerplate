@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.119.0 (2026-05-07)
+
+### Features
+- feat(demo): Bend market report YTD 2026 — published to public/v5_library + gate artifacts
+
+---
+
+
 ## v1.118.0 (2026-05-07)
 
 ### Features
