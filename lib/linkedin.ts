@@ -255,10 +255,9 @@ export async function publishLinkedInVideoFromUrl(
   const uploadResponse = await fetch(uploadUrl, {
     method: 'PUT',
     headers: uploadHeaders,
-    // @ts-expect-error — Node fetch supports ReadableStream bodies + duplex flag
     body: sourceResponse.body,
     duplex: 'half',
-  })
+  } as RequestInit & { duplex: 'half' })
 
   if (!uploadResponse.ok) {
     throw new Error(`LinkedIn media upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`)
