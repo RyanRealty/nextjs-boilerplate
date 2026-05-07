@@ -240,13 +240,35 @@
         if (meta.mlsNumber || meta.street) return meta;
       }
     }
-    // URL heuristic — if we're clearly on a listing route, send a minimal meta
-    // with the address from the page title or H1 so FUB can show "Viewed
-    // Property" with at least the street.
-    if (/\/listing(s)?\/|\/property\//i.test(window.location.pathname)) {
+    // URL heuristic — only treat as a real listing detail when the path looks
+    // like the AgentFire IDX pattern (/listing/<source>/<mls-id>/...) or a
+    // similar /property/<id>/ pattern with a numeric id segment. The bare
+    // /listings/ index and 404 pages should NOT be flagged as listing detail.
+    var listingDetailRe = /\/listing\/[a-z0-9_-]+\/[a-z0-9_-]+/i;
+    var altListingRe = /\/property\/[a-z0-9_-]+/i;
+    if (listingDetailRe.test(window.location.pathname) || altListingRe.test(window.location.pathname)) {
+      // Guard: page title or H1 indicating a 404 / error page disqualifies.
+      var pageTitle = document.title || '';
+      if (/not found|404|page not found|error/i.test(pageTitle)) return null;
       var h1 = document.querySelector('h1');
-      var street = h1 ? h1.textContent.trim().slice(0, 200) : undefined;
-      if (street) return { street: street };
+      var h1Text = h1 ? h1.textContent.trim() : '';
+      if (!h1Text || /not found|404|error/i.test(h1Text)) return null;
+      // Real US addresses start with a number. If H1 doesn't contain a digit,
+      // it's likely a category page or banner, not a property address.
+      if (!/\d/.test(h1Text)) return null;
+      // Try to enrich with city / state from the document title if present
+      // (AgentFire titles tend to follow "<address>, <City>, <ST> <ZIP>" form).
+      var titleMatch = pageTitle.match(/^([^,]+),\s*([^,]+),\s*([A-Z]{2})\s*(\d{5})?/i);
+      var meta = { street: h1Text.slice(0, 200) };
+      if (titleMatch) {
+        meta.city = (titleMatch[2] || '').trim() || undefined;
+        meta.state = (titleMatch[3] || '').trim().toUpperCase() || undefined;
+        if (titleMatch[4]) meta.code = titleMatch[4].trim();
+      }
+      // Pull MLS id from the URL when in AgentFire pattern.
+      var mlsMatch = window.location.pathname.match(/\/listing\/[a-z]+\/(\d+)/i);
+      if (mlsMatch) meta.mlsNumber = mlsMatch[1];
+      return meta;
     }
     return null;
   }
