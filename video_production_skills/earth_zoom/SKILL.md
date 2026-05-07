@@ -1,7 +1,7 @@
 ---
 name: earth_zoom
 kind: format
-description: "From-space-to-front-door cinematic intro for new listings. Scripted Google Earth Studio descent + Remotion composite + ElevenLabs VO."
+description: "Use this skill whenever the user says 'earth zoom', 'zoom from space to the listing', 'Google Earth intro for this property', 'from orbit to front door', 'cinematic location reveal', 'add an earth zoom opener to this video', or when a new listing launches and the location itself is visually compelling (acreage, views, rural setting, resort community). From-space-to-front-door cinematic intro for new listings. Scripted Google Earth Studio descent + Remotion composite + ElevenLabs VO."
 ---
 
 # Earth Zoom — Google Earth Studio Descent to Front Door

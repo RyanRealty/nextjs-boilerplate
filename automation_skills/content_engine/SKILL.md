@@ -1,5 +1,5 @@
 ---
-name: content-engine
+name: content_engine
 description: >
   THE entry point for ALL content production at Ryan Realty. Invoke this skill whenever Matt
   says: "build a video", "create a video for", "make a market report video", "make a listing

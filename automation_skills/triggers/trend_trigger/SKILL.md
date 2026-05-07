@@ -1,6 +1,6 @@
 ---
 name: trend_trigger
-description: Monday 5am PT cron scans TikTok, IG, YouTube, Reddit, and Google Trends for real-estate-adjacent content trends; filters for Bend/Central OR relevance; outputs 10 structured candidates for social_calendar to pick from.
+description: Use this skill whenever the user says "scan for trends", "what's trending in real estate", "run the trend trigger", "pull this week's trend candidates", "find trending formats for this week", "what should we meme about?", or when social_calendar needs fresh trend candidates for the weekly content calendar. Monday 5am PT cron scans TikTok, IG, YouTube, Reddit, and Google Trends for real-estate-adjacent content trends; filters for Bend/Central OR relevance; outputs 10 structured candidates for social_calendar to pick from.
 ---
 
 # Trend Trigger

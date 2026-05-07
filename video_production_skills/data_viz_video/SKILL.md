@@ -1,7 +1,7 @@
 ---
 name: data_viz_video
 kind: format
-description: "30-60s vertical market stats video. Every number is a freshly-pulled Supabase query rendered as animated CountUp + charts. Beat-synced audio, ElevenLabs VO."
+description: "Use this skill whenever the user says 'make a quick market stats clip', 'create a data visualization video', 'animated market stats for [city]', 'weekly market pulse video', 'compact market clip for [subdivision]', 'show me the market in under a minute', or 'CountUp stats video for [city]'. For full monthly narrative city reports use market-data-video instead. 30-60s vertical market stats video. Every number is a freshly-pulled Supabase query rendered as animated CountUp + charts. Beat-synced audio, ElevenLabs VO."
 ---
 
 # Data Viz Video — Animated Market Stats from Supabase

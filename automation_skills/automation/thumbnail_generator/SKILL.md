@@ -1,6 +1,6 @@
 ---
 name: thumbnail_generator
-description: Uses Grok Imagine (xAI) to generate 4 thumbnail variants per video, runs A/B testing via ab_testing skill, and picks the winner after 24h based on CTR.
+description: Use this skill whenever the user says "generate thumbnails", "make a cover image", "create thumbnail variants", "design the thumbnail for this video", "generate the YouTube thumbnail", "make a click-worthy cover", or when listing_trigger or content_engine needs thumbnail assets generated for a completed video render. Uses Grok Imagine (xAI) to generate 4 thumbnail variants per video, runs A/B testing via ab_testing skill, and picks the winner after 24h based on CTR.
 ---
 
 # Thumbnail Generator

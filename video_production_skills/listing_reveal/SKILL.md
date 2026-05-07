@@ -1,7 +1,7 @@
 ---
 name: listing_reveal
 kind: format
-description: "Formalized 16-beat photo-to-cinematic reel for every new listing. Tumalo Reservoir formula codified. Remotion + depth_parallax + audio_sync + ElevenLabs VO."
+description: "Use this skill whenever the user says 'listing reveal', 'short viral listing reel', 'make a 16-beat listing video', 'quick social reel for this listing', 'just-listed reel', 'new listing hit — make the reel', 'pending reel', or any request for a short viral social format for a listing (40-48s, portrait, 16 beats). If user says 'create a listing video' without specifying short/viral format, default to listing-tour-video instead. Formalized 16-beat photo-to-cinematic reel for every new listing. Tumalo Reservoir formula codified. Remotion + depth_parallax + audio_sync + ElevenLabs VO."
 ---
 
 # Listing Reveal — Tumalo-Style 16-Beat Cinematic Reel

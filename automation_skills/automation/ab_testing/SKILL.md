@@ -1,6 +1,6 @@
 ---
 name: ab_testing
-description: Generates and tracks variant combinations for thumbnails, hooks, captions, and CTAs using epsilon-greedy allocation; declares winners after minimum sample thresholds are met.
+description: Use this skill whenever the user says "run an A/B test", "test thumbnail variants", "split test the hook", "test different captions", "set up a CTA test", "which thumbnail is winning", "check A/B results", "declare the A/B winner", or when a video format skill requests variant testing after generating thumbnails or hooks. Generates and tracks variant combinations for thumbnails, hooks, captions, and CTAs using epsilon-greedy allocation; declares winners after minimum sample thresholds are met.
 ---
 
 # A/B Testing

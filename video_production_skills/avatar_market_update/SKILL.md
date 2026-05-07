@@ -1,7 +1,7 @@
 ---
 name: avatar_market_update
 kind: format
-description: "Weekly 60s Synthesia avatar market pulse video. Mon 5am Supabase pull → constrained script → Synthesia API render → Remotion branded wrap. Mandatory AI disclosure pill."
+description: "Use this skill whenever the user says 'make an avatar market update', 'create the weekly avatar video', 'Synthesia market report', 'avatar-led market summary', 'Monday morning market video', 'weekly pulse video with avatar', or when a significant market event (Fed rate decision, MLS anomaly, inventory spike) warrants an immediate avatar-delivered broadcast. Weekly 60s Synthesia avatar market pulse video. Mon 5am Supabase pull → constrained script → Synthesia API render → Remotion branded wrap. Mandatory AI disclosure pill."
 ---
 
 # Avatar Market Update — Synthesia Weekly Stats Delivery

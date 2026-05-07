@@ -2,6 +2,9 @@
 name: news-video
 kind: format
 description: |
+  Use this skill whenever the user says "news video", "news clip", "create a news clip for this topic",
+  "real estate news today", "run the news", "daily news reel", "real estate topic clip",
+  "produce a news drop", "make a clip about [national RE story]", or "rundown on real estate news".
   Produce 1-3 daily real-estate news videos for Instagram Reels / TikTok / FB
   Reels. Pulls top national real-estate stories from last 24-72h, verifies
   every stat against primary sources, maps each to a Bend / Central Oregon

@@ -1,6 +1,6 @@
 ---
 name: listing-tour-video
-description: Produce a fully automated 60-90s branded listing tour video from a single MLS ListingKey, with ElevenLabs VO, Google 3D aerial establishing shot, Wan 2.7 i2v animated hero photos, and Remotion render. Primary router for prompts like "create a listing video for this address" (address must be resolved to ListingKey first), listing tour, MLS video, property showcase, or coming-soon video.
+description: Use this skill whenever the user says "create a listing video for this address", "make a listing tour", "produce a property video for [address]", "MLS video for [ListingKey]", "coming-soon video for this listing", "property showcase video", "re-render the listing video with new photos", or "generate both MLS and branded cuts". For short 40-48s viral social reels use listing_reveal instead. Produce a fully automated 60-90s branded listing tour video from a single MLS ListingKey, with ElevenLabs VO, Google 3D aerial establishing shot, Wan 2.7 i2v animated hero photos, and Remotion render.
 ---
 
 # Listing Tour Video Skill — Ryan Realty

@@ -1,6 +1,6 @@
 ---
 name: meme_lord
-description: "Image-format viral real estate memes for Instagram and X. Surfaces real templates, real friction points, real Bend market data. Matt writes every punchline. No AI humor (Anti-Slop Rule 9)."
+description: "Use this skill whenever the user says 'make me an image meme', 'create a real estate meme', 'I need a meme for Instagram', 'find a meme template for this', 'make something funny about [real estate topic]', 'Drake meme about buyers', 'distracted boyfriend meme for listings', or any request for an image-format social meme (not video — for video memes use meme_content). Image-format viral real estate memes for Instagram and X. Surfaces real templates, real friction points, real Bend market data. Matt writes every punchline. No AI humor (Anti-Slop Rule 9)."
 ---
 
 # Meme Lord — Image Memes for Instagram and X

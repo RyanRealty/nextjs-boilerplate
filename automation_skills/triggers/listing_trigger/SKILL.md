@@ -1,6 +1,6 @@
 ---
 name: listing_trigger
-description: New listing INSERT in Supabase fires a full content suite — video, 8 platform variants, scheduled posts, and thumbnail generation.
+description: Use this skill whenever a new listing is inserted into Supabase, when the user says "trigger the listing pipeline", "fire the listing content automation", "run listing trigger for [MLS number]", "kick off content for this new listing", "new listing came in — start the pipeline", or when debugging why content wasn't auto-generated for a new active listing. New listing INSERT in Supabase fires a full content suite — video, 8 platform variants, scheduled posts, and thumbnail generation.
 ---
 
 # Listing Trigger

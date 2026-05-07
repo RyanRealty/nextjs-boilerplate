@@ -1,6 +1,6 @@
 ---
 name: market_trigger
-description: Nightly cron compares market_pulse_live stats vs prior 7 days; if any tracked metric moves >5% fires a data_viz_video and avatar_market_update with full data verification trace.
+description: Use this skill whenever the user says "trigger the market pipeline", "fire the market data automation", "rerun market trigger for [city]", "run the nightly market check", "why didn't the market video fire?", "force a market trigger for Bend", or when investigating why a significant market movement didn't produce a content video. Nightly cron compares market_pulse_live stats vs prior 7 days; if any tracked metric moves >5% fires a data_viz_video and avatar_market_update with full data verification trace.
 ---
 
 # Market Trigger

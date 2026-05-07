@@ -1,7 +1,7 @@
 ---
 name: neighborhood_tour
 kind: format
-description: "Library generator for area guide videos. 19 named Bend-area neighborhoods/communities. Earth Studio flythrough + Remotion data overlay + ElevenLabs VO. Per-city JSON config with citation arrays."
+description: "Use this skill whenever the user says 'neighborhood tour', 'area guide video for [neighborhood]', 'make a video about Northwest Crossing', 'build the Sunriver area guide', 'render all neighborhood tours', 'Bend neighborhood video library', 'community deep dive video for [city]', or any request for a 60-90s narrated area guide with Earth Studio flythrough. For shorter 30-45s B-roll-only reels without VO use area_guides instead. Library generator for area guide videos. 19 named Bend-area neighborhoods/communities. Earth Studio flythrough + Remotion data overlay + ElevenLabs VO. Per-city JSON config with citation arrays."
 ---
 
 # Neighborhood Tour — Area Guide Video Library Generator

@@ -353,12 +353,18 @@ Before touching any code that builds a market report, listing reel, news clip, n
 
 | Format trigger | Mandatory load |
 |---|---|
-| "create a market report", "monthly market video", any city × month combination | `video_production_skills/market-data-video/SKILL.md` |
+| **"create a market report"**, "monthly market video", "run the market report" — any market-data deliverable | `video_production_skills/monthly-market-report-orchestrator/SKILL.md` (the ORCHESTRATOR — fans out to the 4 deliverables; ALWAYS prompts for scope: neighborhood / subdivision / city / multi-city / region) |
+| Short-form market video at city/region scope (called by orchestrator) | `video_production_skills/market-data-video/SKILL.md` |
+| Short-form market video at neighborhood/subdivision scope (called by orchestrator) | `video_production_skills/neighborhood-overview/SKILL.md` |
+| **YouTube long-form market video** (8–12 min, 1920×1080, deep arc) | `video_production_skills/youtube-long-form-market-report/SKILL.md` |
+| **SEO blog post** (AgentFire WordPress on ryan-realty.com) | `social_media_skills/blog-post/SKILL.md` |
+| **Facebook lead-gen ad** (FB lead form → FUB) | `social_media_skills/facebook-lead-gen-ad/SKILL.md` |
 | "listing video", "just-listed", "coming-soon", "pending", any single-property reel | `video_production_skills/listing-tour-video/SKILL.md` + `listing_reveal/SKILL.md` |
 | "news clip", "real estate news", "market news" | `video_production_skills/news-video/SKILL.md` |
 | "neighborhood overview", "subdivision deep dive" | `video_production_skills/neighborhood-overview/SKILL.md` |
 | "weekend events", "things to do" | `video_production_skills/weekend-events-video/SKILL.md` |
 | "data viz", any standalone chart-based explainer | `video_production_skills/data_viz_video/SKILL.md` |
+| ElevenLabs / Victoria voice settings — ANY skill that synths VO | `video_production_skills/elevenlabs_voice/SKILL.md` (single source of truth: stability 0.40, similarity 0.80, style 0.50) |
 
 **Self-enforcement:** before any edit to `video/market-report/`, `listing_video_v4/`, or any sibling video pipeline, the agent reads the matching skill and references its section numbers in the commit message. Editing without skill load = a rebuild later when Matt finds the regression.
 

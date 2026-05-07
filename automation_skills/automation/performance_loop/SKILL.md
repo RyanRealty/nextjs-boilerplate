@@ -1,6 +1,6 @@
 ---
 name: performance_loop
-description: Weekly cron pulls platform analytics for all posts in the last 7 days, scores them by weighted formula, tags by format, updates format_performance table, and shifts next week's content mix toward proven winners.
+description: Use this skill whenever the user says "run the performance loop", "what's our best performing format", "which posts did well this week", "shift the content mix", "update format performance", "what's winning on our social channels", "show me the analytics breakdown", or "rebuild the content mix based on performance". Weekly cron pulls platform analytics for all posts in the last 7 days, scores them by weighted formula, tags by format, updates format_performance table, and shifts next week's content mix toward proven winners.
 ---
 
 # Performance Loop

@@ -1,6 +1,6 @@
 ---
 name: post_scheduler
-description: Drains post_queue every 5 minutes and publishes to IG, FB, TikTok, YouTube, and LinkedIn via their APIs with retry and human-review gating.
+description: Use this skill whenever the user says "drain the post queue", "run the post scheduler", "why isn't my post publishing", "force publish a queued post", "check what's in the post queue", "retry a failed post", "is the scheduler running", or when troubleshooting why a queued post hasn't gone live. Drains post_queue every 5 minutes and publishes to IG, FB, TikTok, YouTube, and LinkedIn via their APIs with retry and human-review gating.
 ---
 
 # Post Scheduler

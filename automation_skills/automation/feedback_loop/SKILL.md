@@ -1,6 +1,6 @@
 ---
-name: feedback-loop
-description: Captures Matt's rejections and change requests as permanent rules in the originating skill's "Lessons learned" section. Auto-invoked by content_engine when a draft is rejected. Triggers on: "no, change [X]", "redo this", "this isn't right", "I don't like the [X]", "next time do [Y]", "update the workflow", "make this a permanent rule", "remember not to [X]", "keep doing [Y] going forward". NOT for mid-build iteration on a single draft — only for final rejections of a rendered or delivered output.
+name: feedback_loop
+description: Use this skill whenever the user says "no, change [X]", "redo this", "this isn't right", "I don't like the [X]", "next time do [Y]", "update the workflow", "make this a permanent rule", "remember not to [X]", "keep doing [Y] going forward", "always do", "never do", "add this as a rule", or "this keeps happening". Also auto-invoked by content_engine when a draft is rejected. Captures Matt's rejections and change requests as permanent rules in the originating skill's "Lessons learned" section. NOT for mid-build iteration on a single draft — only for final rejections of a rendered or delivered output.
 when_to_use: Also fires when Matt says "always do", "never do", "add this as a rule", "this keeps happening", or when content_engine registers a rejected draft. If the same rule hits 3 or more distinct skills, promotes to ANTI_SLOP_MANIFESTO.md or VIRAL_GUARDRAILS.md — the mechanism for the whole system to evolve and get smarter over time.
 ---
 

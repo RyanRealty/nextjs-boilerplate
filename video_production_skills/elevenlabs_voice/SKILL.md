@@ -1,6 +1,6 @@
 ---
-name: elevenlabs-voice
-description: ElevenLabs voiceover generation rules for Ryan Realty. Use when generating any VO audio. Covers Victoria voice ID + settings, model selection, IPA phoneme tags for tricky place names (Deschutes, Tumalo, etc.), previous_text chaining for prosody, number-spelling rules.
+name: elevenlabs_voice
+description: Use this skill whenever the user says "generate VO", "synth the voiceover", "TTS for the video", "ElevenLabs voice settings", "Victoria voice", "what voice settings do we use", "generate audio for this script", "record the narration", "what's the voice ID", or when any video production skill needs to call the ElevenLabs API. Covers Victoria voice ID + settings, model selection, IPA phoneme tags for tricky place names (Deschutes, Tumalo, etc.), previous_text chaining for prosody, number-spelling rules. ElevenLabs voiceover generation rules for Ryan Realty.
 ---
 
 # ElevenLabs Voice Skill

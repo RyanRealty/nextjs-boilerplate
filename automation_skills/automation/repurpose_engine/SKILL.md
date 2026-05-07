@@ -1,6 +1,6 @@
 ---
 name: repurpose_engine
-description: Takes one master video + copy block and produces 8 platform-specific variants via Remotion parameterized compositions and ffmpeg export presets, then writes them to post_queue.
+description: Use this skill whenever the user says "repurpose this video", "make platform variants", "create the TikTok version", "resize for LinkedIn", "fan out this video to all platforms", "create all the platform cuts", "export for Instagram and YouTube", or when listing_trigger completes a master render and needs 8 platform variants generated. Takes one master video + copy block and produces 8 platform-specific variants via Remotion parameterized compositions and ffmpeg export presets, then writes them to post_queue.
 ---
 
 # Repurpose Engine

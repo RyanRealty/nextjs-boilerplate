@@ -1,7 +1,7 @@
 ---
 name: meme_content
 kind: format
-description: "15-25s trend-jacking meme clips. Vlipsy clip + ffmpeg + Remotion text overlay. Real estate friction mapped to real trends. Matt's voice only — no AI humor."
+description: "Use this skill whenever the user says 'make a meme video', 'trend-jack this', 'real estate meme clip', 'make a reaction video about [RE topic]', 'meme reel for TikTok', 'viral meme for [trend]', or when social_calendar has a meme slot and trend_trigger has returned candidates. For static image memes use meme_lord instead. 15-25s trend-jacking meme clips. Vlipsy clip + ffmpeg + Remotion text overlay. Real estate friction mapped to real trends. Matt's voice only — no AI humor."
 ---
 
 # Meme Content — Trend-Jacking with Vlipsy Clips

@@ -1,9 +1,13 @@
 ---
 name: oregon-real-estate-oref
 description: >-
-  Strong first pass on Oregon OREF workflows: form categories, transaction
-  sequencing, earnest money and disclosure patterns. User is final authority.
-  Pair with oregon-orea-principal-broker for OREA/OAR regulatory file review.
+  Use this skill whenever the user asks about OREF forms, Oregon real estate paperwork, which
+  addendum to use, transaction sequencing, earnest money handling, offer structure, what
+  forms to attach to a purchase agreement, "how do I paper this deal", "which OREF applies",
+  "what disclosures are needed for this Oregon transaction", or any question about Oregon
+  real estate form selection and deal sequencing. Strong first pass on Oregon OREF workflows:
+  form categories, transaction sequencing, earnest money and disclosure patterns. User is
+  final authority. Pair with oregon-orea-principal-broker for OREA/OAR regulatory file review.
 ---
 
 # Oregon real estate transactions and OREF
