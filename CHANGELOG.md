@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.123.0 (2026-05-07)
+
+### Features
+- feat(captions+vo): full-sentence captions + conversational Victoria — implementation
+- feat(captions+vo): full-sentence captions + conversational Victoria — Matt directive
+
+---
+
+
 ## v1.122.0 (2026-05-07)
 
 ### Features
