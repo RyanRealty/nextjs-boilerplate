@@ -35,11 +35,16 @@ const nextIP = () => HOST_IPS[ipIdx++ % HOST_IPS.length]
 
 const CITIES = ['bend', 'redmond', 'sisters', 'la-pine', 'prineville', 'sunriver']
 
+// CONVERSATIONAL VOICE TUNING (Matt directive 2026-05-07 — saved to CLAUDE.md):
+//   stability        0.40 (was 0.50) — lower = more expression / less monotone
+//   similarity_boost 0.80 (was 0.75) — slightly stronger Victoria identity
+//   style            0.50 (was 0.35) — higher = more dynamic delivery
+//   use_speaker_boost true (unchanged)
 async function elSynth(text, previousText) {
   const body = {
     text,
     model_id: 'eleven_turbo_v2_5',
-    voice_settings: { stability: 0.50, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true },
+    voice_settings: { stability: 0.40, similarity_boost: 0.80, style: 0.50, use_speaker_boost: true },
     ...(previousText ? { previous_text: previousText } : {}),
   }
   const url = `https://${HOST}/v1/text-to-speech/${VOICE}/with-timestamps`
