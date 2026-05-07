@@ -928,10 +928,11 @@ If baseline data is missing, fall back to `hero` layout with the current value o
 
 4. **Landmark variety target (per render):** every render aims to include at least 4 distinct landmark types. For Bend that means a mix of: Mt. Bachelor / Three Sisters / South Sister, Smith Rock, Tumalo Falls, Old Mill / downtown, Drake Park / Mirror Pond, Cascade Lakes, Pilot Butte. Never ship a render where 3+ scenes are the same waterfall, the same butte, or the same mountain.
 
-5. **Source priority** (photo lookup order):
-   - **First:** asset library (`/Users/matthewryan/Documents/Claude/Projects/ASSET_LIBRARY/.cli`) — approved photos only.
-   - **Second:** Unsplash via `scripts/fetch-unsplash.mjs` — free, royalty-free, attribution required (`Photos: Unsplash` in outro).
-   - **Third:** Shutterstock via `scripts/fetch-shutterstock.mjs` (TODO — not yet wired). Paid per asset, used when Unsplash inventory for a city is thin OR when Matt requests a paid format.
+5. **Source priority** — **canonical source is `video_production_skills/media-sourcing/SKILL.md`**. The full decision tree, source registry, cost ledger, and per-format matrix live there. Summary (use the skill for the full version):
+   - **First:** Asset Library CLI — approved Bend-specific photos
+   - **Second:** Unsplash with landmark-specific queries (Pilot Butte, Mt. Bachelor, etc.)
+   - **Third:** Shutterstock licensed search (paid per asset)
+   - For ambient audio + AI motion + drone shots + AI illustrations + ANY other media decision, route through `media-sourcing/SKILL.md` first.
 
 6. **Bend-specific landmark queries** (`fetch-unsplash.mjs::CITY_CONFIGS.bend.queries`):
    ```
@@ -962,21 +963,127 @@ If baseline data is missing, fall back to `hero` layout with the current value o
 
 **Primary source: `market_stats_cache` table.** The cache pre-computes 40+ columns per geo × period including jsonb breakdowns (`price_band_counts`, `bedroom_breakdown`, `dom_distribution`, `price_tier_breakdown`, `property_type_breakdown`). Audited 2026-05-07: cache is accurate; the prior claim that it had a "10-15% off" bug was wrong — the apparent discrepancy was the cache blending all property types in the headline `sold_count` while our direct queries filtered `PropertyType='A'`. To get SFR-only headline numbers from the cache, read `property_type_breakdown->>'A'` (it counts 192 SFR for Bend April 2026, matching the direct query exactly).
 
-**Cache schema reference** (40 columns; bold = high-impact unique beat candidates):
+**Full data dictionary — every Supabase table the agent can read for market reports** (verified 2026-05-07):
 
+### `market_stats_cache` (40 cols) — pre-computed period stats per geo
 ```
+identity:     id, geo_type, geo_slug, geo_label, period_type, period_start, period_end,
+              computed_at, created_at, updated_at
 basic:        sold_count, median_sale_price, avg_sale_price, total_volume,
-              median_dom, median_ppsf, avg_sale_to_list_ratio, end_of_period_inventory
-percentiles:  speed_p25, speed_p50, speed_p75
+              median_dom, median_ppsf, median_price_per_sqft_closed,
+              avg_sale_to_list_ratio, end_of_period_inventory
+percentiles:  speed_p25, speed_p50, speed_p75 (DOM percentiles)
 yoy:          yoy_sold_delta_pct, yoy_median_price_delta_pct, yoy_dom_change,
               yoy_inventory_change_pct, yoy_ppsf_change_pct
 mom:          mom_median_price_change_pct, mom_inventory_change_pct
 verdict:      market_health_score (0-100), market_health_label (Cool/Warm/Hot)
 buyer:        cash_purchase_pct, median_concessions_amount, affordability_monthly_piti,
               avg_listing_quality_score, median_tax_rate
-jsonb:        price_band_counts, bedroom_breakdown, property_type_breakdown,
-              dom_distribution, price_tier_breakdown
+jsonb:        price_band_counts (5 buckets), bedroom_breakdown (per BedroomsTotal),
+              property_type_breakdown (per PropertyType — A/B/C/D/F),
+              dom_distribution (6 bins: <7, 8-14, 15-30, 31-60, 61-90, 90+),
+              price_tier_breakdown (6 tiers)
 ```
+
+### `market_pulse_live` (29 cols) — live cross-property-type inventory snapshot per geo
+```
+identity:     id, geo_type, geo_slug, geo_label, property_type, updated_at
+inventory:    active_count, pending_count, new_count_7d, new_count_30d,
+              end_of_period_inventory (via cache), median_active_dom
+listings:     median_list_price, avg_list_price, new_construction_share
+absorption:   months_of_supply, absorption_rate_pct, pending_to_active_ratio,
+              sell_through_rate_90d, expired_rate_90d, net_inventory_change_30d,
+              sold_count_30d, sold_count_90d, median_close_price_90d
+pricing:      median_sale_to_list, pct_sold_over_asking, pct_sold_under_asking,
+              pct_sold_at_asking, median_days_to_pending, avg_price_drops_active,
+              price_reduction_share
+verdict:      market_health_score, market_health_label
+```
+
+### `listings` (~140 cols) — direct row-level MLS data
+The `listings` table carries the most detailed data. Use direct queries when the cache doesn't pre-compute the stat (top neighborhoods, highest sale spotlight, etc.).
+
+```
+identity:     ListNumber, ListingKey, mls_source, property_cluster_id,
+              ModificationTimestamp, status_change_timestamp
+location:     City, State, PostalCode, county, StreetNumber, StreetName,
+              cross_street, Latitude, Longitude, parcel_number,
+              SubdivisionName, boundary_city, boundary_neighborhood, boundary_subdivision
+financial:    ListPrice, OriginalListPrice, ClosePrice,
+              price_per_sqft, close_price_per_sqft, price_per_acre,
+              price_per_bedroom, price_per_room,
+              sale_to_list_ratio, sale_to_final_list_ratio,
+              total_price_change_pct, total_price_change_amt,
+              hoa_monthly, hoa_annual_cost, hoa_pct_of_price,
+              tax_annual_amount, tax_assessed_value, tax_year, tax_rate,
+              estimated_monthly_piti, association_fee, association_fee_frequency,
+              concessions_amount, buyer_financing
+status/dates: StandardStatus, ListDate, OnMarketDate, listing_contract_date,
+              CloseDate, pending_timestamp, purchase_contract_date, off_market_date,
+              original_entry_timestamp, original_on_market_timestamp,
+              back_on_market_timestamp, back_on_market_count,
+              status_change_count, was_relisted,
+              days_to_pending, days_pending_to_close,
+              DaysOnMarket, CumulativeDaysOnMarket, dom_percentile, price_percentile,
+              days_since_last_price_change, last_price_change_date,
+              last_price_change_amount, last_price_change_pct,
+              price_drop_count, price_increase_count, total_price_changes,
+              largest_price_drop_pct
+property:     PropertyType, property_sub_type, property_attached_yn,
+              new_construction_yn, year_built, property_age,
+              levels, stories_total, rooms_total, architectural_style,
+              foundation_details, construction_materials, roof, basement_yn,
+              BedroomsTotal, BathroomsTotal, baths_full, baths_half,
+              bed_bath_ratio, TotalLivingAreaSqFt, building_area_total,
+              above_grade_finished_area, below_grade_finished_area,
+              above_grade_pct, sqft_efficiency,
+              lot_size_acres, lot_size_sqft, lot_features,
+              pool_yn, spa_yn, fireplace_yn, fireplaces_total,
+              fencing, waterfront_yn, horse_yn, view_description,
+              direction_faces, garage_yn, garage_spaces,
+              carport_yn, carport_spaces, parking_total,
+              heating_yn, cooling_yn, sewer, water,
+              irrigation_water_rights_yn
+schools:      elementary_school, middle_school, high_school, school_district
+amenities:    amenities (jsonb), home_warranty_yn, senior_community_yn,
+              has_virtual_tour, virtual_tour_url
+agents:       ListAgentName, ListOfficeName, list_agent_email, list_agent_mls_id,
+              buyer_agent_name, buyer_agent_mls_id, buyer_office_name
+content:      public_remarks, photos_count, PhotoURL, details (jsonb),
+              OpenHouses (jsonb), listing_quality_score, walk_score
+engagement:   view_count, save_count, inquiry_count, share_count, like_count,
+              email_share_count
+flags:        history_finalized, history_verified_full, media_finalized, is_finalized
+```
+
+### `listing_history` (8 cols) — per-listing event log
+```
+identity:     id, listing_key, created_at
+event:        event_date, event, description, price, price_change, raw (jsonb)
+```
+Used for pre-2026 YoY comparisons (see §5b) and price-reduction frequency (§22).
+
+### `boundaries` (9 cols) — geo polygon registry
+```
+id, geo_type, geo_slug, geo_label, parent_id, polygon, source, source_url, imported_at
+```
+Used for neighborhood / subdivision / city scope resolution (`boundaries.geo_type='neighborhood'`).
+
+### `neighborhood_subdivisions` (4 cols) — neighborhood ↔ subdivision rollup
+```
+neighborhood_slug, neighborhood_label, parent_city_slug, subdivision_label
+```
+Used by the populator function to resolve which subdivisions belong to which neighborhood.
+
+### `app_config` (4 cols) — runtime constants
+```
+key, value (jsonb), description, updated_at
+```
+The cache populator reads `mortgage_rate`, `insurance_rate_pct`, `default_tax_rate_pct` from here for the affordability_monthly_piti calculation.
+
+---
+
+**Cache reference (legacy — high-impact bold for unique beats):**
 
 To keep monthly reports feeling fresh instead of identical-template-with-different-numbers, rotate which advanced beats appear. The pipeline always renders the 5 core stat beats (price line chart, MoS gauge, DOM, STL, active inventory). Beyond those, pick 2-3 of the following based on what the data is doing this month:
 

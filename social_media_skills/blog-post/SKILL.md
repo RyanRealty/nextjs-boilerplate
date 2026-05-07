@@ -290,7 +290,8 @@ If ANY fail, halt before publishing.
 
 - `video_production_skills/monthly-market-report-orchestrator/SKILL.md` — the orchestrator that calls this skill
 - `video_production_skills/youtube-long-form-market-report/SKILL.md` — the long-form video this post embeds
-- `video_production_skills/market-data-video/SKILL.md` — short-form companion
+- `video_production_skills/market-data-video/SKILL.md` — short-form companion + canonical data dictionary (every figure in this blog post traces back to a column documented there)
+- `video_production_skills/media-sourcing/SKILL.md` — choose hero image source (asset library, Unsplash, Shutterstock, Imagen, Nano Banana, Grok Imagine, etc.). Locked default for blog hero: chart screenshot from the YouTube long-form OR a generated cover card from Imagen 4 / Nano Banana 2.
 - `video_production_skills/ANTI_SLOP_MANIFESTO.md` — banned content rules (canonical)
 - `video_production_skills/AGENT_HANDOFF.md` — confirms AgentFire WP is the production blog destination
 - `social_media_skills/facebook-lead-gen-ad/SKILL.md` — paired ad sub-skill

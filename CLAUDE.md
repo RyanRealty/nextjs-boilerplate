@@ -365,6 +365,8 @@ Before touching any code that builds a market report, listing reel, news clip, n
 | "weekend events", "things to do" | `video_production_skills/weekend-events-video/SKILL.md` |
 | "data viz", any standalone chart-based explainer | `video_production_skills/data_viz_video/SKILL.md` |
 | ElevenLabs / Victoria voice settings — ANY skill that synths VO | `video_production_skills/elevenlabs_voice/SKILL.md` (single source of truth: stability 0.40, similarity 0.80, style 0.50) |
+| **Image / video / audio sourcing — ANY media decision** (where to get a photo, which AI video model, ambient audio, drone shot, etc.) | `video_production_skills/media-sourcing/SKILL.md` (asset library → Unsplash → Shutterstock → AI generation; full source registry, decision tree, cost ledger, per-format matrix) |
+| **Supabase market-data tables** (any market-report data pull) | `video_production_skills/market-data-video/SKILL.md` §22 (full data dictionary: `market_stats_cache` 40 cols, `market_pulse_live` 29 cols, `listings` ~140 cols, `listing_history`, `boundaries`, `neighborhood_subdivisions`, `app_config`) |
 
 **Self-enforcement:** before any edit to `video/market-report/`, `listing_video_v4/`, or any sibling video pipeline, the agent reads the matching skill and references its section numbers in the commit message. Editing without skill load = a rebuild later when Matt finds the regression.
 

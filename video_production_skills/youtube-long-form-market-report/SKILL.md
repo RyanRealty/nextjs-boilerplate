@@ -274,7 +274,8 @@ When updating shared rules (e.g. voice settings, brand colors, banned words), up
 ## 10. See also
 
 - `video_production_skills/monthly-market-report-orchestrator/SKILL.md` — orchestrator that calls this skill
-- `video_production_skills/market-data-video/SKILL.md` — short-form sibling
+- `video_production_skills/market-data-video/SKILL.md` — short-form sibling + canonical data dictionary (§22 has every Supabase table + column the long-form video can pull from)
+- `video_production_skills/media-sourcing/SKILL.md` — single decision skill for image / video / audio sources (cinematic motion via Kling, drone footage via Google 3D Tiles, ambient audio via Veo native or ElevenLabs SFX, etc.)
 - `video_production_skills/elevenlabs_voice/SKILL.md` — canonical Victoria settings
 - `video_production_skills/render_pipeline/SKILL.md` — canonical render command + concurrency rule
 - `video_production_skills/captions/SKILL.md` — caption safe zone, sync, font

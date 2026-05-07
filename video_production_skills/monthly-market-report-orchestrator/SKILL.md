@@ -130,18 +130,29 @@ TRIGGER ─────► CLARIFY SCOPE ─────► PULL DATA (cache-fir
 
 ## 4. Data pull — cache-first
 
+The full data dictionary (every Supabase table the agent can read) lives in `market-data-video/SKILL.md` §22. **Always consult that section before designing the data pull** — there are 8 tables and ~220 columns total, and the right answer is usually already pre-computed in `market_stats_cache` or `market_pulse_live` rather than requiring a direct `listings` query.
+
 For every figure that appears in any deliverable:
 
-1. **Read `market_stats_cache`** for the geo × period × `period_type='monthly'`. SFR-only headline numbers come from the dedicated `*_sfr` columns once the migration ships, OR from `property_type_breakdown->>'A'` until then.
+1. **Read `market_stats_cache`** for the geo × period × `period_type='monthly'`. The cache headline blends all property types — read `property_type_breakdown->>'A'` for SFR-only counts. For SFR-only median price, fall back to a direct `listings` query filtered by `PropertyType='A'` (the cache does not yet expose a per-property-type median column).
 
-2. **Direct query the `listings` table** ONLY for stats the cache does not pre-compute:
-   - Top neighborhoods leaderboard (no jsonb breakdown for subdivision rollup)
+2. **Read `market_pulse_live`** for live inventory + absorption + listing-side stats (`active_count`, `pending_count`, `months_of_supply`, `pct_sold_over_asking`, etc.). This table is updated more frequently than the monthly cache.
+
+3. **Direct query the `listings` table (~140 columns)** ONLY for stats the cache + pulse don't pre-compute:
+   - Top neighborhoods leaderboard (no jsonb subdivision rollup)
    - Highest sale spotlight (need full row, not aggregate)
-   - Multi-year history medians (cache lacks per-property-type median; use `pull-historical-windows.mjs`)
+   - Multi-year history SFR-only medians (cache blends property types; use `pull-historical-windows.mjs`)
+   - Per-listing details for spotlights (year_built, view_description, lot_size_acres, etc.)
 
-3. **Verification trace** — every figure that appears on screen, on the blog, or in the ad must have a one-line trace entry: `"$699K median sale price — market_stats_cache row Bend monthly 2026-04-01, median_sale_price_sfr = 699000 over property_type_breakdown.A = 192 SFR closes"`. No trace, no ship.
+4. **Read `listing_history`** for pre-2026 YoY comparisons, price-reduction frequency, status-change history.
 
-4. **Spark reconciliation** (per CLAUDE.md data-accuracy mandate) — when Spark and Supabase report different active inventory counts, surface the delta to Matt before render. Spark wins for active inventory + DOM; Supabase wins for closed sales once reconciled past the Spark cutover date.
+5. **Read `boundaries` + `neighborhood_subdivisions`** for neighborhood scope resolution (which subdivisions belong to which neighborhood polygon).
+
+6. **Read `app_config`** for runtime constants used in derived stats (mortgage rate, insurance rate, default tax rate — the cache uses these to compute `affordability_monthly_piti`).
+
+7. **Verification trace** — every figure that appears on screen, on the blog, or in the ad must have a one-line trace entry: `"$699K median sale price — market_stats_cache row Bend monthly 2026-04-01, median_sale_price = 673860 (blended), property_type_breakdown.A = 192, SFR-filtered direct query median = 699000"`. No trace, no ship.
+
+8. **Spark reconciliation** (per CLAUDE.md data-accuracy mandate) — when Spark and Supabase report different active inventory counts, surface the delta to Matt before render. Spark wins for active inventory + DOM; Supabase wins for closed sales once reconciled past the Spark cutover date.
 
 ---
 
@@ -212,7 +223,8 @@ If any step fails, complete the others and surface the failure with retry guidan
 
 ## 8. See also
 
-- `video_production_skills/market-data-video/SKILL.md` — short-form video sub-skill (city + region scope)
+- `video_production_skills/media-sourcing/SKILL.md` — **single decision skill for choosing image / video / audio sources** (asset library, Unsplash, Shutterstock, Pexels, Pixabay, Supabase listing photos, Vertex Imagen, Nano Banana, Grok Imagine, Replicate Kling/Veo/Hailuo/Seedance/Wan/Luma/LTX/Hunyuan, ElevenLabs SFX, Foley Control, depth_parallax, depthflow, earth_zoom, Google Photorealistic 3D Tiles). Cross-reference this for ANY media decision.
+- `video_production_skills/market-data-video/SKILL.md` — short-form video sub-skill + canonical data dictionary in §22 (`market_stats_cache` 40 cols, `market_pulse_live` 29 cols, `listings` ~140 cols, `listing_history`, `boundaries`, `neighborhood_subdivisions`, `app_config`)
 - `video_production_skills/neighborhood-overview/SKILL.md` — short-form video sub-skill (neighborhood + subdivision scope)
 - `video_production_skills/youtube-long-form-market-report/SKILL.md` — long-form video sub-skill
 - `social_media_skills/blog-post/SKILL.md` — SEO blog post sub-skill (AgentFire WordPress)

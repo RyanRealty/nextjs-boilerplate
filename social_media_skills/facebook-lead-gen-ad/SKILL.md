@@ -318,7 +318,8 @@ Surface in a one-line summary:
 ## 10. See also
 
 - `video_production_skills/monthly-market-report-orchestrator/SKILL.md` — the orchestrator that calls this skill
-- `video_production_skills/market-data-video/SKILL.md` — the short-form video this ad uses
+- `video_production_skills/market-data-video/SKILL.md` — the short-form video this ad uses + canonical data dictionary
+- `video_production_skills/media-sourcing/SKILL.md` — image / video sourcing decision tree (the ad re-uses the short-form video, so any media decisions cascade from there)
 - `social_media_skills/blog-post/SKILL.md` — the blog post the lead receives in the thank-you email
 - `automation_skills/automation/publish/SKILL.md` — sister skill for organic publishing (this skill is the paid counterpart)
 - `automation_skills/automation/engagement_bot/SKILL.md` — handles inbound DMs / comments from the ad
