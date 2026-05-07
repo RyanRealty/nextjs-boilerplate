@@ -19,7 +19,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">Terms of Service</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: May 2026</p>
 
       <section className="mt-8 space-y-4 text-sm text-primary">
         <div>
@@ -103,6 +103,19 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold">Termination</h2>
           <p className="mt-2">
             We may suspend or terminate your access at any time for violation of these terms or for any other reason.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold">Ryan Realty Social — content publishing application</h2>
+          <p className="mt-2">
+            Ryan Realty operates an application named <strong>Ryan Realty Social</strong> that publishes original real-estate content (market reports, listing videos, neighborhood guides, news commentary) from this website to third-party platforms — including TikTok, Instagram, Facebook, YouTube, LinkedIn, X, Threads, Pinterest, and Google Business Profile — on behalf of Ryan Realty and its participating brokerage agents.
+          </p>
+          <p className="mt-2">
+            Ryan Realty Social does not collect user data from these third-party platforms. It does not post on behalf of website visitors, customers, or any user other than the brokerage and its authorized agents. Use of Ryan Realty Social is governed by these Terms of Service in addition to the platform-specific terms of each connected service (TikTok Developer Terms, Meta Platform Terms, YouTube API Services Terms, LinkedIn API Terms, etc.). Connected platform tokens are stored encrypted and used solely to publish Ryan Realty&rsquo;s own content; we do not access, scrape, or sell any platform user&rsquo;s data through this application.
+          </p>
+          <p className="mt-2">
+            For questions about the Ryan Realty Social application, including content removal requests, contact us at the address below.
           </p>
         </div>
 

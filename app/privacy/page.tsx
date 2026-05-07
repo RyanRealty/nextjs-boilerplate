@@ -28,7 +28,7 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold tracking-tight text-primary">Privacy & cookies</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Last updated: March 2026</p>
+      <p className="mt-2 text-sm text-muted-foreground">Last updated: May 2026</p>
       <p className="mt-4 text-primary">
         How we collect, use, and protect your information when you use our website.
       </p>
@@ -105,6 +105,22 @@ export default function PrivacyPage() {
         <h2 className={H2_CLASS}>Children’s privacy</h2>
         <p className={P_CLASS}>
           We do not knowingly collect personal information from children under 13. If you believe we have done so, please contact us and we will delete it.
+        </p>
+      </section>
+
+      <section className={SECTION_CLASS}>
+        <h2 className={H2_CLASS}>Ryan Realty Social — content publishing application</h2>
+        <p className={P_CLASS}>
+          Ryan Realty operates an application named <strong>Ryan Realty Social</strong> that publishes our own original real-estate content (market reports, listing videos, neighborhood guides, news commentary) from this website to third-party platforms on our behalf, including TikTok, Instagram, Facebook, YouTube, LinkedIn, X, Threads, Pinterest, and Google Business Profile.
+        </p>
+        <p className={P_CLASS}>
+          <strong>What data Ryan Realty Social handles:</strong> only the OAuth access tokens and refresh tokens that authorize Ryan Realty Social to publish to Ryan Realty&rsquo;s own brokerage accounts on each platform, plus public engagement metrics on our own posts (views, likes, comments) for performance analytics. Ryan Realty Social does <em>not</em> collect, store, or process personal information of TikTok users, Instagram users, or any other platform&rsquo;s users. It does not access follower lists, direct messages, or any third-party user data beyond what is publicly visible on our own posts.
+        </p>
+        <p className={P_CLASS}>
+          <strong>Token storage:</strong> platform OAuth tokens are stored encrypted at rest in our backend and are used solely for publishing Ryan Realty&rsquo;s own content. Tokens are never shared with third parties and are revocable at any time by the platform account owner via that platform&rsquo;s standard OAuth-revoke flow.
+        </p>
+        <p className={P_CLASS}>
+          <strong>Compliance:</strong> Ryan Realty Social complies with the TikTok Developer Terms of Service, the Meta Platform Terms, the YouTube API Services Terms of Service (including the Google API Services User Data Policy), the LinkedIn API Terms of Use, the X Developer Agreement, and the Pinterest Developer Terms.
         </p>
       </section>
 
