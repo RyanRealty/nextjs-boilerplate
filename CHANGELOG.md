@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.136.0 (2026-05-07)
+
+### Features
+- feat(fub-snippet): enable FB Login button alongside Google One Tap
+
+---
+
+
 ## v1.135.1 (2026-05-07)
 
 ### Bug Fixes
