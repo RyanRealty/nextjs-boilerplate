@@ -48,10 +48,11 @@
     facebookAppId: '901712509522992',
     cookieName: 'rr_identified',
     cookieDays: 30,
-    // Flip to true once the Facebook app is published out of dev mode.
-    // Until then, FB Login throws "App not active" for non-tester users —
-    // window.rrFacebookLogin() is still exposed for any custom CTA that wants it.
-    enableFacebookButton: false,
+    // Facebook app passed app review (Matt 2026-05-07). Both email and
+    // public_profile permissions confirmed status="live" via Graph API.
+    // Persistent FB Login button is now rendered for visitors who don't
+    // have a Google session in this browser.
+    enableFacebookButton: true,
   };
 </script>
 
@@ -491,6 +492,26 @@
     // Returning visitor — fire the page-tracking event immediately, don't
     // wait for One Tap silent re-auth (which may take 500-800ms or fail).
     trackPage(existingFubPersonId);
+  } else if (cfg.enableFacebookButton) {
+    // Brand-new (or non-cookie) visitor: show the Facebook button alongside
+    // One Tap so the visitor has a clear choice. One Tap is Google-only and
+    // requires a Google session; the FB button covers everyone else.
+    // Source-aware: if they came in from Facebook, the FB button is shown
+    // immediately; otherwise we wait briefly so One Tap gets first shot.
+    var src;
+    try { src = captureSource(); } catch (e) { src = {}; }
+    var cameFromFB = (src.utmSource && /facebook|instagram/i.test(src.utmSource));
+    if (cameFromFB) {
+      showFacebookButton();
+    } else {
+      // 1.2s delay so Google One Tap fires first; if the visitor doesn't
+      // have a Google session, the FB button quietly shows up after.
+      setTimeout(function() {
+        if (!getCookie(cfg.cookieName) || getCookie(cfg.cookieName) === '1') {
+          showFacebookButton();
+        }
+      }, 1200);
+    }
   }
 
   function initGoogleOneTap() {
