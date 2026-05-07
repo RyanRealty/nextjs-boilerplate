@@ -1,3 +1,14 @@
+---
+name: gaussian_splat
+kind: capability
+description: >
+  Gaussian splatting flythrough pipeline for premium listings $1M+. Reconstructs a 3D
+  scene from 30+ property photos using Gaussian splatting and renders cinematic walkthrough
+  clips. Used as a capability inside listing_reveal and listing_launch for qualifying
+  luxury properties. Do NOT invoke as a standalone content-production skill; cinematic-cut
+  deliverable only (banned from standard 45s viral cut).
+---
+
 # Skill 2 — 3D Home Renders / Gaussian Splatting Flythroughs
 
 **Read VIDEO_PRODUCTION_SKILL.md Section 1 before using this skill.** Hard constraints (beat length, hook, retention) override everything here.

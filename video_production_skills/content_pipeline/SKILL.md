@@ -1,3 +1,14 @@
+---
+name: content_pipeline
+kind: capability
+description: >
+  Master operating system for the 6-stage social content pipeline: Direct → Generate →
+  Produce → Draft → Publish → Monitor. Reference architecture for how all format skills
+  plug together. This is a capability/architecture document — ALL content production now
+  routes through content_engine/SKILL.md (the orchestrator). Do NOT invoke as a
+  standalone content-production skill.
+---
+
 # Content Pipeline — End-to-End Automated Production
 
 **When to use.** Any content-production task that flows from idea → publish. This is the master operating system for the social pipeline. Every other skill in this directory plugs into this 6-stage flow.

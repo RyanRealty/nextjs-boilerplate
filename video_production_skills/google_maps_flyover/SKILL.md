@@ -1,3 +1,15 @@
+---
+name: google_maps_flyover
+kind: format
+description: >
+  Cinematic aerial flyover using Google Earth Studio and Photorealistic 3D Tiles.
+  Produces FPV-style shots impossible to fly legally, or "zoom from space to front door"
+  reveals. Triggers on: "google maps flyover", "3D aerial", "cinematic aerial", "earth
+  studio flyover", "flyover for [address]", "city flyover", "downtown flyover".
+  Routes through content_engine. Output is used as a standalone clip or composited into
+  listing_reveal or neighborhood_tour as an aerial beat.
+---
+
 # Google Maps Flyover — 3D Tile Cinematic Aerials
 
 **When to use.** You need an aerial flyover that looks like a real FPV drone shot but is impossible/illegal to fly (banking through downtown buildings, swooping under bridges, threading through urban canyons), or a "zoom from space → land at the front door" reveal. Source material is Google Earth Studio + Photorealistic 3D Tiles. The deliverable feels like Hollywood second-unit, not Google Maps.
@@ -189,3 +201,61 @@ Master skill §6 applies to the final cut. Specific to flyovers:
 - **Total per published flyover:** half a day to a full day. The "free tools + 2–3 hours of post" formula is real, but the post hours are real hours.
 
 If half a day is too much for the deliverable: don't ship a flyover. Pull a Snowdrift Visuals real-drone clip from the Drive library instead. The flyover is reserved for the deliverables that justify the production time — hero listing launches, headline neighborhood spotlights, signature pieces.
+
+## Pre-Build QA (mandatory)
+Before scaffolding the BEATS array or starting any render:
+- Verify the format skill itself was loaded (this skill — required by `scripts/preflight.ts`)
+- Pull all data from primary sources (Spark MLS, Supabase, Census, NAR, Case-Shiller — never from training data or memory)
+- Write `out/<slug>/citations.json` with every figure → primary-source row before scaffolding BEATS
+- Banned-words grep on draft VO + on-screen text BEFORE render
+- Validate BEATS structure (12+ beats for 30-45s video, 3+ motion types, no beat over 4s)
+
+## Storyboard Handoff (mandatory unless Matt opts out)
+Before render, invoke `storyboard_pass` skill with:
+- format = google_maps_flyover
+- topic = <address, city, or aerial subject>
+- target_platforms = IG Reels, TikTok, YT Shorts
+- research_data = <data pulled in Pre-Build QA step>
+
+`storyboard_pass` returns the BEATS array, VO script, citation list, music choice, predicted scorecard. Show Matt the 30-second skim. On Matt's "go" → render. On redirect → invoke `feedback_loop` and re-storyboard.
+
+Skip storyboard ONLY when Matt explicitly says "skip storyboard" or "just build it".
+
+## Render
+See format-specific render instructions above (Google Earth Studio KML camera path → PNG sequence export → After Effects/Remotion composite). Command pattern for Remotion composite step:
+```
+cd listing_video_v4 && npx remotion render src/index.ts GoogleMapsAerial out/<slug>/flyover.mp4 --codec h264 --concurrency 1 --crf 22 --image-format=jpeg --jpeg-quality=92
+```
+
+## Post-Build QA Pass (mandatory)
+After render completes:
+- Auto-invoke `qa_pass` skill on the render output at `out/<slug>/flyover.mp4`
+- `qa_pass` runs all hard refuse conditions, auto-iterates up to 2 cycles on failures, writes `out/<slug>/gate.json`
+- If `qa_pass` writes `gatePassed: false` after 2 iterations: the asset goes to `out/_failed/<slug>/` and Matt is told the system could not produce a passing draft. DO NOT show Matt the failed draft.
+
+## Publish Handoff (post-approval only)
+After Matt explicitly approves the draft in chat ("ship it", "approved", "publish"):
+- Invoke `publish` skill with:
+  - mediaUrl = <CDN URL after upload to Supabase Storage from out/<slug>/>
+  - mediaType = "reel"
+  - platforms = ["ig_reels", "tiktok", "yt_shorts"]
+  - gate = <out/<slug>/gate.json contents>
+  - captionDefault = <approved caption>
+  - captionPerPlatform = <variants from publish skill best-practice matrix>
+  - metadata = <platform-specific options like TikTok privacyLevel, YouTube tags, LinkedIn visibility>
+
+The `publish` skill validates the gate (all paths exist, humanApprovedAt < 7 days), then calls `/api/social/publish` which fans out to platforms.
+
+## Feedback Capture (on rejection)
+If Matt rejects the draft or suggests a change:
+- Auto-invoke `feedback_loop` skill with:
+  - originating_skill = google_maps_flyover
+  - asset_path = `out/<slug>/flyover.mp4`
+  - rejection_reason = <Matt's verbatim words>
+  - render_metadata = <gate.json contents>
+
+`feedback_loop` extracts an actionable rule, appends it to this SKILL.md under a `## Lessons learned` section (creating it if absent), and writes a row to `rejection_log` Supabase table. Future invocations of this skill read those rules and adapt.
+
+## Lessons learned
+[Auto-maintained by `feedback_loop` skill. Each rejection adds an entry below.]
+<!-- format: ### YYYY-MM-DD — <asset slug>: <one-line summary> -->

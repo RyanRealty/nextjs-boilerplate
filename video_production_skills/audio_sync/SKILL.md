@@ -1,3 +1,15 @@
+---
+name: audio_sync
+kind: capability
+description: >
+  Beat detection and audio-sync library. Takes a music bed or combined VO+music track
+  and produces beats.json with tempo, beat timestamps, downbeat timestamps, and onset
+  timestamps. Remotion compositions import beats.json to snap cut startSec values to
+  the nearest beat within ±0.15s. Support library used by listing_reveal,
+  neighborhood_tour, and other format skills. Do NOT invoke as a standalone
+  content-production skill.
+---
+
 # Skill 4 — Music/Audio Sync (Beat Detection)
 
 ## Overview

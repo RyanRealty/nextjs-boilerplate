@@ -1,5 +1,6 @@
 ---
 name: earth_zoom
+kind: format
 description: "From-space-to-front-door cinematic intro for new listings. Scripted Google Earth Studio descent + Remotion composite + ElevenLabs VO."
 ---
 
@@ -378,3 +379,61 @@ out/earth_zoom/<listing_id>/qa.log       # Quality gate results
 - `video_production_skills/neighborhood_tour/SKILL.md` — earth_zoom flythrough is the standard opener for neighborhood tours
 - `video_production_skills/depth_parallax/SKILL.md` — depth parallax replaces earth_zoom on listings where satellite view is obscured or uninformative
 - `video_production_skills/ANTI_SLOP_MANIFESTO.md` — manifesto rules enforced in this skill
+
+## Pre-Build QA (mandatory)
+Before scaffolding the BEATS array or starting any render:
+- Verify the format skill itself was loaded (this skill — required by `scripts/preflight.ts`)
+- Pull all data from primary sources (Spark MLS, Supabase, Census, NAR, Case-Shiller — never from training data or memory)
+- Write `out/<slug>/citations.json` with every figure → primary-source row before scaffolding BEATS
+- Banned-words grep on draft VO + on-screen text BEFORE render
+- Validate BEATS structure (12+ beats for 30-45s video, 3+ motion types, no beat over 4s)
+
+## Storyboard Handoff (mandatory unless Matt opts out)
+Before render, invoke `storyboard_pass` skill with:
+- format = earth_zoom
+- topic = <user input>
+- target_platforms = IG Reels, TikTok, YT Shorts (+ horizontal YT cut if requested)
+- research_data = <data pulled in Pre-Build QA step>
+
+`storyboard_pass` returns the BEATS array, VO script, citation list, music choice, predicted scorecard. Show Matt the 30-second skim. On Matt's "go" → render. On redirect → invoke `feedback_loop` and re-storyboard.
+
+Skip storyboard ONLY when Matt explicitly says "skip storyboard" or "just build it".
+
+## Render
+See format-specific render instructions above (Google Earth Studio KML export → Remotion composite render). Command pattern:
+```
+cd listing_video_v4 && npx remotion render src/index.ts EarthZoom out/<slug>/earth_zoom.mp4 --codec h264 --concurrency 1 --crf 22 --image-format=jpeg --jpeg-quality=92
+```
+
+## Post-Build QA Pass (mandatory)
+After render completes:
+- Auto-invoke `qa_pass` skill on the render output at `out/<slug>/earth_zoom.mp4`
+- `qa_pass` runs all hard refuse conditions, auto-iterates up to 2 cycles on failures, writes `out/<slug>/gate.json`
+- If `qa_pass` writes `gatePassed: false` after 2 iterations: the asset goes to `out/_failed/<slug>/` and Matt is told the system could not produce a passing draft. DO NOT show Matt the failed draft.
+
+## Publish Handoff (post-approval only)
+After Matt explicitly approves the draft in chat ("ship it", "approved", "publish"):
+- Invoke `publish` skill with:
+  - mediaUrl = <CDN URL after upload to Supabase Storage from out/<slug>/>
+  - mediaType = "reel"
+  - platforms = ["ig_reels", "tiktok", "yt_shorts"]
+  - gate = <out/<slug>/gate.json contents>
+  - captionDefault = <approved caption>
+  - captionPerPlatform = <variants from publish skill best-practice matrix>
+  - metadata = <platform-specific options like TikTok privacyLevel, YouTube tags, LinkedIn visibility>
+
+The `publish` skill validates the gate (all paths exist, humanApprovedAt < 7 days), then calls `/api/social/publish` which fans out to platforms.
+
+## Feedback Capture (on rejection)
+If Matt rejects the draft or suggests a change:
+- Auto-invoke `feedback_loop` skill with:
+  - originating_skill = earth_zoom
+  - asset_path = `out/<slug>/earth_zoom.mp4`
+  - rejection_reason = <Matt's verbatim words>
+  - render_metadata = <gate.json contents>
+
+`feedback_loop` extracts an actionable rule, appends it to this SKILL.md under a `## Lessons learned` section (creating it if absent), and writes a row to `rejection_log` Supabase table. Future invocations of this skill read those rules and adapt.
+
+## Lessons learned
+[Auto-maintained by `feedback_loop` skill. Each rejection adds an entry below.]
+<!-- format: ### YYYY-MM-DD — <asset slug>: <one-line summary> -->

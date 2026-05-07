@@ -1,3 +1,15 @@
+---
+name: social_calendar
+kind: format
+description: >
+  Automated content calendar for active listings — generates 3 posts per week per
+  active listing across a configurable horizon (default 4 weeks = 12 posts). Triggers
+  on: "social calendar", "content calendar", "listing content schedule", "post schedule
+  for [address]", "weekly events video", "weekend events", "generate calendar for
+  listing". Routes through content_engine. Run once when a listing goes active; re-run
+  on status change. Also the source of autonomous daily content scheduling.
+---
+
 # Skill 5 — Social Calendar Automation
 
 ## When to use
@@ -239,3 +251,58 @@ is generated and kills the process loudly if any banned term is present.
   buyers are dreaming about their next home.
 - Hashtag count: 5-8. More than 10 has been shown to reduce reach on IG Reels (2024
   algorithm update). Quality over quantity.
+
+## Pre-Build QA (mandatory)
+Before scaffolding the BEATS array or starting any render:
+- Verify the format skill itself was loaded (this skill — required by `scripts/preflight.ts`)
+- Pull all data from primary sources (Spark MLS, Supabase, Census, NAR, Case-Shiller — never from training data or memory)
+- Write `out/<slug>/citations.json` with every figure → primary-source row before scaffolding BEATS
+- Banned-words grep on draft VO + on-screen text BEFORE render
+- Validate BEATS structure (12+ beats for 30-45s video, 3+ motion types, no beat over 4s)
+
+## Storyboard Handoff (mandatory unless Matt opts out)
+Before render, invoke `storyboard_pass` skill with:
+- format = social_calendar
+- topic = <listing address or content calendar scope>
+- target_platforms = IG Reels, TikTok, YT Shorts (per-slot platform from calendar)
+- research_data = <data pulled in Pre-Build QA step>
+
+`storyboard_pass` returns the BEATS array, VO script, citation list, music choice, predicted scorecard. Show Matt the 30-second skim. On Matt's "go" → render. On redirect → invoke `feedback_loop` and re-storyboard.
+
+Skip storyboard ONLY when Matt explicitly says "skip storyboard" or "just build it".
+
+## Render
+See format-specific render instructions above (format varies per calendar slot — delegates to the appropriate format skill per slot type). Command pattern varies by slot format.
+
+## Post-Build QA Pass (mandatory)
+After render completes for each calendar slot asset:
+- Auto-invoke `qa_pass` skill on the render output at `out/<slug>/<asset>.mp4`
+- `qa_pass` runs all hard refuse conditions, auto-iterates up to 2 cycles on failures, writes `out/<slug>/gate.json`
+- If `qa_pass` writes `gatePassed: false` after 2 iterations: the asset goes to `out/_failed/<slug>/` and Matt is told the system could not produce a passing draft. DO NOT show Matt the failed draft.
+
+## Publish Handoff (post-approval only)
+After Matt explicitly approves the draft in chat ("ship it", "approved", "publish"):
+- Invoke `publish` skill with:
+  - mediaUrl = <CDN URL after upload to Supabase Storage from out/<slug>/>
+  - mediaType = "reel" | "video"
+  - platforms = <per-slot platform assignment from content calendar>
+  - gate = <out/<slug>/gate.json contents>
+  - captionDefault = <approved caption>
+  - captionPerPlatform = <variants from publish skill best-practice matrix>
+  - metadata = <platform-specific options like TikTok privacyLevel, YouTube tags, LinkedIn visibility>
+
+The `publish` skill validates the gate (all paths exist, humanApprovedAt < 7 days), then calls `/api/social/publish` which fans out to platforms.
+
+## Feedback Capture (on rejection)
+If Matt rejects the draft or suggests a change:
+- Auto-invoke `feedback_loop` skill with:
+  - originating_skill = social_calendar
+  - asset_path = `out/<slug>/<asset>.mp4`
+  - rejection_reason = <Matt's verbatim words>
+  - render_metadata = <gate.json contents>
+
+`feedback_loop` extracts an actionable rule, appends it to this SKILL.md under a `## Lessons learned` section (creating it if absent), and writes a row to `rejection_log` Supabase table. Future invocations of this skill read those rules and adapt.
+
+## Lessons learned
+[Auto-maintained by `feedback_loop` skill. Each rejection adds an entry below.]
+<!-- format: ### YYYY-MM-DD — <asset slug>: <one-line summary> -->

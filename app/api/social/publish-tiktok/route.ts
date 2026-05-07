@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { directPostVideo, refreshAccessToken } from '@/lib/tiktok'
 
+// Valid TikTok privacy_level values per Content Posting API.
+// Unaudited apps: SELF_ONLY is forced regardless of what's sent. Verify app audit status before relying on PUBLIC_TO_EVERYONE.
+type TikTokPrivacyLevel =
+  | 'PUBLIC_TO_EVERYONE'
+  | 'MUTUAL_FOLLOW_FRIENDS'
+  | 'FOLLOWER_OF_CREATOR'
+  | 'SELF_ONLY'
+
 interface PublishRequest {
   videoUrl: string
   title: string
-  privacyLevel?: string
+  privacyLevel?: TikTokPrivacyLevel
 }
 
 interface AuthToken {
@@ -77,7 +85,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: PublishRequest = await request.json()
-    const { videoUrl, title, privacyLevel = 'PUBLIC' } = body
+    const { videoUrl, title, privacyLevel = 'PUBLIC_TO_EVERYONE' } = body
 
     if (!videoUrl || !title) {
       return NextResponse.json(

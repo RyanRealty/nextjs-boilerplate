@@ -9,12 +9,17 @@ interface YouTubeSnippet {
   title: string
   description: string
   tags?: string[]
+  /** YouTube category ID. Default '26' (Howto & Style) for real-estate content. '37' is Pets & Animals — never use. */
   categoryId?: string
 }
 
 interface YouTubeStatus {
   privacyStatus?: 'public' | 'private' | 'unlisted'
   selfDeclaredMadeForKids?: boolean
+  /** Required by YouTube ToS when video contains AI-generated voiceover (e.g. ElevenLabs Victoria). */
+  containsSyntheticMedia?: boolean
+  /** ISO timestamp for scheduled publishing. Requires privacyStatus='private' until publishAt fires. */
+  publishAt?: string
 }
 
 interface UploadFromUrlOptions {
@@ -202,11 +207,15 @@ export async function uploadYouTubeVideoFromUrl(options: UploadFromUrlOptions): 
           title: options.snippet.title,
           description: options.snippet.description,
           tags: options.snippet.tags ?? [],
-          categoryId: options.snippet.categoryId ?? '37',
+          categoryId: options.snippet.categoryId ?? '26',
         },
         status: {
           privacyStatus: options.status?.privacyStatus ?? 'public',
           selfDeclaredMadeForKids: options.status?.selfDeclaredMadeForKids ?? false,
+          ...(options.status?.containsSyntheticMedia !== undefined && {
+            containsSyntheticMedia: options.status.containsSyntheticMedia,
+          }),
+          ...(options.status?.publishAt && { publishAt: options.status.publishAt }),
         },
       }),
     }

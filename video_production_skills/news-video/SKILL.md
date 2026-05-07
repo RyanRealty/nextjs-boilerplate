@@ -1,5 +1,6 @@
 ---
 name: news-video
+kind: format
 description: |
   Produce 1-3 daily real-estate news videos for Instagram Reels / TikTok / FB
   Reels. Pulls top national real-estate stories from last 24-72h, verifies
@@ -199,3 +200,61 @@ This is mandatory per CLAUDE.md DATA ACCURACY MANDATE. No trace, no ship.
   modern brand VO. Saved on Matt's ElevenLabs account as "Victoria — Ryan
   Realty Anchor." For a custom American anchor, clone Matt's own voice and
   swap `VOICE_ID_VICTORIA` → `VOICE_ID_MATT` (future enhancement).
+
+## Pre-Build QA (mandatory)
+Before scaffolding the BEATS array or starting any render:
+- Verify the format skill itself was loaded (this skill — required by `scripts/preflight.ts`)
+- Pull all data from primary sources (Spark MLS, Supabase, Census, NAR, Case-Shiller — never from training data or memory)
+- Write `out/<slug>/citations.json` with every figure → primary-source row before scaffolding BEATS
+- Banned-words grep on draft VO + on-screen text BEFORE render
+- Validate BEATS structure (12+ beats for 30-45s video, 3+ motion types, no beat over 4s)
+
+## Storyboard Handoff (mandatory unless Matt opts out)
+Before render, invoke `storyboard_pass` skill with:
+- format = news-video
+- topic = <news headline or real estate topic>
+- target_platforms = IG Reels, TikTok, FB Reels
+- research_data = <data pulled in Pre-Build QA step>
+
+`storyboard_pass` returns the BEATS array, VO script, citation list, music choice, predicted scorecard. Show Matt the 30-second skim. On Matt's "go" → render. On redirect → invoke `feedback_loop` and re-storyboard.
+
+Skip storyboard ONLY when Matt explicitly says "skip storyboard" or "just build it".
+
+## Render
+See format-specific render instructions above (ElevenLabs VO → Unsplash imagery → Remotion 1080x1920 portrait with burn-in captions). Command pattern:
+```
+cd listing_video_v4 && npx remotion render src/index.ts NewsVideo out/<slug>/news_video.mp4 --codec h264 --concurrency 1 --crf 22 --image-format=jpeg --jpeg-quality=92
+```
+
+## Post-Build QA Pass (mandatory)
+After render completes:
+- Auto-invoke `qa_pass` skill on the render output at `out/<slug>/news_video.mp4`
+- `qa_pass` runs all hard refuse conditions, auto-iterates up to 2 cycles on failures, writes `out/<slug>/gate.json`
+- If `qa_pass` writes `gatePassed: false` after 2 iterations: the asset goes to `out/_failed/<slug>/` and Matt is told the system could not produce a passing draft. DO NOT show Matt the failed draft.
+
+## Publish Handoff (post-approval only)
+After Matt explicitly approves the draft in chat ("ship it", "approved", "publish"):
+- Invoke `publish` skill with:
+  - mediaUrl = <CDN URL after upload to Supabase Storage from out/<slug>/>
+  - mediaType = "reel"
+  - platforms = ["ig_reels", "tiktok", "fb_reels"]
+  - gate = <out/<slug>/gate.json contents>
+  - captionDefault = <approved caption>
+  - captionPerPlatform = <variants from publish skill best-practice matrix>
+  - metadata = <platform-specific options like TikTok privacyLevel, YouTube tags, LinkedIn visibility>
+
+The `publish` skill validates the gate (all paths exist, humanApprovedAt < 7 days), then calls `/api/social/publish` which fans out to platforms.
+
+## Feedback Capture (on rejection)
+If Matt rejects the draft or suggests a change:
+- Auto-invoke `feedback_loop` skill with:
+  - originating_skill = news-video
+  - asset_path = `out/<slug>/news_video.mp4`
+  - rejection_reason = <Matt's verbatim words>
+  - render_metadata = <gate.json contents>
+
+`feedback_loop` extracts an actionable rule, appends it to this SKILL.md under a `## Lessons learned` section (creating it if absent), and writes a row to `rejection_log` Supabase table. Future invocations of this skill read those rules and adapt.
+
+## Lessons learned
+[Auto-maintained by `feedback_loop` skill. Each rejection adds an entry below.]
+<!-- format: ### YYYY-MM-DD — <asset slug>: <one-line summary> -->

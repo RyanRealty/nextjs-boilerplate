@@ -1,3 +1,14 @@
+---
+name: ai_platforms
+kind: capability
+description: >
+  Tool-selection reference for AI video and image generation: platform matrix, current
+  pricing, API access status, and block-format prompt templates. Covers Kling, Veo,
+  Runway, Luma, Grok Imagine, ElevenLabs, Suno, Synthesia, Replicate, fal.ai. Used by
+  format skills to pick the right generation tool at build time. Do NOT invoke as a
+  standalone content-production skill — no content ships from this file alone.
+---
+
 # AI Video Platforms — Selection, Pricing, Prompt Architecture
 
 **When to use.** You're picking *which* AI generation tool to fire and *what* prompt format to use. Image generation, photo-to-video, text-to-video, multi-image-to-video, voiceover, music. This skill is the source of truth for the platform landscape, current pricing, API access status, and the block-format prompt template that produces non-slop output.

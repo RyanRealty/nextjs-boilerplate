@@ -1,3 +1,14 @@
+---
+name: quality_gate
+kind: capability
+description: >
+  6-phase hard gate for all AI-generated video content. Enforces ANTI_SLOP_MANIFESTO.md,
+  VIRAL_GUARDRAILS.md, data accuracy, caption rules, and brand compliance before any
+  content is shown to Matt or published. Support library — content_engine routes
+  format skills through this gate; do NOT invoke this as a standalone content-production
+  skill.
+---
+
 # Viral Video Quality Gate — 6-Phase Hard Gate (MANDATORY)
 
 ## Enforcement: ABSOLUTE

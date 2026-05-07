@@ -76,7 +76,7 @@ export async function generateFlyoverVideo(options: FlyoverVideoOptions): Promis
 }
 
 export type ImageToVideoOptions = {
-  /** Public URL of the source image to animate. */
+  /** Public URL of the source image to animate. xAI API field is `image` (NOT `image_url`). */
   image_url: string
   /** Motion/prompt for animation. Default: gentle cinematic motion. */
   prompt?: string
@@ -102,7 +102,9 @@ export async function generateImageToVideo(options: ImageToVideoOptions): Promis
 
   const body: Record<string, unknown> = {
     model: MODEL,
-    image_url: options.image_url,
+    // xAI API field is `image` per docs. The TypeScript option is named `image_url` for backward
+    // compatibility with the original implementation but the API expects `image`.
+    image: options.image_url,
     prompt: options.prompt ?? IMAGE_TO_VIDEO_PROMPT,
     duration: Math.min(15, Math.max(1, options.duration ?? IMAGE_TO_VIDEO_DURATION)),
     aspect_ratio: options.aspect_ratio ?? '16:9',

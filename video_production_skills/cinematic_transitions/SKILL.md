@@ -1,3 +1,14 @@
+---
+name: cinematic_transitions
+kind: capability
+description: >
+  Five Remotion transition components (CrossfadeTransition, LightLeakTransition, and
+  others) that layer between PhotoBeat sequences using overlapping Sequence pairs.
+  Support library for listing_reveal, listing_launch, neighborhood_tour, and other
+  format skills. Do NOT invoke as a standalone content-production skill — no content
+  ships from this file alone.
+---
+
 # Skill 3 — Cinematic Transitions
 
 Five Remotion transition components that layer between existing PhotoBeat sequences.

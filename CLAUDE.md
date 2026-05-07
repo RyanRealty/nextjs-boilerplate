@@ -117,7 +117,7 @@ If a deliverable could plausibly be the kind of thing Matt would want to review,
 - Settings: stability `0.50`, similarity `0.75`, style `0.35`, `use_speaker_boost: true`. Model `eleven_turbo_v2_5`.
 - **`previous_text` chained** across all lines for prosody continuity.
 - Numbers spelled out for ingestion: "475,000" → "four hundred seventy five thousand."
-- IPA phoneme tag for tricky place names on `eleven_v3` model: Deschutes (`dəˈʃuːts` — "duh-shoots"), Tumalo (`TOO-muh-low`), Tetherow, Awbrey, Terrebonne.
+- IPA phoneme tags work on `eleven_turbo_v2_5` (canonical) and `eleven_flash_v2` — they are silently SKIPPED on `eleven_v3`. Use `eleven_turbo_v2_5` for any line that needs forced pronunciation. Tricky place names: Deschutes (`dəˈʃuːts` — "duh-shoots"), Tumalo (`TUM-uh-low`, NOT "TOO-muh-low" — this is the local pronunciation, verified 2026-05-06), Tetherow, Awbrey, Terrebonne, Paulina (`pol-EYE-nuh`), Madras (`MAD-russ`).
 - Sentences short. Two clauses max. No commas where Matt wouldn't pause.
 
 ## Brand (zero in frame for viral cuts — EXCEPT listing videos, see overlay system below)
@@ -356,6 +356,8 @@ For routine production work, three short docs sit on top of the master skill and
 1. **`video_production_skills/API_INVENTORY.md`** — every API key Ryan Realty has access to, status (✅ / ⚠️ / ❌ as of 2026-04-27), what each does, current usage, untapped capability, cost per call. Verified live. Headline: **Replicate is the gateway to Kling v2.1 Master, Veo 3, Hailuo 02, Seedance 1 Pro, Wan 2.5 i2v, and Luma Ray 2** — the entire SOTA AI-video stack. fal.ai balance is dry; ElevenLabs has ~99k chars headroom this cycle; Meta Page Token is expired (publishing currently blocked); Resend `mail.ryan-realty.com` sender is unverified.
 
 2. **`video_production_skills/VISUAL_STRATEGY.md`** — opinionated creative brief per content type (listing / market report / news / evergreen / luxury). Primary visual source, motion vocabulary, transitions, color grading, typography, scroll-stopping vs forgettable principles.
+
+> **Platform token status (verified 2026-05-06 against live Graph API + Supabase):** Meta Page token is a long-lived never-expires token with full publishing scopes (`pages_manage_posts`, `instagram_content_publish`, `pages_manage_engagement`, etc.) — IG/FB publishing is LIVE. LinkedIn, YouTube, X, GBP all have tokens (some auto-refresh on first call, normal OAuth pattern). TikTok / Pinterest / Threads OAuth tables are empty — these need first-time OAuth connect at the respective `/api/<platform>/authorize/` route. The earlier `API_INVENTORY.md` claim of "Meta Page Token is expired and publishing is blocked" was stale and has been corrected.
 
 3. **`video_production_skills/WORKFLOWS.md`** — step-by-step build pipeline per content type. Numbered actionable steps. Includes the cross-cutting fallback table for when an API is down.
 

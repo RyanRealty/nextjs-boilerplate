@@ -1,3 +1,14 @@
+---
+name: depth_parallax
+kind: capability
+description: >
+  Remotion component <DepthParallaxBeat> that creates a genuine 3D Ken Burns parallax
+  effect from a single listing photo using MiDaS depth estimation. Splits the photo into
+  foreground/midground/background layers with different parallax multipliers. Support
+  library used by listing_reveal, listing_launch, and neighborhood_tour format skills —
+  do NOT invoke as a standalone content-production skill.
+---
+
 # Skill: 3D Ken Burns / Depth Parallax
 
 ## What this skill does

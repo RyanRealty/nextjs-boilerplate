@@ -1,3 +1,14 @@
+---
+name: brand_assets
+kind: capability
+description: >
+  Visual system reference: photo selection criteria, color tokens, font tiers, thumbnail
+  architecture, and creative philosophy for all Ryan Realty deliverables. Consult before
+  any creative decision (photo pick, color, layout, motion style). Support library — all
+  format skills load this for brand compliance. Do NOT invoke as a standalone
+  content-production skill; no content ships from this file alone.
+---
+
 # Brand Assets — Visual System, Photo Selection, Creative Intelligence
 
 **When to use.** Any time you're picking a photo, choosing a color, picking a font, designing a stat card, scaffolding a thumbnail, or making a creative decision for any deliverable that ships to the public. This skill is the agent's creative brain — consult it before choosing a visual treatment, text layout, color scheme, motion style, format, or thumbnail.

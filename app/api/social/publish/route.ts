@@ -39,6 +39,30 @@ type Platform =
   | 'threads'
 type MediaType = 'image' | 'video' | 'reel'
 
+/**
+ * Gate artifacts required for any publish call. Every field MUST be present and humanApprovedAt
+ * MUST be ≤ 7 days old. The gate exists so an agent cannot bypass the QA + approval pipeline by
+ * calling this route directly. See automation_skills/automation/publish/SKILL.md.
+ */
+interface GateArtifacts {
+  /** Path to scorecard.json (VIRAL_GUARDRAILS scorecard, must score ≥ format minimum) */
+  scorecardPath: string
+  /** Path to citations.json (every figure traced to primary source) */
+  citationsPath: string
+  /** Path to qa_report.md (qa_pass output, all hard refuse conditions checked) */
+  qaReportPath: string
+  /** Path to postflight.json (ffprobe + blackdetect + frame checks) */
+  postflightPath: string
+  /** Path to ANTI_SLOP_MANIFESTO.md the asset was checked against */
+  manifestoPath: string
+  /** ISO timestamp of Matt's explicit chat approval. Must be ≤ 7 days old. */
+  humanApprovedAt: string
+  /** Format skill that produced the asset (e.g. "data_viz_video", "listing_reveal") */
+  formatSkillName: string
+  /** Optional: git SHA / version of the format skill at render time */
+  formatSkillVersion?: string
+}
+
 interface PublishRequest {
   approved: boolean
   contentType?: string
@@ -50,10 +74,7 @@ interface PublishRequest {
   captionPerPlatform?: Partial<Record<Platform, string>>
   hashtagsPerPlatform?: Partial<Record<Platform, string[]>>
   coverUrl?: string
-  gate?: {
-    scorecardPath?: string
-    citationsPath?: string
-  }
+  gate: GateArtifacts
   metadata?: {
     tiktok?: {
       title?: string
@@ -117,10 +138,44 @@ function resolveCaption(body: PublishRequest, platform: Platform): string {
   return `${base}${hashtagSuffix}`.trim()
 }
 
-function hasGateArtifacts(body: PublishRequest): boolean {
-  const scorecardPath = body.gate?.scorecardPath?.trim()
-  if (!scorecardPath) return false
-  return true
+const GATE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
+
+function validateGate(gate: GateArtifacts | undefined): { valid: true } | { valid: false; error: string } {
+  if (!gate) return { valid: false, error: 'gate object is required (see automation_skills/automation/publish/SKILL.md)' }
+
+  const required: (keyof GateArtifacts)[] = [
+    'scorecardPath',
+    'citationsPath',
+    'qaReportPath',
+    'postflightPath',
+    'manifestoPath',
+    'humanApprovedAt',
+    'formatSkillName',
+  ]
+  for (const field of required) {
+    const value = gate[field]
+    if (typeof value !== 'string' || !value.trim()) {
+      return { valid: false, error: `gate.${field} is required and must be a non-empty string` }
+    }
+  }
+
+  const approvedAt = new Date(gate.humanApprovedAt)
+  if (Number.isNaN(approvedAt.getTime())) {
+    return { valid: false, error: 'gate.humanApprovedAt must be a valid ISO 8601 timestamp' }
+  }
+  const ageMs = Date.now() - approvedAt.getTime()
+  if (ageMs < 0) {
+    return { valid: false, error: 'gate.humanApprovedAt is in the future — clock skew or invalid timestamp' }
+  }
+  if (ageMs > GATE_MAX_AGE_MS) {
+    const days = Math.floor(ageMs / (24 * 60 * 60 * 1000))
+    return {
+      valid: false,
+      error: `gate.humanApprovedAt is ${days} days old (max 7). Re-run qa_pass + obtain fresh Matt approval before publishing.`,
+    }
+  }
+
+  return { valid: true }
 }
 
 async function getTikTokAccessToken(): Promise<string> {
@@ -493,9 +548,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!hasGateArtifacts(body)) {
+    const gateCheck = validateGate(body.gate)
+    if (!gateCheck.valid) {
       return NextResponse.json(
-        { error: 'Publish blocked: gate.scorecardPath is required' },
+        { error: `Publish blocked (gate): ${gateCheck.error}` },
         { status: 400 }
       )
     }
