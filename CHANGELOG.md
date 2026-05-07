@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.125.2 (2026-05-07)
+
+### Bug Fixes
+- fix(market-report): multi-color line chart + narrative VO + Bend-specific photos + locked caption sync
+
+---
+
+
 ## v1.125.1 (2026-05-07)
 
 ### Bug Fixes
