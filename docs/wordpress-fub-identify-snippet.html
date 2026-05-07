@@ -1,0 +1,211 @@
+<!--
+  ============================================================================
+  Ryan Realty — WordPress FUB Identify Snippet
+  Target: AgentFire admin → Site Settings → Header/Footer Scripts & Metas
+          → "Body before closing tag" slot
+  Endpoint it talks to: https://ryanrealty.vercel.app/api/fub/identify
+  Generated: 2026-05-07
+
+  WHAT IT DOES
+  ----------------------------------------------------------------------------
+  1. Loads Google Identity Services and fires Google One Tap on page load.
+     Any visitor signed into Google sees "Continue as <Name>" within ~1s.
+  2. Renders a small "Continue with Facebook" widget bottom-right for FB users.
+  3. On either auth success, POSTs the verified ID token / access token to the
+     Vercel /api/fub/identify endpoint, which verifies the token server-side
+     and matches the visitor against Follow Up Boss.
+  4. Sets first-party cookie `rr_identified` for 30 days so the prompts stay
+     quiet on return visits (silent re-auth fires One Tap with auto_select).
+  5. Shows a brief "Welcome back, <FirstName>" toast when FUB returns matched.
+
+  WHAT IT DOES NOT DO
+  ----------------------------------------------------------------------------
+  - Does not pass any visitor email or PII over the wire to the endpoint —
+    only the OAuth token. The endpoint extracts email from the verified token.
+  - Does not auto-fill forms, log in to Supabase, or set Supabase cookies.
+    This is identification, not authentication into the Vercel app.
+  - No copy of the user's data is stored in WordPress. FUB is the system of
+    record.
+  ============================================================================
+-->
+
+<!-- Configuration. Public client IDs only; secrets live on the Vercel server. -->
+<script>
+  window.RR_FUB_IDENTIFY = {
+    endpoint: 'https://ryanrealty.vercel.app/api/fub/identify',
+    googleClientId: '725620954432-aq83t2skspo1qgk0jjhs608etgb2o9ar.apps.googleusercontent.com',
+    facebookAppId: '901712509522992',
+    cookieName: 'rr_identified',
+    cookieDays: 30,
+  };
+</script>
+
+<!-- Google Identity Services (One Tap) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- Facebook SDK -->
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    if (!window.FB) return;
+    FB.init({
+      appId: window.RR_FUB_IDENTIFY.facebookAppId,
+      cookie: false,
+      xfbml: false,
+      version: 'v18.0'
+    });
+  };
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+<!-- Identify logic -->
+<script>
+(function() {
+  var cfg = window.RR_FUB_IDENTIFY;
+
+  function getCookie(name) {
+    var match = document.cookie.split('; ').find(function(r) { return r.indexOf(name + '=') === 0; });
+    return match ? match.split('=')[1] : null;
+  }
+
+  function setCookie(name, value, days) {
+    var exp = new Date();
+    exp.setTime(exp.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = name + '=' + value + '; expires=' + exp.toUTCString() + '; path=/; SameSite=Lax; Secure';
+  }
+
+  function identify(payload) {
+    return fetch(cfg.endpoint, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider: payload.provider,
+        idToken: payload.idToken,
+        accessToken: payload.accessToken,
+        sourceUrl: window.location.href,
+      }),
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.ok) {
+          setCookie(cfg.cookieName, '1', cfg.cookieDays);
+          hideFacebookButton();
+          if (data.matched && data.firstName) {
+            showWelcomeBack(data.firstName);
+          }
+        }
+      })
+      .catch(function(err) { /* swallow — never block the page */ });
+  }
+
+  function showWelcomeBack(name) {
+    if (document.getElementById('rr-welcome-toast')) return;
+    var toast = document.createElement('div');
+    toast.id = 'rr-welcome-toast';
+    toast.style.cssText = [
+      'position:fixed', 'bottom:24px', 'right:24px', 'z-index:99999',
+      'background:#102742', 'color:#F2EBDD', 'padding:14px 20px',
+      'border-radius:12px',
+      'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
+      'font-size:14px', 'font-weight:500',
+      'box-shadow:0 8px 24px rgba(0,0,0,0.25)',
+      'max-width:320px', 'opacity:0', 'transition:opacity 200ms ease'
+    ].join(';');
+    toast.textContent = 'Welcome back, ' + name + '.';
+    document.body.appendChild(toast);
+    requestAnimationFrame(function() { toast.style.opacity = '1'; });
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      setTimeout(function() { toast.remove(); }, 250);
+    }, 4500);
+  }
+
+  function showFacebookButton() {
+    if (document.getElementById('rr-fb-cta')) return;
+    var btn = document.createElement('button');
+    btn.id = 'rr-fb-cta';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Continue with Facebook');
+    btn.style.cssText = [
+      'position:fixed', 'bottom:24px', 'left:24px', 'z-index:99998',
+      'background:#1877F2', 'color:#fff', 'border:0',
+      'padding:12px 18px', 'border-radius:999px', 'cursor:pointer',
+      'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
+      'font-size:14px', 'font-weight:600',
+      'box-shadow:0 4px 14px rgba(24,119,242,0.35)',
+      'display:flex', 'align-items:center', 'gap:8px'
+    ].join(';');
+    btn.innerHTML =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">' +
+      '<path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82V14.706h-3.13V11.08h3.13V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.464.099 2.795.143v3.24h-1.918c-1.504 0-1.795.715-1.795 1.763v2.31h3.587l-.467 3.626h-3.12V24h6.116c.732 0 1.325-.593 1.325-1.324V1.325C24 .593 23.407 0 22.675 0z"/>' +
+      '</svg>' +
+      '<span>Continue with Facebook</span>';
+    btn.addEventListener('click', function() {
+      if (!window.FB) return;
+      FB.login(function(response) {
+        if (response && response.authResponse && response.authResponse.accessToken) {
+          identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
+        }
+      }, { scope: 'email,public_profile' });
+    });
+    document.body.appendChild(btn);
+  }
+
+  function hideFacebookButton() {
+    var el = document.getElementById('rr-fb-cta');
+    if (el) el.remove();
+  }
+
+  // Skip prompts if we identified this visitor recently.
+  var alreadyIdentified = getCookie(cfg.cookieName) === '1';
+
+  function initGoogleOneTap() {
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+      setTimeout(initGoogleOneTap, 100);
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: cfg.googleClientId,
+      callback: function(response) {
+        identify({ provider: 'google', idToken: response.credential });
+      },
+      auto_select: alreadyIdentified, // silent re-auth on returning visits
+      cancel_on_tap_outside: true,
+      context: 'signin',
+      itp_support: true,
+    });
+    google.accounts.id.prompt(function(notification) {
+      // If One Tap is suppressed (dismissed, browser blocked, etc.), still let
+      // FB users identify via the persistent button.
+      if (notification.isNotDisplayed && notification.isNotDisplayed()) {
+        if (!alreadyIdentified) showFacebookButton();
+      } else if (notification.isSkippedMoment && notification.isSkippedMoment()) {
+        if (!alreadyIdentified) showFacebookButton();
+      } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+        if (!alreadyIdentified) showFacebookButton();
+      }
+    });
+  }
+
+  // On returning visits we don't render the FB button at all — the cookie says
+  // we already know this visitor. Vercel's existing trackPageView handles return
+  // visit logging there; we don't double-log from here.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGoogleOneTap);
+  } else {
+    initGoogleOneTap();
+  }
+
+  // Expose for any custom button on the page (e.g. AgentFire CTA blocks).
+  window.rrFacebookLogin = function() {
+    if (!window.FB) return;
+    FB.login(function(response) {
+      if (response && response.authResponse && response.authResponse.accessToken) {
+        identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
+      }
+    }, { scope: 'email,public_profile' });
+  };
+})();
+</script>
