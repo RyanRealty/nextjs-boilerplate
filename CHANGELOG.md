@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.135.1 (2026-05-07)
+
+### Bug Fixes
+- fix(fub): await addPersonTags in serverless to avoid fire-and-forget kill
+
+---
+
+
 ## v1.135.0 (2026-05-07)
 
 ### Features
