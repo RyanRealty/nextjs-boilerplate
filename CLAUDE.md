@@ -385,9 +385,10 @@ These three layer with the master skill: `API_INVENTORY` answers *what tools are
 
 1. **Captions NEVER render over other visual components.** No overlap with stats, numbers, charts, logos, end-card elements, animated text overlays (titles, price reveals, SlamLine, WordReveal, BreakingBadge), photos with focal content, or any other rendered overlay. If a competing element needs the caption zone for a beat, the caption is suppressed for that beat.
 2. **Captions occupy a dedicated reserved safe zone that no other component can enter.** Portrait 1080×1920: y 1480–1720, x 90–990. Enforced at the composition level via a `<CaptionSafeZone>` wrapper — physical reservation, not just z-index.
-3. **Caption transitions must be smooth — fade or word-by-word kinetic — never hard cuts between full-sentence blocks.** Min 6-frame (200 ms) opacity ramp on fades. Word-by-word: 1–3 word chunks, active word color + scale 1.0→1.08 spring, synced to ElevenLabs forced-alignment timestamps.
-4. **Caption timing syncs to natural speech cadence via ElevenLabs `/v1/forced-alignment` word-level timestamps — never to clock-time slots or `<Sequence>` boundaries.** Generate the alignment JSON next to every VO MP3 before rendering; the caption component reads from it.
-5. **No choppy or jittery caption changes.** No flicker. No 1-frame blips. No mid-word fade-outs. No font-size oscillation. No re-layout jumps mid-chunk.
+3. **CAPTION FORMAT IS FULL-SENTENCE WITH ACTIVE-WORD HIGHLIGHT (Matt directive 2026-05-07 — permanent rule).** The whole current sentence stays on screen. The active word is highlighted (gold color + scale 1.0→1.08 spring) synced to ElevenLabs forced-alignment timestamps. NEVER use word-by-word fade-in/out (3-word phrase windows, single-word reveals, etc.). Sentence boundaries are detected by `.`, `!`, `?` in word.text. Reference impl: `video/market-report/src/CaptionBand.tsx`.
+4. **Sentence transitions: smooth 200–300 ms crossfade.** Previous sentence fades out, next sentence fades in, both partially visible during the crossfade window. NEVER hard cut between sentences. NEVER flash. Min 6-frame opacity ramp.
+5. **Caption timing syncs to natural speech cadence via ElevenLabs `/v1/forced-alignment` word-level timestamps — never to clock-time slots or `<Sequence>` boundaries.** Generate the alignment JSON next to every VO MP3 before rendering; the caption component reads from it.
+6. **No choppy or jittery caption changes.** No flicker. No 1-frame blips. No mid-word fade-outs. No font-size oscillation. No re-layout jumps mid-chunk.
 
 A render that fails any of these is a non-ship until repaired. Captions + data accuracy together gate every render: wrong number OR broken captions = no ship.
 
@@ -398,7 +399,8 @@ A render that fails any of these is a non-ship until repaired. Captions + data a
 - Env vars in `.env.local`: `ELEVENLABS_VOICE_ID=qSeXEcewz7tA0Q0qk9fH`, `ELEVENLABS_VOICE_ID_VICTORIA=qSeXEcewz7tA0Q0qk9fH`
 - API key: `ELEVENLABS_API_KEY` in `.env.local`
 - **ALWAYS use Victoria for ALL voiceover.** No other voice. No substituting. No asking.
-- **Canonical model + settings**: `eleven_turbo_v2_5`, stability `0.50`, similarity_boost `0.75`, style `0.35`, `use_speaker_boost: true`. These match the market-report scorecards Matt approved. Different model or different settings = different-sounding voice = a rejected render.
+- **Canonical model + settings (Matt directive 2026-05-07 — tuned for conversational delivery)**: `eleven_turbo_v2_5`, **stability `0.40`** (was 0.50 — lower = more expression), **similarity_boost `0.80`** (was 0.75 — stronger Victoria identity), **style `0.50`** (was 0.35 — more dynamic delivery), `use_speaker_boost: true`. Different model or different settings = different-sounding voice = a rejected render. Override per-script via `voice_settings` field in `script.json`.
+- **Conversational delivery rules.** Avoid robotic monotone. Split long sentences into shorter clauses. Add commas where a natural speaker would pause. Use IPA phoneme tags for tricky place names (Bend, Tumalo, Deschutes — see CLAUDE.md IPA library). For very long lines, break into multiple `segments` rather than one continuous run-on.
 - Use `previous_text` chaining for prosody continuity across sentences within a clip.
 - Use IPA phoneme tags for tricky pronunciations (e.g., Deschutes → `<phoneme alphabet="ipa" ph="dəˈʃuːts">Deschutes</phoneme>`).
 - Matt approved this voice 2026-04-27 — Victoria is the permanent voice. Do not switch without explicit Matt direction.
