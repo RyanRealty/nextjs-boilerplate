@@ -960,23 +960,54 @@ If baseline data is missing, fall back to `hero` layout with the current value o
 
 ## 22. Unique-Data Backlog (Variation Pool — Pick 2-3 per Monthly Report)
 
+**Primary source: `market_stats_cache` table.** The cache pre-computes 40+ columns per geo × period including jsonb breakdowns (`price_band_counts`, `bedroom_breakdown`, `dom_distribution`, `price_tier_breakdown`, `property_type_breakdown`). Audited 2026-05-07: cache is accurate; the prior claim that it had a "10-15% off" bug was wrong — the apparent discrepancy was the cache blending all property types in the headline `sold_count` while our direct queries filtered `PropertyType='A'`. To get SFR-only headline numbers from the cache, read `property_type_breakdown->>'A'` (it counts 192 SFR for Bend April 2026, matching the direct query exactly).
+
+**Cache schema reference** (40 columns; bold = high-impact unique beat candidates):
+
+```
+basic:        sold_count, median_sale_price, avg_sale_price, total_volume,
+              median_dom, median_ppsf, avg_sale_to_list_ratio, end_of_period_inventory
+percentiles:  speed_p25, speed_p50, speed_p75
+yoy:          yoy_sold_delta_pct, yoy_median_price_delta_pct, yoy_dom_change,
+              yoy_inventory_change_pct, yoy_ppsf_change_pct
+mom:          mom_median_price_change_pct, mom_inventory_change_pct
+verdict:      market_health_score (0-100), market_health_label (Cool/Warm/Hot)
+buyer:        cash_purchase_pct, median_concessions_amount, affordability_monthly_piti,
+              avg_listing_quality_score, median_tax_rate
+jsonb:        price_band_counts, bedroom_breakdown, property_type_breakdown,
+              dom_distribution, price_tier_breakdown
+```
+
 To keep monthly reports feeling fresh instead of identical-template-with-different-numbers, rotate which advanced beats appear. The pipeline always renders the 5 core stat beats (price line chart, MoS gauge, DOM, STL, active inventory). Beyond those, pick 2-3 of the following based on what the data is doing this month:
 
 | Beat | Layout | Data source | When to feature |
 |------|--------|-------------|-----------------|
-| **Price segment histogram** (S9 in the locked spec) | `histogram` | Q7: 5 buckets of `ClosePrice` for the period | Every month — shows where the action is. Always include unless the sample is too thin. |
-| **Top neighborhoods leaderboard** (S10 in the locked spec) | `leaderboard` | Q8: top 5 `SubdivisionName` by closed volume | Every month — name-checks subdivisions buyers and sellers care about. |
-| **DOM histogram** | `histogram` | new query: closed sales bucketed by DOM (<7 / 7–14 / 14–30 / 30+ days) | Months where the DOM headline number tells only half the story (e.g. when a few outliers drag the median). |
-| **Highest sale of the month** | `takeaway` (custom) | new query: `SELECT * FROM listings WHERE CloseDate IN window AND PropertyType='A' ORDER BY ClosePrice DESC LIMIT 1` | When the top sale is newsworthy (luxury record, notable address, distinctive architecture). Address can be obfuscated to subdivision/neighborhood level only. |
-| **$/sqft trend (multi-year)** | `line_chart` | history query for `medianPPSF` across 4 windows | When PPSF tells a different story than the headline median (e.g. median price flat but PPSF climbing → smaller homes). |
-| **New construction vs resale** | `price_band` (2-segment) | new query: split closes by `YearBuilt > {currentYear - 3}` | In areas with active development (Bend, Redmond, La Pine) where the mix shifts month-to-month. |
-| **Price reduction frequency** | `gauge` (re-skin) | listing_history query: % of active listings with price drop in last 30d | When buyers should know how much pressure sellers are under. |
-| **Bed/bath configuration mix** | `histogram` (4-bin: 2br / 3br / 4br / 5+br) | Q on `BedroomsTotal` | When config mix is the real story (e.g. 4br dominance signals family-buyer market). |
-| **Listing-to-pending velocity** | `gauge` (0-100% scale) | Q: pending count / (active + pending) | Every other month — shows what % of supply is in escrow. |
+| **Price segment histogram** (S9 in the locked spec) | `histogram` | `market_stats_cache.price_band_counts` (under_300k / 300k_500k / 500k_750k / 750k_1m / over_1m) — pre-bucketed | Every month — shows where the action is. Always include unless the sample is too thin. |
+| **Top neighborhoods leaderboard** (S10 in the locked spec) | `leaderboard` | direct query: top 5 `SubdivisionName` by closed volume + median price + DOM (cache does not pre-compute this) | Every month — name-checks subdivisions buyers and sellers care about. |
+| **Cash purchase % gauge** | `gauge` (0-50%, color zones) | `market_stats_cache.cash_purchase_pct` — pre-computed | Every month — buyers and sellers both want to know what % of competition is non-financed. Frames as a gauge with a needle and color zones (low/medium/high cash share). |
+| **Seller concessions trend** | `compare` (current $ vs trailing 3-month avg) | `market_stats_cache.median_concessions_amount` | When concessions are climbing (signals seller pressure) or falling (signals tightening market). Powerful buyer-side stat. |
+| **Market health score** | `gauge` (0-100) | `market_stats_cache.market_health_score` + `market_health_label` | Every month — Spark's pre-computed composite index with Cool/Warm/Hot label. Single-number summary headline. |
+| **Affordability monthly PITI** | `hero` w/ context | `market_stats_cache.affordability_monthly_piti` | When affordability is shifting fast (rate moves, price moves). Frames the median home as a monthly mortgage payment. |
+| **MoM trend chips** | `takeaway` (custom 2-up panel) | `mom_median_price_change_pct` + `mom_inventory_change_pct` | When the month-over-month story is strong. Two pills showing price MoM and inventory MoM with directional arrows. |
+| **DOM distribution histogram** | `histogram` (6-bin: <7 / 8-14 / 15-30 / 31-60 / 61-90 / 90+) | `market_stats_cache.dom_distribution` — pre-binned | Months where the DOM headline tells only half the story (e.g. when a few outliers drag the median). |
+| **Bedroom mix histogram** | `histogram` (4-bin: 2br / 3br / 4br / 5+br) | `market_stats_cache.bedroom_breakdown` — pre-binned | When config mix is the real story (e.g. 4br dominance signals family-buyer market). |
+| **Highest sale of the month** | `takeaway` (custom) | direct query: `SELECT * FROM listings WHERE CloseDate IN window AND PropertyType='A' ORDER BY ClosePrice DESC LIMIT 1` | When the top sale is newsworthy (luxury record, notable address, distinctive architecture). Address can be obfuscated to subdivision/neighborhood level only. |
+| **$/sqft trend (multi-year)** | `line_chart` | history query for `median_ppsf` across 4 windows in cache | When PPSF tells a different story than the headline median (e.g. median price flat but PPSF climbing → smaller homes). |
+| **Total volume moved** | `hero` w/ animated counter | `market_stats_cache.total_volume` | First/last month of a quarter or year-end report. "$183M moved through Bend in April" reads as headline newsworthiness. |
+| **Price reduction frequency** | `gauge` (re-skin) | listing_history query: % of active listings with price drop in last 30d (NOT in cache — direct query needed) | When buyers should know how much pressure sellers are under. |
+| **Listing-to-pending velocity** | `gauge` (0-100% scale) | direct query: pending count / (active + pending) | Every other month — shows what % of supply is in escrow. |
 
 **Selection rule:** at minimum 2 of these MUST appear in every monthly market report (per the §1 render guardrail "at least two advanced data-viz beats"). At most 4 advanced beats per video — beyond that the runtime exceeds 75s and retention drops.
 
 **Don't repeat the same advanced beat two months in a row** unless the data trend is itself the story (e.g. tracking a developing trend in monthly DOM histograms).
+
+**Cache-first vs direct-query priority:** the cache covers most beats. Beat sourcing decision tree:
+
+1. **Always query the cache first** for any stat that exists there (cash %, concessions, market health score, MoM/YoY changes, DOM distribution, price band counts, bedroom breakdown, affordability PITI, total volume).
+2. **Direct query only when the cache doesn't carry the stat** — top neighborhoods (no `subdivision_breakdown` jsonb), highest sale spotlight (need full row not aggregate), price reduction frequency (needs `listing_history`).
+3. **Reading SFR-only from the cache:** the cache headline `sold_count` is all-property-type-blended. For SFR-only views, read the `property_type_breakdown->>'A'` field from the same row — it carries the SFR count exactly. The cache row's `median_sale_price` is also blended; for SFR-only median, fall back to a direct query filtered by `PropertyType='A'`. (TODO for Spark/Supabase: add `median_sale_price_sfr` to the cache so this fallback isn't needed.)
+
+**Implementation pattern:** `pull-extras.mjs` should be renamed to `pull-cache.mjs` and rewritten to read directly from `market_stats_cache` for the geo × period, then enrich with direct queries only for the things the cache doesn't carry (top neighborhoods, highest sale). This eliminates ~80% of the duplicated logic that was rebuilding price segments from scratch when `price_band_counts` was already there.
 
 ---
 
