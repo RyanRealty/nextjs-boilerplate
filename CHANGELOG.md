@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.133.0 (2026-05-07)
+
+### Features
+- feat(content-engine): orchestrator + YouTube long-form + SEO blog + FB lead-gen ad — 4 deliverables wired
+
+---
+
+
 ## v1.132.0 (2026-05-07)
 
 ### Features
