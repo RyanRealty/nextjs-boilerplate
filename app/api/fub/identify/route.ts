@@ -17,7 +17,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { findPersonByEmail, trackSignedInUser } from '@/lib/followupboss'
+import { findPersonByEmail, trackSignedInUser, addPersonTags } from '@/lib/followupboss'
 
 // Domains allowed to call this endpoint. Add staging/preview here if needed.
 const ALLOWED_ORIGINS = new Set<string>([
@@ -31,11 +31,27 @@ const FB_USER = 'https://graph.facebook.com/me'
 
 type Provider = 'google' | 'facebook'
 
+type Campaign = {
+  source?: string
+  medium?: string
+  campaign?: string
+  term?: string
+  content?: string
+}
+
 type IdentifyBody = {
   provider?: Provider
   idToken?: string // Google
   accessToken?: string // Facebook
   sourceUrl?: string // page on ryan-realty.com the user was on
+  /** UTM + referrer attribution captured by the snippet on first visit. */
+  campaign?: Campaign
+  /** Visitor's first landing page on this session (raw URL). */
+  landingPage?: string
+  /** Document.referrer at time of first page load. */
+  referrer?: string
+  /** Tags to merge onto the person record (e.g. "src:facebook", "Buyer Intent"). */
+  tags?: string[]
 }
 
 function corsHeaders(origin: string | null): HeadersInit {
@@ -70,7 +86,7 @@ export async function POST(request: Request) {
     return jsonError(400, 'Invalid JSON', origin)
   }
 
-  const { provider, idToken, accessToken, sourceUrl } = body
+  const { provider, idToken, accessToken, sourceUrl, campaign, landingPage, referrer, tags } = body
   if (provider !== 'google' && provider !== 'facebook') {
     return jsonError(400, 'Invalid provider', origin)
   }
@@ -102,18 +118,42 @@ export async function POST(request: Request) {
   // lookup is a single GET (~100ms) and keeps the existing function untouched.
   const existing = await findPersonByEmail(email)
 
+  // Richer message embeds landing page + referrer so the FUB event detail view
+  // shows exactly where this visitor came in from.
+  const messageParts: string[] = [existing ? `Signed in (${providerLabel}) - WP` : `Signed up (${providerLabel}) - WP`]
+  if (landingPage) messageParts.push(`landing=${landingPage}`)
+  if (referrer) messageParts.push(`referrer=${referrer}`)
+
+  const campaignClean = campaign && Object.values(campaign).some(Boolean) ? campaign : undefined
+
   await trackSignedInUser({
     email,
     fullName,
     sourceUrl: sourceUrl || origin,
-    message: existing ? `Signed in (${providerLabel}) - WP` : `Signed up (${providerLabel}) - WP`,
+    message: messageParts.join(' | '),
+    campaign: campaignClean,
   })
+
+  // Merge tags onto the person: "src:<utmSource>" for attribution + any
+  // explicit tags the snippet asked for. Best-effort; failures don't block
+  // the response. We re-resolve the person id because trackSignedInUser may
+  // have just created the record.
+  const personForTagging = existing || (await findPersonByEmail(email))
+  let taggedPersonId: number | null = personForTagging?.id ?? null
+  if (taggedPersonId) {
+    const tagSet: Array<string | undefined> = []
+    if (campaignClean?.source) tagSet.push(`src:${campaignClean.source.toLowerCase().slice(0, 40)}`)
+    if (campaignClean?.medium) tagSet.push(`medium:${campaignClean.medium.toLowerCase().slice(0, 40)}`)
+    if (campaignClean?.campaign) tagSet.push(`utm-campaign:${campaignClean.campaign.slice(0, 60)}`)
+    if (Array.isArray(tags)) tagSet.push(...tags)
+    addPersonTags(taggedPersonId, tagSet).catch(() => {})
+  }
 
   return NextResponse.json(
     {
       ok: true,
       matched: !!existing,
-      fubPersonId: existing?.id ?? null,
+      fubPersonId: taggedPersonId,
       firstName: existing?.firstName ?? fullName?.split(' ')[0] ?? null,
     },
     { headers: corsHeaders(origin) },

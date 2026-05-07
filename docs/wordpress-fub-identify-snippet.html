@@ -89,7 +89,138 @@
     document.cookie = name + '=' + value + '; expires=' + exp.toUTCString() + '; path=/; SameSite=Lax; Secure';
   }
 
+  // ---------- Source attribution (UTM + referrer + landing) ----------
+  // Captured ONCE per session-storage life on the visitor's first hit, then
+  // reused on every subsequent page so every event in FUB carries the same
+  // attribution. Without this, only the landing page would have UTMs and
+  // every page after would look "direct".
+  function captureSource() {
+    var STORAGE_KEY = 'rr_source_v1';
+    try {
+      var stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    var url, params;
+    try { url = new URL(window.location.href); params = url.searchParams; }
+    catch (e) { params = new URLSearchParams(); }
+    var src = {
+      utmSource: params.get('utm_source') || undefined,
+      utmMedium: params.get('utm_medium') || undefined,
+      utmCampaign: params.get('utm_campaign') || undefined,
+      utmTerm: params.get('utm_term') || undefined,
+      utmContent: params.get('utm_content') || undefined,
+      referrer: document.referrer || undefined,
+      landingPage: window.location.href,
+      capturedAt: new Date().toISOString()
+    };
+    // If no UTM, infer source from referrer host so FB / Google / IG / etc.
+    // are still attributed even when the link doesn't carry tracking params.
+    if (!src.utmSource && src.referrer) {
+      var refHost = '';
+      try { refHost = new URL(src.referrer).hostname.toLowerCase(); } catch (e) {}
+      if (/(^|\.)facebook\.com$|(^|\.)fb\.com$/.test(refHost) || /facebook/.test(refHost)) {
+        src.utmSource = 'facebook'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/(^|\.)instagram\.com$/.test(refHost) || /instagram/.test(refHost)) {
+        src.utmSource = 'instagram'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/(^|\.)google\./.test(refHost)) {
+        src.utmSource = 'google'; src.utmMedium = src.utmMedium || 'organic';
+      } else if (/(^|\.)bing\./.test(refHost) || /(^|\.)duckduckgo\./.test(refHost)) {
+        src.utmSource = refHost.replace(/^www\./, '').split('.')[0]; src.utmMedium = src.utmMedium || 'organic';
+      } else if (/youtube/.test(refHost)) {
+        src.utmSource = 'youtube'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/linkedin/.test(refHost)) {
+        src.utmSource = 'linkedin'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/x\.com$|twitter/.test(refHost)) {
+        src.utmSource = 'twitter'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/tiktok/.test(refHost)) {
+        src.utmSource = 'tiktok'; src.utmMedium = src.utmMedium || 'social';
+      } else if (/zillow|realtor|trulia|redfin/.test(refHost)) {
+        src.utmSource = refHost.replace(/^www\./, '').split('.')[0]; src.utmMedium = src.utmMedium || 'portal';
+      } else if (refHost && refHost !== window.location.hostname) {
+        src.utmSource = refHost; src.utmMedium = src.utmMedium || 'referral';
+      }
+    }
+    if (!src.utmSource) {
+      src.utmSource = 'direct'; src.utmMedium = src.utmMedium || 'none';
+    }
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(src)); } catch (e) {}
+    return src;
+  }
+
+  function buildCampaign(src) {
+    var c = {};
+    if (src.utmSource) c.source = src.utmSource;
+    if (src.utmMedium) c.medium = src.utmMedium;
+    if (src.utmCampaign) c.campaign = src.utmCampaign;
+    if (src.utmTerm) c.term = src.utmTerm;
+    if (src.utmContent) c.content = src.utmContent;
+    return Object.keys(c).length > 0 ? c : undefined;
+  }
+
+  // ---------- Page categorization + intent tagging ----------
+  // Maps the current URL to a category + a set of FUB tags so Matt can filter
+  // and segment people by intent in the FUB UI without configuring per-event
+  // automations. Tags are merged (never replaced) so the visitor accumulates
+  // signals as they explore.
+  function categorizePage() {
+    var p = (window.location.pathname || '/').toLowerCase();
+    // Listing detail (real AgentFire IDX shape)
+    if (/\/listing\/[a-z0-9_-]+\/[a-z0-9_-]+/i.test(p)) {
+      return { category: 'listing_detail', intentTags: ['Property View'] };
+    }
+    // Property search index
+    if (/^\/properties\/?/.test(p)) {
+      return { category: 'search', intentTags: ['Active Search'] };
+    }
+    // Seller intent — high-value pages for "I want to sell my house"
+    if (/\/free-home-valuation|\/sellers(\/|$)|\/seller-plans|\/past-sales|\/whats-my-home-worth/.test(p)) {
+      return { category: 'seller_intent', intentTags: ['Seller Intent'] };
+    }
+    // Buyer intent — high-value pages for "I'm looking to buy"
+    if (/\/buyers(\/|$)|\/relocation|\/featured-listings|\/explore/.test(p)) {
+      return { category: 'buyer_intent', intentTags: ['Buyer Intent'] };
+    }
+    // Financial tools (mortgage)
+    if (/\/mortgage-calculator|\/affordability/.test(p)) {
+      return { category: 'financial_tools', intentTags: ['Mortgage Interest'] };
+    }
+    // Area / community guide
+    var areaMatch = p.match(/\/area-guides?\/([a-z0-9_-]+)/);
+    if (areaMatch) {
+      var pretty = areaMatch[1].replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      return { category: 'area_guide', intentTags: ['Area: ' + pretty.slice(0, 60)] };
+    }
+    // Blog
+    if (/^\/blog/.test(p)) {
+      return { category: 'blog', intentTags: ['Blog Reader'] };
+    }
+    // About-ish pages
+    if (/\/about|\/testimonials|\/contact|\/team|\/giving-back|\/join-us/.test(p)) {
+      return { category: 'about', intentTags: [] };
+    }
+    if (p === '/' || p === '') return { category: 'home', intentTags: [] };
+    return { category: 'other', intentTags: [] };
+  }
+
+  // ---------- Ad-audience hooks ----------
+  // Push to GTM dataLayer + fire a Facebook Pixel custom event so Matt can
+  // build retargeting audiences ("People who viewed a Bend listing", "People
+  // with seller intent", "Identified leads") without server-side work.
+  // Both window.fbq and window.dataLayer are already on this site.
+  function pushDataLayer(payload) {
+    try {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(payload);
+    } catch (e) {}
+  }
+  function fbPixelEvent(name, params) {
+    if (typeof window.fbq !== 'function') return;
+    try { window.fbq('trackCustom', name, params || {}); } catch (e) {}
+  }
+
   function identify(payload) {
+    var src = captureSource();
+    var campaign = buildCampaign(src);
     return fetch(cfg.identifyEndpoint || cfg.endpoint, {
       method: 'POST',
       mode: 'cors',
@@ -100,6 +231,9 @@
         idToken: payload.idToken,
         accessToken: payload.accessToken,
         sourceUrl: window.location.href,
+        campaign: campaign,
+        landingPage: src.landingPage,
+        referrer: src.referrer,
       }),
     })
       .then(function(res) { return res.json(); })
@@ -112,6 +246,22 @@
           if (data.matched && data.firstName) {
             showWelcomeBack(data.firstName);
           }
+          // Push to GTM dataLayer + FB Pixel for ad audience building.
+          pushDataLayer({
+            event: 'rr_identified',
+            rr_fub_person_id: data.fubPersonId,
+            rr_matched: !!data.matched,
+            rr_provider: payload.provider,
+            rr_source: src.utmSource,
+            rr_medium: src.utmMedium,
+            rr_campaign: src.utmCampaign,
+          });
+          fbPixelEvent('Lead', {
+            source: src.utmSource,
+            medium: src.utmMedium,
+            campaign: src.utmCampaign,
+            provider: payload.provider,
+          });
           // Log the current page as a Viewed Page / Viewed Property event.
           // First-page-of-session tracking — without this, brand-new visitors
           // would have a Registration event but no Viewed Page on landing.
@@ -277,11 +427,28 @@
     if (!fubPersonId) return;
     var listing = null;
     try { listing = extractListingMeta(); } catch (e) {}
+    var src = captureSource();
+    var campaign = buildCampaign(src);
+    var cat;
+    try { cat = categorizePage(); } catch (e) { cat = { category: 'other', intentTags: [] }; }
+    // Override the category if we found real listing meta — listing detail
+    // wins over any other URL match.
+    if (listing && (listing.mlsNumber || listing.street)) {
+      cat = { category: 'listing_detail', intentTags: ['Property View'] };
+    }
+    // Add a city tag when on a listing detail with a known city — gives Matt
+    // "people who viewed a Bend listing" segmentation in FUB.
+    if (cat.category === 'listing_detail' && listing && listing.city) {
+      cat.intentTags = (cat.intentTags || []).concat(['Area: ' + String(listing.city).slice(0, 60)]);
+    }
     var payload = {
       fubPersonId: Number(fubPersonId),
       pageUrl: window.location.href,
       pageTitle: (document.title || '').slice(0, 200),
       listing: listing,
+      campaign: campaign,
+      category: cat.category,
+      intentTags: cat.intentTags,
     };
     fetch(cfg.trackEndpoint, {
       method: 'POST',
@@ -291,6 +458,29 @@
       body: JSON.stringify(payload),
       keepalive: true,
     }).catch(function() { /* swallow — never block the page */ });
+    // Mirror the event into GTM dataLayer + FB Pixel for ad audiences.
+    pushDataLayer({
+      event: 'rr_page_view',
+      rr_fub_person_id: Number(fubPersonId),
+      rr_category: cat.category,
+      rr_intent_tags: (cat.intentTags || []).join(','),
+      rr_listing_mls: listing && listing.mlsNumber || undefined,
+      rr_listing_city: listing && listing.city || undefined,
+      rr_listing_state: listing && listing.state || undefined,
+      rr_source: src.utmSource,
+      rr_medium: src.utmMedium,
+    });
+    if (cat.category === 'listing_detail' && listing) {
+      fbPixelEvent('ViewedProperty', {
+        mls: listing.mlsNumber, city: listing.city, state: listing.state,
+      });
+    } else if (cat.category === 'seller_intent') {
+      fbPixelEvent('SellerIntent', { url: window.location.pathname });
+    } else if (cat.category === 'buyer_intent') {
+      fbPixelEvent('BuyerIntent', { url: window.location.pathname });
+    } else if (cat.category === 'area_guide') {
+      fbPixelEvent('AreaGuide', { area: (cat.intentTags || []).join(',') });
+    }
   }
 
   // Skip prompts if we identified this visitor recently.

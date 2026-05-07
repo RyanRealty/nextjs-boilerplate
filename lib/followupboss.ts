@@ -320,6 +320,42 @@ export async function diagnoseBrokerAttribution(params: {
 }
 
 /**
+ * Merge one or more tags onto an existing FUB person without removing existing
+ * tags. Used by /api/fub/identify and /api/fub/track-page to attach intent
+ * signals (e.g. "Seller Intent", "Buyer Intent", "Property View") and source
+ * attribution (e.g. "src:facebook") to the person record so Matt can filter,
+ * segment, and trigger FUB automations off them.
+ *
+ * mergeTags=true tells FUB to UNION with existing tags rather than replace.
+ * Empty / falsy tags are dropped before sending.
+ */
+export async function addPersonTags(personId: number, tags: Array<string | undefined | null>): Promise<boolean> {
+  const auth = getAuth()
+  if (!auth) return false
+  if (!Number.isFinite(personId) || personId <= 0) return false
+  const cleaned = Array.from(
+    new Set(
+      tags
+        .map((t) => (typeof t === 'string' ? t.trim() : ''))
+        .filter((t): t is string => t.length > 0 && t.length <= 80),
+    ),
+  )
+  if (cleaned.length === 0) return false
+  try {
+    const res = await fetch(`${FUB_BASE}/people/${personId}?mergeTags=true`, {
+      method: 'PUT',
+      headers: fubHeaders(auth),
+      body: JSON.stringify({ tags: cleaned }),
+      next: { revalidate: 0 },
+    })
+    return res.ok
+  } catch (err) {
+    console.error('[addPersonTags] Network error:', err)
+    return false
+  }
+}
+
+/**
  * Send an event to FollowUp Boss (creates or updates the person and triggers automations).
  * Use type "Registration" for sign-ups; FUB matches by email to avoid duplicates.
  */
@@ -406,6 +442,8 @@ export async function trackSignedInUser(params: {
   sourceUrl?: string
   /** e.g. "Signed in (Google)", "Signed in (email)" — used for FUB; merges by email if person exists. */
   message?: string
+  /** UTM/referrer attribution for the visitor's first identification. */
+  campaign?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string }
 }): Promise<void> {
   const auth = getAuth()
   if (!auth) return
@@ -442,6 +480,7 @@ export async function trackSignedInUser(params: {
     system: 'Ryan Realty Website',
     sourceUrl: params.sourceUrl,
     message,
+    campaign: params.campaign,
   })
 }
 
@@ -465,6 +504,8 @@ export async function trackListingView(params: {
     bathrooms?: number
     area?: number
   }
+  /** UTM/referrer attribution carried from the visitor's first session. */
+  campaign?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string }
 }): Promise<void> {
   const auth = getAuth()
   if (!auth) return
@@ -503,6 +544,7 @@ export async function trackListingView(params: {
       bathrooms: params.property.bathrooms != null ? String(params.property.bathrooms) : undefined,
       area: params.property.area != null ? String(params.property.area) : undefined,
     },
+    campaign: params.campaign,
   })
 }
 
@@ -702,6 +744,11 @@ export async function trackPageView(params: {
   fubPersonId?: number | null
   pageUrl: string
   pageTitle?: string
+  /** UTM/referrer attribution carried from the visitor's first session. */
+  campaign?: { source?: string; medium?: string; campaign?: string; term?: string; content?: string }
+  /** Optional context tag emitted into the event message for FUB filtering
+   *  (e.g. "category=seller_intent" so Matt can group page-views by intent). */
+  message?: string
 }): Promise<void> {
   const auth = getAuth()
   if (!auth) return
@@ -730,6 +777,8 @@ export async function trackPageView(params: {
     sourceUrl: params.pageUrl,
     pageUrl: params.pageUrl,
     pageTitle: params.pageTitle,
+    campaign: params.campaign,
+    message: params.message,
   })
 }
 

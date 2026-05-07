@@ -23,7 +23,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { trackPageView, trackListingView } from '@/lib/followupboss'
+import { trackPageView, trackListingView, addPersonTags } from '@/lib/followupboss'
 
 const ALLOWED_ORIGINS = new Set<string>([
   'https://ryan-realty.com',
@@ -58,11 +58,26 @@ type ListingMeta = {
   area?: number
 }
 
+type Campaign = {
+  source?: string
+  medium?: string
+  campaign?: string
+  term?: string
+  content?: string
+}
+
 type TrackPageBody = {
   fubPersonId?: number | string
   pageUrl?: string
   pageTitle?: string
   listing?: ListingMeta | null
+  /** UTM/referrer attribution carried from the visitor's first session. */
+  campaign?: Campaign
+  /** Page intent classification e.g. "listing_detail", "seller_intent",
+   *  "buyer_intent", "search", "area_guide", "blog", "home", "about". */
+  category?: string
+  /** Tags to merge onto the person (e.g. ["Seller Intent", "Area: Bend"]). */
+  intentTags?: string[]
 }
 
 export async function OPTIONS(request: Request) {
@@ -102,10 +117,13 @@ export async function POST(request: Request) {
   }
 
   const pageTitle = body.pageTitle?.trim() || undefined
+  const campaign = body.campaign && Object.values(body.campaign).some(Boolean) ? body.campaign : undefined
+  const category = body.category?.trim() || undefined
 
   const listing = body.listing
   const isListingPage = !!(listing && (listing.mlsNumber || listing.street))
 
+  let eventType: 'Viewed Property' | 'Viewed Page'
   if (isListingPage && listing) {
     await trackListingView({
       fubPersonId,
@@ -121,14 +139,27 @@ export async function POST(request: Request) {
         bathrooms: typeof listing.bathrooms === 'number' ? listing.bathrooms : undefined,
         area: typeof listing.area === 'number' ? listing.area : undefined,
       },
+      campaign,
     })
-    return NextResponse.json({ ok: true, eventType: 'Viewed Property' }, { headers: corsHeaders(origin) })
+    eventType = 'Viewed Property'
+  } else {
+    await trackPageView({
+      fubPersonId,
+      pageUrl,
+      pageTitle,
+      campaign,
+      message: category ? `category=${category}` : undefined,
+    })
+    eventType = 'Viewed Page'
   }
 
-  await trackPageView({
-    fubPersonId,
-    pageUrl,
-    pageTitle,
-  })
-  return NextResponse.json({ ok: true, eventType: 'Viewed Page' }, { headers: corsHeaders(origin) })
+  // Merge intent tags onto the person record so Matt can filter / segment in
+  // FUB without configuring per-event automation rules. Best-effort.
+  const tagsToMerge: Array<string | undefined> = []
+  if (Array.isArray(body.intentTags)) tagsToMerge.push(...body.intentTags)
+  if (tagsToMerge.length > 0) {
+    addPersonTags(fubPersonId, tagsToMerge).catch(() => {})
+  }
+
+  return NextResponse.json({ ok: true, eventType, taggedCount: tagsToMerge.length }, { headers: corsHeaders(origin) })
 }
