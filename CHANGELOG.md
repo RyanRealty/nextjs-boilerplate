@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.128.0 (2026-05-07)
+
+### Features
+- feat(skills): full data dictionary + media-sourcing decision skill
+
+---
+
+
 ## v1.127.0 (2026-05-07)
 
 ### Features
