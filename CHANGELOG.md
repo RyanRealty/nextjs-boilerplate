@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.134.1 (2026-05-07)
+
+### Bug Fixes
+- fix(fetch-media): build file_path from storage_object_path for cloud assets
+
+---
+
+
 ## v1.134.0 (2026-05-07)
 
 ### Features
