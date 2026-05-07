@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.132.0 (2026-05-07)
+
+### Features
+- feat(asset-library): bulk Drive ingestion script — 577 files in flight
+
+---
+
+
 ## v1.131.2 (2026-05-07)
 
 ### Bug Fixes
