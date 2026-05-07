@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.131.0 (2026-05-07)
+
+### Features
+- feat(asset-library): Supabase backend + video pipeline + Drive ingestion + auto-registration
+
+---
+
+
 ## v1.130.1 (2026-05-07)
 
 ### Maintenance
