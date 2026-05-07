@@ -37,6 +37,10 @@
     facebookAppId: '901712509522992',
     cookieName: 'rr_identified',
     cookieDays: 30,
+    // Flip to true once the Facebook app is published out of dev mode.
+    // Until then, FB Login throws "App not active" for non-tester users —
+    // window.rrFacebookLogin() is still exposed for any custom CTA that wants it.
+    enableFacebookButton: false,
   };
 </script>
 
@@ -123,6 +127,7 @@
   }
 
   function showFacebookButton() {
+    if (!cfg.enableFacebookButton) return;
     if (document.getElementById('rr-fb-cta')) return;
     var btn = document.createElement('button');
     btn.id = 'rr-fb-cta';
