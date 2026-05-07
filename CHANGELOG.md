@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.126.0 (2026-05-07)
+
+### Features
+- feat(market-data-video): lock architecture in SKILL.md + bring pipeline into spec compliance
+
+---
+
+
 ## v1.125.2 (2026-05-07)
 
 ### Bug Fixes
