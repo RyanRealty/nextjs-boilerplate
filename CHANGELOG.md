@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.125.0 (2026-05-07)
+
+### Features
+- feat(market-report): KineticCaptions sentence rewrite + MarketReport composition
+
+---
+
+
 ## v1.124.0 (2026-05-07)
 
 ### Features
