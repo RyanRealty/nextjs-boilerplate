@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.121.0 (2026-05-07)
+
+### Features
+- feat(nextdoor): wire Nextdoor as 10th publish platform
+
+---
+
+
 ## v1.120.1 (2026-05-07)
 
 ### Bug Fixes
