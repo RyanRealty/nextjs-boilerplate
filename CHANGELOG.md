@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.134.0 (2026-05-07)
+
+### Features
+- feat(fub): add /api/fub/track-page + WP page-by-page activity tracking
+
+---
+
+
 ## v1.133.0 (2026-05-07)
 
 ### Features
