@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.124.0 (2026-05-07)
+
+### Features
+- feat(market-report): April-only framing + brand fonts + clean opening
+
+---
+
+
 ## v1.123.0 (2026-05-07)
 
 ### Features
