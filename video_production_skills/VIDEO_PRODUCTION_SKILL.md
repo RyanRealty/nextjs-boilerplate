@@ -161,7 +161,7 @@ If anything in the routine-triplet appears to contradict this master skill or `C
 - Env vars in `.env.local`: `ELEVENLABS_VOICE_ID=qSeXEcewz7tA0Q0qk9fH`, `ELEVENLABS_VOICE_ID_VICTORIA=qSeXEcewz7tA0Q0qk9fH`
 - API key: `ELEVENLABS_API_KEY` in `.env.local`
 - **ALWAYS use Victoria for ALL voiceover.** No other voice. No substituting. No asking.
-- **Canonical model + settings**: `eleven_turbo_v2_5`, stability `0.50`, similarity_boost `0.75`, style `0.35`, `use_speaker_boost: true`. These match the market-report scorecards Matt approved. Different model or different settings = different-sounding voice = a rejected render.
+- **Canonical model + settings (Updated 2026-05-07 per Matt directive — conversational delivery; canonical source: video_production_skills/elevenlabs_voice/SKILL.md)**: `eleven_turbo_v2_5`, stability `0.40`, similarity_boost `0.80`, style `0.50`, `use_speaker_boost: true`. Different model or different settings = different-sounding voice = a rejected render.
 - Use `previous_text` chaining for prosody continuity across sentences within a clip.
 - Use IPA phoneme tags for tricky pronunciations (e.g., Deschutes → `<phoneme alphabet="ipa" ph="dəˈʃuːts">Deschutes</phoneme>`).
 - Matt approved this voice 2026-04-27 — Victoria is the permanent voice. Do not switch without explicit Matt direction.

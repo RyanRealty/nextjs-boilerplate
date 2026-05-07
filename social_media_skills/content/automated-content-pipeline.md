@@ -33,6 +33,8 @@ The agent handles everything from here.
 
 ### Stage 2: GENERATE (AI Asset Creation)
 
+> **SFR-default rule (Matt directive 2026-05-07):** every market-data query in this pipeline filters `"PropertyType" = 'A'` (single-family residential) unless the trigger explicitly specifies an alternative scope. The cache headline `sold_count` blends all property types — for SFR-only headlines read `property_type_breakdown->>'A'` from the cache row, or read the dedicated `*_sfr` columns if/when they're added to `market_stats_cache`. Canonical source: `video_production_skills/market-data-video/SKILL.md` §22.
+
 **Image Generation (starting frames):**
 - Real listing photos from Rich/Framed Visuals (preferred for listings)
 - DALL-E via OpenAI API (abstract/conceptual visuals, stat card backgrounds)

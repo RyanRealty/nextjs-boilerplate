@@ -62,7 +62,7 @@ Pair this with:
 ### Step 5: VO script + ElevenLabs render
 - Write a 45s VO script. Two-clause sentences max. Hook in line 1 (specific element: address number + lot size, or street + view, or price + acreage).
 - Banned words check (see VISUAL_STRATEGY.md §6).
-- Render with **Victoria** voice (`qSeXEcewz7tA0Q0qk9fH`), settings locked: `eleven_turbo_v2_5`, stability 0.50, similarity 0.75, style 0.35, `use_speaker_boost: true`. Chain `previous_text` across lines.
+- Render with **Victoria** voice (`qSeXEcewz7tA0Q0qk9fH`), settings locked (Updated 2026-05-07 per Matt directive — conversational delivery; canonical source: video_production_skills/elevenlabs_voice/SKILL.md): `eleven_turbo_v2_5`, stability 0.40, similarity 0.80, style 0.50, `use_speaker_boost: true`. Chain `previous_text` across lines.
 - Save to `video/listing-tour/vo/<mls>.mp3`.
 - **Run forced alignment** (`POST https://api.elevenlabs.io/v1/forced-alignment` with `audio` + `text`). Save the word-level timestamp JSON to `video/listing-tour/vo/<mls>.alignment.json`. Captions read from this. (CLAUDE.md §0.5 — hard rule.)
 

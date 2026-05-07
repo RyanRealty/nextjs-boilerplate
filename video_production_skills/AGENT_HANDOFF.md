@@ -39,7 +39,7 @@ Once mounted, all file references below use `<MOUNT>` as shorthand for your sess
 - **Brokerage voice**, not personal — never say "me" or "I". It's Ryan Realty, not Matt
 - **Social media mode** is funny, smart, self-deprecating, never self-important
 - **Colors:** Navy blue (primary) + Gold (#c9a84c accent)
-- **Fonts:** Butcher (display), AzoSans (body), Amboqia (accent)
+- **Fonts (video):** Amboqia (display/headline) + AzoSans (body/captions) + Geist (data/UI). Butcher is print/static-design only and NEVER appears in video renders.
 - **Full guide:** `<MOUNT>/BRAND MANAGER/Ryan Realty Brand Voice & Tone Guide.docx`
 
 ---
@@ -137,7 +137,7 @@ Also in `references/` subfolder: supplemental reference data for some skills.
 
 **Deployment:**
 - Vercel (ryan-realty.com)
-- AgentFire is legacy, will be retired. ALL work goes in this repo.
+- **AgentFire WordPress on ryan-realty.com is the production blog destination** (Matt directive 2026-05-07). The agent publishes long-form blog posts to AgentFire via its WordPress REST API — see `blog-post/SKILL.md` for the publish path. The Vercel `/Users/matthewryan/RyanRealty/` repo is the production app/MLS dashboard but does NOT host the blog.
 - Always push directly to main.
 
 ### `<MOUNT>/.auto-memory/`
@@ -175,7 +175,7 @@ Persistent memory system. Index at `MEMORY.md`. Key files:
 - `reference_marketing_material_inventory.md` — Full asset inventory
 - `reference_market_report_template.md` — **CRITICAL: Full blueprint for market report videos**
 - `reference_codebase_infrastructure.md` — RyanRealty repo inventory
-- `reference_ryan_realty_domain_hosting.md` — Vercel is future, AgentFire is legacy
+- `reference_ryan_realty_domain_hosting.md` — Vercel hosts the app at ryanrealty.vercel.app + future ryan-realty.com app subdomain; AgentFire WordPress hosts the marketing blog at ryan-realty.com (production blog destination).
 - `reference_optimal_agent_mcp_wishlist.md` — Priority MCPs to install
 - `reference_remotion.md` — Remotion setup, config, patterns
 - `reference_ai_video_elite_creators.md` — Verified creator references

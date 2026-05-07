@@ -114,7 +114,7 @@ If a deliverable could plausibly be the kind of thing Matt would want to review,
 
 ## VO (ElevenLabs only)
 - **Voice: Victoria, ID `qSeXEcewz7tA0Q0qk9fH`** (locked 2026-04-27 — permanent). No other voice.
-- Settings: stability `0.50`, similarity `0.75`, style `0.35`, `use_speaker_boost: true`. Model `eleven_turbo_v2_5`.
+- Settings: **stability `0.40`, similarity `0.80`, style `0.50`, `use_speaker_boost: true`. Model `eleven_turbo_v2_5`.** (Updated 2026-05-07 — conversational tuning. Canonical source: `video_production_skills/elevenlabs_voice/SKILL.md`. The agent must NEVER fall back to the old 0.50/0.75/0.35 values.)
 - **`previous_text` chained** across all lines for prosody continuity.
 - Numbers spelled out for ingestion: "475,000" → "four hundred seventy five thousand."
 - IPA phoneme tags work on `eleven_turbo_v2_5` (canonical) and `eleven_flash_v2` — they are silently SKIPPED on `eleven_v3`. Use `eleven_turbo_v2_5` for any line that needs forced pronunciation. Tricky place names: Deschutes (`dəˈʃuːts` — "duh-shoots"), Tumalo (`TUM-uh-low`, NOT "TOO-muh-low" — this is the local pronunciation, verified 2026-05-06), Tetherow, Awbrey, Terrebonne, Paulina (`pol-EYE-nuh`), Madras (`MAD-russ`).

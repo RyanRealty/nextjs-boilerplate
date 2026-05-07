@@ -67,7 +67,7 @@ This is the new tier. Until 2026-Q1 the shop used DepthFlow + Remotion masked ov
 - **Tier:** Creator. **32,068 / 131,000 characters used** as of 2026-04-27. Reset window monthly. $22/mo recurring.
 - **Endpoint:** `https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` and `/v1/forced-alignment`.
 - **Voice locked:** **Victoria** — `qSeXEcewz7tA0Q0qk9fH` (env var `ELEVENLABS_VOICE_ID_VICTORIA`). Permanent. Do not switch.
-- **Settings locked:** model `eleven_turbo_v2_5`, stability `0.50`, similarity_boost `0.75`, style `0.35`, `use_speaker_boost: true`, `previous_text` chained.
+- **Settings locked (Updated 2026-05-07 per Matt directive — conversational delivery; canonical source: video_production_skills/elevenlabs_voice/SKILL.md):** model `eleven_turbo_v2_5`, stability `0.40`, similarity_boost `0.80`, style `0.50`, `use_speaker_boost: true`, `previous_text` chained.
 - **Existing usage:** every video VO since 2026-04-24. ~32k chars/mo = ~22 minutes of audio = roughly one market report + 4-5 listing videos + 6-8 news clips.
 - **Untapped capability — high impact:**
   1. **Forced alignment** (`POST /v1/forced-alignment` with mp3 + transcript) returns word-level timestamps. **This is the fix for our caption sync problem.** See `CLAUDE.md` Section 0.5 — captions must sync to forced-alignment timestamps, not clock-time slots. Build a `lib/voice/alignment.ts` helper that calls this once per VO line and writes `<line>.alignment.json` next to the mp3.

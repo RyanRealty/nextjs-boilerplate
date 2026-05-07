@@ -83,7 +83,7 @@ Anchor.
 
 6. VOICEOVER  (30-60 sec, ElevenLabs)
    └─ Voice ID: qSeXEcewz7tA0Q0qk9fH (Victoria). Model eleven_turbo_v2_5.
-   └─ Settings: stability 0.50, similarity_boost 0.75, style 0.35, use_speaker_boost true.
+   └─ Settings (Updated 2026-05-07 per Matt directive — conversational delivery; canonical source: video_production_skills/elevenlabs_voice/SKILL.md): stability 0.40, similarity_boost 0.80, style 0.50, use_speaker_boost true.
    └─ After synth, call /v1/forced-alignment to get word-level caption timings.
 
 7. VISUALS  (2-3 min, Sonnet subagent)

@@ -53,8 +53,8 @@ Users form a first impression in **50ms**. They decide whether to engage in **0.
 
 **Static print / email / luxury / open-house collateral — light-forward editorial register:**
 - Background: white or off-white (not navy)
-- Text: navy `#001F3F` or `#102742` on white = primary combination
-- Accents: gold `#FFD700` or `#C8A864` sparingly — lines, highlights, one key word
+- Text: navy `#102742` on white = primary combination <!-- REMOVED 2026-05-07 — off-brand. Canonical navy = #102742 only. `#001F3F` was removed. -->
+- Accents: gold `#D4AF37` (news clips) / `#C8A864` (listing reels) sparingly — lines, highlights, one key word <!-- REMOVED 2026-05-07 — `#FFD700` was off-brand. Canonical gold = #D4AF37 (news) / #C8A864 (listing reels) only. -->
 - Photography: dominant; design serves the photo
 
 This direction mirrors elite luxury brands (Rolex, Ritz-Carlton, Four Seasons, Sotheby's, Architectural Digest). White space = confidence = luxury. Cheap brands fill every pixel; premium brands leave room to breathe.
@@ -86,7 +86,7 @@ Why dark: 85% of social video is watched on phones, often in dark mode. Dark bac
 
 | Tier | Font | When |
 |------|------|------|
-| Display / headlines | Butcher | Hero stat, kinetic title, reveal price — 2–3 words max per line |
+| Display / headlines | Butcher (static designs only — NEVER in video renders) | Hero stat, kinetic title, reveal price — 2–3 words max per line. **Print/email/collateral only.** Video uses Amboqia for display headlines (see VIDEO_PRODUCTION_SKILL.md §5). |
 | Body / details | AzoSans | Captions, sub overlays, supporting info |
 | Accent | Amboqia | One stylistic touch — never body |
 

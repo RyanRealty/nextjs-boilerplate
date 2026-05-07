@@ -56,12 +56,12 @@ These are the only metrics this skill publishes. Do not add new metrics without 
 
 | Metric | Display name | Unit | Formula |
 |--------|-------------|------|---------|
-| Median close price | Median Price | $ | `median(close_price)` over filtered rows |
+| Median close price | Median Price | $ | `median("ClosePrice")` over filtered rows |
 | Median price MoM | Month-Over-Month | % | `(current_month_median - prior_month_median) / prior_month_median * 100` |
 | Median price YoY | Year-Over-Year | % | `(current_period_median - prior_year_same_period_median) / prior_year_same_period_median * 100` |
 | Days on market | Avg Days on Market | days | `avg(dom)` over closed sales in period |
 | Months of supply | Months of Supply | mo | `active_listings / monthly_absorption_rate` |
-| Sale-to-list ratio | Sale-to-List | % | `avg(close_price / list_price * 100)` |
+| Sale-to-list ratio | Sale-to-List | % | `avg("ClosePrice" / "ListPrice" * 100)` |
 | Absorption rate | Absorption Rate | homes/mo | `closed_sales_count / months_in_period` |
 | Active inventory | Active Listings | count | `count(*)` where status='Active' on report date |
 
@@ -108,31 +108,31 @@ The script executes the following queries (document each in the output JSON):
 **Median price (current quarter):**
 ```sql
 SELECT
-  percentile_cont(0.5) WITHIN GROUP (ORDER BY close_price) AS median_price,
+  percentile_cont(0.5) WITHIN GROUP (ORDER BY "ClosePrice") AS median_price,
   COUNT(*) AS row_count,
   MIN(close_date) AS period_start,
   MAX(close_date) AS period_end
 FROM listings
 WHERE
-  property_type = 'A'
-  AND city = 'Bend'
-  AND status = 'Closed'
-  AND close_date >= DATE_TRUNC('quarter', NOW())
-  AND close_date < NOW();
+  "PropertyType" = 'A'
+  AND "City" = 'Bend'
+  AND "StandardStatus" = 'Closed'
+  AND "CloseDate" >= DATE_TRUNC('quarter', NOW())
+  AND "CloseDate" < NOW();
 ```
 
 **Median price (prior quarter, for MoM/YoY calculation):**
 ```sql
 SELECT
-  percentile_cont(0.5) WITHIN GROUP (ORDER BY close_price) AS median_price,
+  percentile_cont(0.5) WITHIN GROUP (ORDER BY "ClosePrice") AS median_price,
   COUNT(*) AS row_count
 FROM listings
 WHERE
-  property_type = 'A'
-  AND city = 'Bend'
-  AND status = 'Closed'
-  AND close_date >= DATE_TRUNC('quarter', NOW()) - INTERVAL '3 months'
-  AND close_date < DATE_TRUNC('quarter', NOW());
+  "PropertyType" = 'A'
+  AND "City" = 'Bend'
+  AND "StandardStatus" = 'Closed'
+  AND "CloseDate" >= DATE_TRUNC('quarter', NOW()) - INTERVAL '3 months'
+  AND "CloseDate" < DATE_TRUNC('quarter', NOW());
 ```
 
 **DOM:**
@@ -142,10 +142,10 @@ SELECT
   COUNT(*) AS row_count
 FROM listings
 WHERE
-  property_type = 'A'
-  AND city = 'Bend'
-  AND status = 'Closed'
-  AND close_date >= NOW() - INTERVAL '90 days';
+  "PropertyType" = 'A'
+  AND "City" = 'Bend'
+  AND "StandardStatus" = 'Closed'
+  AND "CloseDate" >= NOW() - INTERVAL '90 days';
 ```
 
 **Active inventory:**
@@ -153,9 +153,9 @@ WHERE
 SELECT COUNT(*) AS active_count
 FROM listings
 WHERE
-  property_type = 'A'
-  AND city = 'Bend'
-  AND status = 'Active';
+  "PropertyType" = 'A'
+  AND "City" = 'Bend'
+  AND "StandardStatus" = 'Active';
 ```
 
 **Absorption rate:**
@@ -166,10 +166,10 @@ SELECT
   COUNT(*) / 3.0 AS monthly_absorption
 FROM listings
 WHERE
-  property_type = 'A'
-  AND city = 'Bend'
-  AND status = 'Closed'
-  AND close_date >= NOW() - INTERVAL '90 days';
+  "PropertyType" = 'A'
+  AND "City" = 'Bend'
+  AND "StandardStatus" = 'Closed'
+  AND "CloseDate" >= NOW() - INTERVAL '90 days';
 ```
 
 All query results are written verbatim (including `row_count`, `period_start`, `period_end`) into the output JSON under a `query_results` key alongside the derived display values.
@@ -191,7 +191,7 @@ The script prints a complete verification trace per figure:
 median_price: $487,000 — listings, PropertyType='A', City='Bend', CloseDate 2026-01-01..2026-03-31, percentile_cont(0.5) = 487000 over 94 rows
 dom_avg: 38 days — listings, PropertyType='A', City='Bend', CloseDate 2026-01-24..2026-04-24, avg(dom) = 38.0 over 94 rows
 months_supply: 2.1 mo — active_count=198 / monthly_absorption=94 = 2.1 → SELLER'S MARKET
-sale_to_list: 98.4% — listings same filter, avg(close_price/list_price*100) = 98.4 over 94 rows
+sale_to_list: 98.4% — listings same filter, avg("ClosePrice"/"ListPrice"*100) = 98.4 over 94 rows
 ```
 
 Save this trace to `out/data_viz/<city>_<yyyy-mm-dd>_verification_trace.txt`. This file must be committed alongside the video file.
@@ -303,7 +303,7 @@ Read `video_production_skills/ANTI_SLOP_MANIFESTO.md` before QA. Critical rules:
 - **Every metric has a citation pill.** "Source: ORMLS via Supabase, pulled YYYY-MM-DD" appears bottom-right on every stat beat.
 - **No missing units.** "$487,250" not "487,250". "38 days" not "38". "2.1 months" not "2.1".
 - **Market classification must match months-of-supply.** Script enforces this. Never override the classification in narrative copy to fit a pre-written story.
-- **No stats for geographies not in the pull filter.** If the video says "Bend market" the query must have `city = 'Bend'` — not "Central Oregon" or "Deschutes County" without the corresponding filter.
+- **No stats for geographies not in the pull filter.** If the video says "Bend market" the query must have `"City" = 'Bend'` — not "Central Oregon" or "Deschutes County" without the corresponding filter.
 - **Manifesto rules 1, 2, 3, 4** apply: no hallucinated data, no AI-recalled numbers, no ambiguous source, no recycled data from a prior snapshot.
 
 ---
