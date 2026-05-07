@@ -239,21 +239,25 @@ export async function publishLinkedInVideoFromUrl(
     throw new Error(registerJson.message || 'LinkedIn register upload response missing fields')
   }
 
+  // Stream the source video directly to LinkedIn instead of buffering in memory.
+  // arrayBuffer() OOMs Vercel functions (256 MB limit) for videos >~50 MB.
   const sourceResponse = await fetch(options.mediaUrl)
   if (!sourceResponse.ok || !sourceResponse.body) {
     throw new Error(`Failed to fetch LinkedIn video source: ${sourceResponse.status}`)
   }
 
-  const bytes = await sourceResponse.arrayBuffer()
   const contentType = sourceResponse.headers.get('content-type') ?? 'video/mp4'
+  const contentLength = sourceResponse.headers.get('content-length')
+
+  const uploadHeaders: Record<string, string> = { 'Content-Type': contentType }
+  if (contentLength) uploadHeaders['Content-Length'] = contentLength
 
   const uploadResponse = await fetch(uploadUrl, {
     method: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-      'Content-Length': `${bytes.byteLength}`,
-    },
-    body: bytes,
+    headers: uploadHeaders,
+    // @ts-expect-error — Node fetch supports ReadableStream bodies + duplex flag
+    body: sourceResponse.body,
+    duplex: 'half',
   })
 
   if (!uploadResponse.ok) {

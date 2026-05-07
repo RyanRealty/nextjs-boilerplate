@@ -230,21 +230,25 @@ export async function uploadYouTubeVideoFromUrl(options: UploadFromUrlOptions): 
     throw new Error('YouTube upload session URL missing')
   }
 
+  // Stream the source video directly to YouTube instead of buffering in memory.
+  // arrayBuffer() OOMs Vercel functions (256 MB limit) for videos >~50 MB.
   const sourceResponse = await fetch(options.videoUrl)
   if (!sourceResponse.ok || !sourceResponse.body) {
     throw new Error(`Failed to fetch video source: ${sourceResponse.status} ${sourceResponse.statusText}`)
   }
 
   const contentType = sourceResponse.headers.get('content-type') ?? 'video/mp4'
-  const bytes = await sourceResponse.arrayBuffer()
+  const contentLength = sourceResponse.headers.get('content-length')
+
+  const uploadHeaders: Record<string, string> = { 'Content-Type': contentType }
+  if (contentLength) uploadHeaders['Content-Length'] = contentLength
 
   const uploadResponse = await fetch(sessionUrl, {
     method: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-      'Content-Length': `${bytes.byteLength}`,
-    },
-    body: bytes,
+    headers: uploadHeaders,
+    // @ts-expect-error — Node fetch supports ReadableStream bodies + duplex flag
+    body: sourceResponse.body,
+    duplex: 'half',
   })
 
   if (!uploadResponse.ok) {
