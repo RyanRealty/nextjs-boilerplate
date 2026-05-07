@@ -69,13 +69,16 @@ async function unsplashGet(path, retries = 3) {
   }
 }
 
-// Check rate limit before any downloads
-async function checkRateLimit() {
+// Check rate limit before any downloads. Threshold scales with how many
+// cities we're processing — a single-city iteration only needs ~12 calls
+// (search + download triggers), so the old hard floor of 40 was forcing a
+// 1-hour wait whenever we ran one-off rebuilds.
+async function checkRateLimit(needsCalls = 40) {
   const { remaining } = await unsplashGet('/photos/random?count=1')
-  console.log(`\nUnsplash rate limit: ${remaining}/50 remaining`)
-  if (remaining < 40) {
+  console.log(`\nUnsplash rate limit: ${remaining}/50 remaining (need ~${needsCalls})`)
+  if (remaining < needsCalls) {
     const waitMs = 3600 * 1000 + 60000
-    console.log(`Rate limit too low (${remaining} < 40). Waiting ${(waitMs/1000/60).toFixed(1)}m...`)
+    console.log(`Rate limit too low. Waiting ${(waitMs/1000/60).toFixed(1)}m...`)
     await new Promise(r => setTimeout(r, waitMs))
     const { remaining: r2 } = await unsplashGet('/photos/random?count=1')
     console.log(`After wait: ${r2}/50 remaining`)
@@ -108,18 +111,49 @@ async function searchPhotos(query, count = 30) {
   return data.results || []
 }
 
-// Score a photo for our use case: prefer outdoor scenes, no people-as-subject
+// Score a photo for our use case (Matt directive 2026-05-07: must be
+// RECOGNIZABLY Bend, not generic Cascade-anywhere imagery).
+//   +8 for an explicit Bend / Central-Oregon landmark in tags or description
+//   +2 for outdoor / nature / architecture tags
+//   -4 for people / coast / urban-other
 function scorePhoto(photo) {
   let score = 0
-  // Prefer landscape/nature/architecture tags
   const tags = (photo.tags || []).map(t => (t.title || t.slug || '').toLowerCase())
-  const goodTags = ['oregon', 'landscape', 'mountain', 'house', 'home', 'architecture', 'nature', 'forest', 'river', 'sunset', 'sky', 'outdoor', 'rural', 'town']
-  const badTags = ['person', 'people', 'portrait', 'face', 'man', 'woman', 'child', 'crowd']
+  const desc = `${photo.description || ''} ${photo.alt_description || ''}`.toLowerCase()
+  const tagText = tags.join(' ') + ' ' + desc
+
+  // STRONG penalty for North Bend (coastal Oregon, not Bend OR) — Unsplash
+  // returns these for "bend oregon" searches. Penalty must be larger than the
+  // landmark bonus so any ambiguous match gets killed. Same for any obvious
+  // not-Bend Oregon location.
+  const wrongLocation = [
+    'north bend', 'coos bay', 'oregon coast', 'cannon beach', 'astoria',
+    'portland', 'salem', 'eugene', 'medford', 'ashland', 'klamath',
+    'columbia gorge', 'mt hood', 'mount hood', 'crater lake',
+  ]
+  for (const w of wrongLocation) {
+    if (tagText.includes(w)) score -= 50
+  }
+
+  // Explicit Bend / Central Oregon landmarks
+  const bendLandmarks = [
+    'bend oregon', 'bend, oregon', 'downtown bend', 'old mill bend',
+    'pilot butte', 'mount bachelor', 'mt bachelor', 'mt. bachelor', 'bachelor mountain',
+    'old mill district', 'drake park', 'tumalo falls', 'tumalo',
+    'deschutes river', 'deschutes', 'smith rock', 'three sisters', 'broken top',
+    'paulina', 'newberry', 'mirror pond', 'sparks lake', 'todd lake',
+    'cascade lakes', 'wanoga', 'meissner',
+  ]
+  for (const lm of bendLandmarks) {
+    if (tagText.includes(lm)) score += 8
+  }
+
+  const goodTags = ['oregon', 'landscape', 'mountain', 'forest', 'river', 'sunset', 'sky', 'outdoor', 'rural', 'town', 'snow', 'lake']
+  const badTags = ['person', 'people', 'portrait', 'face', 'man', 'woman', 'child', 'crowd', 'beach', 'ocean', 'coast', 'city skyline']
   for (const t of tags) {
     if (goodTags.some(g => t.includes(g))) score += 2
-    if (badTags.some(b => t.includes(b))) score -= 3
+    if (badTags.some(b => t.includes(b))) score -= 4
   }
-  // Prefer larger images
   if (photo.width >= 1080 && photo.height >= 1920) score += 2
   if (photo.width >= 1920) score += 1
   return score
@@ -128,12 +162,22 @@ function scorePhoto(photo) {
 const CITY_CONFIGS = [
   {
     slug: 'bend',
+    // Bend-specific landmark searches. Each query targets a different visual
+    // register so we get diverse photos: city, mountain, river, neighborhood,
+    // wilderness. Going specific (Pilot Butte, Mt Bachelor, Old Mill, Drake
+    // Park, Smith Rock, Deschutes River, Tumalo Falls) gets actual Bend
+    // photography, not generic "Cascade mountains" stock.
     queries: [
-      'bend oregon aerial landscape',
-      'cascade mountains home exterior',
-      'central oregon house',
-      'bend oregon street',
-      'oregon mountain sunset',
+      'pilot butte bend oregon',
+      'mount bachelor oregon',
+      'old mill district bend oregon',
+      'drake park bend oregon',
+      'deschutes river bend oregon downtown',
+      'smith rock oregon',
+      'tumalo falls oregon',
+      'downtown bend oregon',
+      'three sisters oregon',
+      'bend oregon neighborhood',
     ],
   },
   {
@@ -264,8 +308,10 @@ const targets = cityFilter.length
   ? CITY_CONFIGS.filter(c => cityFilter.includes(c.slug))
   : CITY_CONFIGS
 
-// Check rate limit then process target cities
-await checkRateLimit()
+// Check rate limit then process target cities. Each city consumes ~10-12
+// API calls (search calls + download triggers per photo).
+const needsCalls = Math.max(15, targets.length * 12)
+await checkRateLimit(needsCalls)
 for (const cfg of targets) {
   await processCity(cfg)
 }

@@ -205,63 +205,110 @@ const planForCity = (data) => {
     ? 'There is room to negotiate'
     : 'Buyers are finding room on price'
 
-  // The single continuous read. Sentences are short, two-clause max, with
-  // commas where Victoria would naturally pause. No semicolons (banned), no
-  // em-dashes (banned). No "approximately."
+  // ─────────────────────────────────────────────────────────────────────────
+  //  NARRATIVE VO (Matt directive 2026-05-07)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Old version recited every number ("Median sale price was six hundred
+  // ninety-nine thousand, down 13 point 4 percent..."). The numbers are
+  // already on screen — Victoria reciting them sounds like a robot reading
+  // a spreadsheet. New rule: VO is the analyst commentary that gives the
+  // numbers MEANING. The chart, the gauge, the bar — those carry the data.
+  // The VO carries the story.
+  //
+  // Each beat gets ONE narrative sentence. Sentences are short, two-clause
+  // max, commas where Victoria would naturally pause. No numbers spoken
+  // unless absolutely required (e.g. baseline year for "since 2019").
+
   const introLine = klass === 'sellers'
-    ? `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. With ${decimalSpoken(mos)} months of supply, inventory is tight.`
+    ? `${cityVo}, single family market for ${introMonth.toLowerCase()} ${introYear}. Inventory is tight. Sellers are in control.`
     : klass === 'balanced'
-    ? `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. At ${decimalSpoken(mos)} months of supply, this market is balanced.`
-    : `${cityVo} single family market, ${introMonth.toLowerCase()} ${introYear}. At ${decimalSpoken(mos)} months of supply, buyers hold the cards.`
+    ? `${cityVo}, single family market for ${introMonth.toLowerCase()} ${introYear}. The pendulum is balanced. Neither side has the edge right now.`
+    : `${cityVo}, single family market for ${introMonth.toLowerCase()} ${introYear}. Buyers hold the cards. Sellers need to price to move.`
 
+  // Price beat: narrative about the trajectory, not the dollar figures.
+  // The multi-color line chart shows all four years with their values.
+  // No em-dash (banned per CLAUDE.md anti-slop rules).
   const priceLine = baseline
-    ? `Median sale price was ${moneyToSpoken(medianSale)}, ${yoyVo}. Compare to ${yr1Money} last ${introMonth.toLowerCase()}, ${yr2Money} the year before, and ${baselineMoney} back in ${baselineYear}. ${appreciation} percent appreciation over ${yearsSpan} years.`
-    : `Median sale price was ${moneyToSpoken(medianSale)}, ${yoyVo}.`
+    ? yoyDir === 'down'
+      ? `Median prices cooled this year. Zoom out, though, and the long arc since ${baselineYear} is still pointing up. Buyers who waited are paying more, not less, in the long run.`
+      : yoyDir === 'up'
+      ? `Median prices kept climbing this year. The run since ${baselineYear} has been steady, and buyers are still paying for it.`
+      : `Median prices held flat this year. The market has been riding a multi-year plateau since ${baselineYear}.`
+    : `Median price ${yoyDir === 'up' ? 'kept climbing' : yoyDir === 'down' ? 'cooled this year' : 'held flat'}.`
 
+  // MoS beat: gauge shows the number + verdict pill. VO speaks to meaning.
   const mosLine = klass === 'sellers'
-    ? `Months of supply sits at ${decimalSpoken(mos)}, firmly in seller territory. ${klassImplication}`
+    ? `Supply is constrained. Listings move quickly. Buyers who hesitate are losing out.`
     : klass === 'balanced'
-    ? `Months of supply sits at ${decimalSpoken(mos)}, comfortable territory for both sides. ${klassImplication}`
-    : `Months of supply sits at ${decimalSpoken(mos)}, deep in buyer territory. ${klassImplication}`
+    ? `Supply is healthy at this level. Buyers have options. Sellers can still command their price.`
+    : `Supply is heavy. Buyers can take their time. Sellers have to compete for attention.`
 
-  const domLine = `Median time to contract is ${intSpoken(dom)} days, ${domDeltaVo}.`
+  // DOM beat: hero number on screen. VO speaks to pace.
+  const domLine = domDelta < -3
+    ? `Listings are moving faster than they were a year ago. The pace has clearly picked up.`
+    : domDelta > 3
+    ? `Listings are sitting longer than they were a year ago. Pace has cooled.`
+    : `Pace is steady, in line with last year. Nothing has shifted on the time-on-market side.`
 
-  const stlLine = `Sellers are getting ${stlPctVo} of asking price. ${stlColor}.`
+  // STL beat: percent on screen. VO speaks to negotiation room.
+  const stlLine = slPct >= 99
+    ? `Negotiation room is gone. Sellers are getting full ask. If you are buying, you bring your strongest offer.`
+    : slPct >= 97
+    ? `Negotiation room is limited. Sellers are still getting close to asking, and buyers have to come in tight.`
+    : slPct >= 95
+    ? `Buyers have a little leverage on price. There is room to negotiate, but not much.`
+    : `Buyers have real room to negotiate. Sellers should expect to come off ask.`
 
-  const activeLine = `${active.toLocaleString()} active listings on the market right now, ${pending} pending, ${new30d} new in the last thirty days.`
+  // Active beat: count on screen. VO speaks to market depth.
+  const pendingToActive = pending / Math.max(1, active)
+  const activeLine = pendingToActive >= 0.4
+    ? `The market is moving. Pending volume is strong against active supply, which means contracts are happening.`
+    : pendingToActive >= 0.25
+    ? `The pipeline is healthy and demand is steady. Buyers are out there, and contracts are flowing.`
+    : `Inventory is heavy and demand has not caught up. Sellers should expect to wait.`
 
-  const outroLine = `Full report at ryan-realty.com.`
+  const outroLine = `Full report at ryan-realty.com. Subscribe for monthly updates.`
 
-  // Stitch into ONE paragraph.
-  const fullText = [introLine, priceLine, mosLine, domLine, stlLine, activeLine, outroLine].join(' ')
-
-  // Trigger phrases — synth-vo finds the first occurrence of each in the
-  // alignment word stream and treats it as the start of that beat. The
-  // first beat starts at word 0 by definition.
-  const beatTriggers = [
-    { id: 'intro',  triggerPhrase: null },
-    { id: 'price',  triggerPhrase: 'Median sale price' },
-    { id: 'mos',    triggerPhrase: 'Months of supply' },
-    { id: 'dom',    triggerPhrase: 'Median time' },
-    { id: 'stl',    triggerPhrase: 'Sellers are getting' },
-    { id: 'active', triggerPhrase: 'active listings' },
-    { id: 'outro',  triggerPhrase: 'Full report' },
+  // Per-beat sentences. fullText is just these joined — synth-vo derives
+  // beat boundaries by counting words per sentence rather than fragile phrase
+  // matching, so the narrative VO can use whatever wording fits the data.
+  const beatSentences = [
+    { id: 'intro',  sentence: introLine },
+    { id: 'price',  sentence: priceLine },
+    { id: 'mos',    sentence: mosLine },
+    { id: 'dom',    sentence: domLine },
+    { id: 'stl',    sentence: stlLine },
+    { id: 'active', sentence: activeLine },
+    { id: 'outro',  sentence: outroLine },
   ]
+  const fullText = beatSentences.map(b => b.sentence).join(' ')
 
   // ─────────────────────────────────────────────────────────────────────────
   //  STATS — one beat per metric, rich layout per beat
   // ─────────────────────────────────────────────────────────────────────────
-  // Multi-year series for the line_chart layout. Sorted oldest → newest so
-  // the line draws left to right.
+  // Multi-color line chart for the price beat (Matt directive 2026-05-07
+  // "different year and color for each line"). Each ChartPoint carries its
+  // own brand-aligned color; the segment LEADING INTO that point uses that
+  // color. Sequence: 2019 (deep blue baseline) → 2024 (teal) → 2025 (soft
+  // gold transition) → 2026 (full gold, the current year).
+  const YEAR_COLORS = {
+    baseline: '#5BA8D4',    // azure — the long-ago reference point
+    yr2:      '#7BC5A8',    // teal — two years ago
+    yr1:      '#C8A864',    // soft gold — one year ago
+    current:  '#D4AF37',    // brand gold — the current year, highlighted
+  }
   const series = baseline ? [
-    { month: baseline.period_label.split(' ').pop(), value: baseline.median_sale_price },
-    { month: yr2.period_label.split(' ').pop(), value: yr2.median_sale_price },
-    { month: yr1.period_label.split(' ').pop(), value: yr1.median_sale_price },
-    { month: cur.period_label.split(' ').pop(), value: cur.median_sale_price },
+    { month: baseline.period_label, value: baseline.median_sale_price, color: YEAR_COLORS.baseline, yearLabel: baseline.period_start.slice(0, 4) },
+    { month: yr2.period_label,      value: yr2.median_sale_price,      color: YEAR_COLORS.yr2,      yearLabel: yr2.period_start.slice(0, 4) },
+    { month: yr1.period_label,      value: yr1.median_sale_price,      color: YEAR_COLORS.yr1,      yearLabel: yr1.period_start.slice(0, 4) },
+    { month: cur.period_label,      value: cur.median_sale_price,      color: YEAR_COLORS.current,  yearLabel: cur.period_start.slice(0, 4) },
   ] : null
 
   const stats = [
-    // Stat 1 — Median Sale Price → line_chart with 4-year history
+    // Stat 1 — Median Sale Price → line_chart with per-point year colors
+    // Each year (2019 / 2024 / 2025 / 2026) has its own brand-aligned color.
+    // The segment leading into each point inherits that point's color so the
+    // viewer sees AT A GLANCE which year-to-year delta is which transition.
     {
       label: 'Median Sale Price',
       value: fmtMoneyShort(medianSale),
@@ -269,7 +316,9 @@ const planForCity = (data) => {
       bgVariant: 'navy',
       changeText: yoyText,
       changeDir: yoyDir,
-      context: `${closedCount} closed homes in ${introMonth} ${introYear}`,
+      context: appreciation
+        ? `${appreciation > 0 ? '+' : ''}${appreciation}% appreciation over ${yearsSpan} years`
+        : `${closedCount} closed homes in ${introMonth} ${introYear}`,
       series,
       currentLabel: `${introMonth.toUpperCase()} ${introYear}`,
     },
@@ -369,7 +418,7 @@ const planForCity = (data) => {
     imageCount: 7,
   }
 
-  return { props, fullText, beatTriggers, citations }
+  return { props, fullText, beatSentences, citations }
 }
 
 async function loadHistory(slug) {
@@ -387,12 +436,12 @@ for (const { slug, dataFile } of CITIES) {
   const raw = JSON.parse(await readFile(dataPath, 'utf8'))
   raw._history = await loadHistory(slug)
 
-  const { props, fullText, beatTriggers, citations } = planForCity(raw)
+  const { props, fullText, beatSentences, citations } = planForCity(raw)
   const cityOut = resolve(OUT, slug)
   await mkdir(cityOut, { recursive: true })
   await writeFile(resolve(cityOut, 'props.json'), JSON.stringify(props, null, 2))
-  await writeFile(resolve(cityOut, 'script.json'), JSON.stringify({ city: raw.city, fullText, beatTriggers }, null, 2))
+  await writeFile(resolve(cityOut, 'script.json'), JSON.stringify({ city: raw.city, fullText, beatSentences }, null, 2))
   await writeFile(resolve(cityOut, 'citations.json'), JSON.stringify(citations, null, 2))
-  console.log(`  Built ${slug}: ${fullText.length} chars, ${beatTriggers.length} beats, ${props.stats.length} stat slots`)
+  console.log(`  Built ${slug}: ${fullText.length} chars, ${beatSentences.length} beats, ${props.stats.length} stat slots`)
 }
 console.log('\nAll cities planned. Next: scripts/synth-vo.mjs (single continuous synth + alignment)')

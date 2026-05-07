@@ -120,24 +120,11 @@ function alignmentToWords(alignment) {
   return words
 }
 
-// Find the first word index where a trigger phrase begins (case-insensitive,
-// punctuation-tolerant). Used to derive beat boundaries from the continuous
-// word stream.
-function findTriggerWordIdx(words, triggerPhrase, startIdx = 0) {
-  if (!triggerPhrase) return startIdx
-  const triggerWords = triggerPhrase.toLowerCase().split(/\s+/)
-  const norm = (s) => s.toLowerCase().replace(/[.,;:!?"']/g, '')
-  for (let i = startIdx; i <= words.length - triggerWords.length; i++) {
-    let match = true
-    for (let j = 0; j < triggerWords.length; j++) {
-      if (norm(words[i + j].text) !== norm(triggerWords[j])) {
-        match = false
-        break
-      }
-    }
-    if (match) return i
-  }
-  return -1
+// Count whitespace-separated tokens in a sentence. Used to derive beat
+// boundaries from cumulative word counts — robust against narrative VO
+// that doesn't include canonical trigger phrases.
+function countWords(sentence) {
+  return sentence.trim().split(/\s+/).filter(Boolean).length
 }
 
 async function mp3Duration(path) {
@@ -166,26 +153,22 @@ for (const slug of CITIES) {
   console.log(`${finalDur.toFixed(2)}s, ${words.length} words`)
 
   // ─────────────────────────────────────────────────────────────────────────
-  //  Beat boundaries from trigger phrases
+  //  Beat boundaries from cumulative word counts
   // ─────────────────────────────────────────────────────────────────────────
-  // For each beat trigger, find its starting word in the continuous stream.
-  // Beat duration = startSec(next trigger) - startSec(this trigger), with the
-  // last beat running to the end of audio.
+  // We know how many words are in each sentence (from build-cities). The
+  // continuous alignment stream gives us per-word timestamps. So beat N
+  // starts at the timestamp of word(sum of word counts of sentences 0..N-1).
+  // Robust regardless of what the narrative text actually says.
   const beatStartSecs = []
-  let searchFrom = 0
-  for (const beat of script.beatTriggers) {
-    if (beat.triggerPhrase === null) {
-      beatStartSecs.push(0)
-      continue
-    }
-    const idx = findTriggerWordIdx(words, beat.triggerPhrase, searchFrom)
-    if (idx === -1) {
-      console.warn(`  WARNING: trigger "${beat.triggerPhrase}" not found in alignment for ${slug}`)
-      beatStartSecs.push(beatStartSecs[beatStartSecs.length - 1] + 5.0) // fallback
+  let cumWordIdx = 0
+  for (let i = 0; i < script.beatSentences.length; i++) {
+    if (cumWordIdx >= words.length) {
+      // Defensive fallback — should never happen if synthesis succeeded.
+      beatStartSecs.push(beatStartSecs[beatStartSecs.length - 1] + 4.0)
     } else {
-      beatStartSecs.push(words[idx].startSec)
-      searchFrom = idx + 1
+      beatStartSecs.push(words[cumWordIdx].startSec)
     }
+    cumWordIdx += countWords(script.beatSentences[i].sentence)
   }
 
   // Compute per-beat durations. Add a small tail after the last word so the
@@ -199,7 +182,14 @@ for (const slug of CITIES) {
     beatDurations.push(Math.max(2.0, end - start))
   }
 
-  // Sanity check: render must not exceed 60s ceiling per CLAUDE.md.
+  // No padding (Matt directive 2026-05-07): visual beats track VO word
+  // timestamps exactly. Padding caused desync — captions render at their
+  // natural VO word timing, so stretching the visual past that pushes
+  // subsequent beats out of phase with what's being spoken. If the VO is
+  // shorter than the viral floor, lengthen the script (more narrative
+  // sentences) — don't pad the visuals.
+
+  // Sanity check: render must stay in the 30-60s viral window per CLAUDE.md.
   const total = beatDurations.reduce((s, x) => s + x, 0)
   console.log(`  Beat durations:`, beatDurations.map(d => d.toFixed(1)).join(', '), `→ ${total.toFixed(1)}s`)
   if (total > 62) console.warn(`  WARNING: ${slug} total ${total.toFixed(1)}s exceeds 62s ceiling`)
@@ -216,7 +206,7 @@ for (const slug of CITIES) {
     words,
     beatStartSecs,
     beatDurations,
-    beatTriggers: script.beatTriggers,
+    beatSentences: script.beatSentences,
   }, null, 2))
   console.log(`  ${words.length} captionWords, VO ${finalDur.toFixed(2)}s, total beats ${total.toFixed(2)}s`)
 }

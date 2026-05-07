@@ -10,14 +10,23 @@ export type StatLayout =
   | 'callout'
   | 'label-only'
   | 'line_chart'
+  | 'multi_year_bars'
   | 'histogram'
   | 'gauge'
   | 'price_band'
   | 'leaderboard'
   | 'takeaway'
 
-// Series points for line_chart layout
-export type ChartPoint = { month: string; value: number }
+// One bar in the multi_year_bars layout. value drives bar height; label is
+// pre-formatted for display (e.g. "$699K"); current=true highlights as gold.
+export type MultiYearBar = { year: string; value: number; label: string; current?: boolean }
+
+// Series points for line_chart layout. `color` (optional) sets that point's
+// dot fill AND the segment that LEADS INTO it (segment from points[i-1] to
+// points[i]). When omitted, defaults to GOLD. Used for the multi-year price
+// chart where each year transition is rendered in its own brand-aligned hue
+// so the viewer can see at a glance which delta is which.
+export type ChartPoint = { month: string; value: number; color?: string; yearLabel?: string }
 // Bins for histogram layout
 export type HistogramBin = { label: string; count: number; pct: number }
 // Bands for price_band layout
@@ -52,6 +61,11 @@ export type StatBeatProps = {
 
   bins?: HistogramBin[]
   annotations?: string[]
+
+  // multi_year_bars layout — show 4 historical years side-by-side with values
+  // visible on each bar so viewers see all the comparison data without VO
+  // having to read it.
+  multiYearBars?: MultiYearBar[]
 
   gaugeValue?: number
   gaugeMin?: number
@@ -259,114 +273,320 @@ export const StatBeat: React.FC<StatBeatProps> = (props) => {
     </div>
   )
 
-  // ===== NEW LAYOUT: line_chart =====
-  // 24-month median price trace. SVG line chart inside y 400-1200 region. Headline above.
+  // ===== LAYOUT: line_chart =====
+  //
+  // Multi-color line chart for the median sale price (Matt directive
+  // 2026-05-07: "different year and color for each line").
+  //
+  // Each ChartPoint carries its own `color` and optional `yearLabel`. The
+  // segment LEADING INTO point i is rendered in points[i].color, so the
+  // viewer can see at a glance which year-to-year delta is which color.
+  // Each point's dot, year label, and value tag are also rendered in the
+  // same color. Segments draw sequentially (stagger = 6 frames each) so
+  // the timeline reveals year-by-year, not all at once.
+  //
+  // Used for the 4-year price compare (2019 / 2024 / 2025 / 2026) — but
+  // generalizes to any per-point color story.
   const renderLineChart = () => {
     const series = props.series || []
     if (series.length === 0) return null
-    const W = 900
-    const H = 540
-    const PAD_L = 110
-    const PAD_R = 40
-    const PAD_T = 40
-    const PAD_B = 80
+    const W = 940
+    const H = 620
+    const PAD_L = 130
+    const PAD_R = 60
+    const PAD_T = 70
+    const PAD_B = 130
     const innerW = W - PAD_L - PAD_R
     const innerH = H - PAD_T - PAD_B
     const values = series.map(s => s.value)
     const minV = Math.min(...values)
     const maxV = Math.max(...values)
-    const range = Math.max(1, maxV - minV)
+    // Floor at 70% of min so even the lowest point sits comfortably above the
+    // axis (room for the value tag below the dot).
+    const floor = Math.max(0, minV - (maxV - minV) * 0.4)
+    const ceil = maxV + (maxV - minV) * 0.18
+    const range = Math.max(1, ceil - floor)
     const xFor = (i: number) => PAD_L + (i / Math.max(1, series.length - 1)) * innerW
-    const yFor = (v: number) => PAD_T + innerH - ((v - minV) / range) * innerH
+    const yFor = (v: number) => PAD_T + innerH - ((v - floor) / range) * innerH
 
-    // Path build
-    const points = series.map((s, i) => `${xFor(i)},${yFor(s.value)}`)
-    const pathD = `M ${points.join(' L ')}`
-
-    // Axes fade in over 8 frames; line draws via strokeDashoffset over 30 frames; dot pulses.
-    const axesOp = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' })
-    const drawProg = interpolate(frame, [8, 38], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })
-    const dotPulse = interpolate(frame % 60, [0, 30, 60], [1, 1.4, 1])
-    const dotOp = interpolate(frame, [38, 50], [0, 1], { extrapolateRight: 'clamp' })
-    // Approximate path length for dashoffset
-    const pathLen = innerW + innerH
-
-    // Y-axis labels (3 ticks: min, mid, max — round to nearest $25K)
+    // Y-axis ticks
     const round25 = (v: number) => Math.round(v / 25000) * 25000
-    const yTicks = [round25(minV), round25((minV + maxV) / 2), round25(maxV)]
+    const yTicks = [round25(floor + range * 0.0), round25(floor + range * 0.5), round25(ceil)]
+    const fmt = (n: number) => n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2)}M` : `$${(n / 1000).toFixed(0)}K`
 
-    const fmt = (n: number) => `$${(n / 1000).toFixed(0)}K`
-
-    // Current value emphasis (last point)
-    const lastIdx = series.length - 1
-    const lastX = xFor(lastIdx)
-    const lastY = yFor(series[lastIdx].value)
+    // Sequential segment reveal: segment i starts at frame 6 + i*6.
+    const axesOp = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' })
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, width: '100%' }}>
         <div style={{
           color: GOLD, fontFamily: FONT_BODY, fontSize: 26, letterSpacing: 8,
           textTransform: 'uppercase', opacity: labelOp, fontWeight: 700,
         }}>
           {label}
         </div>
-        <div style={{
-          color: WHITE, fontFamily: FONT_HEAD, fontSize: 96, lineHeight: 0.95, letterSpacing: -2,
-          opacity: valueOp, transform: `scale(${valueScale})`,
-          textShadow: '0 4px 24px rgba(0,0,0,0.7)',
-          fontVariantNumeric: 'tabular-nums',
-        }}>{value}</div>
-        {props.currentLabel ? (
-          <div style={{
-            color: GOLD, fontFamily: FONT_BODY, fontSize: 28, letterSpacing: 4,
-            textTransform: 'uppercase', opacity: ctxOp, fontWeight: 700,
-          }}>
-            {props.currentLabel}
-          </div>
-        ) : null}
-        <svg width={W} height={H} style={{ marginTop: 8 }}>
+        <div style={{ width: lineW, height: 3, background: GOLD }} />
+        <svg width={W} height={H} style={{ overflow: 'visible' }}>
           {/* Axes */}
           <g opacity={axesOp}>
             <line x1={PAD_L} y1={PAD_T + innerH} x2={PAD_L + innerW} y2={PAD_T + innerH}
-              stroke={GOLD} strokeWidth={2} opacity={0.6} />
+              stroke={GOLD} strokeWidth={2} opacity={0.55} />
             <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + innerH}
-              stroke={GOLD} strokeWidth={2} opacity={0.6} />
-            {/* Y-axis labels */}
+              stroke={GOLD} strokeWidth={2} opacity={0.55} />
+            {/* Y-axis tick labels + horizontal guides */}
             {yTicks.map((tv, i) => (
               <g key={`yt-${i}`}>
                 <text x={PAD_L - 14} y={yFor(tv) + 8} fill={CREAM}
-                  fontFamily={FONT_BODY} fontSize={26} fontWeight={600}
+                  fontFamily={FONT_BODY} fontSize={24} fontWeight={600}
                   textAnchor="end"
-                  style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  style={{
+                    fontVariantNumeric: 'tabular-nums',
+                    filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))',
+                  }}>
                   {fmt(tv)}
                 </text>
                 <line x1={PAD_L} y1={yFor(tv)} x2={PAD_L + innerW} y2={yFor(tv)}
-                  stroke={GOLD} strokeWidth={1} strokeDasharray="3 6" opacity={0.18} />
+                  stroke={GOLD} strokeWidth={1} strokeDasharray="3 6" opacity={0.16} />
               </g>
             ))}
-            {/* X-axis labels: first, middle, last month */}
-            {[0, Math.floor(series.length / 2), series.length - 1].map(i => (
-              <text key={`xt-${i}`}
-                x={xFor(i)} y={PAD_T + innerH + 36}
-                fill={WHITE_DIM} fontFamily={FONT_BODY} fontSize={22}
-                textAnchor="middle">
-                {series[i].month}
-              </text>
-            ))}
           </g>
-          {/* Line trace */}
-          <path d={pathD} fill="none" stroke={GOLD} strokeWidth={4}
-            strokeLinejoin="round" strokeLinecap="round"
-            strokeDasharray={pathLen}
-            strokeDashoffset={drawProg * pathLen}
-            style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.6))' }}
-          />
-          {/* Current-month dot */}
-          <circle cx={lastX} cy={lastY} r={10 * dotPulse}
-            fill={GOLD} opacity={dotOp}
-            style={{ filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.85))' }} />
-          <circle cx={lastX} cy={lastY} r={4} fill={WHITE} opacity={dotOp} />
+
+          {/* Multi-color segments — each segment carries the color of its END point */}
+          {series.slice(1).map((p, idx) => {
+            const i = idx + 1                            // index into series
+            const segStartFrame = 6 + i * 6              // stagger reveal
+            const segProg = interpolate(frame, [segStartFrame, segStartFrame + 12], [0, 1],
+              { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })
+            const x1 = xFor(i - 1)
+            const y1 = yFor(series[i - 1].value)
+            const x2 = xFor(i)
+            const y2 = yFor(p.value)
+            // Animate the line by interpolating the end coord along the segment.
+            const drawX = x1 + (x2 - x1) * segProg
+            const drawY = y1 + (y2 - y1) * segProg
+            const segColor = p.color || GOLD
+            return (
+              <g key={`seg-${i}`}>
+                <line x1={x1} y1={y1} x2={drawX} y2={drawY}
+                  stroke={segColor} strokeWidth={5}
+                  strokeLinecap="round" strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.65))' }} />
+              </g>
+            )
+          })}
+
+          {/* Per-point dots, year labels, and value tags */}
+          {series.map((p, i) => {
+            // Reveal each point as its incoming segment finishes.
+            const pointFrame = 6 + i * 6 + (i === 0 ? 0 : 12)
+            const dotOp = interpolate(frame, [pointFrame, pointFrame + 6], [0, 1],
+              { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })
+            const dotPulse = interpolate(frame % 60, [0, 30, 60], [1, 1.25, 1])
+            const isLast = i === series.length - 1
+            const r = isLast ? 14 * dotPulse : 10
+            const color = p.color || GOLD
+            const x = xFor(i)
+            const y = yFor(p.value)
+
+            return (
+              <g key={`pt-${i}`} opacity={dotOp}>
+                {/* Dot with glow on the current/last point */}
+                <circle cx={x} cy={y} r={r}
+                  fill={color}
+                  style={{
+                    filter: isLast
+                      ? `drop-shadow(0 0 16px ${color}cc)`
+                      : 'drop-shadow(0 2px 6px rgba(0,0,0,0.55))',
+                  }} />
+                {isLast ? <circle cx={x} cy={y} r={5} fill={WHITE} /> : null}
+
+                {/* Value tag above dot */}
+                <text x={x} y={y - r - 14}
+                  fill={WHITE}
+                  fontFamily={FONT_HEAD}
+                  fontSize={isLast ? 38 : 30}
+                  fontWeight={isLast ? 800 : 600}
+                  textAnchor="middle"
+                  style={{
+                    fontVariantNumeric: 'tabular-nums',
+                    filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.85))',
+                  }}>
+                  {fmt(p.value)}
+                </text>
+
+                {/* Year label below x-axis (use yearLabel prop, fallback to month) */}
+                <text x={x} y={PAD_T + innerH + 38}
+                  fill={color}
+                  fontFamily={FONT_BODY}
+                  fontSize={isLast ? 28 : 24}
+                  fontWeight={isLast ? 800 : 700}
+                  textAnchor="middle"
+                  letterSpacing={2}
+                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' }}>
+                  {p.yearLabel || p.month}
+                </text>
+
+                {/* "CURRENT" pill under the active point */}
+                {isLast ? (
+                  <text x={x} y={PAD_T + innerH + 70}
+                    fill={GOLD}
+                    fontFamily={FONT_BODY}
+                    fontSize={18}
+                    fontWeight={800}
+                    textAnchor="middle"
+                    letterSpacing={4}
+                    opacity={ctxOp}>
+                    CURRENT
+                  </text>
+                ) : null}
+              </g>
+            )
+          })}
         </svg>
+
+        {/* Optional context line beneath the chart (e.g. "+52% / 7y") */}
+        {context ? (
+          <div style={{
+            color: fgSoft, fontFamily: FONT_BODY, fontSize: 30, marginTop: 8,
+            textAlign: 'center', maxWidth: 880, opacity: ctxOp, fontWeight: 600,
+            textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+          }}>
+            {context}
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  // ===== NEW LAYOUT: multi_year_bars =====
+  // Four vertical bars side-by-side, one per historical year. Each bar shows
+  // the value above (e.g. "$699K") and the year below (e.g. "2026"). Current
+  // year (current=true) renders in solid gold; historical years in soft gold.
+  // Bars rise sequentially L→R so the eye tracks the progression naturally.
+  // Used for the median sale price multi-year compare so the viewer sees ALL
+  // four data points at once instead of having to listen to a VO recite them.
+  const renderMultiYearBars = () => {
+    const bars = props.multiYearBars || []
+    if (bars.length === 0) return null
+    const W = 920
+    const H = 600
+    const PAD_L = 60
+    const PAD_R = 60
+    const PAD_T = 100   // room for value labels above bars
+    const PAD_B = 90    // room for year labels below bars
+    const innerW = W - PAD_L - PAD_R
+    const innerH = H - PAD_T - PAD_B
+    const maxV = Math.max(...bars.map(b => b.value))
+    const minV = Math.min(...bars.map(b => b.value))
+    // Use a partial-height baseline so even the smallest bar has visible
+    // height — purely visual, the value label still carries the truth.
+    const floor = minV * 0.7
+    const range = Math.max(1, maxV - floor)
+    const slot = innerW / bars.length
+    const barW = slot * 0.6
+    const barGap = slot * 0.4
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+        <div style={{
+          color: GOLD, fontFamily: FONT_BODY, fontSize: 26, letterSpacing: 8,
+          textTransform: 'uppercase', opacity: labelOp, fontWeight: 700,
+        }}>
+          {label}
+        </div>
+        <div style={{ width: lineW, height: 3, background: GOLD }} />
+        <svg width={W} height={H} style={{ overflow: 'visible' }}>
+          {/* Subtle baseline */}
+          <line x1={PAD_L} y1={PAD_T + innerH} x2={PAD_L + innerW} y2={PAD_T + innerH}
+            stroke={GOLD} strokeWidth={2} opacity={0.55} />
+          {bars.map((b, i) => {
+            const sp = spring({
+              frame: Math.max(0, frame - 6 - i * 6), fps,
+              config: { damping: 14, stiffness: 130 },
+            })
+            const fullH = ((b.value - floor) / range) * innerH
+            const h = fullH * sp
+            const x = PAD_L + i * slot + barGap / 2
+            const y = PAD_T + innerH - h
+            const isCurrent = !!b.current
+            const fill = isCurrent ? GOLD : GOLD_SOFT
+            const strokeColor = isCurrent ? WHITE : 'rgba(255,255,255,0.55)'
+
+            // Value label fade-in tied to bar spring
+            const valueOpacity = interpolate(sp, [0, 1], [0, 1])
+
+            return (
+              <g key={`mybar-${i}`}>
+                {/* Bar */}
+                <rect x={x} y={y} width={barW} height={h}
+                  fill={fill}
+                  stroke={isCurrent ? WHITE : 'transparent'}
+                  strokeWidth={isCurrent ? 2 : 0}
+                  rx={6} ry={6}
+                  style={{ filter: isCurrent
+                    ? 'drop-shadow(0 0 16px rgba(212,175,55,0.6))'
+                    : 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))' }}
+                />
+                {/* Value label above bar (e.g. "$699K") */}
+                <text
+                  x={x + barW / 2}
+                  y={y - 16}
+                  fill={isCurrent ? WHITE : CREAM}
+                  fontFamily={FONT_HEAD}
+                  fontSize={isCurrent ? 56 : 44}
+                  fontWeight={isCurrent ? 800 : 600}
+                  textAnchor="middle"
+                  opacity={valueOpacity}
+                  style={{
+                    fontVariantNumeric: 'tabular-nums',
+                    filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.85))',
+                  }}>
+                  {b.label}
+                </text>
+                {/* Year label below bar */}
+                <text
+                  x={x + barW / 2}
+                  y={PAD_T + innerH + 36}
+                  fill={isCurrent ? GOLD : WHITE_DIM}
+                  fontFamily={FONT_BODY}
+                  fontSize={isCurrent ? 30 : 26}
+                  fontWeight={isCurrent ? 800 : 600}
+                  textAnchor="middle"
+                  letterSpacing={2}
+                  style={{
+                    filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))',
+                  }}>
+                  {b.year}
+                </text>
+                {/* "CURRENT" pill under the active bar */}
+                {isCurrent ? (
+                  <text
+                    x={x + barW / 2}
+                    y={PAD_T + innerH + 70}
+                    fill={GOLD}
+                    fontFamily={FONT_BODY}
+                    fontSize={18}
+                    fontWeight={800}
+                    textAnchor="middle"
+                    letterSpacing={4}
+                    opacity={ctxOp}>
+                    CURRENT
+                  </text>
+                ) : null}
+              </g>
+            )
+          })}
+        </svg>
+        {/* Optional context line at bottom (e.g. "+52% / 7y") */}
+        {context ? (
+          <div style={{
+            color: fgSoft, fontFamily: FONT_BODY, fontSize: 30, marginTop: 4,
+            textAlign: 'center', maxWidth: 880, opacity: ctxOp, fontWeight: 600,
+            textShadow: '0 2px 8px rgba(0,0,0,0.7)',
+          }}>
+            {context}
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -791,6 +1011,7 @@ export const StatBeat: React.FC<StatBeatProps> = (props) => {
         {layout === 'compare' && renderCompare()}
         {layout === 'callout' && renderCallout()}
         {layout === 'line_chart' && renderLineChart()}
+        {layout === 'multi_year_bars' && renderMultiYearBars()}
         {layout === 'histogram' && renderHistogram()}
         {layout === 'gauge' && renderGauge()}
         {layout === 'price_band' && renderPriceBand()}
