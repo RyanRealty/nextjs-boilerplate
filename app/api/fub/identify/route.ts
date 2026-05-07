@@ -146,7 +146,9 @@ export async function POST(request: Request) {
     if (campaignClean?.medium) tagSet.push(`medium:${campaignClean.medium.toLowerCase().slice(0, 40)}`)
     if (campaignClean?.campaign) tagSet.push(`utm-campaign:${campaignClean.campaign.slice(0, 60)}`)
     if (Array.isArray(tags)) tagSet.push(...tags)
-    addPersonTags(taggedPersonId, tagSet).catch(() => {})
+    // Await — serverless terminates on response.return so fire-and-forget
+    // PUTs may be killed mid-flight.
+    try { await addPersonTags(taggedPersonId, tagSet) } catch {}
   }
 
   return NextResponse.json(

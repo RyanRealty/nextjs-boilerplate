@@ -154,12 +154,18 @@ export async function POST(request: Request) {
   }
 
   // Merge intent tags onto the person record so Matt can filter / segment in
-  // FUB without configuring per-event automation rules. Best-effort.
+  // FUB without configuring per-event automation rules. AWAIT this — in
+  // serverless the lambda terminates on response.return, so a fire-and-forget
+  // PUT may be killed mid-flight. Cost: ~150ms added to response time.
   const tagsToMerge: Array<string | undefined> = []
   if (Array.isArray(body.intentTags)) tagsToMerge.push(...body.intentTags)
+  let taggedSucceeded = false
   if (tagsToMerge.length > 0) {
-    addPersonTags(fubPersonId, tagsToMerge).catch(() => {})
+    try { taggedSucceeded = await addPersonTags(fubPersonId, tagsToMerge) } catch {}
   }
 
-  return NextResponse.json({ ok: true, eventType, taggedCount: tagsToMerge.length }, { headers: corsHeaders(origin) })
+  return NextResponse.json(
+    { ok: true, eventType, taggedCount: tagsToMerge.length, taggedSucceeded },
+    { headers: corsHeaders(origin) },
+  )
 }
