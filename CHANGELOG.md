@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.122.0 (2026-05-07)
+
+### Features
+- feat(market-report): multi-year historical pull (2026 / 2025 / 2024 / 2019)
+
+---
+
+
 ## v1.121.0 (2026-05-07)
 
 ### Features
