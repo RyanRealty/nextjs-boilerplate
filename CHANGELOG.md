@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.125.1 (2026-05-07)
+
+### Bug Fixes
+- fix(market-report): five regressions Matt called out — Amboqia/photos/labels/charts/VO continuity
+
+---
+
+
 ## v1.125.0 (2026-05-07)
 
 ### Features
