@@ -1,109 +1,150 @@
 # This Weekend in Bend — Video Project
 
-Self-contained Remotion project. Five aspect ratios from one BEATS array.
+Self-contained Remotion project that renders one weekend's "top 5 events"
+reel into **five aspect ratios** (16:9, 9:16, 1:1, 4:5, 2:3) from a single
+BEATS array. Covers every platform Ryan Realty publishes to.
 
-## Quick start (on Mac)
+Master skill: [`video_production_skills/weekend-events-video/SKILL.md`](../../video_production_skills/weekend-events-video/SKILL.md).
+
+---
+
+## Quick start (on Mac — where ElevenLabs + Unsplash + Remotion Chrome are reachable)
 
 ```bash
 cd video/weekend-events
 npm install
+
+# One-shot render pipeline (defaults to SLUG=weekend-events-2026-05).
+SLUG=weekend-events-2026-05 \
+  node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/build-props.mjs && \
+SLUG=weekend-events-2026-05 \
+  node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/fetch-images.mjs && \
+SLUG=weekend-events-2026-05 \
+  node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/synth-vo.mjs && \
+SLUG=weekend-events-2026-05 \
+  node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/render-all.mjs && \
+SLUG=weekend-events-2026-05 \
+  node scripts/qa-and-scorecard.mjs
 ```
 
-Then, for each weekend episode, create the data files in `out/<slug>/` (see below), then run:
+Then open the renders in Finder for review:
 
 ```bash
-SLUG=weekend-events-2026-05 node scripts/fetch-images.mjs
-SLUG=weekend-events-2026-05 node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/synth-vo.mjs
-SLUG=weekend-events-2026-05 node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/render-all.mjs
-SLUG=weekend-events-2026-05 node scripts/qa-and-scorecard.mjs
+open out/16x9/weekend_events_weekend-events-2026-05.mp4
+open out/9x16/weekend_events_weekend-events-2026-05.mp4
+open out/1x1/weekend_events_weekend-events-2026-05.mp4
+open out/4x5/weekend_events_weekend-events-2026-05.mp4
+open out/2x3/weekend_events_weekend-events-2026-05.mp4
 ```
 
-Then present the renders to Matt. Only after explicit approval:
+After Matt's explicit approval ("ship it" / "approved" / "publish"):
 
 ```bash
-SLUG=weekend-events-2026-05 node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/publish.mjs
+SLUG=weekend-events-2026-05 \
+  node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/publish.mjs
 ```
 
-## Data files (provided separately, NOT in this repo)
+`publish.mjs` uploads each MP4 to Supabase Storage and fans out to the
+platforms listed in [`src/Root.tsx`](src/Root.tsx) → [aspect map below](#aspect-platform-map).
 
-All data files live in `out/weekend-events-2026-05/` (gitignored). They are written manually or by the data-build step:
+---
 
-### `out/<slug>/events.json`
+## Pipeline stages (what each script does)
 
-Array of `EventData` objects (see `src/VideoProps.ts`):
+| Stage | Script | Reads | Writes |
+|---|---|---|---|
+| 1 | `build-props.mjs` | `data/<SLUG>/events.json`, `images.json`, `script.json` | `out/<SLUG>/props.json` (seed) |
+| 2 | `fetch-images.mjs` | `out/<SLUG>/props.json`, `data/<SLUG>/images.json` | `public/images/*.jpg`, updates `props.json#events[*].photo_credit`, `out/<SLUG>/images.fetched.json` |
+| 3 | `synth-vo.mjs` | `data/<SLUG>/script.json`, `out/<SLUG>/props.json` | `public/voiceover.mp3`, updates `props.json#captionWords`, `props.json#beatDurations`, `out/<SLUG>/alignment.json` |
+| 4 | `render-all.mjs` | `out/<SLUG>/props.json`, `public/voiceover.mp3`, `public/images/*` | `out/<aspect>/weekend_events_<SLUG>.mp4` × 5 |
+| 5 | `qa-and-scorecard.mjs` | `out/<aspect>/*.mp4`, `data/<SLUG>/script.json`, `data/<SLUG>/events.json` | `out/<aspect>/scorecard.json` × 5 |
+| 6 | `publish.mjs` (post-approval) | all 5 MP4s + `out/<SLUG>/props.json` | Supabase Storage uploads + `/api/social/publish` calls |
 
-```json
-[
-  {
-    "slug": "homegrown-music-fest",
-    "title": "Homegrown Music Festival",
-    "date_time": "Friday–Saturday · 5 PM",
-    "venue": "Hayden Homes Amphitheater",
-    "description": "Local and regional artists. Two-day outdoor festival.",
-    "photo_credit": "Photo: (filled by fetch-images.mjs)",
-    "unsplash_query": "outdoor music festival crowd"
-  },
-  ...
-]
-```
+---
 
-### `out/<slug>/script.json`
+## Source-of-truth data (committed under `data/<SLUG>/`)
 
-```json
-{
-  "fullText": "Five things you don't want to miss this weekend in Bend. ...",
-  "beatSentences": [
-    { "id": "beat1", "sentence": "Homegrown Music Festival kicks off Friday night..." },
-    { "id": "beat2", "sentence": "Portland Cello Project hits the Tower Theatre Friday..." },
-    ...
-  ]
-}
-```
+Each weekend episode has a directory under `data/<slug>/` containing:
 
-`beatSentences` has exactly 5 entries (one per event beat). Beats 0 (intro) and 6 (outro) are silent and NOT included here.
+- `events.json` — top-5 event slate, weekend window, intro card content
+- `script.json` — full VO text, beat sentences (5 entries — beats 1-5),
+  voice settings, IPA pronunciation overrides
+- `images.json` — Unsplash query specs (primary + fallbacks + rejection
+  keywords) per event, attribution pill positions per aspect
+- `citations.json` — primary-source verification trace per claim
+  (CLAUDE.md §0 mandate)
 
-### `out/<slug>/props.json`
+These files DO ship in git. See `data/weekend-events-2026-05/` for the
+canonical example built for May 8-10, 2026.
 
-Remotion composition props. Seeded by you before `synth-vo.mjs` runs, then updated by `synth-vo.mjs` with `captionWords` and `beatDurations`. Minimum seed:
+---
 
-```json
-{
-  "aspect": "9x16",
-  "dateline": "MAY 8-10, 2026",
-  "outroCta": "MORE AT VISITBEND.COM/EVENTS",
-  "voPath": "",
-  "captionWords": [],
-  "beatDurations": [3.0, 5.0, 5.0, 5.0, 5.0, 5.0, 2.5],
-  "events": [ ...same as events.json... ]
-}
-```
+## Working directory (gitignored under `out/<SLUG>/`)
 
-### `out/<slug>/citations.json`
+- `props.json` — built by `build-props.mjs`, extended by `fetch-images` and
+  `synth-vo`. Final render input.
+- `images.fetched.json` — full Unsplash attribution manifest
+- `alignment.json` — ElevenLabs forced-alignment word-level timings
+- per-aspect `out/<aspect>/weekend_events_<SLUG>.mp4` + `scorecard.json`
 
-Write this manually. One line per figure claimed in the video (event details sourced from visitbend.com or the venue's official page). No verified stat = no stat in the video.
+---
 
-## Remotion Studio
+## Remotion Studio (preview during dev)
 
 ```bash
 npm run studio
 ```
 
-Opens all 5 compositions (`WeekendEvents_16x9`, `WeekendEvents_9x16`, `WeekendEvents_1x1`, `WeekendEvents_2x3`, `WeekendEvents_4x5`) using the placeholder fixture data.
+Opens all 5 compositions using `src/VideoProps.fixture.ts` (placeholder
+data, NOT real verified events).
 
-## Composition IDs → aspect → platform
+---
 
-| Composition ID        | Dims        | Primary platforms                      |
-|-----------------------|-------------|----------------------------------------|
-| WeekendEvents_9x16    | 1080×1920   | IG Reels, FB Reels, TikTok, YouTube Shorts, Threads |
-| WeekendEvents_16x9    | 1920×1080   | YouTube, X                             |
-| WeekendEvents_1x1     | 1080×1080   | FB Feed, LinkedIn                      |
-| WeekendEvents_4x5     | 1080×1350   | IG Feed                                |
-| WeekendEvents_2x3     | 1080×1620   | Pinterest                              |
+## Aspect → platform map
+
+| Composition ID | Dims | Primary platforms |
+|---|---|---|
+| `WeekendEvents_16x9` | 1920×1080 | YouTube long-form, X horizontal, Google Business Profile |
+| `WeekendEvents_9x16` | 1080×1920 | YouTube Shorts, IG Reels, FB Reels, TikTok, IG/FB Stories, Threads |
+| `WeekendEvents_1x1`  | 1080×1080 | LinkedIn, IG Feed, FB Feed, Nextdoor, X square |
+| `WeekendEvents_4x5`  | 1080×1350 | IG Feed (alt — taller for more reach) |
+| `WeekendEvents_2x3`  | 1080×1620 | Pinterest |
+
+---
+
+## Hard rules (locked — see SKILL.md for full spec)
+
+- **Beat 0 intro is silent.** No VO, no captions. Designed to double as the
+  YouTube/Pinterest thumbnail. Static-holds for the last 1.5s of the 3.0s beat.
+- **Beat 6 outro is silent.** CTA card with `visitbend.com/events`, no
+  brokerage branding.
+- **VO covers beats 1-5 only.** Voice: Victoria (`qSeXEcewz7tA0Q0qk9fH`).
+  `eleven_turbo_v2_5` model, conversational settings (stability 0.40,
+  similarity 0.80, style 0.50, speaker_boost on).
+- **Captions: full-sentence active-word highlight** (gold + scale spring).
+  No word-by-word fades. 200-300ms crossfade between sentences.
+- **Caption safe zone is reserved at the composition level** —
+  no other component enters it. Aspect-specific Y bands in `SafeZones.tsx`.
+- **Image attribution mandatory.** Pill in bottom-left per `images.json`
+  spec. Unsplash trigger-download endpoint hit per Unsplash API guidelines.
+- **Zero broker branding in frame.** No logo, no phone, no agent name, no URL
+  except the visitbend.com line in the outro.
+- **Banned words grep on script + on-screen text** before render
+  (`qa-and-scorecard.mjs`).
+
+---
 
 ## Fonts
 
-`public/fonts/Amboqia.otf` and `public/fonts/AzoSans-Medium.ttf` are gitignored (commercial license). Copy them from `video/market-report/public/` or your local font store.
+`public/fonts/Amboqia.otf` and `public/fonts/AzoSans-Medium.ttf` are
+gitignored (commercial license). Copy from `video/market-report/public/fonts/`
+or your local font store before first render.
+
+---
 
 ## What gets committed
 
-Source files only (`.tsx`, `.ts`, `.mjs`, `package.json`, `tsconfig.json`, `remotion.config.ts`). No MP4s, no VO, no images, no `out/`, no `public/images/`, no `public/fonts/`.
+Source files (`.tsx`, `.ts`, `.mjs`, `package.json`, `tsconfig.json`,
+`remotion.config.ts`, `README.md`) plus `data/<SLUG>/*.json` source-of-truth
+data. No MP4s, no VO MP3s, no Unsplash JPEGs, no `out/`, no
+`public/images/`, no `public/fonts/`.

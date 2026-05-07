@@ -6,11 +6,13 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts WeekendEvents_9x16 out/9x16/weekend_events.mp4",
-    "fetch-images": "node scripts/fetch-images.mjs",
+    "build-props": "node scripts/build-props.mjs",
+    "fetch-images": "node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/fetch-images.mjs",
     "synth-vo": "node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/synth-vo.mjs",
     "render-all": "node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/render-all.mjs",
     "publish": "node --env-file=/Users/matthewryan/RyanRealty/.env.local scripts/publish.mjs",
-    "qa": "node scripts/qa-and-scorecard.mjs"
+    "qa": "node scripts/qa-and-scorecard.mjs",
+    "build": "npm run build-props && npm run fetch-images && npm run synth-vo && npm run render-all && npm run qa"
   },
   "dependencies": {
     "@remotion/cli": "4.0.290",

@@ -21,6 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
 
 const SLUG     = process.env.SLUG || 'weekend-events-2026-05'
+const DATA_DIR = resolve(ROOT, 'data', SLUG)  // source-of-truth
 const ASPECTS  = ['16x9', '9x16', '1x1', '2x3', '4x5']
 
 // Expected dimensions per aspect.
@@ -113,12 +114,19 @@ function buildScorecard({ aspect, specs, blacks, durationSec, sizeMb, bannedHits
   }
 }
 
-// Load script for banned-word check.
+// Load script for banned-word check (from data/, source-of-truth).
 let scriptText = ''
 try {
-  const script = JSON.parse(await readFile(resolve(ROOT, 'out', SLUG, 'script.json'), 'utf8'))
+  const script = JSON.parse(await readFile(resolve(DATA_DIR, 'script.json'), 'utf8'))
   scriptText = script.fullText || ''
   if (script.beatSentences) scriptText += ' ' + script.beatSentences.map(b => b.sentence).join(' ')
+  // Also grep event titles + venues for banned words.
+  try {
+    const events = JSON.parse(await readFile(resolve(DATA_DIR, 'events.json'), 'utf8'))
+    if (events.events) {
+      scriptText += ' ' + events.events.map(e => `${e.title} ${e.venue ?? ''}`).join(' ')
+    }
+  } catch { /* events optional */ }
 } catch { /* script not yet written — skip text check */ }
 
 const results = []

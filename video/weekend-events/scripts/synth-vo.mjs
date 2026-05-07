@@ -35,9 +35,10 @@ const VOICE = 'qSeXEcewz7tA0Q0qk9fH' // Victoria — LOCKED per Matt 2026-04-27.
 if (VOICE !== 'qSeXEcewz7tA0Q0qk9fH') { console.error(`WRONG VOICE: ${VOICE}`); process.exit(1) }
 if (!KEY) { console.error('Missing ELEVENLABS_API_KEY'); process.exit(1) }
 
-const SLUG    = process.env.SLUG || 'weekend-events-2026-05'
-const OUT_DIR = resolve(ROOT, 'out', SLUG)
-const PUB_DIR = resolve(ROOT, 'public')
+const SLUG     = process.env.SLUG || 'weekend-events-2026-05'
+const DATA_DIR = resolve(ROOT, 'data', SLUG)  // source-of-truth (committed)
+const OUT_DIR  = resolve(ROOT, 'out', SLUG)   // working files (gitignored)
+const PUB_DIR  = resolve(ROOT, 'public')
 
 const HOST     = 'api.elevenlabs.io'
 const HOST_IPS = await dnsP.resolve4(HOST)
@@ -113,9 +114,17 @@ async function mp3Duration(path) {
 await mkdir(OUT_DIR, { recursive: true })
 await mkdir(PUB_DIR, { recursive: true })
 
-const script = JSON.parse(await readFile(resolve(OUT_DIR, 'script.json'), 'utf8'))
+// script.json lives in data/ (source of truth, committed).
+// props.json lives in out/ (built by build-props.mjs, extended by fetch-images.mjs and this script).
+const script = JSON.parse(await readFile(resolve(DATA_DIR, 'script.json'), 'utf8'))
 const propsPath = resolve(OUT_DIR, 'props.json')
-const props = JSON.parse(await readFile(propsPath, 'utf8'))
+let props
+try {
+  props = JSON.parse(await readFile(propsPath, 'utf8'))
+} catch {
+  console.error(`Missing ${propsPath} — run 'node scripts/build-props.mjs && node scripts/fetch-images.mjs' first.`)
+  process.exit(1)
+}
 
 // Beat 0 (intro) and Beat 6 (outro) are silent — not in beatSentences.
 // beatSentences has 5 entries (one per event beat).
