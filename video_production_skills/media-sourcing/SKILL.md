@@ -28,6 +28,29 @@ These rules trump every cost/speed/preference signal. If you are about to break 
 
 ---
 
+## 1.5 Asset library is the canonical first lookup
+
+Before reaching out to ANY external source (Unsplash, Shutterstock, Pexels,
+Replicate, etc.), every photo / video / audio decision MUST start here:
+
+```bash
+node lib/asset-library.mjs search --geo <city> --type photo --unused-only
+```
+
+If the library has ≥ 10 unused approved photos for the target city, use them
+and skip the external fetch entirely. The library de-duplicates API calls,
+prevents photo repeats within a render, and tracks license compliance.
+
+**Only fall through to external sources when the library lacks variety** (fewer
+than the needed N unused approved photos). When you do fetch externally, the
+fetch script (`fetch-photos.mjs`, `fetch-unsplash.mjs`, `fetch-pexels.mjs`,
+`fetch-shutterstock.mjs`) auto-registers every download so the next build
+finds it here.
+
+Full documentation: `video_production_skills/asset-library/SKILL.md`.
+
+---
+
 ## 2. Source registry
 
 ### 2.1 Stock photo libraries

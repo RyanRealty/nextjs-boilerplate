@@ -13,8 +13,12 @@
  * architecture. Adding them here lifts the build pipeline from 7-beat
  * (regression state) to 9-beat (spec compliant).
  *
- * Source: `listings` table direct query (same as pull-historical-windows;
- * bypasses the broken market_stats_cache RPC).
+ * Source: `listings` table direct query (same as pull-historical-windows).
+ *
+ * Cache audit 2026-05-07: cache is accurate. Apparent discrepancies are
+ * property-type blending — cache headline `sold_count` includes all
+ * PropertyTypes; for SFR-only counts read `property_type_breakdown.A`.
+ * See video_production_skills/market-data-video/SKILL.md §22.
  *
  * Run:
  *   node --env-file=.env.local scripts/pull-extras.mjs <city> [YYYY-MM]
@@ -268,7 +272,7 @@ async function processCity(slug, yyyymm) {
     city_slug: slug,
     report_month: yyyymm,
     pulled_at: new Date().toISOString(),
-    source: 'listings table direct query (PropertyType=A AND StandardStatus ilike "%Closed%")',
+    source: 'listings table direct query (PropertyType=A AND StandardStatus ilike "%Closed%"). Cache audit 2026-05-07: cache is accurate. Apparent discrepancies are property-type blending — cache headline sold_count includes all PropertyTypes; for SFR-only counts read property_type_breakdown.A. See video_production_skills/market-data-video/SKILL.md §22.',
     period: { start: period.start, end: period.end, label: `${period.monthName} ${period.year}` },
     closed_count: rows.length,
     price_segments: segments,

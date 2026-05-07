@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ryan Realty Asset Library — Asset Schema",
+  "description": "Schema for entries in data/asset-library/manifest.json. Every photo, video, audio file, or render that the content engine touches gets one of these.",
+  "type": "object",
+  "required": ["id", "type", "source", "file_path", "registered_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "uuid v4. Generated at registration."
+    },
+    "type": {
+      "enum": ["photo", "video", "audio", "render"],
+      "description": "What kind of asset. 'render' = our produced output (mp4 from Remotion); the others = inputs we fetched or generated."
+    },
+    "source": {
+      "enum": [
+        "shutterstock",
+        "unsplash",
+        "pexels",
+        "pixabay",
+        "asset-library",
+        "generated-imagen",
+        "generated-nano-banana",
+        "generated-grok",
+        "generated-flux",
+        "generated-kling",
+        "generated-veo",
+        "generated-hailuo",
+        "generated-seedance",
+        "generated-wan",
+        "generated-luma",
+        "curated",
+        "render-output",
+        "supabase-listing",
+        "google-3d-tiles",
+        "earth-studio",
+        "elevenlabs-sfx",
+        "synthesia"
+      ],
+      "description": "Where this asset came from. 'curated' = Matt-approved, 'render-output' = our own deliverable."
+    },
+    "source_id": {
+      "type": "string",
+      "description": "Source's own ID for the asset (Unsplash photo_id, Shutterstock id, Replicate prediction id, etc.)"
+    },
+    "license": {
+      "enum": [
+        "shutterstock",
+        "unsplash",
+        "pexels",
+        "pixabay",
+        "royalty-free",
+        "generated",
+        "owned",
+        "mls"
+      ]
+    },
+    "license_metadata": {
+      "type": "object",
+      "description": "License-specific tracking. e.g. { shutterstock_license_id: '123', license_cost_usd: 1.50, license_purchased_at: '...' }"
+    },
+    "creator": { "type": "string", "description": "Photographer name, AI model name, etc." },
+    "creator_url": { "type": "string" },
+    "file_path": {
+      "type": "string",
+      "description": "Path relative to repo root, e.g. public/asset-library/photos/shutterstock/abc123.jpg"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Public URL if stored remotely (Supabase Storage, CDN, etc.)"
+    },
+    "geo_tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "City / neighborhood / landmark tags. Lowercase kebab-case. e.g. ['bend', 'central-oregon', 'smith-rock', 'tumalo-falls']"
+    },
+    "subject_tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What's in the image. e.g. ['mountain', 'snow', 'cascades', 'aerial', 'forest', 'river']"
+    },
+    "search_query": {
+      "type": "string",
+      "description": "What query was used to find/generate this asset (helps trace provenance)"
+    },
+    "width": { "type": "integer" },
+    "height": { "type": "integer" },
+    "duration_sec": { "type": "number", "description": "For video/audio assets only" },
+    "registered_at": { "type": "string", "format": "date-time" },
+    "last_used_at": { "type": "string", "format": "date-time" },
+    "used_in": {
+      "type": "array",
+      "description": "Track every render that used this asset. Builds a usage history.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "render_path": { "type": "string", "description": "e.g. video/market-report/out/bend/render.mp4" },
+          "scene_id": { "type": "string", "description": "e.g. 'stat-3' or 'intro' — the beat that used it" },
+          "render_type": { "enum": ["short-form", "youtube-long-form", "blog-post", "facebook-ad", "other"] },
+          "used_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "approval": {
+      "enum": ["approved", "intake", "rejected", "expired"],
+      "description": "Asset library approval state. Only 'approved' assets enter production renders. 'intake' = waiting for Matt's review."
+    },
+    "notes": { "type": "string", "description": "Free-form notes (e.g. 'best for hero, north-facing, snow-capped peak')" }
+  }
+}

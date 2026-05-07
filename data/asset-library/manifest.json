@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "schema_version": 1,
+  "updated_at": "2026-05-07T19:53:40.707Z",
+  "description": "Ryan Realty asset library manifest. Every fetched, generated, or rendered asset is registered here. Future builds query this file FIRST before going to external sources. Closes the loop on cost, license tracking, and reuse. Authored 2026-05-07.",
+  "assets": [
+    {
+      "id": "ed86fc2f-756e-4152-b5bb-32690c3229f6",
+      "type": "photo",
+      "source": "unsplash",
+      "source_id": "kxL_7qkIhck",
+      "license": "unsplash",
+      "license_metadata": {},
+      "creator": "Mick Haupt",
+      "creator_url": "https://unsplash.com/@hunterrei",
+      "file_path": "public/asset-library/photos/unsplash/ed86fc2f-756e-4152-b5bb-32690c3229f6.jpg",
+      "file_url": null,
+      "file_size_bytes": 504455,
+      "geo_tags": [
+        "bend",
+        "central-oregon",
+        "cascade-lakes"
+      ],
+      "subject_tags": [
+        "mountain",
+        "road",
+        "landscape"
+      ],
+      "search_query": "bend oregon aerial landscape",
+      "width": 5464,
+      "height": 8192,
+      "duration_sec": null,
+      "registered_at": "2026-05-07T19:53:40.702Z",
+      "last_used_at": null,
+      "used_in": [],
+      "approval": "approved",
+      "notes": null
+    }
+  ]
+}

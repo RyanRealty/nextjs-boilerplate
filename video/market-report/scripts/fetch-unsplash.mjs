@@ -19,6 +19,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(__dirname, '..')
 const PUB = resolve(ROOT, 'public')
 
+// Asset library registration — every downloaded photo gets registered so
+// future builds can find it via fetch-photos.mjs (asset-library-FIRST).
+const { register } = await import('../../../lib/asset-library.mjs')
+
 const ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY
 if (!ACCESS_KEY) { console.error('Missing UNSPLASH_ACCESS_KEY'); process.exit(1) }
 
@@ -282,6 +286,39 @@ async function processCity(cfg) {
       try {
         await triggerDownload(p.links.download_location)
       } catch (_) {}
+    }
+    // Register in asset library so fetch-photos.mjs (asset-library-FIRST
+    // orchestrator) can find and reuse this photo in future builds.
+    try {
+      const descText = p.description || p.alt_description || ''
+      const subjectKeywords = [
+        'mountain', 'river', 'forest', 'lake', 'sunset', 'sky', 'snow',
+        'downtown', 'house', 'home', 'landscape', 'outdoor', 'nature',
+        'trail', 'park', 'waterfall', 'desert', 'pine', 'road',
+      ].filter(k => descText.toLowerCase().includes(k))
+      await register(imgPath, {
+        type: 'photo',
+        source: 'unsplash',
+        source_id: p.id,
+        license: 'unsplash',
+        license_metadata: {
+          license_required: false,
+          attribution_required: true,
+          unsplash_terms: 'https://unsplash.com/license',
+          download_location: p.links?.download_location || null,
+        },
+        creator: p.user?.name || null,
+        creator_url: p.user?.username ? `https://unsplash.com/@${p.user.username}` : null,
+        geo: [cfg.slug, 'central-oregon', 'oregon'],
+        subject: subjectKeywords.length ? subjectKeywords : ['landscape'],
+        search_query: p._query || null,
+        width: p.width || null,
+        height: p.height || null,
+        approval: 'approved',
+      })
+    } catch (regErr) {
+      // Non-fatal — registration failure must not break the fetch
+      console.warn(`  Asset library registration failed for ${p.id}: ${regErr.message}`)
     }
     credits.push({
       slot: `img_${i + 1}`,

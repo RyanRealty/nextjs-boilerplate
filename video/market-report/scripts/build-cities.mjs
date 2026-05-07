@@ -298,11 +298,32 @@ const planForCity = (data) => {
 
   const outroLine = `Full report at ryan-realty.com. Subscribe for monthly updates.`
 
+  // ─────────────────────────────────────────────────────────────────────────
+  //  CACHE BEAT VO LINES — narrative commentary for Beats 8–10.
+  //  Numbers are on screen; VO delivers analyst meaning, not recitation.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const cashLine = data._cache?.cash_purchase_pct != null
+    ? data._cache.cash_purchase_pct >= 35
+      ? `Cash buyers are a major force this period. That tells you the demand at the top is strong.`
+      : data._cache.cash_purchase_pct >= 25
+      ? `A meaningful share of buyers paid cash. Tighter financing has not slowed the high end.`
+      : `Most buyers are financed. Standard mortgage market dynamics apply.`
+    : null
+
+  const concessionsLine = data._cache?.median_concessions_amount != null && data._cache.median_concessions_amount > 0
+    ? `Sellers are giving credits to close. That gives buyers room to negotiate beyond the price tag.`
+    : null
+
+  const momLine = (data._cache?.mom_median_price_change_pct != null || data._cache?.mom_inventory_change_pct != null)
+    ? `Month-over-month, the trend is what matters. One data point is noise; direction is signal.`
+    : null
+
   // Per-beat sentences. fullText is these joined — synth-vo derives beat
   // boundaries by counting words per sentence so the narrative VO can use
   // whatever wording fits the data. Beat order matches the stats[] array
-  // exactly (5 core stats + 2 advanced beats from §22 = up to 7 stat
-  // sentences + intro + outro = 9 sentences total).
+  // exactly (5 core stats + 2 advanced beats from §22 + up to 3 cache
+  // beats = up to 10 stat sentences + intro + outro = max 12 sentences).
   const beatSentences = [
     { id: 'intro',  sentence: introLine },
     { id: 'price',  sentence: priceLine },
@@ -312,6 +333,9 @@ const planForCity = (data) => {
     { id: 'active', sentence: activeLine },
     ...(segmentLine ? [{ id: 'segments',     sentence: segmentLine }] : []),
     ...(neighborhoodLine ? [{ id: 'neighborhoods', sentence: neighborhoodLine }] : []),
+    ...(cashLine ? [{ id: 'cash',         sentence: cashLine }] : []),
+    ...(concessionsLine ? [{ id: 'concessions', sentence: concessionsLine }] : []),
+    ...(momLine ? [{ id: 'mom',           sentence: momLine }] : []),
     { id: 'outro',  sentence: outroLine },
   ]
   const fullText = beatSentences.map(b => b.sentence).join(' ')
@@ -440,6 +464,60 @@ const planForCity = (data) => {
     })
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  //  CACHE BEATS (Beats 8–10) — sourced from market_stats_cache via
+  //  loadCacheRow(). Each is guarded: only added when the field is non-null.
+  //  Cache audit 2026-05-07: cache is accurate — see SKILL.md §22.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Beat 8: Cash purchase % gauge
+  if (data._cache?.cash_purchase_pct != null) {
+    stats.push({
+      label: 'Cash Purchases',
+      value: `${data._cache.cash_purchase_pct.toFixed(1)}%`,
+      layout: 'gauge',
+      bgVariant: 'navy',
+      gaugeValue: data._cache.cash_purchase_pct,
+      gaugeMin: 0,
+      gaugeMax: 50,
+      verdict: data._cache.cash_purchase_pct >= 30 ? 'sellers' : 'balanced',
+      verdictText: data._cache.cash_purchase_pct >= 30 ? 'STRONG CASH SHARE' : 'TYPICAL FINANCING MIX',
+      context: `${Math.round(data._cache.cash_purchase_pct)} percent of buyers paid cash this period.`,
+    })
+  }
+
+  // Beat 9: Concessions trend (compare)
+  if (data._cache?.median_concessions_amount != null && data._cache.median_concessions_amount > 0) {
+    const conc = data._cache.median_concessions_amount
+    stats.push({
+      label: 'Seller Concessions',
+      value: `$${(conc / 1000).toFixed(1)}K`,
+      layout: 'compare',
+      bgVariant: 'gold-tint',
+      context: `Median seller credit on closed sales — sellers are working with buyers.`,
+    })
+  }
+
+  // Beat 10: MoM trend chips (takeaway-style)
+  if (data._cache?.mom_median_price_change_pct != null || data._cache?.mom_inventory_change_pct != null) {
+    const mp = data._cache.mom_median_price_change_pct
+    const mi = data._cache.mom_inventory_change_pct
+    stats.push({
+      label: 'Month-Over-Month',
+      value: '',
+      layout: 'takeaway',
+      bgVariant: 'navy-rich',
+      buyer: [
+        mp != null ? `Prices ${mp >= 0 ? 'up' : 'down'} ${Math.abs(mp).toFixed(1)}% from last month` : '',
+        mi != null ? `Inventory ${mi >= 0 ? 'up' : 'down'} ${Math.abs(mi).toFixed(1)}% from last month` : '',
+      ].filter(Boolean),
+      seller: [
+        'Trend matters more than any single month',
+        'Track this each month for the directional read',
+      ],
+    })
+  }
+
   // Citations — every on-screen figure traces to source.
   const citations = {
     deliverable: `${city} Market Report — ${introMonth} ${introYear}`,
@@ -484,7 +562,8 @@ const planForCity = (data) => {
     captionWords: [],
     beatDurations: defaultBeatDurations,
     stats,
-    imageCount: 10,
+    // Up to 10 stat beats (5 core + 2 advanced + 3 cache) + intro + outro = 12
+    imageCount: 12,
   }
 
   return { props, fullText, beatSentences, citations }
@@ -492,6 +571,52 @@ const planForCity = (data) => {
 
 async function loadJsonOrNull(path) {
   try { return JSON.parse(await readFile(path, 'utf8')) } catch { return null }
+}
+
+// Pull one row from market_stats_cache for a given geo_slug + period.
+// Returns null on any failure (cache miss, network, auth) — callers must
+// guard with `data._cache?.fieldName != null`.
+//
+// Cache audit 2026-05-07: cache is accurate. Apparent discrepancies are
+// property-type blending — cache headline `sold_count` includes all
+// PropertyTypes; for SFR-only counts read `property_type_breakdown.A`.
+// See video_production_skills/market-data-video/SKILL.md §22.
+async function loadCacheRow(slug, reportPeriod) {
+  const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!URL_BASE || !KEY) return null
+
+  // reportPeriod is a string like "2026-04"; cache period_start is "2026-04-01"
+  const periodStart = reportPeriod
+    ? `${reportPeriod}-01`
+    : (() => {
+        const now = new Date()
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        return `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}-01`
+      })()
+
+  const url =
+    `${URL_BASE}/rest/v1/market_stats_cache` +
+    `?geo_slug=eq.${encodeURIComponent(slug)}` +
+    `&period_type=eq.monthly` +
+    `&period_start=eq.${periodStart}` +
+    `&select=*` +
+    `&limit=1`
+
+  try {
+    const res = await fetch(url, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Accept: 'application/json' },
+    })
+    if (!res.ok) {
+      console.warn(`  loadCacheRow(${slug}, ${periodStart}): ${res.status} ${res.statusText}`)
+      return null
+    }
+    const rows = await res.json()
+    return rows[0] || null
+  } catch (e) {
+    console.warn(`  loadCacheRow(${slug}, ${periodStart}) failed: ${e.message}`)
+    return null
+  }
 }
 
 // Photo-diversity assignment per §20 of market-data-video/SKILL.md.
@@ -535,6 +660,14 @@ for (const { slug, dataFile } of CITIES) {
   const raw = JSON.parse(await readFile(dataPath, 'utf8'))
   raw._history = await loadJsonOrNull(resolve(DATA, `${slug}-history.json`))
   raw._extras  = await loadJsonOrNull(resolve(DATA, `${slug}-extras.json`))
+  // Load cache row for the new beats (cash %, concessions, MoM trends).
+  // reportPeriod defaults to previous full calendar month if not set via env.
+  const reportPeriod = process.env.REPORT_PERIOD || (() => {
+    const now = new Date()
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    return `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`
+  })()
+  raw._cache = await loadCacheRow(slug, reportPeriod)
 
   const { props, fullText, beatSentences, citations } = planForCity(raw)
 
