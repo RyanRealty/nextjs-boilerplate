@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.134.2 (2026-05-07)
+
+### Bug Fixes
+- fix(fub-snippet): tighten listing URL heuristic + reject 404/error pages
+
+---
+
+
 ## v1.134.1 (2026-05-07)
 
 ### Bug Fixes
