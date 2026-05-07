@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { Redis } from '@upstash/redis'
 
-const THREADS_OAUTH_AUTH_URL = 'https://www.threads.net/oauth/authorize'
+// Note: Meta migrated threads.net → threads.com. The .net domain redirects to .com but DROPS
+// query params, breaking OAuth ("error 4476002 — No app ID was sent"). Use .com directly.
+const THREADS_OAUTH_AUTH_URL = 'https://www.threads.com/oauth/authorize'
 const THREADS_OAUTH_TOKEN_URL = 'https://graph.threads.net/oauth/access_token'
 const THREADS_LONG_LIVED_TOKEN_URL = 'https://graph.threads.net/access_token'
 const THREADS_API_BASE = 'https://graph.threads.net/v1.0'
