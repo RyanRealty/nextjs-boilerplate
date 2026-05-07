@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.117.0 (2026-05-07)
+
+### Features
+- feat(cron): daily token-heartbeat across 8 connected platforms
+
+---
+
+
 ## v1.116.0 (2026-05-07)
 
 ### Features
