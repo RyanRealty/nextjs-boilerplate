@@ -356,6 +356,38 @@ export async function addPersonTags(personId: number, tags: Array<string | undef
 }
 
 /**
+ * Add a note to an existing FUB person. Notes appear in the person's timeline
+ * AND in Matt's FUB inbox/notifications when configured. Use for high-signal
+ * activity that warrants a push to the FUB app (listing views, seller intent
+ * page hits, buyer intent page hits, area guide views).
+ *
+ * FUB notes API: POST /v1/notes with { personId, body, isHtml? }
+ *
+ * Note: this is best-effort. If notes can't be created (FUB rate limit, bad
+ * person id, etc.) the failure is logged and swallowed — the parent event
+ * was already posted.
+ */
+export async function addPersonNote(personId: number, body: string): Promise<boolean> {
+  const auth = getAuth()
+  if (!auth) return false
+  if (!Number.isFinite(personId) || personId <= 0) return false
+  const trimmed = body.trim().slice(0, 2000)
+  if (!trimmed) return false
+  try {
+    const res = await fetch(`${FUB_BASE}/notes`, {
+      method: 'POST',
+      headers: fubHeaders(auth),
+      body: JSON.stringify({ personId, body: trimmed, isHtml: false }),
+      next: { revalidate: 0 },
+    })
+    return res.ok
+  } catch (err) {
+    console.error('[addPersonNote] Network error:', err)
+    return false
+  }
+}
+
+/**
  * Send an event to FollowUp Boss (creates or updates the person and triggers automations).
  * Use type "Registration" for sign-ups; FUB matches by email to avoid duplicates.
  */

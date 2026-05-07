@@ -23,7 +23,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { trackPageView, trackListingView, addPersonTags } from '@/lib/followupboss'
+import { trackPageView, trackListingView, addPersonTags, addPersonNote } from '@/lib/followupboss'
 
 const ALLOWED_ORIGINS = new Set<string>([
   'https://ryan-realty.com',
@@ -164,8 +164,36 @@ export async function POST(request: Request) {
     try { taggedSucceeded = await addPersonTags(fubPersonId, tagsToMerge) } catch {}
   }
 
+  // Post a FUB note for HIGH-INTENT activity so Matt's FUB app pings him on
+  // the things that matter: listing views, seller intent, buyer intent,
+  // area guide views. Other categories (home / blog / about / search /
+  // financial_tools / other) don't add notes — those would be too noisy.
+  let noteAdded = false
+  const noteCategories = new Set(['listing_detail', 'seller_intent', 'buyer_intent', 'area_guide'])
+  if (category && noteCategories.has(category)) {
+    let noteBody = ''
+    if (category === 'listing_detail' && listing) {
+      const addr = [listing.street, listing.city, listing.state, listing.code].filter(Boolean).join(', ')
+      const mls = listing.mlsNumber ? ` (MLS ${listing.mlsNumber})` : ''
+      noteBody = `Viewed property: ${addr}${mls}.`
+    } else if (category === 'seller_intent') {
+      const path = (() => { try { return new URL(pageUrl).pathname } catch { return pageUrl } })()
+      noteBody = `Seller intent signal: visited ${path}.`
+    } else if (category === 'buyer_intent') {
+      const path = (() => { try { return new URL(pageUrl).pathname } catch { return pageUrl } })()
+      noteBody = `Buyer intent signal: visited ${path}.`
+    } else if (category === 'area_guide') {
+      const areaTag = (Array.isArray(body.intentTags) ? body.intentTags.find((t) => /^Area:/i.test(t)) : undefined) ?? ''
+      const area = areaTag.replace(/^Area:\s*/i, '').trim() || 'unknown area'
+      noteBody = `Area interest: viewed ${area} guide.`
+    }
+    if (noteBody) {
+      try { noteAdded = await addPersonNote(fubPersonId, noteBody) } catch {}
+    }
+  }
+
   return NextResponse.json(
-    { ok: true, eventType, taggedCount: tagsToMerge.length, taggedSucceeded },
+    { ok: true, eventType, taggedCount: tagsToMerge.length, taggedSucceeded, noteAdded },
     { headers: corsHeaders(origin) },
   )
 }

@@ -17,7 +17,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { findPersonByEmail, trackSignedInUser, addPersonTags } from '@/lib/followupboss'
+import { findPersonByEmail, trackSignedInUser, addPersonTags, addPersonNote } from '@/lib/followupboss'
 
 // Domains allowed to call this endpoint. Add staging/preview here if needed.
 const ALLOWED_ORIGINS = new Set<string>([
@@ -149,6 +149,22 @@ export async function POST(request: Request) {
     // Await — serverless terminates on response.return so fire-and-forget
     // PUTs may be killed mid-flight.
     try { await addPersonTags(taggedPersonId, tagSet) } catch {}
+
+    // Post a FUB note describing the visit. This shows up on the person's
+    // FUB profile + pushes a notification to Matt's FUB app (when "Notes
+    // added" notifications are enabled in FUB settings).
+    const noteParts: string[] = []
+    noteParts.push(existing ? `Returning visitor signed in via ${providerLabel}.` : `New visitor signed up via ${providerLabel}.`)
+    if (campaignClean?.source) {
+      const srcLabel = campaignClean.medium && campaignClean.medium !== 'none'
+        ? `${campaignClean.source} / ${campaignClean.medium}`
+        : campaignClean.source
+      noteParts.push(`Source: ${srcLabel}.`)
+      if (campaignClean.campaign) noteParts.push(`Campaign: ${campaignClean.campaign}.`)
+    }
+    if (referrer) noteParts.push(`Referrer: ${referrer}.`)
+    if (landingPage) noteParts.push(`Landing page: ${landingPage}.`)
+    try { await addPersonNote(taggedPersonId, noteParts.join(' ')) } catch {}
   }
 
   return NextResponse.json(
