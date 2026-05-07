@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.126.1 (2026-05-07)
+
+### Maintenance
+- docs(market-data-video): cache audit — cache is accurate, schema captured in §22
+
+---
+
+
 ## v1.126.0 (2026-05-07)
 
 ### Features
