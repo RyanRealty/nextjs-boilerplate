@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.135.0 (2026-05-07)
+
+### Features
+- feat(fub): v2 attribution + intent tagging + ad audience hooks
+
+---
+
+
 ## v1.134.2 (2026-05-07)
 
 ### Bug Fixes
