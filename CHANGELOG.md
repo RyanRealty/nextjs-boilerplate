@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.129.0 (2026-05-07)
+
+### Features
+- feat(fub): add /api/fub/identify endpoint for cross-origin WP identification
+
+---
+
+
 ## v1.128.0 (2026-05-07)
 
 ### Features
