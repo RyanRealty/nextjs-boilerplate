@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.130.0 (2026-05-07)
+
+### Features
+- feat(media): asset library + multi-source fetcher + 3 new cache beats
+
+---
+
+
 ## v1.129.0 (2026-05-07)
 
 ### Features
