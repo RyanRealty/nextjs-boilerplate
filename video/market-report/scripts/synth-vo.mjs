@@ -152,6 +152,34 @@ for (const slug of CITIES) {
   const words = alignmentToWords(r.alignment)
   console.log(`${finalDur.toFixed(2)}s, ${words.length} words`)
 
+  // Auto-register the produced voiceover into the asset library so future
+  // builds can find it (and so we have a durable record of every Victoria
+  // synthesis). Matt directive 2026-05-07: every produced asset gets stored.
+  try {
+    const { register } = await import('../../../lib/asset-library.mjs')
+    await register(finalMp3, {
+      type: 'audio',
+      source: 'elevenlabs',
+      source_id: `elevenlabs:${slug}:${new Date().toISOString().slice(0, 10)}`,
+      license: 'owned',
+      license_metadata: {
+        voice_id: VOICE,
+        model: 'eleven_turbo_v2_5',
+        text_chars: script.fullText.length,
+        word_count: words.length,
+      },
+      creator: 'Victoria (ElevenLabs)',
+      geo: [slug, 'central-oregon'],
+      subject: ['voiceover', 'market-report', 'narrative'],
+      search_query: `${script.city} market report VO`,
+      duration_sec: finalDur,
+      approval: 'approved',
+      notes: `Voiceover for ${script.city} market report. Generated ${new Date().toISOString()}.`,
+    })
+  } catch (e) {
+    console.warn(`  asset-library register failed (non-fatal): ${e.message}`)
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   //  Beat boundaries from cumulative word counts
   // ─────────────────────────────────────────────────────────────────────────

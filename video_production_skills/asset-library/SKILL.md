@@ -2,14 +2,20 @@
 name: asset-library
 description: >
   Single source of truth for every photo, video clip, audio file, and rendered MP4
-  in the Ryan Realty media pipeline. Use this skill when the user says "check the
-  asset library", "register this asset", "reuse the X photo", "what photos do we
-  have for Bend", or whenever a content build needs to fetch media — because
-  asset-library-FIRST is the default sourcing rule. If you are about to call an
-  external API (Unsplash, Shutterstock, Pexels, Replicate, etc.) to obtain a photo
-  or video, check the asset library first. Use this skill also when a build fails
-  on a photo-diversity assertion, when you need to track license costs, or when
-  Matt asks "what do we have" for any media type.
+  in the Ryan Realty media pipeline. Backed by Supabase Postgres (queryable index)
+  and Supabase Storage (durable file store) with a local filesystem cache for
+  build speed. Use this skill when the user says "check the asset library",
+  "register this asset", "reuse the X photo", "what photos do we have for Bend",
+  "ingest from Drive", "add this folder from Rich", or whenever a content build
+  needs to fetch or store media — because asset-library-FIRST is the default
+  sourcing rule. If you are about to call an external API (Unsplash, Shutterstock,
+  Pexels, Pixabay, Replicate, Vertex, etc.) to obtain a photo or video, check the
+  asset library first. Use this skill also when a build fails on a photo-diversity
+  assertion, when you need to track license costs, when ingesting a Drive folder
+  Matt sends ("Here are the photos from Rich"), or when Matt asks "what do we
+  have" for any media type. The library auto-registers every fetched stock photo,
+  every generated AI image, every downloaded stock video, and every rendered MP4
+  the pipeline produces — closing the loop so future builds find them.
 ---
 
 # Asset Library — Ryan Realty
@@ -31,28 +37,47 @@ do we need to call Unsplash again?"
 
 ---
 
-## File structure
+## Architecture (Supabase-backed, local cache)
 
 ```
-data/asset-library/
-  manifest.json          ← index of all assets (source of truth)
-  schema.json            ← field definitions
+PRIMARY (cloud, durable)
+  Postgres table:  public.asset_library      ← queryable index, 30+ columns
+  Storage bucket:  asset-library             ← public-read file store
+  CDN URLs:        https://<project>.supabase.co/storage/v1/object/public/asset-library/<path>
 
-public/asset-library/
-  photos/
-    unsplash/<uuid>.jpg
-    shutterstock/<shutterstock_id>.jpg
-    pexels/<pexels_id>.jpg
-    generated/<uuid>.jpg  ← AI-generated images
-  videos/
-    renders/<uuid>.mp4    ← our own rendered Remotion outputs
-  audio/
-    <uuid>.mp3
+CACHE (local, fast)
+  data/asset-library/manifest.json           ← mirror of Postgres for offline builds
+  data/asset-library/schema.json             ← schema doc for human reference
+  public/asset-library/<type>/<source>/<file> ← cached copies of recently-used assets
+
+FALLBACK (when offline)
+  When Supabase is unreachable, search() reads the local manifest. register()
+  still writes the file locally + queues a manifest entry. Next time the
+  cloud is reachable, run `node lib/asset-library.mjs sync` to backfill.
 ```
 
-Each asset record in `manifest.json` links to its file via a repo-relative
-`file_path` (`public/asset-library/photos/unsplash/abc.jpg`). The manifest
-is the index; the files are the binary store.
+**Postgres table layout** (every column tracked):
+
+```
+identity:   id, type, source, source_id, license, license_metadata
+attribution: creator, creator_url
+storage:    storage_bucket, storage_object_path, file_url, file_size_bytes
+tags:       geo_tags[], subject_tags[], search_query
+media:      width, height, duration_sec
+lifecycle:  registered_at, last_used_at, used_in[]
+curation:   approval, notes
+```
+
+**Storage object path pattern:** `{type}s/{source}/{uuid}.{ext}`
+
+Examples:
+```
+photos/shutterstock/abc-123.jpg
+photos/unsplash/c3f3-abcd.jpg
+videos/pexels/8501234.mp4
+videos/renders/bend-2026-04-short.mp4
+audio/elevenlabs:bend:2026-05-07/voiceover.mp3
+```
 
 ---
 
@@ -228,6 +253,66 @@ until licensed via the Shutterstock `/v2/images/licenses` endpoint and the
 record is updated to `approval: 'approved'` with the license ID.
 
 ---
+
+## Google Drive ingestion
+
+When Matt sends photos / videos from Rich (or any Drive folder), use
+`lib/drive-ingest.mjs` to bulk-import directly into the asset library.
+
+**CLI:**
+
+```bash
+# Bulk-import every file in a Drive folder (recursive by default)
+node --env-file=.env.local lib/drive-ingest.mjs \
+  --folder "https://drive.google.com/drive/folders/1abc_XYZ" \
+  --geo "bend,old-mill" \
+  --subject "drone,aerial" \
+  --source curated \
+  --license owned \
+  --approval approved
+
+# Single file
+node --env-file=.env.local lib/drive-ingest.mjs \
+  --file "https://drive.google.com/file/d/1xyz/view" \
+  --type photo \
+  --geo "bend"
+
+# Dry-run to see what's in a folder before ingesting
+node --env-file=.env.local lib/drive-ingest.mjs --folder <id> --dry-run
+```
+
+**What happens:**
+1. JWT-authenticates against the Google service account (`GOOGLE_SERVICE_ACCOUNT_*`)
+2. Lists every file in the folder (recursive — descends into subfolders)
+3. For each file, infers type from MIME / extension (photo / video / audio)
+4. Downloads to `/tmp/rr-drive-ingest/<uuid>.<ext>`
+5. Calls `register()` — uploads to Storage, inserts the row, links source_id `drive:<file-id>` for future dedup
+6. Carries Drive metadata into `license_metadata.drive_file_id` so we can trace back
+
+**The service account must have read access to the folder.** Either:
+- Matt shares the folder with the service account email (`<account>@ryan-realty-tc.iam.gserviceaccount.com`)
+- Or the folder is in a shared drive the service account is a member of
+
+**Tagging strategy on ingest:**
+- `--geo` accepts CSV: `--geo "bend,old-mill,deschutes-river"` — every ingested file gets all the tags
+- `--subject` same: `--subject "exterior,architecture,evening-light"`
+- For mixed folders, ingest in batches with different tags. E.g. all of `Bend Listings/123 Main St/exterior/` gets `--geo "bend" --subject "exterior,123-main-st"`
+
+## Auto-registration (closing the loop)
+
+Every script that produces a media asset registers it automatically:
+
+| Producer | Script | Registers as |
+|---|---|---|
+| ElevenLabs voiceover | `video/market-report/scripts/synth-vo.mjs` | `type=audio, source=elevenlabs` |
+| Remotion render | `video/market-report/scripts/register-render.mjs` (called after `npx remotion render`) | `type=render, source=render-output, approval=intake` (Matt approves before publish) |
+| Stock photo fetch | `fetch-unsplash.mjs`, `fetch-pexels.mjs`, `fetch-shutterstock.mjs` | `type=photo, source=<provider>` |
+| Stock video fetch | `fetch-pexels-video.mjs`, `fetch-pixabay-video.mjs`, `fetch-shutterstock-video.mjs` | `type=video, source=<provider>` |
+| AI image generation | (future: wrap Imagen / Nano Banana / FLUX call) | `type=photo, source=generated-<model>` |
+| AI video generation | (future: wrap Kling / Veo / Hailuo call) | `type=video, source=generated-<model>` |
+| Drive ingest | `lib/drive-ingest.mjs` | `type=<inferred>, source=curated, source_id=drive:<file-id>` |
+
+**The rule:** if you write a new script that fetches or generates a media file, register it into the asset library before exiting. Otherwise the next build won't find it and we'll re-fetch (waste cost + hit rate limits).
 
 ## Cross-references
 
