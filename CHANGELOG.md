@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.126.2 (2026-05-07)
+
+### Bug Fixes
+- fix(skills): reconcile cross-skill conflicts found in 2026-05-07 audit
+
+---
+
+
 ## v1.126.1 (2026-05-07)
 
 ### Maintenance
