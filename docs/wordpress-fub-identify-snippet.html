@@ -10,13 +10,21 @@
   ----------------------------------------------------------------------------
   1. Loads Google Identity Services and fires Google One Tap on page load.
      Any visitor signed into Google sees "Continue as <Name>" within ~1s.
-  2. Renders a small "Continue with Facebook" widget bottom-right for FB users.
-  3. On either auth success, POSTs the verified ID token / access token to the
+  2. Renders a small "Continue with Facebook" widget bottom-right for FB users
+     (currently gated off until the Facebook app passes app review).
+  3. On auth success, POSTs the verified ID token / access token to the
      Vercel /api/fub/identify endpoint, which verifies the token server-side
      and matches the visitor against Follow Up Boss.
-  4. Sets first-party cookie `rr_identified` for 30 days so the prompts stay
-     quiet on return visits (silent re-auth fires One Tap with auto_select).
-  5. Shows a brief "Welcome back, <FirstName>" toast when FUB returns matched.
+  4. Stores the FUB person id in a first-party cookie `rr_identified=<id>` for
+     30 days. Subsequent page loads use this id to fire page-tracking events
+     without redoing the OAuth handshake.
+  5. ON EVERY PAGE LOAD (after identification) fires POST /api/fub/track-page
+     with the current page URL, title, and any listing metadata extracted
+     from JSON-LD RealEstateListing schema. The endpoint dispatches to the
+     existing FUB helpers:
+        - listing detail page → "Viewed Property" event with property fields
+        - any other page      → "Viewed Page" event
+  6. Shows a brief "Welcome back, <FirstName>" toast when FUB returns matched.
 
   WHAT IT DOES NOT DO
   ----------------------------------------------------------------------------
@@ -32,6 +40,9 @@
 <!-- Configuration. Public client IDs only; secrets live on the Vercel server. -->
 <script>
   window.RR_FUB_IDENTIFY = {
+    identifyEndpoint: 'https://ryanrealty.vercel.app/api/fub/identify',
+    trackEndpoint: 'https://ryanrealty.vercel.app/api/fub/track-page',
+    // Legacy alias kept for backwards-compat with older inline scripts.
     endpoint: 'https://ryanrealty.vercel.app/api/fub/identify',
     googleClientId: '725620954432-aq83t2skspo1qgk0jjhs608etgb2o9ar.apps.googleusercontent.com',
     facebookAppId: '901712509522992',
@@ -79,7 +90,7 @@
   }
 
   function identify(payload) {
-    return fetch(cfg.endpoint, {
+    return fetch(cfg.identifyEndpoint || cfg.endpoint, {
       method: 'POST',
       mode: 'cors',
       credentials: 'omit',
@@ -93,12 +104,18 @@
     })
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        if (data && data.ok) {
-          setCookie(cfg.cookieName, '1', cfg.cookieDays);
+        if (data && data.ok && data.fubPersonId) {
+          // Store the FUB person id in the cookie so subsequent page loads
+          // can fire /api/fub/track-page without redoing the OAuth handshake.
+          setCookie(cfg.cookieName, String(data.fubPersonId), cfg.cookieDays);
           hideFacebookButton();
           if (data.matched && data.firstName) {
             showWelcomeBack(data.firstName);
           }
+          // Log the current page as a Viewed Page / Viewed Property event.
+          // First-page-of-session tracking — without this, brand-new visitors
+          // would have a Registration event but no Viewed Page on landing.
+          trackPage(data.fubPersonId);
         }
       })
       .catch(function(err) { /* swallow — never block the page */ });
@@ -163,8 +180,106 @@
     if (el) el.remove();
   }
 
+  // ---------- Page tracking ----------
+
+  // Try to read property metadata from JSON-LD schema embedded in the page
+  // (AgentFire IDX listing detail pages emit RealEstateListing / House /
+  // SingleFamilyResidence / Apartment schema). Falls back to URL pattern +
+  // page DOM heuristics for sites that don't emit schema.
+  function extractListingMeta() {
+    function pick(obj, keys) {
+      for (var i = 0; i < keys.length; i++) {
+        var v = obj && obj[keys[i]];
+        if (v != null && v !== '') return v;
+      }
+      return undefined;
+    }
+    function asNum(v) {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') {
+        var n = parseFloat(v.replace(/[^0-9.]/g, ''));
+        return Number.isFinite(n) ? n : undefined;
+      }
+      return undefined;
+    }
+
+    var listingTypes = {
+      RealEstateListing: 1, Residence: 1, House: 1, SingleFamilyResidence: 1,
+      Apartment: 1, Condominium: 1, Townhouse: 1, Place: 0
+    };
+    var scripts = document.querySelectorAll('script[type="application/ld+json"]');
+    for (var i = 0; i < scripts.length; i++) {
+      var raw;
+      try { raw = JSON.parse(scripts[i].textContent || '{}'); } catch (e) { continue; }
+      var nodes = Array.isArray(raw) ? raw : [raw];
+      // Walk @graph if present
+      for (var k = 0; k < nodes.length; k++) {
+        if (nodes[k] && Array.isArray(nodes[k]['@graph'])) {
+          nodes = nodes.concat(nodes[k]['@graph']);
+        }
+      }
+      for (var j = 0; j < nodes.length; j++) {
+        var n = nodes[j];
+        if (!n || typeof n !== 'object') continue;
+        var t = n['@type'];
+        if (Array.isArray(t)) t = t[0];
+        if (!t || !listingTypes[t]) continue;
+        var addr = n.address || {};
+        var offers = n.offers || {};
+        var meta = {
+          street: pick(addr, ['streetAddress']) || pick(n, ['name']),
+          city: pick(addr, ['addressLocality']),
+          state: pick(addr, ['addressRegion']),
+          code: pick(addr, ['postalCode']),
+          mlsNumber: pick(n, ['identifier', 'mlsNumber', 'mlsId']),
+          price: asNum(pick(offers, ['price', 'priceSpecification']) || pick(n, ['price'])),
+          bedrooms: asNum(pick(n, ['numberOfBedrooms', 'numberOfBedroomTotal'])),
+          bathrooms: asNum(pick(n, ['numberOfBathroomsTotal', 'numberOfBathrooms'])),
+          area: asNum(n.floorSize && (n.floorSize.value || n.floorSize)),
+        };
+        if (meta.mlsNumber || meta.street) return meta;
+      }
+    }
+    // URL heuristic — if we're clearly on a listing route, send a minimal meta
+    // with the address from the page title or H1 so FUB can show "Viewed
+    // Property" with at least the street.
+    if (/\/listing(s)?\/|\/property\//i.test(window.location.pathname)) {
+      var h1 = document.querySelector('h1');
+      var street = h1 ? h1.textContent.trim().slice(0, 200) : undefined;
+      if (street) return { street: street };
+    }
+    return null;
+  }
+
+  function trackPage(fubPersonId) {
+    if (!fubPersonId) return;
+    var listing = null;
+    try { listing = extractListingMeta(); } catch (e) {}
+    var payload = {
+      fubPersonId: Number(fubPersonId),
+      pageUrl: window.location.href,
+      pageTitle: (document.title || '').slice(0, 200),
+      listing: listing,
+    };
+    fetch(cfg.trackEndpoint, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(function() { /* swallow — never block the page */ });
+  }
+
   // Skip prompts if we identified this visitor recently.
-  var alreadyIdentified = getCookie(cfg.cookieName) === '1';
+  var cookieValue = getCookie(cfg.cookieName);
+  var alreadyIdentified = !!cookieValue && cookieValue !== '1';
+  var existingFubPersonId = alreadyIdentified ? Number(cookieValue) : null;
+  if (alreadyIdentified && Number.isFinite(existingFubPersonId)) {
+    // Returning visitor — fire the page-tracking event immediately, don't
+    // wait for One Tap silent re-auth (which may take 500-800ms or fail).
+    trackPage(existingFubPersonId);
+  }
 
   function initGoogleOneTap() {
     if (!window.google || !window.google.accounts || !window.google.accounts.id) {
