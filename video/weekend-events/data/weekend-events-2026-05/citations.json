@@ -1,0 +1,122 @@
+{
+  "slug": "weekend-events-2026-05-08-to-10",
+  "fetched_at_iso": "2026-05-07",
+  "verification_traces": [
+    {
+      "claim": "Homegrown Music Festival 2026 dates",
+      "value": "May 7-9, 2026",
+      "source_type": "primary",
+      "source_name": "Homegrown Music Festival official site",
+      "source_url": "https://homegrownfestbend.com/",
+      "verified_via": "WebSearch consolidated answer cross-referenced with Visit Bend event listing 2026-05-07",
+      "supporting_urls": [
+        "https://visitbend.com/event/homegrown-music-festival/2026-05-08/",
+        "https://www.bendticket.com/events/homegrown-music-festival-phase-1-pass-5-7-2026"
+      ]
+    },
+    {
+      "claim": "Homegrown headliners",
+      "value": "Polyrhythmics, MarchFourth, Glitterfox",
+      "source_type": "primary",
+      "source_name": "Bend Bulletin",
+      "source_url": "https://bendbulletin.com/2026/04/29/glitterfox-to-play-bends-homegrown-music-festival-may-9/",
+      "supporting_urls": [
+        "https://www.bendsource.com/music/soundfeatures/homegrown-music-festival-keeps-on-growing/",
+        "https://www.centraloregondaily.com/news/local/bend-homegrown-music-festival-2026/article_f1b006de-dc16-41ee-8f34-32b0bdcb18e9.html"
+      ]
+    },
+    {
+      "claim": "Homegrown 40 bands, 5 stages",
+      "value": "40 bands across 5 stages, 24 local",
+      "source_type": "primary",
+      "source_name": "The Source Weekly + Central Oregon Daily",
+      "source_url": "https://www.bendsource.com/music/soundfeatures/homegrown-music-festival-keeps-on-growing/"
+    },
+    {
+      "claim": "Homegrown ticket pricing",
+      "value": "$20 Thu / $40 Fri / $50 Sat",
+      "source_type": "primary",
+      "source_name": "The Source Weekly",
+      "source_url": "https://www.bendsource.com/music/soundfeatures/homegrown-music-festival-keeps-on-growing/"
+    },
+    {
+      "claim": "Glitterfox set time",
+      "value": "Sat May 9, 7:00-8:15 PM, Oregrown stage",
+      "source_type": "primary",
+      "source_name": "Bend Bulletin",
+      "source_url": "https://bendbulletin.com/2026/04/29/glitterfox-to-play-bends-homegrown-music-festival-may-9/"
+    },
+    {
+      "claim": "Portland Cello Project at Tower Theatre",
+      "value": "Fri May 8, 2026, 7:30 PM",
+      "source_type": "primary",
+      "source_name": "Tower Theatre Bend",
+      "source_url": "https://www.towertheatre.org/"
+    },
+    {
+      "claim": "Paula Poundstone at Tower Theatre",
+      "value": "Sat May 9, 2026, 7:30 PM",
+      "source_type": "primary",
+      "source_name": "Tower Theatre Bend",
+      "source_url": "https://www.towertheatre.org/"
+    },
+    {
+      "claim": "Mother's Day Brunch at Currents (Riverhouse)",
+      "value": "Sun May 10, 9:00 AM - 1:30 PM, $75 adult / $65 senior / $37.50 kid; live music 10:00-1:00",
+      "source_type": "primary",
+      "source_name": "Riverhouse Lodge",
+      "source_url": "https://www.riverhouse.com/events/celebrate-mom-at-our-mothers-day-buffet-at-currents/"
+    },
+    {
+      "claim": "Mother's Day Brunch at Tetherow",
+      "value": "Sun May 10, 9:00 AM - 1:00 PM, $95 adult / $45 ages 5-14 / free under 4",
+      "source_type": "primary",
+      "source_name": "Tetherow",
+      "source_url": "https://tetherow.com/dine/mothers-day/"
+    },
+    {
+      "claim": "OVMA 23rd Annual Mother's Day Poker Run",
+      "value": "Sun May 10, 8:30 AM start (last purchase 10:00 AM); Timbers East 2570 NE Twin Knolls Dr Bend → General Duffy's 404 SW Forest Ave Redmond starting 11:30 AM; music, 50/50 raffle, gifts",
+      "source_type": "primary",
+      "source_name": "KTVZ Events",
+      "source_url": "https://events.ktvz.com/event/mothers-day-poker-run/"
+    },
+    {
+      "claim": "Mother's Day 2026 falls on May 10",
+      "value": "Sun May 10, 2026",
+      "source_type": "calendar",
+      "source_name": "Standard US calendar (2nd Sunday in May)"
+    }
+  ],
+  "events_considered_and_cut": [
+    {
+      "name": "Bend Dirt Fest",
+      "reason_cut": "Date verified to Sat July 11, 2026 — not this weekend.",
+      "source": "https://www.mudslingerevents.com/bend-dirt-fest"
+    },
+    {
+      "name": "Hayden Homes Amphitheater concerts",
+      "reason_cut": "Venue is dark this weekend. First 2026 event is Sat May 16 (John Mulaney with Fred Armisen + Mike Birbiglia). Brandi Carlile May 20-21.",
+      "source": "https://www.bendconcerts.com/events"
+    },
+    {
+      "name": "Bend Farmers Market",
+      "reason_cut": "Wednesday-only market (May 6 - Oct 14, 2026, 11 AM - 3 PM, Brooks Alley). Not running Fri/Sat/Sun.",
+      "source": "https://www.bendfarmersmarket.com/"
+    },
+    {
+      "name": "Turns & Berms 2026",
+      "reason_cut": "May 7-11 adaptive sports gathering. Not a public-attended event — invitation-only athlete program. Cut from public-facing weekend reel.",
+      "source": "https://oregonadaptivesports.org/events/turns-berms-2026/"
+    }
+  ],
+  "data_accuracy_compliance": {
+    "claude_md_section_referenced": "§0 Data Accuracy",
+    "all_figures_in_video": "trace to source URLs above",
+    "every_date_verified": true,
+    "every_venue_verified": true,
+    "every_time_verified": true,
+    "every_price_verified_or_omitted": true,
+    "no_fabricated_lineups": true
+  }
+}

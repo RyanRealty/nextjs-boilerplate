@@ -1,0 +1,7 @@
+node_modules/
+out/
+public/images/
+public/fonts/
+public/voiceover.mp3
+*.mp4
+*.mp3

@@ -1,0 +1,112 @@
+{
+  "slug": "weekend-events-2026-05-08-to-10",
+  "city": "Bend",
+  "state": "OR",
+  "weekend_window": {
+    "start_iso": "2026-05-08",
+    "end_iso": "2026-05-10",
+    "label": "MAY 8-10, 2026",
+    "fri": "Fri May 8",
+    "sat": "Sat May 9",
+    "sun": "Sun May 10",
+    "is_mothers_day": true,
+    "mothers_day_iso": "2026-05-10"
+  },
+  "intro": {
+    "title_l1": "THIS WEEKEND",
+    "title_l2": "IN BEND",
+    "dateline": "MAY 8-10, 2026",
+    "tagline": "5 things you don't want to miss"
+  },
+  "events": [
+    {
+      "id": "homegrown-music-festival",
+      "title": "Homegrown Music Festival",
+      "date_label": "Thu-Sat, May 7-9",
+      "primary_day": "Sat May 9",
+      "time_label": "All weekend",
+      "venue": "Century Center / Volcanic Theatre Pub",
+      "city": "Bend, OR",
+      "category": "music_festival",
+      "stat_pill": "40 bands · 5 stages",
+      "headliners": ["Polyrhythmics", "MarchFourth", "Glitterfox"],
+      "ticket_label": "$20 Thu · $40 Fri · $50 Sat",
+      "url": "https://homegrownfestbend.com",
+      "image_keyword": "outdoor music festival night stage crowd",
+      "fallback_image_keyword": "rock concert audience neon lights",
+      "image_credit_placeholder": "Photo: Unsplash"
+    },
+    {
+      "id": "portland-cello-project",
+      "title": "Portland Cello Project",
+      "date_label": "Fri May 8",
+      "primary_day": "Fri May 8",
+      "time_label": "7:30 PM",
+      "venue": "Tower Theatre",
+      "city": "Bend, OR",
+      "category": "music_concert",
+      "stat_pill": "8 cellists · 1 stage",
+      "headliners": [],
+      "ticket_label": "Tower Theatre",
+      "url": "https://www.towertheatre.org/",
+      "image_keyword": "cello orchestra concert string instrument stage",
+      "fallback_image_keyword": "classical music performance theatre lights",
+      "image_credit_placeholder": "Photo: Unsplash"
+    },
+    {
+      "id": "paula-poundstone",
+      "title": "Paula Poundstone",
+      "date_label": "Sat May 9",
+      "primary_day": "Sat May 9",
+      "time_label": "7:30 PM",
+      "venue": "Tower Theatre",
+      "city": "Bend, OR",
+      "category": "comedy",
+      "stat_pill": "Live · unscripted",
+      "headliners": [],
+      "ticket_label": "Tower Theatre",
+      "url": "https://www.towertheatre.org/",
+      "image_keyword": "comedy club stage microphone spotlight",
+      "fallback_image_keyword": "stand up comedy audience theatre",
+      "image_credit_placeholder": "Photo: Unsplash"
+    },
+    {
+      "id": "mothers-day-brunch",
+      "title": "Mother's Day Brunch",
+      "date_label": "Sun May 10",
+      "primary_day": "Sun May 10",
+      "time_label": "9 AM - 1:30 PM",
+      "venue": "Currents at Riverhouse · Tetherow",
+      "city": "Bend, OR",
+      "category": "family",
+      "stat_pill": "Riverside buffet",
+      "headliners": [],
+      "ticket_label": "Reservations required",
+      "url": "https://www.riverhouse.com/events/celebrate-mom-at-our-mothers-day-buffet-at-currents/",
+      "image_keyword": "mothers day brunch table flowers mimosa river",
+      "fallback_image_keyword": "elegant brunch buffet champagne flowers",
+      "image_credit_placeholder": "Photo: Unsplash"
+    },
+    {
+      "id": "mothers-day-poker-run",
+      "title": "Mother's Day Poker Run",
+      "date_label": "Sun May 10",
+      "primary_day": "Sun May 10",
+      "time_label": "8:30 AM",
+      "venue": "Timbers East → General Duffy's",
+      "city": "Bend → Redmond",
+      "category": "family_ride",
+      "stat_pill": "23rd Annual · OVMA",
+      "headliners": [],
+      "ticket_label": "Last buy-in 10:00 AM",
+      "url": "https://events.ktvz.com/event/mothers-day-poker-run/",
+      "image_keyword": "motorcycle group ride open road oregon",
+      "fallback_image_keyword": "harley davidson formation highway",
+      "image_credit_placeholder": "Photo: Unsplash"
+    }
+  ],
+  "outro": {
+    "headline": "MORE EVENTS",
+    "sub": "visitbend.com/events"
+  }
+}

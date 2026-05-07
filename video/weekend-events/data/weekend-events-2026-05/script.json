@@ -1,0 +1,77 @@
+{
+  "slug": "weekend-events-2026-05-08-to-10",
+  "city": "Bend",
+  "voice_id": "qSeXEcewz7tA0Q0qk9fH",
+  "voice_name": "Victoria",
+  "voice_settings": {
+    "stability": 0.40,
+    "similarity_boost": 0.80,
+    "style": 0.50,
+    "use_speaker_boost": true,
+    "model_id": "eleven_turbo_v2_5"
+  },
+  "structure_notes": "Beat 0 (intro title) and Beat 6 (outro card) are SILENT — no VO, no captions. ElevenLabs synth covers beats 1-5 only. Comp prepends 3.0s intro + appends 2.5s outro on top of the VO-derived beat durations.",
+  "fullText": "Homegrown Music Festival kicks off at the Century Center. Forty bands, five stages. Polyrhythmics, MarchFourth, and Glitterfox headline. Friday at seven thirty, the Portland Cello Project plays the Tower Theatre. Saturday, Paula Poundstone brings her unscripted set to the Tower at seven thirty. Sunday is Mother's Day. Currents at the Riverhouse runs a brunch buffet on the <phoneme alphabet=\"ipa\" ph=\"dəˈʃuːts\">Deschutes</phoneme> from nine to one thirty. Tetherow opens at nine. Or roll out at eight thirty with the Oregon Veterans Motorcycle Association poker run. Bend to Redmond, music and raffles at the finish.",
+  "beatSentences": [
+    {
+      "beat_index": 1,
+      "event_id": "homegrown-music-festival",
+      "sentence": "Homegrown Music Festival kicks off at the Century Center. Forty bands, five stages. Polyrhythmics, MarchFourth, and Glitterfox headline.",
+      "word_count": 19
+    },
+    {
+      "beat_index": 2,
+      "event_id": "portland-cello-project",
+      "sentence": "Friday at seven thirty, the Portland Cello Project plays the Tower Theatre.",
+      "word_count": 12
+    },
+    {
+      "beat_index": 3,
+      "event_id": "paula-poundstone",
+      "sentence": "Saturday, Paula Poundstone brings her unscripted set to the Tower at seven thirty.",
+      "word_count": 13
+    },
+    {
+      "beat_index": 4,
+      "event_id": "mothers-day-brunch",
+      "sentence": "Sunday is Mother's Day. Currents at the Riverhouse runs a brunch buffet on the Deschutes from nine to one thirty. Tetherow opens at nine.",
+      "word_count": 24
+    },
+    {
+      "beat_index": 5,
+      "event_id": "mothers-day-poker-run",
+      "sentence": "Or roll out at eight thirty with the Oregon Veterans Motorcycle Association poker run. Bend to Redmond, music and raffles at the finish.",
+      "word_count": 24
+    }
+  ],
+  "intro_card": {
+    "duration_sec": 3.0,
+    "vo": null,
+    "captions": null,
+    "thumbnail_safe": true
+  },
+  "outro_card": {
+    "duration_sec": 2.5,
+    "vo": null,
+    "captions": null
+  },
+  "estimated_total_duration_sec": 42.5,
+  "viral_window_compliance": {
+    "minimum_sec": 30,
+    "maximum_sec": 60,
+    "target": 42.5,
+    "passes": true
+  },
+  "banned_words_check": {
+    "checked_terms": ["stunning", "nestled", "boasts", "charming", "pristine", "gorgeous", "breathtaking", "must-see", "dream home", "meticulously", "tucked", "hidden gem", "truly", "spacious", "cozy", "luxurious", "approximately", "roughly", "delve", "leverage", "tapestry", "navigate", "robust", "seamless", "comprehensive", "elevate", "unlock"],
+    "found": [],
+    "passes": true
+  },
+  "pronunciation_overrides": [
+    {
+      "word": "Deschutes",
+      "ipa": "dəˈʃuːts",
+      "rationale": "Local pronunciation 'duh-shoots'. ElevenLabs eleven_turbo_v2_5 honors IPA phoneme tags."
+    }
+  ]
+}

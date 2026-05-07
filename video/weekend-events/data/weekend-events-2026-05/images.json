@@ -1,0 +1,141 @@
+{
+  "slug": "weekend-events-2026-05-08-to-10",
+  "image_provider_priority": ["unsplash", "shutterstock"],
+  "attribution_required": true,
+  "attribution_format": "Photo: {photographer_name} / Unsplash",
+  "attribution_pill_spec": {
+    "position_per_aspect": {
+      "16x9": { "anchor": "bottom-left", "x": 60, "y": 1000, "max_width": 600 },
+      "9x16": { "anchor": "bottom-left", "x": 60, "y": 1730, "max_width": 720 },
+      "1x1": { "anchor": "bottom-left", "x": 40, "y": 1010, "max_width": 600 },
+      "4x5": { "anchor": "bottom-left", "x": 40, "y": 1290, "max_width": 600 },
+      "2x3": { "anchor": "bottom-left", "x": 40, "y": 1560, "max_width": 600 }
+    },
+    "font": "AzoSans",
+    "size_px": 22,
+    "color": "#F2EBDD",
+    "background": "rgba(16,39,66,0.60)",
+    "border_top": "1px solid #D4AF37",
+    "padding": "8px 16px",
+    "corner_radius": 6
+  },
+  "image_search_queries": [
+    {
+      "event_id": "homegrown-music-festival",
+      "primary_query": "outdoor music festival night stage crowd",
+      "fallback_queries": [
+        "rock concert audience neon",
+        "live music festival summer",
+        "concert crowd hands raised stage lights"
+      ],
+      "orientation": "landscape",
+      "color_filter": null,
+      "min_width": 1920,
+      "rejection_keywords": ["EDM rave", "DJ booth", "studio", "headphones"],
+      "notes": "Want a band-on-stage or crowd-with-stage-lights vibe matching Volcanic Theatre Pub / Century Center scale (mid-size venue, not stadium)."
+    },
+    {
+      "event_id": "portland-cello-project",
+      "primary_query": "cello string instrument concert stage",
+      "fallback_queries": [
+        "classical music performance theatre",
+        "cello musician spotlight",
+        "string quartet stage"
+      ],
+      "orientation": "landscape",
+      "color_filter": null,
+      "min_width": 1920,
+      "rejection_keywords": ["violin only", "piano", "child", "lesson"],
+      "notes": "Multiple cellos preferred; warm tungsten stage lighting matches Tower Theatre interior."
+    },
+    {
+      "event_id": "paula-poundstone",
+      "primary_query": "comedy stage microphone spotlight theatre",
+      "fallback_queries": [
+        "stand up comedy audience theatre",
+        "comedian stage microphone",
+        "theatre red curtain spotlight"
+      ],
+      "orientation": "landscape",
+      "color_filter": null,
+      "min_width": 1920,
+      "rejection_keywords": ["comedy mask", "improv stage", "tv set"],
+      "notes": "Generic comedy-club vibe; do NOT use a Paula Poundstone press photo without explicit license. Stock comedy imagery only."
+    },
+    {
+      "event_id": "mothers-day-brunch",
+      "primary_query": "mothers day brunch table flowers mimosa",
+      "fallback_queries": [
+        "elegant brunch buffet champagne flowers",
+        "spring brunch outdoor riverside",
+        "buffet table fresh flowers natural light"
+      ],
+      "orientation": "landscape",
+      "color_filter": null,
+      "min_width": 1920,
+      "rejection_keywords": ["fast food", "pancake stack", "diner"],
+      "notes": "River-adjacent or natural-light brunch tablescape. Riverhouse setting is on the Deschutes — riverside or biophilic vibe ideal."
+    },
+    {
+      "event_id": "mothers-day-poker-run",
+      "primary_query": "motorcycle group ride open road oregon mountains",
+      "fallback_queries": [
+        "harley davidson formation highway",
+        "motorcycle club sunny ride scenic",
+        "biker group mountain road"
+      ],
+      "orientation": "landscape",
+      "color_filter": null,
+      "min_width": 1920,
+      "rejection_keywords": ["sport bike", "race track", "single rider"],
+      "notes": "Group of cruisers riding together. Cascade-foothills landscape preferred; high-desert Oregon vibe."
+    }
+  ],
+  "intro_card_image": {
+    "primary_query": "bend oregon old mill district sunset deschutes",
+    "fallback_queries": [
+      "deschutes river bend oregon downtown",
+      "central oregon mountains spring sunset",
+      "pilot butte bend oregon view"
+    ],
+    "orientation": "landscape",
+    "min_width": 1920,
+    "notes": "This is the title card. Iconic Bend imagery. Will be heavily darkened (rgba 0,0,0,0.60 scrim) for title text legibility."
+  },
+  "outro_card_image": {
+    "use_image": false,
+    "background_treatment": "navy gradient with subtle texture",
+    "notes": "No image on outro — clean kinetic CTA card."
+  },
+  "fetch_script_contract": {
+    "input_env": ["UNSPLASH_ACCESS_KEY"],
+    "output_files": [
+      "video/weekend-events/public/images/<event_id>.jpg",
+      "video/weekend-events/public/images/intro_card.jpg",
+      "video/weekend-events/data/weekend-events-2026-05/images.fetched.json"
+    ],
+    "output_attribution_format": {
+      "event_id": "homegrown-music-festival",
+      "file_path": "public/images/homegrown-music-festival.jpg",
+      "unsplash_id": "abc123",
+      "photographer_name": "Jane Doe",
+      "photographer_url": "https://unsplash.com/@janedoe?utm_source=ryan_realty&utm_medium=referral",
+      "unsplash_image_url": "https://unsplash.com/photos/abc123?utm_source=ryan_realty&utm_medium=referral",
+      "trigger_download": true,
+      "downloaded_at_iso": "2026-05-07T14:00:00Z"
+    },
+    "unsplash_compliance": {
+      "trigger_download_endpoint_called": true,
+      "utm_attribution_in_credits": true,
+      "rationale": "Per Unsplash API guidelines, must hit the trigger_download endpoint when an image is selected for use, and must include utm_source=ryan_realty + utm_medium=referral in attribution links."
+    }
+  },
+  "shutterstock_fallback": {
+    "use_only_if": "Unsplash returns no acceptable result for an event keyword AND has been retried with all fallback queries.",
+    "license": "Standard editorial / commercial — verify per use",
+    "input_env": ["SHUTTERSTOCK_API_KEY", "SHUTTERSTOCK_API_SECRET"],
+    "attribution_format": "Photo: {contributor_name} / Shutterstock",
+    "notes": "Shutterstock images are paid licenses. Only fall back if Unsplash genuinely fails."
+  },
+  "data_accuracy_notes": "Per CLAUDE.md §0, every image is decorative/illustrative — not a claim of fact. The factual content is in the title text, dates, venues, and times overlaid on the image. Image attribution is required regardless."
+}
