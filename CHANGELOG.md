@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.137.0 (2026-05-07)
+
+### Features
+- feat(fub): post FUB note on every identify + every high-intent page view
+
+---
+
+
 ## v1.136.0 (2026-05-07)
 
 ### Features
