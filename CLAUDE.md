@@ -347,6 +347,33 @@ Everything else (debugging, architecture, testing-strategy, documentation, incid
 
 **Read `video_production_skills/VIDEO_PRODUCTION_SKILL.md` before writing any video code or Remotion composition. This is non-negotiable.**
 
+### Format-specific skill load — MANDATORY
+
+Before touching any code that builds a market report, listing reel, news clip, neighborhood guide, or any other named format, **load that format's `SKILL.md` first**. The skill contains the locked architecture, the QA gate, the data accuracy rules, the layout decisions, and the gotcha library. Editing scripts ad-hoc without consulting the skill produces drift — the agent rebuilds the same wrong thing the skill was written to prevent.
+
+| Format trigger | Mandatory load |
+|---|---|
+| "create a market report", "monthly market video", any city × month combination | `video_production_skills/market-data-video/SKILL.md` |
+| "listing video", "just-listed", "coming-soon", "pending", any single-property reel | `video_production_skills/listing-tour-video/SKILL.md` + `listing_reveal/SKILL.md` |
+| "news clip", "real estate news", "market news" | `video_production_skills/news-video/SKILL.md` |
+| "neighborhood overview", "subdivision deep dive" | `video_production_skills/neighborhood-overview/SKILL.md` |
+| "weekend events", "things to do" | `video_production_skills/weekend-events-video/SKILL.md` |
+| "data viz", any standalone chart-based explainer | `video_production_skills/data_viz_video/SKILL.md` |
+
+**Self-enforcement:** before any edit to `video/market-report/`, `listing_video_v4/`, or any sibling video pipeline, the agent reads the matching skill and references its section numbers in the commit message. Editing without skill load = a rebuild later when Matt finds the regression.
+
+**Skill updates are bidirectional.** When Matt issues a directive in chat that produces a permanent rule (e.g. "narrative-only VO", "multi-color line chart", "no photo dupes per render"), the agent's job is twofold:
+1. Update the actual code to enforce the rule.
+2. **Update the matching skill `SKILL.md`** so future runs hit the rule whether or not the agent remembers the chat. The skill is the source of truth — a rule that lives only in chat history will be forgotten next session.
+
+Locked rules added to `market-data-video/SKILL.md` in this session (2026-05-07):
+- §17 Narrative-only VO (no number recitation)
+- §18 Caption sync locked to VO timestamps (no padding)
+- §19 Multi-color line chart for the price beat
+- §20 Photo diversity (no repeats per render, landmark variety)
+- §21 Shutterstock integration roadmap (Matt's go/no-go pending)
+- §22 Unique-data backlog (variation pool — 2-3 advanced beats per monthly report, rotate to keep the format fresh)
+
 **For listing/pending/just-listed/coming-soon videos specifically: VIDEO_PRODUCTION_SKILL.md §11 ("Listing Video Production Rules") is the operative ruleset.** It covers the hard-won lessons from the School House Rd v6.x → v7.0 build — banned fonts (Great Vibes / Allura), single-overlay discipline, Ken Burns easing curves, social-media safe zones, contact-sheet format for photo selection, ambient music conventions, and the 5-point QA gate every render must clear before email. Also load `video_production_skills/photo-hero-drift/SKILL.md` for the five camera-move primitives — every beat must use a different one; never repeat the same zoom on consecutive photos.
 
 ### The routine-build triplet — load these for any standard listing/market/news/evergreen/luxury build

@@ -267,11 +267,42 @@ const planForCity = (data) => {
     ? `The pipeline is healthy and demand is steady. Buyers are out there, and contracts are flowing.`
     : `Inventory is heavy and demand has not caught up. Sellers should expect to wait.`
 
+  // Price segment beat — narrative about where the action is, no specific %.
+  // Picks the largest bin from the histogram and qualitatively names it.
+  const segmentLine = (() => {
+    if (!data._extras?.price_segments) return null
+    const bins = data._extras.price_segments.bins
+    let topIdx = 0
+    for (let i = 1; i < bins.length; i++) if (bins[i].count > bins[topIdx].count) topIdx = i
+    const top = bins[topIdx]
+    if (top.pct >= 50) {
+      return `Most of the action is concentrated in one price band. ${top.label} carried the month.`
+    }
+    if (topIdx === 0) {
+      return `The bottom of the market did the heavy lifting this month. Entry-level priced product is moving.`
+    }
+    if (topIdx === bins.length - 1) {
+      return `Luxury was the loudest segment this month. The high end is where the volume showed up.`
+    }
+    return `Activity skewed to the middle of the market. The mainstream price bands carried the month.`
+  })()
+
+  // Top neighborhoods beat — name the #1 subdivision but not the count.
+  // Vary phrasing slightly so it doesn't read like a template.
+  const neighborhoodLine = (() => {
+    if (!data._extras?.top_neighborhoods) return null
+    const top = data._extras.top_neighborhoods.rows[0]
+    if (!top) return null
+    return `${top.name} led the city in closed sales. Buyers and sellers know where to look.`
+  })()
+
   const outroLine = `Full report at ryan-realty.com. Subscribe for monthly updates.`
 
-  // Per-beat sentences. fullText is just these joined — synth-vo derives
-  // beat boundaries by counting words per sentence rather than fragile phrase
-  // matching, so the narrative VO can use whatever wording fits the data.
+  // Per-beat sentences. fullText is these joined — synth-vo derives beat
+  // boundaries by counting words per sentence so the narrative VO can use
+  // whatever wording fits the data. Beat order matches the stats[] array
+  // exactly (5 core stats + 2 advanced beats from §22 = up to 7 stat
+  // sentences + intro + outro = 9 sentences total).
   const beatSentences = [
     { id: 'intro',  sentence: introLine },
     { id: 'price',  sentence: priceLine },
@@ -279,6 +310,8 @@ const planForCity = (data) => {
     { id: 'dom',    sentence: domLine },
     { id: 'stl',    sentence: stlLine },
     { id: 'active', sentence: activeLine },
+    ...(segmentLine ? [{ id: 'segments',     sentence: segmentLine }] : []),
+    ...(neighborhoodLine ? [{ id: 'neighborhoods', sentence: neighborhoodLine }] : []),
     { id: 'outro',  sentence: outroLine },
   ]
   const fullText = beatSentences.map(b => b.sentence).join(' ')
@@ -371,6 +404,42 @@ const planForCity = (data) => {
     },
   ]
 
+  // ─────────────────────────────────────────────────────────────────────────
+  //  ADVANCED BEATS — per §22 of market-data-video/SKILL.md
+  //  Pull from `<slug>-extras.json` (built by pull-extras.mjs). Each monthly
+  //  report features 2-3 advanced beats from the variation pool. Right now
+  //  we always include S9 (price segments histogram) and S10 (top
+  //  neighborhoods leaderboard) because they're evergreen — the data is
+  //  always there and the visual reads as a fresh angle every month.
+  // ─────────────────────────────────────────────────────────────────────────
+  const extras = data._extras
+  if (extras?.price_segments) {
+    stats.push({
+      label: 'Price Segments',
+      value: `${extras.price_segments.total}`,
+      layout: 'histogram',
+      bgVariant: 'navy-rich',
+      bins: extras.price_segments.bins.map(b => ({ label: b.label, count: b.count, pct: b.pct })),
+      annotations: extras.price_segments.annotations,
+      context: `${extras.price_segments.total} closed sales by price band.`,
+    })
+  }
+  if (extras?.top_neighborhoods) {
+    stats.push({
+      label: 'Top Neighborhoods',
+      value: '',
+      layout: 'leaderboard',
+      bgVariant: 'navy',
+      rows: extras.top_neighborhoods.rows.map(r => ({
+        name: r.name,
+        median: r.median,
+        yoy: r.yoy,
+        highlight: r.highlight,
+      })),
+      context: `Where ${city} closed this month.`,
+    })
+  }
+
   // Citations — every on-screen figure traces to source.
   const citations = {
     deliverable: `${city} Market Report — ${introMonth} ${introYear}`,
@@ -415,33 +484,70 @@ const planForCity = (data) => {
     captionWords: [],
     beatDurations: defaultBeatDurations,
     stats,
-    imageCount: 7,
+    imageCount: 10,
   }
 
   return { props, fullText, beatSentences, citations }
 }
 
-async function loadHistory(slug) {
-  try {
-    const historyPath = resolve(DATA, `${slug}-history.json`)
-    return JSON.parse(await readFile(historyPath, 'utf8'))
-  } catch {
-    return null
+async function loadJsonOrNull(path) {
+  try { return JSON.parse(await readFile(path, 'utf8')) } catch { return null }
+}
+
+// Photo-diversity assignment per §20 of market-data-video/SKILL.md.
+// Assign every beat (including intro and outro slots used by IntroBeat /
+// OutroBeat) a unique image_idx from the available pool. Hard-fail if the
+// pool is too small — never ship a render with a repeated photo.
+function assignPhotoSlots(stats, imageCount, slug) {
+  // Available indices 1..imageCount. Intro hard-codes img_1 in IntroBeat.tsx,
+  // so reserve 1 for that. Outro is rendered by OutroBeat.tsx using a
+  // different image — reserve 2 for outro by convention. Stats use 3..N+2.
+  const intro = 1
+  const outro = 2
+  const statSlots = []
+  for (let i = 0; i < stats.length; i++) {
+    statSlots.push(3 + i)
   }
+  const totalNeeded = 1 /* intro */ + statSlots.length + 1 /* outro */
+  if (totalNeeded > imageCount) {
+    throw new Error(
+      `Photo pool too small for ${slug}: need ${totalNeeded} unique photos for ` +
+      `${stats.length} stat beats + intro + outro, only ${imageCount} available. ` +
+      `Re-fetch with scripts/fetch-unsplash.mjs (or asset library) before building.`
+    )
+  }
+
+  for (let i = 0; i < stats.length; i++) {
+    stats[i].image_idx = statSlots[i]
+  }
+
+  // Diversity assertion — fails loud if anything ever loops or dupes.
+  const used = new Set([intro, outro, ...statSlots])
+  if (used.size !== totalNeeded) {
+    throw new Error(`Photo diversity violation in ${slug}: image_idx assignment produced duplicates. ${[...used]}`)
+  }
+  return { intro, outro }
 }
 
 await mkdir(OUT, { recursive: true })
 for (const { slug, dataFile } of CITIES) {
   const dataPath = resolve(DATA, dataFile)
   const raw = JSON.parse(await readFile(dataPath, 'utf8'))
-  raw._history = await loadHistory(slug)
+  raw._history = await loadJsonOrNull(resolve(DATA, `${slug}-history.json`))
+  raw._extras  = await loadJsonOrNull(resolve(DATA, `${slug}-extras.json`))
 
   const { props, fullText, beatSentences, citations } = planForCity(raw)
+
+  // Photo diversity per §20. Mutates props.stats by adding image_idx to each
+  // entry. Throws if the pool is insufficient — fail loud, never silently
+  // dupe a photo across beats.
+  assignPhotoSlots(props.stats, props.imageCount || 7, slug)
+
   const cityOut = resolve(OUT, slug)
   await mkdir(cityOut, { recursive: true })
   await writeFile(resolve(cityOut, 'props.json'), JSON.stringify(props, null, 2))
   await writeFile(resolve(cityOut, 'script.json'), JSON.stringify({ city: raw.city, fullText, beatSentences }, null, 2))
   await writeFile(resolve(cityOut, 'citations.json'), JSON.stringify(citations, null, 2))
-  console.log(`  Built ${slug}: ${fullText.length} chars, ${beatSentences.length} beats, ${props.stats.length} stat slots`)
+  console.log(`  Built ${slug}: ${fullText.length} chars, ${beatSentences.length} beats, ${props.stats.length} stat slots, photos ${props.stats.map(s => s.image_idx).join(',')}`)
 }
 console.log('\nAll cities planned. Next: scripts/synth-vo.mjs (single continuous synth + alignment)')

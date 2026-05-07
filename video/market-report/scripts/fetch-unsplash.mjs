@@ -233,7 +233,7 @@ const CITY_CONFIGS = [
 ]
 
 // Collect up to N unique photos across multiple search queries
-async function collectPhotos(queries, need = 7) {
+async function collectPhotos(queries, need = 10) {
   const seen = new Set()
   const all = []
   for (const q of queries) {
@@ -262,14 +262,16 @@ async function processCity(cfg) {
   await mkdir(cityDir, { recursive: true })
   console.log(`\n=== ${cfg.slug} ===`)
 
-  const photos = await collectPhotos(cfg.queries, 7)
-  if (photos.length < 7) {
-    console.warn(`  Only found ${photos.length} photos (need 7). Will reuse last photo for missing slots.`)
-    while (photos.length < 7) photos.push(photos[photos.length - 1])
+  const NEED = 10
+  const photos = await collectPhotos(cfg.queries, NEED)
+  if (photos.length < NEED) {
+    // Don't silently dupe — surface the gap. Per §20 photo diversity rule:
+    // a render with repeated photos is not shippable.
+    console.warn(`  Only found ${photos.length} photos (need ${NEED}). build-cities will halt unless pool is expanded.`)
   }
 
   const credits = []
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < photos.length; i++) {
     const p = photos[i]
     const imgPath = resolve(cityDir, `img_${i + 1}.jpg`)
     const imgUrl = p.urls.regular // 1080px width, good for portrait
