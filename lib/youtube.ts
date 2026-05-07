@@ -246,10 +246,9 @@ export async function uploadYouTubeVideoFromUrl(options: UploadFromUrlOptions): 
   const uploadResponse = await fetch(sessionUrl, {
     method: 'PUT',
     headers: uploadHeaders,
-    // @ts-expect-error — Node fetch supports ReadableStream bodies + duplex flag
     body: sourceResponse.body,
     duplex: 'half',
-  })
+  } as RequestInit & { duplex: 'half' })
 
   if (!uploadResponse.ok) {
     throw new Error(`YouTube upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`)
