@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.130.1 (2026-05-07)
+
+### Maintenance
+- chore(fub): gate persistent FB button behind enableFacebookButton flag
+
+---
+
+
 ## v1.130.0 (2026-05-07)
 
 ### Features
