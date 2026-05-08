@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.0 (2026-05-08)
+
+### Features
+- feat(fub-snippet): single sign-in modal (Vercel-style) with both providers
+
+---
+
+
 ## v1.137.0 (2026-05-07)
 
 ### Features
