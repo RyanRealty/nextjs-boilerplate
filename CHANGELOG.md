@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.1 (2026-05-08)
+
+### Bug Fixes
+- fix(fub-snippet): isolate modal CSS from host site + match button heights
+
+---
+
+
 ## v1.138.0 (2026-05-08)
 
 ### Features
