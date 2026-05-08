@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.3 (2026-05-08)
+
+### Bug Fixes
+- fix(fub-snippet): align Google logo with text (logo_alignment: center)
+
+---
+
+
 ## v1.138.2 (2026-05-08)
 
 ### Bug Fixes
