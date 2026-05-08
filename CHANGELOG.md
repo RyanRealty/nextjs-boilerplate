@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.139.0 (2026-05-08)
+
+### Features
+- feat(earnest): scaffold serialized AI drama foundation
+
+### Bug Fixes
+- fix(test): install remotion at root so video/* subproject tests resolve
+
+---
+
+
 ## v1.138.5 (2026-05-08)
 
 ### Bug Fixes
