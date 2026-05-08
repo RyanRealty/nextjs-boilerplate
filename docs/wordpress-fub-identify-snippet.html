@@ -371,10 +371,28 @@
     var title = document.createElement('h2');
     title.id = 'rr-signin-title';
     title.textContent = 'Welcome to Ryan Realty';
+    // Inline + !important wins over the host theme's h2 font-family rule.
+    title.style.setProperty('font-family', SANS, 'important');
+    title.style.setProperty('font-style', 'normal', 'important');
+    title.style.setProperty('font-weight', '600', 'important');
+    title.style.setProperty('font-size', '20px', 'important');
+    title.style.setProperty('line-height', '1.25', 'important');
+    title.style.setProperty('color', '#0F1F3A', 'important');
+    title.style.setProperty('margin', '0 0 6px 0', 'important');
+    title.style.setProperty('letter-spacing', '-0.01em', 'important');
+    title.style.setProperty('text-transform', 'none', 'important');
 
     var subtitle = document.createElement('p');
     subtitle.textContent = 'Continue and we’ll save your preferences and properties.';
-    subtitle.style.cssText = 'font-size:14px !important;margin:0 0 22px !important;';
+    subtitle.style.setProperty('font-family', SANS, 'important');
+    subtitle.style.setProperty('font-style', 'normal', 'important');
+    subtitle.style.setProperty('font-weight', '400', 'important');
+    subtitle.style.setProperty('font-size', '14px', 'important');
+    subtitle.style.setProperty('line-height', '1.45', 'important');
+    subtitle.style.setProperty('color', '#52606D', 'important');
+    subtitle.style.setProperty('margin', '0 0 22px 0', 'important');
+    subtitle.style.setProperty('letter-spacing', 'normal', 'important');
+    subtitle.style.setProperty('text-transform', 'none', 'important');
 
     var googleSlot = document.createElement('div');
     googleSlot.id = 'rr-google-slot';
@@ -394,7 +412,24 @@
     ].join(';');
     fbBtn.innerHTML =
       '<svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true" style="flex-shrink:0;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' +
-      '<span style="font-family:' + SANS + ';font-weight:500;">Continue with Facebook</span>';
+      '<span id="rr-fb-btn-label">Continue with Facebook</span>';
+    // Apply inline font-family with !important on the button label so any
+    // host-theme button-styling rule loses.
+    setTimeout(function() {
+      var lbl = document.getElementById('rr-fb-btn-label');
+      if (lbl) {
+        lbl.style.setProperty('font-family', SANS, 'important');
+        lbl.style.setProperty('font-weight', '500', 'important');
+        lbl.style.setProperty('font-style', 'normal', 'important');
+        lbl.style.setProperty('letter-spacing', 'normal', 'important');
+        lbl.style.setProperty('text-transform', 'none', 'important');
+        lbl.style.setProperty('color', '#3C4043', 'important');
+      }
+    }, 0);
+    fbBtn.style.setProperty('font-family', SANS, 'important');
+    fbBtn.style.setProperty('font-weight', '500', 'important');
+    fbBtn.style.setProperty('color', '#3C4043', 'important');
+    fbBtn.style.setProperty('text-transform', 'none', 'important');
     fbBtn.addEventListener('click', function() {
       if (!window.FB) return;
       FB.login(function(response) {
@@ -406,8 +441,17 @@
     });
 
     var fineprint = document.createElement('p');
-    fineprint.style.cssText = 'margin:18px 0 0 !important;font-size:11px !important;color:#9AA0A6 !important;text-align:center !important;line-height:1.45 !important;';
     fineprint.textContent = 'No password required. We never post on your behalf.';
+    fineprint.style.setProperty('font-family', SANS, 'important');
+    fineprint.style.setProperty('font-style', 'normal', 'important');
+    fineprint.style.setProperty('font-weight', '400', 'important');
+    fineprint.style.setProperty('font-size', '11px', 'important');
+    fineprint.style.setProperty('line-height', '1.45', 'important');
+    fineprint.style.setProperty('color', '#9AA0A6', 'important');
+    fineprint.style.setProperty('text-align', 'center', 'important');
+    fineprint.style.setProperty('margin', '18px 0 0 0', 'important');
+    fineprint.style.setProperty('letter-spacing', 'normal', 'important');
+    fineprint.style.setProperty('text-transform', 'none', 'important');
 
     card.appendChild(closeBtn);
     card.appendChild(title);
