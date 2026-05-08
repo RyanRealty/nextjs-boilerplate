@@ -464,6 +464,8 @@
 
     // Render Google button into its slot. Match the FB button width (full row
     // minus 56px horizontal padding) so the two buttons line up edge-to-edge.
+    // logo_alignment: 'center' keeps the icon+text adjacent (matching the FB
+    // button) instead of pinning the icon to the far left.
     if (window.google && window.google.accounts && window.google.accounts.id) {
       try {
         var btnWidth = Math.max(280, Math.min(344, (card.clientWidth || 400) - 56));
@@ -473,7 +475,7 @@
           size: 'large',
           text: 'continue_with',
           shape: 'rectangular',
-          logo_alignment: 'left',
+          logo_alignment: 'center',
           width: btnWidth,
         });
       } catch (e) {}
