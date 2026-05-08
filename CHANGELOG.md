@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.5 (2026-05-08)
+
+### Bug Fixes
+- fix(fub-snippet): switch FB sign-in from FB.login() to direct OAuth dialog
+
+---
+
+
 ## v1.138.4 (2026-05-08)
 
 ### Bug Fixes
