@@ -431,13 +431,62 @@
     fbBtn.style.setProperty('color', '#3C4043', 'important');
     fbBtn.style.setProperty('text-transform', 'none', 'important');
     fbBtn.addEventListener('click', function() {
-      if (!window.FB) return;
-      FB.login(function(response) {
-        if (response && response.authResponse && response.authResponse.accessToken) {
-          hideSignInModal({ keepDismissFlag: false });
-          identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
+      // Use direct OAuth dialog redirect-in-popup flow instead of FB.login()
+      // because FB.login() depends on the "Login with the JavaScript SDK"
+      // app setting which is brittle and per-configuration. The direct OAuth
+      // dialog only requires ryan-realty.com to be in the app's Valid OAuth
+      // Redirect URIs (Settings → Basic → "Allowed Domains for the JavaScript
+      // SDK" or FB Login → Settings → Valid OAuth Redirect URIs).
+      var redirectUri = window.location.origin + '/';
+      var state = 'rr_fb_' + Math.random().toString(36).slice(2);
+      try { sessionStorage.setItem('rr_fb_oauth_state', state); } catch (e) {}
+      var oauthUrl =
+        'https://www.facebook.com/v18.0/dialog/oauth' +
+        '?client_id=' + encodeURIComponent(cfg.facebookAppId) +
+        '&redirect_uri=' + encodeURIComponent(redirectUri) +
+        '&response_type=token' +
+        '&scope=' + encodeURIComponent('email,public_profile') +
+        '&display=popup' +
+        '&state=' + encodeURIComponent(state);
+      var popup = window.open(oauthUrl, 'rr_fb_oauth_popup', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      if (!popup) {
+        // Popup blocked — fall back to full-page redirect.
+        window.location.href = oauthUrl;
+        return;
+      }
+      var pollTimer = setInterval(function() {
+        try {
+          if (popup.closed) {
+            clearInterval(pollTimer);
+            return;
+          }
+          // Once the popup redirects back to our origin, we can read its
+          // location. Before that, cross-origin error is thrown — we ignore.
+          var popupUrl = popup.location.href;
+          if (popupUrl && popupUrl.indexOf(window.location.origin) === 0) {
+            // We're back on our domain — read access_token from URL fragment.
+            var hash = popup.location.hash || '';
+            if (hash.indexOf('access_token=') !== -1) {
+              clearInterval(pollTimer);
+              var params = new URLSearchParams(hash.slice(1));
+              var token = params.get('access_token');
+              var returnedState = params.get('state');
+              try { popup.close(); } catch (e) {}
+              if (token && returnedState === state) {
+                hideSignInModal({ keepDismissFlag: false });
+                identify({ provider: 'facebook', accessToken: token });
+              }
+            } else if (popup.location.search && popup.location.search.indexOf('error=') !== -1) {
+              clearInterval(pollTimer);
+              try { popup.close(); } catch (e) {}
+            }
+          }
+        } catch (e) {
+          // Cross-origin during the FB dialog — ignore until redirect back.
         }
-      }, { scope: 'email,public_profile' });
+      }, 400);
+      // Safety: stop polling after 3 minutes regardless.
+      setTimeout(function() { clearInterval(pollTimer); }, 180000);
     });
 
     var fineprint = document.createElement('p');
@@ -721,14 +770,45 @@
   }
 
   // Expose for any custom button on the page (e.g. AgentFire CTA blocks).
+  // Uses the same direct OAuth dialog redirect flow as the modal's FB button.
   window.rrFacebookLogin = function() {
-    if (!window.FB) return;
-    FB.login(function(response) {
-      if (response && response.authResponse && response.authResponse.accessToken) {
-        hideSignInModal({ keepDismissFlag: false });
-        identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
-      }
-    }, { scope: 'email,public_profile' });
+    var modalFbBtn = document.getElementById('rr-fb-modal-btn');
+    if (modalFbBtn) {
+      modalFbBtn.click();
+      return;
+    }
+    // Fallback if modal isn't open: full-page redirect to FB OAuth dialog.
+    var redirectUri = window.location.origin + '/';
+    var state = 'rr_fb_' + Math.random().toString(36).slice(2);
+    try { sessionStorage.setItem('rr_fb_oauth_state', state); } catch (e) {}
+    window.location.href =
+      'https://www.facebook.com/v18.0/dialog/oauth' +
+      '?client_id=' + encodeURIComponent(cfg.facebookAppId) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&response_type=token' +
+      '&scope=' + encodeURIComponent('email,public_profile') +
+      '&state=' + encodeURIComponent(state);
   };
+
+  // ---------- Handle FB OAuth redirect-back on page load ----------
+  // If the snippet was loaded as the result of a full-page redirect from the
+  // FB OAuth dialog, the URL fragment will contain access_token=... — pick
+  // it up, fire identify, then clean the fragment so a refresh doesn't
+  // re-process it.
+  (function processFbRedirectBack() {
+    if (!window.location.hash || window.location.hash.indexOf('access_token=') === -1) return;
+    try {
+      var params = new URLSearchParams(window.location.hash.slice(1));
+      var token = params.get('access_token');
+      var returnedState = params.get('state');
+      var expectedState = sessionStorage.getItem('rr_fb_oauth_state');
+      if (token && (!expectedState || returnedState === expectedState)) {
+        sessionStorage.removeItem('rr_fb_oauth_state');
+        // Clean the URL so refresh / share doesn't carry the token.
+        history.replaceState({}, document.title, window.location.pathname + window.location.search);
+        identify({ provider: 'facebook', accessToken: token });
+      }
+    } catch (e) {}
+  })();
 })();
 </script>
