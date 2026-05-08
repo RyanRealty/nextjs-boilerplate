@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.2 (2026-05-08)
+
+### Bug Fixes
+- fix(fub-snippet): force inline !important on title/subtitle/fineprint fonts
+
+---
+
+
 ## v1.138.1 (2026-05-08)
 
 ### Bug Fixes
