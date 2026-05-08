@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.138.4 (2026-05-08)
+
+### Bug Fixes
+- fix(fub-snippet): suppress Google account personalization for visual parity
+
+---
+
+
 ## v1.138.3 (2026-05-08)
 
 ### Bug Fixes
