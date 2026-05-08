@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.140.0 (2026-05-08)
+
+### Features
+- feat(earnest): scaffold Remotion project + brand components
+
+---
+
+
 ## v1.139.0 (2026-05-08)
 
 ### Features
