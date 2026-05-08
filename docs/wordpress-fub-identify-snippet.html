@@ -243,7 +243,7 @@
           // Store the FUB person id in the cookie so subsequent page loads
           // can fire /api/fub/track-page without redoing the OAuth handshake.
           setCookie(cfg.cookieName, String(data.fubPersonId), cfg.cookieDays);
-          hideFacebookButton();
+          hideSignInModal({ keepDismissFlag: false });
           if (data.matched && data.firstName) {
             showWelcomeBack(data.firstName);
           }
@@ -294,42 +294,157 @@
     }, 4500);
   }
 
-  function showFacebookButton() {
-    if (!cfg.enableFacebookButton) return;
-    if (document.getElementById('rr-fb-cta')) return;
-    var btn = document.createElement('button');
-    btn.id = 'rr-fb-cta';
-    btn.type = 'button';
-    btn.setAttribute('aria-label', 'Continue with Facebook');
-    btn.style.cssText = [
-      'position:fixed', 'bottom:24px', 'left:24px', 'z-index:99998',
-      'background:#1877F2', 'color:#fff', 'border:0',
-      'padding:12px 18px', 'border-radius:999px', 'cursor:pointer',
-      'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
-      'font-size:14px', 'font-weight:600',
-      'box-shadow:0 4px 14px rgba(24,119,242,0.35)',
-      'display:flex', 'align-items:center', 'gap:8px'
+  // ---------- Sign-in modal (single popup, both providers) ----------
+  // Matches the Vercel app's AuthModal aesthetic: centered card, subtle
+  // backdrop blur, one provider per row, outline-button style with the
+  // official provider icon. Shown ONCE per session for non-identified
+  // visitors; dismissable via X or ESC. Accumulates dismiss-state in
+  // sessionStorage so refreshing doesn't re-popup.
+  function showSignInModal() {
+    if (!cfg.enableFacebookButton && !window.google) return; // nothing to show
+    if (document.getElementById('rr-signin-modal')) return; // already open
+    try {
+      if (sessionStorage.getItem('rr_signin_dismissed') === '1') return;
+    } catch (e) {}
+
+    var backdrop = document.createElement('div');
+    backdrop.id = 'rr-signin-modal';
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-labelledby', 'rr-signin-title');
+    backdrop.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:2147483647',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'background:rgba(15,23,42,0.45)',
+      '-webkit-backdrop-filter:blur(6px)', 'backdrop-filter:blur(6px)',
+      'animation:rrFadeIn 180ms ease-out',
+      'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif'
     ].join(';');
-    btn.innerHTML =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true">' +
-      '<path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82V14.706h-3.13V11.08h3.13V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.464.099 2.795.143v3.24h-1.918c-1.504 0-1.795.715-1.795 1.763v2.31h3.587l-.467 3.626h-3.12V24h6.116c.732 0 1.325-.593 1.325-1.324V1.325C24 .593 23.407 0 22.675 0z"/>' +
-      '</svg>' +
+
+    var card = document.createElement('div');
+    card.style.cssText = [
+      'background:#ffffff', 'border-radius:14px', 'padding:32px 28px 24px',
+      'max-width:420px', 'width:calc(100% - 32px)',
+      'box-shadow:0 25px 50px -12px rgba(0,0,0,0.4)',
+      'position:relative', 'box-sizing:border-box',
+      'animation:rrCardIn 220ms cubic-bezier(0.2,0.9,0.32,1)'
+    ].join(';');
+
+    // Inject keyframes once
+    if (!document.getElementById('rr-signin-keyframes')) {
+      var style = document.createElement('style');
+      style.id = 'rr-signin-keyframes';
+      style.textContent =
+        '@keyframes rrFadeIn{from{opacity:0}to{opacity:1}}' +
+        '@keyframes rrCardIn{from{opacity:0;transform:translateY(8px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}' +
+        '#rr-signin-modal button:hover{background:#f9fafb !important}' +
+        '#rr-signin-modal #rr-signin-close:hover{background:#f3f4f6 !important}';
+      document.head.appendChild(style);
+    }
+
+    var closeBtn = document.createElement('button');
+    closeBtn.id = 'rr-signin-close';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Close sign-in');
+    closeBtn.style.cssText = [
+      'position:absolute', 'top:12px', 'right:12px',
+      'width:32px', 'height:32px', 'padding:0',
+      'background:transparent', 'border:0', 'border-radius:8px',
+      'cursor:pointer', 'color:#6b7280',
+      'display:flex', 'align-items:center', 'justify-content:center'
+    ].join(';');
+    closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+    var title = document.createElement('h2');
+    title.id = 'rr-signin-title';
+    title.textContent = 'Welcome to Ryan Realty';
+    title.style.cssText = 'margin:0 0 6px;font-size:19px;font-weight:600;color:#102742;letter-spacing:-0.01em;';
+
+    var subtitle = document.createElement('p');
+    subtitle.textContent = 'Continue and we’ll save your preferences and properties.';
+    subtitle.style.cssText = 'margin:0 0 22px;font-size:14px;color:#6b7280;line-height:1.4;';
+
+    var googleSlot = document.createElement('div');
+    googleSlot.id = 'rr-google-slot';
+    googleSlot.style.cssText = 'min-height:44px;display:flex;justify-content:center;margin-bottom:10px;';
+
+    var fbBtn = document.createElement('button');
+    fbBtn.id = 'rr-fb-modal-btn';
+    fbBtn.type = 'button';
+    fbBtn.style.cssText = [
+      'display:flex', 'align-items:center', 'justify-content:center', 'gap:10px',
+      'width:100%', 'padding:10px 16px', 'box-sizing:border-box',
+      'border-radius:8px', 'border:1px solid #d1d5db', 'background:#ffffff',
+      'cursor:pointer', 'font-size:14px', 'font-weight:500', 'color:#1f2937',
+      'transition:background 120ms', 'min-height:44px'
+    ].join(';');
+    fbBtn.innerHTML =
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' +
       '<span>Continue with Facebook</span>';
-    btn.addEventListener('click', function() {
+    fbBtn.addEventListener('click', function() {
       if (!window.FB) return;
       FB.login(function(response) {
         if (response && response.authResponse && response.authResponse.accessToken) {
+          hideSignInModal({ keepDismissFlag: false });
           identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
         }
       }, { scope: 'email,public_profile' });
     });
-    document.body.appendChild(btn);
+
+    var fineprint = document.createElement('p');
+    fineprint.style.cssText = 'margin:18px 0 0;font-size:11px;color:#9ca3af;text-align:center;line-height:1.4;';
+    fineprint.textContent = 'No password required. We never post on your behalf.';
+
+    card.appendChild(closeBtn);
+    card.appendChild(title);
+    card.appendChild(subtitle);
+    card.appendChild(googleSlot);
+    if (cfg.enableFacebookButton) card.appendChild(fbBtn);
+    card.appendChild(fineprint);
+    backdrop.appendChild(card);
+    document.body.appendChild(backdrop);
+
+    // Render Google button into its slot.
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        google.accounts.id.renderButton(googleSlot, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: Math.min(360, card.clientWidth - 56),
+        });
+      } catch (e) {}
+    }
+
+    // Dismiss handlers
+    function dismissModal() { hideSignInModal({ keepDismissFlag: true }); }
+    closeBtn.addEventListener('click', dismissModal);
+    backdrop.addEventListener('click', function(e) { if (e.target === backdrop) dismissModal(); });
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape' && document.getElementById('rr-signin-modal')) {
+        dismissModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
   }
 
-  function hideFacebookButton() {
-    var el = document.getElementById('rr-fb-cta');
+  function hideSignInModal(opts) {
+    var el = document.getElementById('rr-signin-modal');
     if (el) el.remove();
+    if (opts && opts.keepDismissFlag) {
+      try { sessionStorage.setItem('rr_signin_dismissed', '1'); } catch (e) {}
+    }
   }
+
+  // Globally expose the trigger so any AgentFire CTA / button on the page
+  // can re-open the modal: <a onclick="window.rrShowSignIn()">Sign in</a>
+  window.rrShowSignIn = function() {
+    try { sessionStorage.removeItem('rr_signin_dismissed'); } catch (e) {}
+    showSignInModal();
+  };
 
   // ---------- Page tracking ----------
 
@@ -489,66 +604,54 @@
   var alreadyIdentified = !!cookieValue && cookieValue !== '1';
   var existingFubPersonId = alreadyIdentified ? Number(cookieValue) : null;
   if (alreadyIdentified && Number.isFinite(existingFubPersonId)) {
-    // Returning visitor — fire the page-tracking event immediately, don't
-    // wait for One Tap silent re-auth (which may take 500-800ms or fail).
+    // Returning visitor — fire the page-tracking event immediately. No
+    // sign-in modal — the cookie already says we know who they are.
     trackPage(existingFubPersonId);
-  } else if (cfg.enableFacebookButton) {
-    // Brand-new (or non-cookie) visitor: show the Facebook button alongside
-    // One Tap so the visitor has a clear choice. One Tap is Google-only and
-    // requires a Google session; the FB button covers everyone else.
-    // Source-aware: if they came in from Facebook, the FB button is shown
-    // immediately; otherwise we wait briefly so One Tap gets first shot.
-    var src;
-    try { src = captureSource(); } catch (e) { src = {}; }
-    var cameFromFB = (src.utmSource && /facebook|instagram/i.test(src.utmSource));
-    if (cameFromFB) {
-      showFacebookButton();
-    } else {
-      // 1.2s delay so Google One Tap fires first; if the visitor doesn't
-      // have a Google session, the FB button quietly shows up after.
-      setTimeout(function() {
-        if (!getCookie(cfg.cookieName) || getCookie(cfg.cookieName) === '1') {
-          showFacebookButton();
-        }
-      }, 1200);
-    }
   }
 
-  function initGoogleOneTap() {
+  // Initialize Google Identity Services so the modal can render the
+  // "Continue with Google" button when shown.
+  function initGoogleAndModalSchedule() {
     if (!window.google || !window.google.accounts || !window.google.accounts.id) {
-      setTimeout(initGoogleOneTap, 100);
+      setTimeout(initGoogleAndModalSchedule, 100);
       return;
     }
     google.accounts.id.initialize({
       client_id: cfg.googleClientId,
       callback: function(response) {
+        hideSignInModal({ keepDismissFlag: false });
         identify({ provider: 'google', idToken: response.credential });
       },
-      auto_select: alreadyIdentified, // silent re-auth on returning visits
+      auto_select: false,
       cancel_on_tap_outside: true,
       context: 'signin',
       itp_support: true,
     });
-    google.accounts.id.prompt(function(notification) {
-      // If One Tap is suppressed (dismissed, browser blocked, etc.), still let
-      // FB users identify via the persistent button.
-      if (notification.isNotDisplayed && notification.isNotDisplayed()) {
-        if (!alreadyIdentified) showFacebookButton();
-      } else if (notification.isSkippedMoment && notification.isSkippedMoment()) {
-        if (!alreadyIdentified) showFacebookButton();
-      } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
-        if (!alreadyIdentified) showFacebookButton();
-      }
-    });
+
+    // Schedule the modal for non-identified visitors. Source-aware: visitors
+    // arriving from Facebook see the modal almost immediately (since the FB
+    // CTA is what they're expecting to find); everyone else gets a brief
+    // ~1.5s delay so they see the page content first.
+    if (!alreadyIdentified) {
+      var src;
+      try { src = captureSource(); } catch (e) { src = {}; }
+      var cameFromFB = (src.utmSource && /facebook|instagram/i.test(src.utmSource));
+      var delay = cameFromFB ? 300 : 1500;
+      setTimeout(function() {
+        // Re-check the cookie just before showing — silent re-auth or another
+        // tab may have identified the visitor in the meantime.
+        var current = getCookie(cfg.cookieName);
+        if (!current || current === '1') {
+          showSignInModal();
+        }
+      }, delay);
+    }
   }
 
-  // On returning visits we don't render the FB button at all — the cookie says
-  // we already know this visitor. Vercel's existing trackPageView handles return
-  // visit logging there; we don't double-log from here.
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGoogleOneTap);
+    document.addEventListener('DOMContentLoaded', initGoogleAndModalSchedule);
   } else {
-    initGoogleOneTap();
+    initGoogleAndModalSchedule();
   }
 
   // Expose for any custom button on the page (e.g. AgentFire CTA blocks).
@@ -556,6 +659,7 @@
     if (!window.FB) return;
     FB.login(function(response) {
       if (response && response.authResponse && response.authResponse.accessToken) {
+        hideSignInModal({ keepDismissFlag: false });
         identify({ provider: 'facebook', accessToken: response.authResponse.accessToken });
       }
     }, { scope: 'email,public_profile' });
